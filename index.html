@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - إدارة الاشتراكات</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+        }
+        
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-chart-line text-2xl gradient-text ml-3"></i>
+                    <h1 class="text-xl font-bold text-gray-900">لوحة التحكم</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="refreshData()" class="p-2 text-gray-600 hover:text-gray-900 transition-colors">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-white text-sm"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Hero Section -->
+        <div class="mb-8">
+            <div class="relative bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white overflow-hidden">
+                <div class="relative z-10">
+                    <h2 class="text-3xl font-bold mb-2">مرحباً بك في لوحة التحكم</h2>
+                    <p class="text-blue-100 text-lg">إدارة الاشتراكات والمشتركين بكفاءة عالية</p>
+                </div>
+                <div class="absolute top-0 left-0 w-full h-full opacity-10">
+                    <img src="hero-dashboard.png" alt="Dashboard Background" class="w-full h-full object-cover">
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Card 1: عدد المشتركين -->
+            <a href="subscribers.html" class="dashboard-card rounded-2xl p-6 block">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-blue-100 rounded-xl">
+                        <i class="fas fa-users text-blue-600 text-xl"></i>
+                    </div>
+                    <span class="text-sm text-gray-500">+12% هذا الشهر</span>
+                </div>
+                <h3 class="text-gray-600 text-sm font-medium mb-1">عدد المشتركين</h3>
+                <p class="text-3xl font-bold text-gray-900 mb-2">1,247</p>
+                <div class="flex items-center text-sm text-green-600">
+                    <i class="fas fa-arrow-up ml-1"></i>
+                    <span>89 مشترك جديد</span>
+                </div>
+            </a>
+
+            <!-- Card 2: المنتهي اشتراكهم -->
+            <a href="expired.html" class="dashboard-card rounded-2xl p-6 block">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-red-100 rounded-xl">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                    </div>
+                    <span class="text-sm text-gray-500">يتطلب attention</span>
+                </div>
+                <h3 class="text-gray-600 text-sm font-medium mb-1">المنتهي اشتراكهم</h3>
+                <p class="text-3xl font-bold text-gray-900 mb-2">23</p>
+                <div class="flex items-center text-sm text-red-600">
+                    <i class="fas fa-clock ml-1"></i>
+                    <span>يتطلب التجديد</span>
+                </div>
+            </a>
+
+            <!-- Card 3: على وشك الانتهاء -->
+            <a href="expiring.html" class="dashboard-card rounded-2xl p-6 block">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-orange-100 rounded-xl">
+                        <i class="fas fa-hourglass-half text-orange-600 text-xl"></i>
+                    </div>
+                    <span class="text-sm text-gray-500">خلال 30 يوم</span>
+                </div>
+                <h3 class="text-gray-600 text-sm font-medium mb-1">على وشك الانتهاء</h3>
+                <p class="text-3xl font-bold text-gray-900 mb-2">45</p>
+                <div class="flex items-center text-sm text-orange-600">
+                    <i class="fas fa-bell ml-1"></i>
+                    <span>يحتاج إشعار</span>
+                </div>
+            </a>
+
+            <!-- Card 4: الديون -->
+            <a href="debts.html" class="dashboard-card rounded-2xl p-6 block">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-yellow-100 rounded-xl">
+                        <i class="fas fa-credit-card text-yellow-600 text-xl"></i>
+                    </div>
+                    <span class="text-sm text-gray-500">مبالغ مستحقة</span>
+                </div>
+                <h3 class="text-gray-600 text-sm font-medium mb-1">الديون</h3>
+                <p class="text-3xl font-bold text-gray-900 mb-2">12,450 ر.س</p>
+                <div class="flex items-center text-sm text-yellow-600">
+                    <i class="fas fa-money-bill ml-1"></i>
+                    <span>27 حساب متأخر</span>
+                </div>
+            </a>
+
+            <!-- Card 5: التقارير -->
+            <a href="reports.html" class="dashboard-card rounded-2xl p-6 block">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-green-100 rounded-xl">
+                        <i class="fas fa-chart-bar text-green-600 text-xl"></i>
+                    </div>
+                    <span class="text-sm text-gray-500">آخر تحديث: اليوم</span>
+                </div>
+                <h3 class="text-gray-600 text-sm font-medium mb-1">التقارير</h3>
+                <p class="text-3xl font-bold text-gray-900 mb-2">15</p>
+                <div class="flex items-center text-sm text-green-600">
+                    <i class="fas fa-download ml-1"></i>
+                    <span>تقارير جاهزة</span>
+                </div>
+            </a>
+
+            <!-- Quick Actions Card -->
+            <div class="dashboard-card rounded-2xl p-6 bg-gradient-to-br from-purple-500 to-blue-600 text-white">
+                <h3 class="text-lg font-semibold mb-4">إجراءات سريعة</h3>
+                <div class="space-y-3">
+                    <button onclick="sendRenewalReminders()" class="w-full bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg py-2 px-4 text-sm transition-all">
+                        <i class="fas fa-bell ml-2"></i>
+                        إرسال تذكيرات التجديد
+                    </button>
+                    <button onclick="generateReport()" class="w-full bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg py-2 px-4 text-sm transition-all">
+                        <i class="fas fa-file-alt ml-2"></i>
+                        إنشاء تقرير شهري
+                    </button>
+                    <button onclick="exportData()" class="w-full bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg py-2 px-4 text-sm transition-all">
+                        <i class="fas fa-download ml-2"></i>
+                        تصدير البيانات
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function refreshData() {
+            // Simulate data refresh
+            alert('جاري تحديث البيانات...');
+        }
+
+        function sendRenewalReminders() {
+            alert('تم إرسال تذكيرات التجديد بنجاح');
+        }
+
+        function generateReport() {
+            alert('تم إنشاء التقرير بنجاح');
+        }
+
+        function exportData() {
+            alert('تم تصدير البيانات بنجاح');
+        }
+    </script>
+<script>
+    document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowRight' || e.key === ' ') {
+            e.preventDefault();
+            window.parent.postMessage('go-next', '*');
+        } else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            window.parent.postMessage('go-prev', '*');
+        }
+    });
+</script>
+</body>
+</html>

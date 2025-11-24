@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اشتراكات على وشك الانتهاء - لوحة التحكم</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .countdown-urgent {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="p-2 text-gray-600 hover:text-gray-900 transition-colors">
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <i class="fas fa-hourglass-half text-2xl gradient-text ml-3"></i>
+                    <h1 class="text-xl font-bold text-gray-900">اشتراكات على وشك الانتهاء</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="sendBulkNotifications()" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors">
+                        <i class="fas fa-bell ml-2"></i>
+                        إشعارات جماعية
+                    </button>
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-white text-sm"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-2xl p-6 shadow-sm">
+                <div class="flex items-center">
+                    <div class="p-3 bg-orange-100 rounded-xl">
+                        <i class="fas fa-hourglass-half text-orange-600 text-xl"></i>
+                    </div>
+                    <div class="mr-4">
+                        <p class="text-sm text-gray-600">قريبة من الانتهاء</p>
+                        <p class="text-2xl font-bold text-gray-900">45</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-sm">
+                <div class="flex items-center">
+                    <div class="p-3 bg-red-100 rounded-xl">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                    </div>
+                    <div class="mr-4">
+                        <p class="text-sm text-gray-600">تنتهي خلال 7 أيام</p>
+                        <p class="text-2xl font-bold text-gray-900">12</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-sm">
+                <div class="flex items-center">
+                    <div class="p-3 bg-yellow-100 rounded-xl">
+                        <i class="fas fa-bell text-yellow-600 text-xl"></i>
+                    </div>
+                    <div class="mr-4">
+                        <p class="text-sm text-gray-600">تم إرسال إشعارات</p>
+                        <p class="text-2xl font-bold text-gray-900">38</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-sm">
+                <div class="flex items-center">
+                    <div class="p-3 bg-green-100 rounded-xl">
+                        <i class="fas fa-check text-green-600 text-xl"></i>
+                    </div>
+                    <div class="mr-4">
+                        <p class="text-sm text-gray-600">تم التجديد</p>
+                        <p class="text-2xl font-bold text-gray-900">7</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm mb-6">
+            <div class="flex flex-wrap gap-4 items-center">
+                <div class="flex-1 min-w-48">
+                    <input type="text" id="search-input" placeholder="بحث عن مشترك..." 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <select id="plan-filter" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">جميع الخطط</option>
+                    <option value="الأساسي">الأساسي</option>
+                    <option value="المميز">المميز</option>
+                    <option value="المحترف">المحترف</option>
+                </select>
+                <select id="days-filter" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">جميع الفترات</option>
+                    <option value="1-7">1-7 أيام</option>
+                    <option value="8-15">8-15 يوم</option>
+                    <option value="16-30">16-30 يوم</option>
+                </select>
+                <button onclick="exportExpiringList()" class="bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors">
+                    <i class="fas fa-download ml-2"></i>
+                    تصدير
+                </button>
+            </div>
+        </div>
+
+        <!-- Expiring List -->
+        <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-800">قائمة الاشتراكات القريبة من الانتهاء</h3>
+            </div>
+            
+            <div class="divide-y divide-gray-200" id="expiring-list">
+                <!-- Dynamic content will be loaded here -->
+            </div>
+            
+            <!-- Pagination -->
+            <div class="flex justify-between items-center p-4 border-t border-gray-200">
+                <div class="text-sm text-gray-600">
+                    عرض <span id="showing-from">1</span> إلى <span id="showing-to">10</span> من <span id="total-records">45</span> سجل
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="previousPage()" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <span id="current-page" class="px-3 py-2 bg-blue-600 text-white rounded-lg">1</span>
+                    <button onclick="nextPage()" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentPage = 1;
+        const itemsPerPage = 5;
+        let allExpiring = [];
+        let filteredExpiring = [];
+
+        // Sample data
+        const sampleExpiring = [
+            { id: 1, name: 'منى سامي', email: 'mona@example.com', plan: 'الأساسي', expiryDate: '2024-07-25', daysLeft: 5, phone: '0501234567', notified: true },
+            { id: 2, name: 'عبد الله يوسف', email: 'abdullah@example.com', plan: 'المميز', expiryDate: '2024-08-01', daysLeft: 12, phone: '0502345678', notified: false },
+            { id: 3, name: 'فهد ناصر', email: 'fahd@example.com', plan: 'المحترف', expiryDate: '2024-07-28', daysLeft: 8, phone: '0503456789', notified: true },
+            { id: 4, name: 'نورة خالد', email: 'noura@example.com', plan: 'الأساسي', expiryDate: '2024-08-05', daysLeft: 16, phone: '0504567890', notified: false },
+            { id: 5, name: 'ريم عبد الله', email: 'reem@example.com', plan: 'المميز', expiryDate: '2024-07-30', daysLeft: 10, phone: '0505678901', notified: true },
+            { id: 6, name: 'سامي محمد', email: 'sami@example.com', plan: 'الأساسي', expiryDate: '2024-08-10', daysLeft: 21, phone: '0506789012', notified: false },
+            { id: 7, name: 'ليلى أحمد', email: 'laila@example.com', plan: 'المميز', expiryDate: '2024-08-12', daysLeft: 23, phone: '0507890123', notified: false },
+            { id: 8, name: 'خالد سامي', email: 'khaled@example.com', plan: 'المحترف', expiryDate: '2024-08-15', daysLeft: 26, phone: '0508901234', notified: false },
+            { id: 9, name: 'أمينة يوسف', email: 'amina@example.com', plan: 'الأساسي', expiryDate: '2024-08-18', daysLeft: 29, phone: '0509012345', notified: false },
+            { id: 10, name: 'محمد علي', email: 'mohammed@example.com', plan: 'المميز', expiryDate: '2024-08-20', daysLeft: 31, phone: '0510123456', notified: false }
+        ];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadExpiringSubscribers();
+            setupFilters();
+        });
+
+        function loadExpiringSubscribers() {
+            allExpiring = [...sampleExpiring];
+            filteredExpiring = [...allExpiring];
+            renderList();
+        }
+
+        function setupFilters() {
+            document.getElementById('search-input').addEventListener('input', filterExpiring);
+            document.getElementById('plan-filter').addEventListener('change', filterExpiring);
+            document.getElementById('days-filter').addEventListener('change', filterExpiring);
+        }
+
+        function filterExpiring() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const planFilter = document.getElementById('plan-filter').value;
+            const daysFilter = document.getElementById('days-filter').value;
+
+            filteredExpiring = allExpiring.filter(subscriber => {
+                const matchesSearch = subscriber.name.toLowerCase().includes(searchTerm) || 
+                                    subscriber.email.toLowerCase().includes(searchTerm) ||
+                                    subscriber.phone.includes(searchTerm);
+                const matchesPlan = !planFilter || subscriber.plan === planFilter;
+                const matchesDays = !daysFilter || checkDaysRange(subscriber.daysLeft, daysFilter);
+                
+                return matchesSearch && matchesPlan && matchesDays;
+            });
+
+            currentPage = 1;
+            renderList();
+        }
+
+        function checkDaysRange(days, range) {
+            switch(range) {
+                case '1-7': return days >= 1 && days <= 7;
+                case '8-15': return days >= 8 && days <= 15;
+                case '16-30': return days >= 16 && days <= 30;
+                default: return true;
+            }
+        }
+
+        function renderList() {
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageData = filteredExpiring.slice(startIndex, endIndex);
+
+            const listContainer = document.getElementById('expiring-list');
+            listContainer.innerHTML = pageData.map(subscriber => `
+                <div class="p-6 hover:bg-gray-50 transition-colors">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center mb-2">
+                                <div class="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center text-white font-bold ml-3">
+                                    ${subscriber.name.split(' ').map(n => n[0]).join('')}
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">${subscriber.name}</h4>
+                                    <p class="text-sm text-gray-600">${subscriber.email}</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-4 mt-3 text-sm">
+                                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+                                    ${subscriber.plan}
+                                </span>
+                                <span class="text-gray-600">
+                                    <i class="fas fa-phone ml-1"></i>
+                                    ${subscriber.phone}
+                                </span>
+                                <span class="text-gray-600">
+                                    <i class="fas fa-calendar ml-1"></i>
+                                    ينتهي بتاريخ: ${subscriber.expiryDate}
+                                </span>
+                                <span class="${subscriber.daysLeft <= 7 ? 'text-red-600 countdown-urgent font-bold' : 'text-orange-600 font-semibold'}">
+                                    ${subscriber.daysLeft <= 7 ? '⚠️' : ''} 
+                                    ${subscriber.daysLeft} يوم متبقي
+                                </span>
+                                ${subscriber.notified ? '<span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs"><i class="fas fa-check ml-1"></i>تم الإشعار</span>' : '<span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs"><i class="fas fa-clock ml-1"></i>قيد الانتظار</span>'}
+                            </div>
+                        </div>
+                        <div class="flex gap-2 mt-4 lg:mt-0">
+                            <button onclick="renewSubscription(${subscriber.id})" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
+                                <i class="fas fa-sync ml-2"></i>
+                                تجديد
+                            </button>
+                            <button onclick="sendNotification(${subscriber.id})" class="${subscriber.notified ? 'bg-gray-400' : 'bg-orange-600 hover:bg-orange-700'} text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                                <i class="fas fa-bell ml-2"></i>
+                                ${subscriber.notified ? 'تم الإشعار' : 'إشعار'}
+                            </button>
+                            <button onclick="callSubscriber(${subscriber.id})" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                                <i class="fas fa-phone ml-2"></i>
+                                اتصال
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Update pagination info
+            document.getElementById('showing-from').textContent = startIndex + 1;
+            document.getElementById('showing-to').textContent = Math.min(endIndex, filteredExpiring.length);
+            document.getElementById('total-records').textContent = filteredExpiring.length;
+            document.getElementById('current-page').textContent = currentPage;
+        }
+
+        function renewSubscription(id) {
+            alert(`تجديد اشتراك المشترك رقم ${id}`);
+        }
+
+        function sendNotification(id) {
+            alert(`إرسال إشعار إلى المشترك رقم ${id}`);
+        }
+
+        function callSubscriber(id) {
+            alert(`الاتصال بالمشترك رقم ${id}`);
+        }
+
+        function sendBulkNotifications() {
+            alert('إرسال إشعارات جماعية لجميع المشتركين القريبين من الانتهاء');
+        }
+
+        function exportExpiringList() {
+            alert('تصدير قائمة الاشتراكات القريبة من الانتهاء');
+        }
+
+        function previousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderList();
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(filteredExpiring.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderList();
+            }
+        }
+    </script>
+<script>
+    document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowRight' || e.key === ' ') {
+            e.preventDefault();
+            window.parent.postMessage('go-next', '*');
+        } else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            window.parent.postMessage('go-prev', '*');
+        }
+    });
+</script>
+</body>
+</html>

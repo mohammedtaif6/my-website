@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التقارير والإحصائيات - لوحة التحكم</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/3.0.3/plotly.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .chart-container {
+            height: 400px;
+            width: 100%;
+        }
+        
+        .report-card {
+            transition: all 0.3s ease;
+        }
+        
+        .report-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="p-2 text-gray-600 hover:text-gray-900 transition-colors">
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <i class="fas fa-chart-bar text-2xl gradient-text ml-3"></i>
+                    <h1 class="text-xl font-bold text-gray-900">التقارير والإحصائيات</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="generateCustomReport()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-plus ml-2"></i>
+                        تقرير مخصص
+                    </button>
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-white text-sm"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Quick Reports -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">تقارير سريعة</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="report-card bg-white rounded-2xl p-6 shadow-sm">
+                    <div class="flex items-center mb-4">
+                        <div class="p-3 bg-blue-100 rounded-xl">
+                            <i class="fas fa-chart-line text-blue-600 text-xl"></i>
+                        </div>
+                        <div class="mr-4">
+                            <h3 class="font-semibold text-gray-800">تقرير شهري</h3>
+                            <p class="text-sm text-gray-600">أداء الاشتراكات</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">تحليل شامل لنمو الاشتراكات والإيرادات الشهرية</p>
+                    <button onclick="generateMonthlyReport()" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-download ml-2"></i>
+                        تحميل التقرير
+                    </button>
+                </div>
+
+                <div class="report-card bg-white rounded-2xl p-6 shadow-sm">
+                    <div class="flex items-center mb-4">
+                        <div class="p-3 bg-green-100 rounded-xl">
+                            <i class="fas fa-money-bill text-green-600 text-xl"></i>
+                        </div>
+                        <div class="mr-4">
+                            <h3 class="font-semibold text-gray-800">تقرير مالي</h3>
+                            <p class="text-sm text-gray-600">الإيرادات والمصروفات</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">تحليل مالي شامل للأرباح والخسائر</p>
+                    <button onclick="generateFinancialReport()" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+                        <i class="fas fa-download ml-2"></i>
+                        تحميل التقرير
+                    </button>
+                </div>
+
+                <div class="report-card bg-white rounded-2xl p-6 shadow-sm">
+                    <div class="flex items-center mb-4">
+                        <div class="p-3 bg-purple-100 rounded-xl">
+                            <i class="fas fa-users text-purple-600 text-xl"></i>
+                        </div>
+                        <div class="mr-4">
+                            <h3 class="font-semibold text-gray-800">تحليل المشتركين</h3>
+                            <p class="text-sm text-gray-600">سلوك المستخدمين</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">تحليل سلوك المشتركين ونمط الاستخدام</p>
+                    <button onclick="generateUserReport()" class="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
+                        <i class="fas fa-download ml-2"></i>
+                        تحميل التقرير
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Dashboard -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">لوحة التحليلات</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-2xl p-6 shadow-sm">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">نمو الإيرادات</h3>
+                    <div id="revenue-growth-chart" class="chart-container"></div>
+                </div>
+                
+                <div class="bg-white rounded-2xl p-6 shadow-sm">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">معدل الاحتفاظ بالمشتركين</h3>
+                    <div id="retention-chart" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report History -->
+        <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-800">سجل التقارير</h3>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="text-right p-4 font-semibold text-gray-700">اسم التقرير</th>
+                            <th class="text-right p-4 font-semibold text-gray-700">النوع</th>
+                            <th class="text-right p-4 font-semibold text-gray-700">تاريخ الإنشاء</th>
+                            <th class="text-right p-4 font-semibold text-gray-700">الحجم</th>
+                            <th class="text-right p-4 font-semibold text-gray-700">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reports-table" class="divide-y divide-gray-200">
+                        <!-- Dynamic content will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Sample reports data
+        const sampleReports = [
+            { id: 1, name: 'تقرير الاشتراكات - يونيو 2024', type: 'شهري', date: '2024-06-30', size: '2.4 MB' },
+            { id: 2, name: 'التحليل المالي - الربع الثاني 2024', type: 'مالي', date: '2024-06-25', size: '3.1 MB' },
+            { id: 3, name: 'تحليل سلوك المستخدمين - مايو 2024', type: 'تحليلي', date: '2024-05-31', size: '1.8 MB' },
+            { id: 4, name: 'تقرير الديون - يونيو 2024', type: 'مالي', date: '2024-06-20', size: '1.2 MB' },
+            { id: 5, name: 'أداء الخدمة - مايو 2024', type: 'تشغيلي', date: '2024-05-15', size: '2.0 MB' },
+            { id: 6, name: 'تقرير الاشتراكات - مايو 2024', type: 'شهري', date: '2024-05-31', size: '2.3 MB' },
+            { id: 7, name: 'التحليل المالي - الربع الأول 2024', type: 'مالي', date: '2024-03-31', size: '4.2 MB' },
+            { id: 8, name: 'تقرير رضا العملاء - أبريل 2024', type: 'تحليلي', date: '2024-04-30', size: '1.5 MB' }
+        ];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            loadReports();
+        });
+
+        function initializeCharts() {
+            // Revenue Growth Chart
+            const revenueData = [{
+                x: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'],
+                y: [45000, 48000, 52000, 51000, 55000, 58000],
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#1e40af', width: 3 },
+                marker: { color: '#1e40af', size: 8 },
+                name: 'الإيرادات'
+            }];
+
+            const revenueLayout = {
+                title: '',
+                xaxis: { title: 'الشهر' },
+                yaxis: { title: 'الإيرادات (ريال)' },
+                margin: { t: 20, r: 20, b: 50, l: 60 },
+                font: { family: 'Inter, sans-serif' }
+            };
+
+            Plotly.newPlot('revenue-growth-chart', revenueData, revenueLayout, { responsive: true });
+
+            // Retention Chart
+            const retentionData = [{
+                x: ['شهر 1', 'شهر 2', 'شهر 3', 'شهر 4', 'شهر 5', 'شهر 6'],
+                y: [85, 78, 72, 68, 65, 62],
+                type: 'bar',
+                marker: { color: '#7c3aed' },
+                name: 'معدل الاحتفاظ'
+            }];
+
+            const retentionLayout = {
+                title: '',
+                xaxis: { title: 'الفترة' },
+                yaxis: { title: 'نسبة الاحتفاظ (%)' },
+                margin: { t: 20, r: 20, b: 50, l: 60 },
+                font: { family: 'Inter, sans-serif' }
+            };
+
+            Plotly.newPlot('retention-chart', retentionData, retentionLayout, { responsive: true });
+        }
+
+        function loadReports() {
+            const tableBody = document.getElementById('reports-table');
+            tableBody.innerHTML = sampleReports.map(report => `
+                <tr class="hover:bg-gray-50">
+                    <td class="p-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-file-alt text-blue-600 ml-3"></i>
+                            <span class="font-medium text-gray-800">${report.name}</span>
+                        </div>
+                    </td>
+                    <td class="p-4">
+                        <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                            ${report.type}
+                        </span>
+                    </td>
+                    <td class="p-4 text-gray-600">${report.date}</td>
+                    <td class="p-4 text-gray-600">${report.size}</td>
+                    <td class="p-4">
+                        <div class="flex space-x-2">
+                            <button onclick="downloadReport(${report.id})" class="text-blue-600 hover:text-blue-800">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button onclick="shareReport(${report.id})" class="text-green-600 hover:text-green-800">
+                                <i class="fas fa-share"></i>
+                            </button>
+                            <button onclick="deleteReport(${report.id})" class="text-red-600 hover:text-red-800">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function generateMonthlyReport() {
+            alert('جاري توليد تقرير الاشتراكات الشهري...');
+            // Simulate report generation
+            setTimeout(() => {
+                alert('تم إنشاء تقرير الاشتراكات الشهري بنجاح!');
+            }, 2000);
+        }
+
+        function generateFinancialReport() {
+            alert('جاري توليد التقرير المالي...');
+            setTimeout(() => {
+                alert('تم إنشاء التقرير المالي بنجاح!');
+            }, 2000);
+        }
+
+        function generateUserReport() {
+            alert('جاري توليد تقرير تحليل المستخدمين...');
+            setTimeout(() => {
+                alert('تم إنشاء تقرير تحليل المستخدمين بنجاح!');
+            }, 2000);
+        }
+
+        function generateCustomReport() {
+            alert('فتح نموذج إنشاء تقرير مخصص');
+        }
+
+        function downloadReport(id) {
+            alert(`تحميل التقرير رقم ${id}`);
+        }
+
+        function shareReport(id) {
+            alert(`مشاركة التقرير رقم ${id}`);
+        }
+
+        function deleteReport(id) {
+            if (confirm('هل أنت متأكد من حذف هذا التقرير؟')) {
+                alert(`تم حذف التقرير رقم ${id}`);
+            }
+        }
+    </script>
+<script>
+    document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowRight' || e.key === ' ') {
+            e.preventDefault();
+            window.parent.postMessage('go-next', '*');
+        } else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            window.parent.postMessage('go-prev', '*');
+        }
+    });
+</script>
+</body>
+</html>

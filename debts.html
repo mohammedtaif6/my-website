@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الديون والمستحقات - لوحة التحكم</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/3.0.3/plotly.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .chart-container {
+            height: 300px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="p-2 text-gray-600 hover:text-gray-900 transition-colors">
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <i class="fas fa-credit-card text-2xl gradient-text ml-3"></i>
+                    <h1 class="text-xl font-bold text-gray-900">الديون والمستحقات</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="generatePaymentReport()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                        <i class="fas fa-file-alt ml-2"></i>
+                        تقرير المدفوعات
+                    </button>
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-white text-sm"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-2xl p-6 shadow-sm">
+                <div class="flex items-center">
+                    <div class="p-3 bg-yellow-100 rounded-xl">
+                        <i class="fas fa-credit-card text-yellow-600 text-xl"></i>
+                    </div>
+                    <div class="mr-4">
+                        <p class="text-sm text-gray-600">إجمالي الديون</p>
+                        <p class="text-2xl font-bold text-gray-900">12,450 ر.س</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-sm">
+                <div class="flex items-center">
+                    <div class="p-3 bg-red-100 rounded-xl">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                    </div>
+                    <div class="mr-4">
+                        <p class="text-sm text-gray-600">حسابات متأخرة</p>
+                        <p class="text-2xl font-bold text-gray-900">27</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-sm">
+                <div class="flex items-center">
+                    <div class="p-3 bg-orange-100 rounded-xl">
+                        <i class="fas fa-clock text-orange-600 text-xl"></i>
+                    </div>
+                    <div class="mr-4">
+                        <p class="text-sm text-gray-600">متوسط التأخير</p>
+                        <p class="text-2xl font-bold text-gray-900">12 يوم</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-sm">
+                <div class="flex items-center">
+                    <div class="p-3 bg-green-100 rounded-xl">
+                        <i class="fas fa-check text-green-600 text-xl"></i>
+                    </div>
+                    <div class="mr-4">
+                        <p class="text-sm text-gray-600">تم السداد هذا الشهر</p>
+                        <p class="text-2xl font-bold text-gray-900">8,750 ر.س</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-2xl p-6 shadow-sm">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">تحليل الديون حسب الفئة</h3>
+                <div id="debt-chart" class="chart-container"></div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-sm">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">تاريخ المدفوعات</h3>
+                <div id="payment-chart" class="chart-container"></div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm mb-6">
+            <div class="flex flex-wrap gap-4 items-center">
+                <div class="flex-1 min-w-48">
+                    <input type="text" id="search-input" placeholder="بحث عن مشترك..." 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <select id="status-filter" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">جميع الحالات</option>
+                    <option value="متأخر">متأخر</option>
+                    <option value="قيد المتابعة">قيد المتابعة</option>
+                    <option value="تم السداد">تم السداد</option>
+                </select>
+                <select id="amount-filter" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">جميع المبالغ</option>
+                    <option value="1-299">1 - 299 ر.س</option>
+                    <option value="300-499">300 - 499 ر.س</option>
+                    <option value="500+">500+ ر.س</option>
+                </select>
+                <button onclick="exportDebtList()" class="bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors">
+                    <i class="fas fa-download ml-2"></i>
+                    تصدير
+                </button>
+            </div>
+        </div>
+
+        <!-- Debt List -->
+        <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-800">قائمة الديون والمستحقات</h3>
+            </div>
+            
+            <div class="divide-y divide-gray-200" id="debt-list">
+                <!-- Dynamic content will be loaded here -->
+            </div>
+            
+            <!-- Pagination -->
+            <div class="flex justify-between items-center p-4 border-t border-gray-200">
+                <div class="text-sm text-gray-600">
+                    عرض <span id="showing-from">1</span> إلى <span id="showing-to">10</span> من <span id="total-records">27</span> سجل
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="previousPage()" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <span id="current-page" class="px-3 py-2 bg-blue-600 text-white rounded-lg">1</span>
+                    <button onclick="nextPage()" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentPage = 1;
+        const itemsPerPage = 5;
+        let allDebts = [];
+        let filteredDebts = [];
+
+        // Sample data
+        const sampleDebts = [
+            { id: 1, name: 'فهد ناصر', email: 'fahd@example.com', phone: '0501234567', amount: 299, status: 'متأخر', daysOverdue: 15, lastPayment: '2024-05-15', plan: 'الأساسي' },
+            { id: 2, name: 'نورة خالد', email: 'noura@example.com', phone: '0502345678', amount: 499, status: 'متأخر', daysOverdue: 8, lastPayment: '2024-06-01', plan: 'المميز' },
+            { id: 3, name: 'محمد سامي', email: 'mohamed@example.com', phone: '0503456789', amount: 799, status: 'متأخر', daysOverdue: 22, lastPayment: '2024-05-20', plan: 'المحترف' },
+            { id: 4, name: 'سارة أحمد', email: 'sarah@example.com', phone: '0504567890', amount: 299, status: 'قيد المتابعة', daysOverdue: 5, lastPayment: '2024-06-10', plan: 'الأساسي' },
+            { id: 5, name: 'خالد محمد', email: 'khaled@example.com', phone: '0505678901', amount: 499, status: 'تم السداد', daysOverdue: 0, lastPayment: '2024-06-20', plan: 'المميز' },
+            { id: 6, name: 'فاطمة علي', email: 'fatima@example.com', phone: '0506789012', amount: 299, status: 'متأخر', daysOverdue: 18, lastPayment: '2024-05-25', plan: 'الأساسي' },
+            { id: 7, name: 'عبد الله يوسف', email: 'abdullah@example.com', phone: '0507890123', amount: 799, status: 'متأخر', daysOverdue: 12, lastPayment: '2024-06-05', plan: 'المحترف' },
+            { id: 8, name: 'منى سامي', email: 'mona@example.com', phone: '0508901234', amount: 499, status: 'قيد المتابعة', daysOverdue: 3, lastPayment: '2024-06-15', plan: 'المميز' },
+            { id: 9, name: 'ريم عبد الله', email: 'reem@example.com', phone: '0509012345', amount: 299, status: 'تم السداد', daysOverdue: 0, lastPayment: '2024-06-22', plan: 'الأساسي' },
+            { id: 10, name: 'سامي محمد', email: 'sami@example.com', phone: '0510123456', amount: 499, status: 'متأخر', daysOverdue: 25, lastPayment: '2024-05-18', plan: 'المميز' }
+        ];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            loadDebts();
+            setupFilters();
+        });
+
+        function initializeCharts() {
+            // Debt Distribution Chart
+            const debtData = [{
+                values: [45, 30, 25],
+                labels: ['متأخر', 'قيد المتابعة', 'تم السداد'],
+                type: 'pie',
+                marker: {
+                    colors: ['#dc2626', '#ea580c', '#059669']
+                }
+            }];
+
+            const debtLayout = {
+                title: '',
+                margin: { t: 20, r: 20, b: 20, l: 20 },
+                font: { family: 'Inter, sans-serif' }
+            };
+
+            Plotly.newPlot('debt-chart', debtData, debtLayout, { responsive: true });
+
+            // Payment History Chart
+            const paymentData = [{
+                x: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'],
+                y: [8500, 9200, 7800, 10500, 11200, 8750],
+                type: 'bar',
+                marker: { color: '#7c3aed' },
+                name: 'المدفوعات'
+            }];
+
+            const paymentLayout = {
+                title: '',
+                xaxis: { title: 'الشهر' },
+                yaxis: { title: 'المبلغ (ريال)' },
+                margin: { t: 20, r: 20, b: 50, l: 60 },
+                font: { family: 'Inter, sans-serif' }
+            };
+
+            Plotly.newPlot('payment-chart', paymentData, paymentLayout, { responsive: true });
+        }
+
+        function loadDebts() {
+            allDebts = [...sampleDebts];
+            filteredDebts = [...allDebts];
+            renderList();
+        }
+
+        function setupFilters() {
+            document.getElementById('search-input').addEventListener('input', filterDebts);
+            document.getElementById('status-filter').addEventListener('change', filterDebts);
+            document.getElementById('amount-filter').addEventListener('change', filterDebts);
+        }
+
+        function filterDebts() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const statusFilter = document.getElementById('status-filter').value;
+            const amountFilter = document.getElementById('amount-filter').value;
+
+            filteredDebts = allDebts.filter(debt => {
+                const matchesSearch = debt.name.toLowerCase().includes(searchTerm) || 
+                                    debt.email.toLowerCase().includes(searchTerm) ||
+                                    debt.phone.includes(searchTerm);
+                const matchesStatus = !statusFilter || debt.status === statusFilter;
+                const matchesAmount = !amountFilter || checkAmountRange(debt.amount, amountFilter);
+                
+                return matchesSearch && matchesStatus && matchesAmount;
+            });
+
+            currentPage = 1;
+            renderList();
+        }
+
+        function checkAmountRange(amount, range) {
+            switch(range) {
+                case '1-299': return amount >= 1 && amount <= 299;
+                case '300-499': return amount >= 300 && amount <= 499;
+                case '500+': return amount >= 500;
+                default: return true;
+            }
+        }
+
+        function renderList() {
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageData = filteredDebts.slice(startIndex, endIndex);
+
+            const listContainer = document.getElementById('debt-list');
+            listContainer.innerHTML = pageData.map(debt => `
+                <div class="p-6 hover:bg-gray-50 transition-colors">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center mb-2">
+                                <div class="w-10 h-10 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-full flex items-center justify-center text-white font-bold ml-3">
+                                    ${debt.name.split(' ').map(n => n[0]).join('')}
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">${debt.name}</h4>
+                                    <p class="text-sm text-gray-600">${debt.email}</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-4 mt-3 text-sm">
+                                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+                                    ${debt.plan}
+                                </span>
+                                <span class="text-gray-600">
+                                    <i class="fas fa-phone ml-1"></i>
+                                    ${debt.phone}
+                                </span>
+                                <span class="text-gray-600">
+                                    <i class="fas fa-calendar ml-1"></i>
+                                    آخر دفعة: ${debt.lastPayment}
+                                </span>
+                                ${debt.daysOverdue > 0 ? `<span class="text-red-600 font-semibold">متأخر ${debt.daysOverdue} يوم</span>` : '<span class="text-green-600 font-semibold"><i class="fas fa-check ml-1"></i>حساب حديث</span>'}
+                            </div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-2 mt-4 lg:mt-0">
+                            <div class="text-left mb-2 lg:mb-0 lg:mr-4">
+                                <p class="text-lg font-bold text-gray-900">${debt.amount} ر.س</p>
+                                <p class="text-sm text-gray-600">المبلغ المستحق</p>
+                            </div>
+                            <div class="flex gap-2">
+                                ${debt.status === 'متأخر' ? `
+                                    <button onclick="recordPayment(${debt.id})" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
+                                        <i class="fas fa-money-bill ml-2"></i>
+                                        تسجيل دفعة
+                                    </button>
+                                    <button onclick="sendReminder(${debt.id})" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors text-sm">
+                                        <i class="fas fa-bell ml-2"></i>
+                                        تذكير
+                                    </button>
+                                ` : debt.status === 'قيد المتابعة' ? `
+                                    <button onclick="recordPayment(${debt.id})" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
+                                        <i class="fas fa-money-bill ml-2"></i>
+                                        تسجيل دفعة
+                                    </button>
+                                    <button onclick="markAsPaid(${debt.id})" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                                        <i class="fas fa-check ml-2"></i>
+                                        تم السداد
+                                    </button>
+                                ` : `
+                                    <span class="px-4 py-2 bg-green-100 text-green-800 rounded-lg text-sm">
+                                        <i class="fas fa-check ml-2"></i>
+                                        تم السداد
+                                    </span>
+                                `}
+                                <button onclick="viewDetails(${debt.id})" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm">
+                                    <i class="fas fa-eye ml-2"></i>
+                                    تفاصيل
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Update pagination info
+            document.getElementById('showing-from').textContent = startIndex + 1;
+            document.getElementById('showing-to').textContent = Math.min(endIndex, filteredDebts.length);
+            document.getElementById('total-records').textContent = filteredDebts.length;
+            document.getElementById('current-page').textContent = currentPage;
+        }
+
+        function recordPayment(id) {
+            alert(`تسجيل دفعة للمشترك رقم ${id}`);
+        }
+
+        function sendReminder(id) {
+            alert(`إرسال تذكير للمشترك رقم ${id}`);
+        }
+
+        function markAsPaid(id) {
+            alert(`وضع علامة تم السداد للمشترك رقم ${id}`);
+        }
+
+        function viewDetails(id) {
+            alert(`عرض تفاصيل الديون للمشترك رقم ${id}`);
+        }
+
+        function generatePaymentReport() {
+            alert('توليد تقرير المدفوعات');
+        }
+
+        function exportDebtList() {
+            alert('تصدير قائمة الديون');
+        }
+
+        function previousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderList();
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(filteredDebts.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderList();
+            }
+        }
+    </script>
+<script>
+    document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowRight' || e.key === ' ') {
+            e.preventDefault();
+            window.parent.postMessage('go-next', '*');
+        } else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            window.parent.postMessage('go-prev', '*');
+        }
+    });
+</script>
+</body>
+</html>
