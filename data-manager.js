@@ -35,8 +35,8 @@ const DataManager = {
         const subscriber = {
             id: newId,
             name: data.name,
-            email: data.email,
-            phone: data.phone,
+            // تم حذف الإيميل من هنا كما طلبت
+            phone: data.phone || '',
             subscribeDate: data.subscribeDate || '',
             expiryDate: data.expiryDate || '',
             status: data.status || 'قيد الانتظار',
@@ -86,10 +86,10 @@ const DataManager = {
     searchSubscribers(query) {
         const subscribers = this.getSubscribers();
         const q = query.toLowerCase();
+        // تم حذف البحث عن الإيميل لتجنب الأخطاء
         return subscribers.filter(s => 
-            s.name.toLowerCase().includes(q) ||
-            s.email.toLowerCase().includes(q) ||
-            s.phone.includes(q)
+            (s.name && s.name.toLowerCase().includes(q)) ||
+            (s.phone && s.phone.includes(q))
         );
     },
 
