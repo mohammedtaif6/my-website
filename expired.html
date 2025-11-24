@@ -23,25 +23,62 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="bg-white shadow-sm border-b border-gray-200">
+    <!-- Navigation Bar -->
+    <nav class="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <a href="index.html" class="p-2 text-gray-600 hover:text-gray-900 transition-colors">
-                        <i class="fas fa-arrow-right"></i>
+                <div class="flex items-center space-x-8">
+                    <a href="index.html" class="flex items-center space-x-2 text-white font-bold text-lg hover:opacity-90 transition-opacity">
+                        <i class="fas fa-chart-line text-2xl"></i>
+                        <span>OKComputer</span>
                     </a>
-                    <i class="fas fa-exclamation-triangle text-2xl gradient-text ml-3"></i>
-                    <h1 class="text-xl font-bold text-gray-900">الاشتراكات المنتهية</h1>
+                    <div class="hidden md:flex space-x-1">
+                        <a href="index.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
+                            <i class="fas fa-home ml-2"></i>الرئيسية
+                        </a>
+                        <a href="subscribers.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
+                            <i class="fas fa-users ml-2"></i>المشتركين
+                        </a>
+                        <a href="debts.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
+                            <i class="fas fa-credit-card ml-2"></i>الديون
+                        </a>
+                        <a href="payments.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
+                            <i class="fas fa-money-bill ml-2"></i>المبالغ المستلمة
+                        </a>
+                        <a href="expired.html" class="text-white bg-white bg-opacity-20 px-3 py-2 rounded-lg transition-all font-medium">
+                            <i class="fas fa-exclamation-triangle ml-2"></i>منتهية
+                        </a>
+                        <a href="expiring.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
+                            <i class="fas fa-hourglass-half ml-2"></i>قريبة
+                        </a>
+                        <a href="reports.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
+                            <i class="fas fa-chart-bar ml-2"></i>التقارير
+                        </a>
+                    </div>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <button onclick="sendBulkRenewalReminders()" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors">
-                        <i class="fas fa-bell ml-2"></i>
-                        إرسال تذكيرات جماعية
+                    <button onclick="sendBulkRenewalReminders()" class="text-white px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition-all flex items-center gap-2">
+                        <i class="fas fa-bell"></i>
+                        <span class="hidden sm:inline">تذكيرات جماعية</span>
                     </button>
-                    <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                        <i class="fas fa-user text-white text-sm"></i>
+                    <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white font-bold hover:bg-opacity-30 transition-all cursor-pointer">
+                        <i class="fas fa-user"></i>
                     </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-4xl font-bold text-gray-900 flex items-center">
+                        <i class="fas fa-exclamation-triangle text-red-600 ml-3 text-3xl"></i>
+                        الاشتراكات المنتهية
+                    </h1>
+                    <p class="text-gray-600 mt-2">متابعة الاشتراكات المنتهية وتجديدها</p>
                 </div>
             </div>
         </div>
@@ -51,38 +88,38 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white rounded-2xl p-6 shadow-sm">
+            <div class="bg-white rounded-2xl p-6 shadow-sm" id="expired-count-card">
                 <div class="flex items-center">
                     <div class="p-3 bg-red-100 rounded-xl">
                         <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
                     </div>
                     <div class="mr-4">
                         <p class="text-sm text-gray-600">منتهية الاشتراك</p>
-                        <p class="text-2xl font-bold text-gray-900">23</p>
+                        <p class="text-2xl font-bold text-gray-900">0</p>
                     </div>
                 </div>
             </div>
             
-            <div class="bg-white rounded-2xl p-6 shadow-sm">
+            <div class="bg-white rounded-2xl p-6 shadow-sm" id="avg-days-card">
                 <div class="flex items-center">
                     <div class="p-3 bg-orange-100 rounded-xl">
                         <i class="fas fa-clock text-orange-600 text-xl"></i>
                     </div>
                     <div class="mr-4">
                         <p class="text-sm text-gray-600">متوسط التأخير</p>
-                        <p class="text-2xl font-bold text-gray-900">7 أيام</p>
+                        <p class="text-2xl font-bold text-gray-900">0 أيام</p>
                     </div>
                 </div>
             </div>
             
-            <div class="bg-white rounded-2xl p-6 shadow-sm">
+            <div class="bg-white rounded-2xl p-6 shadow-sm" id="due-amount-card">
                 <div class="flex items-center">
                     <div class="p-3 bg-yellow-100 rounded-xl">
                         <i class="fas fa-money-bill text-yellow-600 text-xl"></i>
                     </div>
                     <div class="mr-4">
                         <p class="text-sm text-gray-600">المبلغ المستحق</p>
-                        <p class="text-2xl font-bold text-gray-900">6,870 ر.س</p>
+                        <p class="text-2xl font-bold text-gray-900">0 د.ع</p>
                     </div>
                 </div>
             </div>
@@ -139,33 +176,52 @@
         </div>
     </main>
 
+    <script src="data-manager.js"></script>
     <script>
         let currentPage = 1;
         const itemsPerPage = 5;
         let allExpired = [];
         let filteredExpired = [];
 
-        // Sample data
-        const sampleExpired = [
-            { id: 1, name: 'سارة أحمد', email: 'sarah@example.com', plan: 'الأساسي', expiryDate: '2024-06-15', amount: '299 ر.س', daysOverdue: 8, phone: '0501234567' },
-            { id: 2, name: 'خالد محمد', email: 'khaled@example.com', plan: 'المميز', expiryDate: '2024-06-10', amount: '499 ر.س', daysOverdue: 13, phone: '0502345678' },
-            { id: 3, name: 'فاطمة علي', email: 'fatima@example.com', plan: 'المحترف', expiryDate: '2024-06-05', amount: '799 ر.س', daysOverdue: 18, phone: '0503456789' },
-            { id: 4, name: 'محمد سامي', email: 'mohamed@example.com', plan: 'الأساسي', expiryDate: '2024-06-01', amount: '299 ر.س', daysOverdue: 22, phone: '0504567890' },
-            { id: 5, name: 'نورة خالد', email: 'noura@example.com', plan: 'المميز', expiryDate: '2024-05-28', amount: '499 ر.س', daysOverdue: 26, phone: '0505678901' },
-            { id: 6, name: 'عبد الله يوسف', email: 'abdullah@example.com', plan: 'الأساسي', expiryDate: '2024-05-25', amount: '299 ر.س', daysOverdue: 29, phone: '0506789012' },
-            { id: 7, name: 'أمينة أحمد', email: 'amina@example.com', plan: 'المميز', expiryDate: '2024-05-20', amount: '499 ر.س', daysOverdue: 34, phone: '0507890123' },
-            { id: 8, name: 'يوسف خالد', email: 'yousef@example.com', plan: 'المحترف', expiryDate: '2024-05-15', amount: '799 ر.س', daysOverdue: 39, phone: '0508901234' }
-        ];
-
         document.addEventListener('DOMContentLoaded', function() {
             loadExpiredSubscribers();
-            setupFilters();
         });
 
         function loadExpiredSubscribers() {
-            allExpired = [...sampleExpired];
+            const subscribers = DataManager.getSubscribers();
+            const today = new Date();
+            
+            allExpired = subscribers.filter(s => {
+                if (!s.expiryDate) return false;
+                const expDate = new Date(s.expiryDate);
+                return expDate < today;
+            });
+
             filteredExpired = [...allExpired];
+            updateStats();
             renderList();
+        }
+
+        function updateStats() {
+            const count = filteredExpired.length;
+            let totalDays = 0;
+
+            filteredExpired.forEach(s => {
+                if (s.expiryDate) {
+                    const expiry = new Date(s.expiryDate);
+                    const today = new Date();
+                    const days = Math.ceil((today - expiry) / (1000 * 60 * 60 * 24));
+                    totalDays += days;
+                }
+            });
+
+            const avgDays = count > 0 ? Math.floor(totalDays / count) : 0;
+            const totalDue = filteredExpired.reduce((sum, s) => sum + (s.price || 0), 0);
+
+            // تحديث البطاقات
+            document.querySelector('#expired-count-card .text-2xl').textContent = count;
+            document.querySelector('#avg-days-card .text-2xl').textContent = avgDays + ' أيام';
+            document.querySelector('#due-amount-card .text-2xl').textContent = totalDue.toLocaleString() + ' د.ع';
         }
 
         function setupFilters() {
@@ -271,19 +327,29 @@
         }
 
         function renewSubscription(id) {
-            alert(`تجديد اشتراك المشترك رقم ${id}`);
+            const subscriber = allExpired.find(s => s.id === id);
+            if (subscriber) {
+                subscriber.expiryDate = new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0];
+                loadExpiredSubscribers();
+            }
         }
 
         function sendReminder(id) {
-            alert(`إرسال تذكير إلى المشترك رقم ${id}`);
+            const subscriber = allExpired.find(s => s.id === id);
+            if (subscriber) {
+                alert(`✓ تم إرسال تذكير إلى ${subscriber.email}\nحول تجديد الاشتراك\nمبلغ الاشتراك: ${subscriber.amount}`);
+            }
         }
 
         function callSubscriber(id) {
-            alert(`الاتصال بالمشترك رقم ${id}`);
+            const subscriber = allExpired.find(s => s.id === id);
+            if (subscriber) {
+                alert(`✓ جاري الاتصال برقم: ${subscriber.phone}\nالمشترك: ${subscriber.name}`);
+            }
         }
 
         function sendBulkRenewalReminders() {
-            alert('إرسال تذكيرات تجديد جماعية لجميع المشتركين المنتهية اشتراكاتهم');
+            alert(`✓ تم إرسال ${allExpired.length} تذكير تجديد إلى جميع المشتركين\nالتاريخ: ${new Date().toLocaleDateString('ar-EG')}`);
         }
 
         function previousPage() {
@@ -301,16 +367,5 @@
             }
         }
     </script>
-<script>
-    document.addEventListener('keydown', e => {
-        if (e.key === 'ArrowRight' || e.key === ' ') {
-            e.preventDefault();
-            window.parent.postMessage('go-next', '*');
-        } else if (e.key === 'ArrowLeft') {
-            e.preventDefault();
-            window.parent.postMessage('go-prev', '*');
-        }
-    });
-</script>
 </body>
 </html>

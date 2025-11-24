@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>اختبار البيانات</title>
+</head>
+<body>
+    <h1>اختبار نظام OKComputer</h1>
+    <button onclick="testSystem()">اختبر النظام</button>
+    <pre id="output"></pre>
+
+    <script src="data-manager.js"></script>
+    <script>
+        function testSystem() {
+            const output = [];
+            
+            // اختبار 1: إضافة مشتركين
+            output.push("=== اختبار 1: إضافة مشتركين ===");
+            
+            DataManager.addSubscriber({
+                name: "أحمد",
+                phone: "0771234567",
+                subscribeDate: "2024-01-01",
+                expiryDate: "2024-02-01",
+                status: "نشط",
+                price: 35000,
+                paymentType: "نقد"
+            });
+            
+            DataManager.addSubscriber({
+                name: "فاطمة",
+                phone: "0772345678",
+                subscribeDate: "2024-01-05",
+                expiryDate: "2024-12-31",
+                status: "نشط",
+                price: 30000,
+                paymentType: "أجل"
+            });
+            
+            output.push("✓ تم إضافة مشتركين");
+            
+            // اختبار 2: الحصول على الإحصائيات
+            output.push("\n=== اختبار 2: الإحصائيات ===");
+            const stats = DataManager.getStatistics();
+            output.push(`إجمالي المشتركين: ${stats.totalSubscribers}`);
+            output.push(`المشتركون النشطون: ${stats.activeSubscribers}`);
+            output.push(`الديون: ${stats.expiringSubscribers}`);
+            output.push(`المنتهي: ${stats.expiredSubscribers}`);
+            
+            // اختبار 3: الحصول على المشتركين
+            output.push("\n=== اختبار 3: بيانات المشتركين ===");
+            const subs = DataManager.getSubscribers();
+            subs.forEach((s, idx) => {
+                output.push(`${idx + 1}. ${s.name} - ${s.price} د.ع - ${s.paymentType}`);
+            });
+            
+            // اختبار 4: فلترة الديون
+            output.push("\n=== اختبار 4: فلترة الديون ===");
+            const debts = subs.filter(s => s.paymentType === 'أجل');
+            output.push(`عدد الديون: ${debts.length}`);
+            debts.forEach(d => {
+                output.push(`  - ${d.name}: ${d.price} د.ع`);
+            });
+            
+            // اختبار 5: فلترة الدفعات النقدية
+            output.push("\n=== اختبار 5: الدفعات النقدية ===");
+            const cash = subs.filter(s => s.paymentType === 'نقد');
+            output.push(`عدد الدفعات النقدية: ${cash.length}`);
+            cash.forEach(c => {
+                output.push(`  - ${c.name}: ${c.price} د.ع`);
+            });
+            
+            document.getElementById('output').textContent = output.join('\n');
+        }
+    </script>
+</body>
+</html>

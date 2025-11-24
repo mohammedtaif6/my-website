@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>التقارير والإحصائيات - لوحة التحكم</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/3.0.3/plotly.min.js"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -21,42 +21,64 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        
-        .chart-container {
-            height: 400px;
-            width: 100%;
-        }
-        
-        .report-card {
-            transition: all 0.3s ease;
-        }
-        
-        .report-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="bg-white shadow-sm border-b border-gray-200">
+    <!-- Navigation Bar -->
+    <nav class="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <a href="index.html" class="p-2 text-gray-600 hover:text-gray-900 transition-colors">
-                        <i class="fas fa-arrow-right"></i>
+                <div class="flex items-center space-x-8">
+                    <a href="index.html" class="flex items-center space-x-2 text-white font-bold text-lg hover:opacity-90 transition-opacity">
+                        <i class="fas fa-chart-line text-2xl"></i>
+                        <span>OKComputer</span>
                     </a>
-                    <i class="fas fa-chart-bar text-2xl gradient-text ml-3"></i>
-                    <h1 class="text-xl font-bold text-gray-900">التقارير والإحصائيات</h1>
+                    <div class="hidden md:flex space-x-1">
+                        <a href="index.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
+                            <i class="fas fa-home ml-2"></i>الرئيسية
+                        </a>
+                        <a href="subscribers.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
+                            <i class="fas fa-users ml-2"></i>المشتركين
+                        </a>
+                        <a href="debts.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
+                            <i class="fas fa-credit-card ml-2"></i>الديون
+                        </a>
+                        <a href="payments.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
+                            <i class="fas fa-money-bill ml-2"></i>المبالغ المستلمة
+                        </a>
+                        <a href="expired.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
+                            <i class="fas fa-exclamation-triangle ml-2"></i>منتهية
+                        </a>
+                        <a href="expiring.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
+                            <i class="fas fa-hourglass-half ml-2"></i>قريبة
+                        </a>
+                        <a href="reports.html" class="text-white bg-white bg-opacity-20 px-3 py-2 rounded-lg transition-all font-medium">
+                            <i class="fas fa-chart-bar ml-2"></i>التقارير
+                        </a>
+                    </div>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <button onclick="generateCustomReport()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                        <i class="fas fa-plus ml-2"></i>
-                        تقرير مخصص
+                    <button onclick="generateCustomReport()" class="text-white p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-all" title="تقرير مخصص">
+                        <i class="fas fa-plus text-lg"></i>
                     </button>
-                    <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                        <i class="fas fa-user text-white text-sm"></i>
+                    <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white font-bold hover:bg-opacity-30 transition-all cursor-pointer">
+                        <i class="fas fa-user"></i>
                     </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-4xl font-bold text-gray-900 flex items-center">
+                        <i class="fas fa-chart-bar text-green-600 ml-3 text-3xl"></i>
+                        التقارير والإحصائيات
+                    </h1>
+                    <p class="text-gray-600 mt-2">إنشاء وتحليل التقارير المختلفة</p>
                 </div>
             </div>
         </div>
@@ -121,21 +143,7 @@
             </div>
         </div>
 
-        <!-- Analytics Dashboard -->
-        <div class="mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">لوحة التحليلات</h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white rounded-2xl p-6 shadow-sm">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">نمو الإيرادات</h3>
-                    <div id="revenue-growth-chart" class="chart-container"></div>
-                </div>
-                
-                <div class="bg-white rounded-2xl p-6 shadow-sm">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">معدل الاحتفاظ بالمشتركين</h3>
-                    <div id="retention-chart" class="chart-container"></div>
-                </div>
-            </div>
-        </div>
+
 
         <!-- Report History -->
         <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -162,69 +170,18 @@
         </div>
     </main>
 
+    <script src="data-manager.js"></script>
     <script>
         // Sample reports data
-        const sampleReports = [
-            { id: 1, name: 'تقرير الاشتراكات - يونيو 2024', type: 'شهري', date: '2024-06-30', size: '2.4 MB' },
-            { id: 2, name: 'التحليل المالي - الربع الثاني 2024', type: 'مالي', date: '2024-06-25', size: '3.1 MB' },
-            { id: 3, name: 'تحليل سلوك المستخدمين - مايو 2024', type: 'تحليلي', date: '2024-05-31', size: '1.8 MB' },
-            { id: 4, name: 'تقرير الديون - يونيو 2024', type: 'مالي', date: '2024-06-20', size: '1.2 MB' },
-            { id: 5, name: 'أداء الخدمة - مايو 2024', type: 'تشغيلي', date: '2024-05-15', size: '2.0 MB' },
-            { id: 6, name: 'تقرير الاشتراكات - مايو 2024', type: 'شهري', date: '2024-05-31', size: '2.3 MB' },
-            { id: 7, name: 'التحليل المالي - الربع الأول 2024', type: 'مالي', date: '2024-03-31', size: '4.2 MB' },
-            { id: 8, name: 'تقرير رضا العملاء - أبريل 2024', type: 'تحليلي', date: '2024-04-30', size: '1.5 MB' }
-        ];
+        let sampleReports = [];
 
         document.addEventListener('DOMContentLoaded', function() {
-            initializeCharts();
             loadReports();
         });
 
-        function initializeCharts() {
-            // Revenue Growth Chart
-            const revenueData = [{
-                x: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'],
-                y: [45000, 48000, 52000, 51000, 55000, 58000],
-                type: 'scatter',
-                mode: 'lines+markers',
-                line: { color: '#1e40af', width: 3 },
-                marker: { color: '#1e40af', size: 8 },
-                name: 'الإيرادات'
-            }];
-
-            const revenueLayout = {
-                title: '',
-                xaxis: { title: 'الشهر' },
-                yaxis: { title: 'الإيرادات (ريال)' },
-                margin: { t: 20, r: 20, b: 50, l: 60 },
-                font: { family: 'Inter, sans-serif' }
-            };
-
-            Plotly.newPlot('revenue-growth-chart', revenueData, revenueLayout, { responsive: true });
-
-            // Retention Chart
-            const retentionData = [{
-                x: ['شهر 1', 'شهر 2', 'شهر 3', 'شهر 4', 'شهر 5', 'شهر 6'],
-                y: [85, 78, 72, 68, 65, 62],
-                type: 'bar',
-                marker: { color: '#7c3aed' },
-                name: 'معدل الاحتفاظ'
-            }];
-
-            const retentionLayout = {
-                title: '',
-                xaxis: { title: 'الفترة' },
-                yaxis: { title: 'نسبة الاحتفاظ (%)' },
-                margin: { t: 20, r: 20, b: 50, l: 60 },
-                font: { family: 'Inter, sans-serif' }
-            };
-
-            Plotly.newPlot('retention-chart', retentionData, retentionLayout, { responsive: true });
-        }
-
         function loadReports() {
             const tableBody = document.getElementById('reports-table');
-            tableBody.innerHTML = sampleReports.map(report => `
+            tableBody.innerHTML = sampleReports.map((report, idx) => `
                 <tr class="hover:bg-gray-50">
                     <td class="p-4">
                         <div class="flex items-center">
@@ -241,13 +198,10 @@
                     <td class="p-4 text-gray-600">${report.size}</td>
                     <td class="p-4">
                         <div class="flex space-x-2">
-                            <button onclick="downloadReport(${report.id})" class="text-blue-600 hover:text-blue-800">
+                            <button onclick="downloadReport(${idx})" class="text-blue-600 hover:text-blue-800">
                                 <i class="fas fa-download"></i>
                             </button>
-                            <button onclick="shareReport(${report.id})" class="text-green-600 hover:text-green-800">
-                                <i class="fas fa-share"></i>
-                            </button>
-                            <button onclick="deleteReport(${report.id})" class="text-red-600 hover:text-red-800">
+                            <button onclick="deleteReport(${idx})" class="text-red-600 hover:text-red-800">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -257,42 +211,82 @@
         }
 
         function generateMonthlyReport() {
-            alert('جاري توليد تقرير الاشتراكات الشهري...');
-            // Simulate report generation
-            setTimeout(() => {
-                alert('تم إنشاء تقرير الاشتراكات الشهري بنجاح!');
-            }, 2000);
+            const stats = DataManager.getStatistics();
+            const subscribers = DataManager.getSubscribers();
+            const timestamp = new Date().toLocaleDateString('ar-EG');
+            const report = {
+                name: `تقرير الاشتراكات - ${timestamp}`,
+                type: 'شهري',
+                date: timestamp,
+                size: '2.5 MB',
+                data: `إجمالي المشتركين: ${stats.totalSubscribers}\nالمشتركون النشطون: ${stats.activeSubscribers}\nالمشتركون المعلقون: ${stats.pendingSubscribers}`
+            };
+            sampleReports.unshift(report);
+            loadReports();
         }
 
         function generateFinancialReport() {
-            alert('جاري توليد التقرير المالي...');
-            setTimeout(() => {
-                alert('تم إنشاء التقرير المالي بنجاح!');
-            }, 2000);
+            const subscribers = DataManager.getSubscribers();
+            const totalRevenue = subscribers.filter(s => s.price).reduce((sum, s) => sum + s.price, 0);
+            const cashPayments = subscribers.filter(s => s.paymentType === 'نقد' && s.price).reduce((sum, s) => sum + s.price, 0);
+            const duePayments = subscribers.filter(s => s.paymentType === 'أجل' && s.price).reduce((sum, s) => sum + s.price, 0);
+            
+            const timestamp = new Date().toLocaleDateString('ar-EG');
+            const report = {
+                name: `التحليل المالي - ${timestamp}`,
+                type: 'مالي',
+                date: timestamp,
+                size: '3.2 MB',
+                data: `إجمالي الإيرادات: ${totalRevenue} د.ع\nالدفع النقدي: ${cashPayments} د.ع\nالدفع الأجل: ${duePayments} د.ع`
+            };
+            sampleReports.unshift(report);
+            loadReports();
         }
 
         function generateUserReport() {
-            alert('جاري توليد تقرير تحليل المستخدمين...');
-            setTimeout(() => {
-                alert('تم إنشاء تقرير تحليل المستخدمين بنجاح!');
-            }, 2000);
+            const stats = DataManager.getStatistics();
+            const timestamp = new Date().toLocaleDateString('ar-EG');
+            const report = {
+                name: `تحليل المستخدمين - ${timestamp}`,
+                type: 'تحليلي',
+                date: timestamp,
+                size: '1.9 MB',
+                data: `عدد المشتركين: ${stats.totalSubscribers}\nالمشتركون النشطون: ${stats.activeSubscribers}\nالمشتركون المنتهية اشتراكاتهم: ${stats.expiredSubscribers}`
+            };
+            sampleReports.unshift(report);
+            loadReports();
         }
 
         function generateCustomReport() {
-            alert('فتح نموذج إنشاء تقرير مخصص');
+            const name = prompt('أدخل اسم التقرير المخصص:');
+            if (name) {
+                const timestamp = new Date().toLocaleDateString('ar-EG');
+                const report = {
+                    name: `${name} - ${timestamp}`,
+                    type: 'مخصص',
+                    date: timestamp,
+                    size: '2.0 MB'
+                };
+                sampleReports.unshift(report);
+                loadReports();
+            }
         }
 
         function downloadReport(id) {
-            alert(`تحميل التقرير رقم ${id}`);
-        }
-
-        function shareReport(id) {
-            alert(`مشاركة التقرير رقم ${id}`);
+            const report = sampleReports[id];
+            if (report) {
+                const content = report.data ? report.name + '\n\n' + report.data : report.name;
+                const link = document.createElement('a');
+                link.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(content);
+                link.download = `${report.name}.txt`;
+                link.click();
+            }
         }
 
         function deleteReport(id) {
             if (confirm('هل أنت متأكد من حذف هذا التقرير؟')) {
-                alert(`تم حذف التقرير رقم ${id}`);
+                sampleReports.splice(id, 1);
+                loadReports();
             }
         }
     </script>

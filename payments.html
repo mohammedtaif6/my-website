@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المبالغ المستلمة - لوحة التحكم</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation Bar -->
+    <nav class="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-8">
+                    <a href="index.html" class="flex items-center space-x-2 text-white font-bold text-lg hover:opacity-90">
+                        <i class="fas fa-chart-line text-2xl"></i>
+                        <span>OKComputer</span>
+                    </a>
+                    <div class="hidden md:flex space-x-1">
+                        <a href="index.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
+                            <i class="fas fa-home ml-2"></i>الرئيسية
+                        </a>
+                        <a href="subscribers.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
+                            <i class="fas fa-users ml-2"></i>المشتركين
+                        </a>
+                        <a href="debts.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
+                            <i class="fas fa-credit-card ml-2"></i>الديون
+                        </a>
+                        <a href="payments.html" class="text-white bg-white bg-opacity-20 px-3 py-2 rounded-lg transition-all font-medium">
+                            <i class="fas fa-money-bill ml-2"></i>المبالغ المستلمة
+                        </a>
+                        <a href="expired.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
+                            <i class="fas fa-exclamation-triangle ml-2"></i>منتهية
+                        </a>
+                        <a href="expiring.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
+                            <i class="fas fa-hourglass-half ml-2"></i>قريبة
+                        </a>
+                        <a href="reports.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
+                            <i class="fas fa-chart-bar ml-2"></i>التقارير
+                        </a>
+                    </div>
+                </div>
+                <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white font-bold hover:bg-opacity-30 cursor-pointer">
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <h1 class="text-4xl font-bold text-gray-900 flex items-center">
+                <i class="fas fa-money-bill text-green-600 ml-3 text-3xl"></i>
+                المبالغ المستلمة
+            </h1>
+            <p class="text-gray-600 mt-2">متابعة الدفعات النقدية والمبالغ المستلمة</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-2xl p-6 shadow-sm border-r-4 border-green-600">
+                <p class="text-sm text-gray-600">إجمالي المبالغ المستلمة</p>
+                <p class="text-2xl font-bold text-gray-900" id="total-received">0 د.ع</p>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-sm border-r-4 border-blue-600">
+                <p class="text-sm text-gray-600">عدد الدفعات</p>
+                <p class="text-2xl font-bold text-gray-900" id="payment-count">0</p>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-sm border-r-4 border-purple-600">
+                <p class="text-sm text-gray-600">متوسط الدفعة</p>
+                <p class="text-2xl font-bold text-gray-900" id="average-payment">0 د.ع</p>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-sm border-r-4 border-orange-600">
+                <p class="text-sm text-gray-600">اليوم</p>
+                <p class="text-2xl font-bold text-gray-900" id="today-received">0 د.ع</p>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-lg p-6 shadow-sm mb-6">
+            <div class="flex flex-wrap gap-4 items-center">
+                <div class="flex-1 min-w-48">
+                    <input type="text" id="search" placeholder="بحث عن اسم أو هاتف..." 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           onkeyup="filterPayments()">
+                </div>
+                <input type="date" id="date-filter" class="p-3 border border-gray-300 rounded-lg" onchange="filterPayments()">
+                <button onclick="exportPayments()" class="bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors">
+                    <i class="fas fa-download ml-2"></i>تصدير
+                </button>
+            </div>
+        </div>
+
+        <!-- Payments Table -->
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="text-right p-4 font-semibold text-gray-700">#</th>
+                            <th class="text-right p-4 font-semibold text-gray-700">الاسم</th>
+                            <th class="text-right p-4 font-semibold text-gray-700">الهاتف</th>
+                            <th class="text-right p-4 font-semibold text-gray-700">المبلغ</th>
+                            <th class="text-right p-4 font-semibold text-gray-700">نوع الدفع</th>
+                            <th class="text-right p-4 font-semibold text-gray-700">التاريخ</th>
+                            <th class="text-right p-4 font-semibold text-gray-700">ملاحظات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="payments-body" class="divide-y divide-gray-200">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex justify-between items-center p-4 border-t border-gray-200">
+                <div class="text-sm text-gray-600">
+                    عرض <span id="page-info">0</span> سجل
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="previousPage()" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <span id="current-page" class="px-3 py-2 bg-blue-600 text-white rounded-lg">1</span>
+                    <button onclick="nextPage()" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="data-manager.js"></script>
+    <script>
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let allPayments = [];
+        let filteredPayments = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPayments();
+        });
+
+        function loadPayments() {
+            const subscribers = DataManager.getSubscribers();
+            
+            // جمع الدفعات النقدية
+            allPayments = subscribers.filter(s => s.paymentType === 'نقد' && s.price).map(s => ({
+                id: s.id,
+                name: s.name,
+                phone: s.phone,
+                amount: s.price || 0,
+                type: 'نقد',
+                date: s.subscribeDate,
+                status: s.status
+            }));
+
+            // جمع الدفعات من الأجل التي تم تحويلها إلى نقد (price = 0)
+            subscribers.filter(s => s.paymentType === 'أجل' && s.price === 0).forEach(s => {
+                if (s.lastPaymentDate) {
+                    allPayments.push({
+                        id: s.id,
+                        name: s.name,
+                        phone: s.phone,
+                        amount: parseFloat(s.originalPrice || 0),
+                        type: 'أجل',
+                        date: s.lastPaymentDate,
+                        status: 'مدفوع'
+                    });
+                }
+            });
+
+            filteredPayments = [...allPayments];
+            updateStats();
+            renderTable();
+        }
+
+        function updateStats() {
+            const totalReceived = filteredPayments.reduce((sum, p) => sum + p.amount, 0);
+            const count = filteredPayments.length;
+            const avg = count > 0 ? Math.round(totalReceived / count) : 0;
+            const today = new Date().toISOString().split('T')[0];
+            const todayReceived = filteredPayments.filter(p => p.date === today).reduce((sum, p) => sum + p.amount, 0);
+
+            document.getElementById('total-received').textContent = totalReceived.toLocaleString() + ' د.ع';
+            document.getElementById('payment-count').textContent = count;
+            document.getElementById('average-payment').textContent = avg.toLocaleString() + ' د.ع';
+            document.getElementById('today-received').textContent = todayReceived.toLocaleString() + ' د.ع';
+        }
+
+        function renderTable() {
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageData = filteredPayments.slice(start, end);
+
+            const tbody = document.getElementById('payments-body');
+            tbody.innerHTML = pageData.map((p, idx) => `
+                <tr class="hover:bg-gray-50">
+                    <td class="p-4">${start + idx + 1}</td>
+                    <td class="p-4 font-medium">${p.name}</td>
+                    <td class="p-4 text-gray-600">${p.phone || '-'}</td>
+                    <td class="p-4 font-bold text-green-600">${p.amount.toLocaleString()} د.ع</td>
+                    <td class="p-4">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium ${p.type === 'نقد' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}">
+                            ${p.type}
+                        </span>
+                    </td>
+                    <td class="p-4 text-gray-600">${p.date}</td>
+                    <td class="p-4 text-gray-600 text-sm">${p.status}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('page-info').textContent = `${start + 1}-${Math.min(end, filteredPayments.length)} من ${filteredPayments.length}`;
+            document.getElementById('current-page').textContent = currentPage;
+        }
+
+        function filterPayments() {
+            const search = document.getElementById('search').value.toLowerCase();
+            const dateFilter = document.getElementById('date-filter').value;
+
+            filteredPayments = allPayments.filter(p => {
+                const matchesSearch = !search || 
+                    p.name.toLowerCase().includes(search) ||
+                    p.phone.includes(search);
+                
+                const matchesDate = !dateFilter || p.date === dateFilter;
+                
+                return matchesSearch && matchesDate;
+            });
+
+            currentPage = 1;
+            updateStats();
+            renderTable();
+        }
+
+        function exportPayments() {
+            let csv = 'الاسم,الهاتف,المبلغ (د.ع),النوع,التاريخ\n';
+            filteredPayments.forEach(p => {
+                csv += `${p.name},${p.phone},${p.amount},${p.type},${p.date}\n`;
+            });
+            const link = document.createElement('a');
+            link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+            link.download = `payments_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+        }
+
+        function previousPage() {
+            if (currentPage > 1) currentPage--;
+            renderTable();
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(filteredPayments.length / itemsPerPage);
+            if (currentPage < totalPages) currentPage++;
+            renderTable();
+        }
+    </script>
+</body>
+</html>
