@@ -30,12 +30,13 @@ const DataManager = {
 
     addSubscriber(data) {
         const subscribers = this.getSubscribers();
-        const newId = subscribers.length > 0 ? Math.max(...subscribers.map(s => s.id)) + 1 : 1;
+        // إصلاح حساب المعرف لتجنب التكرار في حال كانت المصفوفة فارغة أو بها مشاكل
+        const newId = subscribers.length > 0 ? Math.max(...subscribers.map(s => s.id || 0)) + 1 : 1;
         
         const subscriber = {
             id: newId,
             name: data.name,
-            // تم حذف الإيميل من هنا كما طلبت
+            // تم التأكد من أن الهاتف نص دائماً
             phone: data.phone || '',
             subscribeDate: data.subscribeDate || '',
             expiryDate: data.expiryDate || '',
@@ -76,21 +77,39 @@ const DataManager = {
 
     getSubscribers() {
         const data = localStorage.getItem(this.KEYS.SUBSCRIBERS);
-        return data ? JSON.parse(data) : [];
+        try {
+            // حماية إضافية: إذا كانت البيانات تالفة نرجع مصفوفة فارغة
+            return data ? JSON.parse(data) : [];
+        } catch (e) {
+            return [];
+        }
     },
 
     saveSubscribers(subscribers) {
         localStorage.setItem(this.KEYS.SUBSCRIBERS, JSON.stringify(subscribers));
     },
 
+    // 🟢 هذه هي الدالة المعدلة جذرياً لمنع المشكلة
     searchSubscribers(query) {
         const subscribers = this.getSubscribers();
-        const q = query.toLowerCase();
-        // تم حذف البحث عن الإيميل لتجنب الأخطاء
-        return subscribers.filter(s => 
-            (s.name && s.name.toLowerCase().includes(q)) ||
-            (s.phone && s.phone.includes(q))
-        );
+        
+        // إذا لم يكن هناك نص للبحث، نرجع مصفوفة فارغة
+        if (!query) return [];
+        
+        const q = query.toString().toLowerCase().trim();
+
+        return subscribers.filter(s => {
+            // حماية ضد العناصر الفارغة
+            if (!s) return false;
+
+            // تحويل القيم إلى نصوص بأمان تام قبل البحث
+            // استخدام (|| '') يضمن أننا لا نحاول استدعاء toLowerCase على قيمة غير موجودة
+            const name = (s.name || '').toString().toLowerCase();
+            const phone = (s.phone || '').toString();
+            
+            // تم حذف البحث في الإيميل نهائياً
+            return name.includes(q) || phone.includes(q);
+        });
     },
 
     filterSubscribers(criteria) {
@@ -121,7 +140,7 @@ const DataManager = {
 
     addDebt(data) {
         const debts = this.getDebts();
-        const newId = debts.length > 0 ? Math.max(...debts.map(d => d.id)) + 1 : 1;
+        const newId = debts.length > 0 ? Math.max(...debts.map(d => d.id || 0)) + 1 : 1;
 
         const debt = {
             id: newId,
@@ -159,7 +178,11 @@ const DataManager = {
 
     getDebts() {
         const data = localStorage.getItem(this.KEYS.DEBTS);
-        return data ? JSON.parse(data) : [];
+        try {
+            return data ? JSON.parse(data) : [];
+        } catch (e) {
+            return [];
+        }
     },
 
     saveDebts(debts) {
@@ -176,12 +199,12 @@ const DataManager = {
 
         return {
             totalSubscribers: subscribers.length,
-            activeSubscribers: subscribers.filter(s => s.status === 'نشط').length,
-            pendingSubscribers: subscribers.filter(s => s.status === 'قيد الانتظار').length,
-            inactiveSubscribers: subscribers.filter(s => s.status === 'غير نشط').length,
-            expiredSubscribers: subscribers.filter(s => s.expiryDate && new Date(s.expiryDate) < new Date()).length,
+            activeSubscribers: subscribers.filter(s => s && s.status === 'نشط').length,
+            pendingSubscribers: subscribers.filter(s => s && s.status === 'قيد الانتظار').length,
+            inactiveSubscribers: subscribers.filter(s => s && s.status === 'غير نشط').length,
+            expiredSubscribers: subscribers.filter(s => s && s.expiryDate && new Date(s.expiryDate) < new Date()).length,
             expiringSubscribers: subscribers.filter(s => {
-                if (!s.expiryDate) return false;
+                if (!s || !s.expiryDate) return false;
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
                 const expiry = new Date(s.expiryDate);
@@ -190,9 +213,9 @@ const DataManager = {
                 threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
                 return expiry > today && expiry <= threeDaysFromNow;
             }).length,
-            totalDebts: debts.reduce((sum, d) => sum + d.amount, 0),
+            totalDebts: debts.reduce((sum, d) => sum + (d.amount || 0), 0),
             totalDebtsCount: debts.length,
-            overdueDebts: debts.filter(d => d.status === 'متأخر').length,
+            overdueDebts: debts.filter(d => d && d.status === 'متأخر').length,
             totalRevenue: subscribers.reduce((sum, s) => sum + (s.price || 0), 0)
         };
     },
@@ -211,7 +234,7 @@ const DataManager = {
                 const value = row[header];
                 return typeof value === 'string' && value.includes(',') 
                     ? `"${value}"` 
-                    : value;
+                    : (value || '');
             });
             csv += values.join(',') + '\n';
         });
@@ -224,7 +247,11 @@ const DataManager = {
 
     getReports() {
         const data = localStorage.getItem(this.KEYS.REPORTS);
-        return data ? JSON.parse(data) : [];
+        try {
+            return data ? JSON.parse(data) : [];
+        } catch (e) {
+            return [];
+        }
     },
 
     saveReports(reports) {
@@ -232,7 +259,6 @@ const DataManager = {
     }
 };
 
-// تهيئة النظام عند التحميل
 document.addEventListener('DOMContentLoaded', () => {
     DataManager.init();
 });
