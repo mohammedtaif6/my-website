@@ -15,7 +15,6 @@
     </style>
 </head>
 <body class="bg-gray-50">
-    <!-- Navigation Bar -->
     <nav class="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
@@ -57,7 +56,6 @@
         </div>
     </nav>
 
-    <!-- Header -->
     <header class="bg-white border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <h1 class="text-4xl font-bold text-gray-900 flex items-center">
@@ -68,9 +66,7 @@
         </div>
     </header>
 
-    <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Action Buttons -->
         <div class="flex flex-wrap gap-3 mb-8">
             <button onclick="openAddModal()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium">
                 <i class="fas fa-plus"></i>
@@ -86,7 +82,6 @@
             </button>
         </div>
 
-        <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div class="bg-white rounded-lg p-6 shadow-sm border-r-4 border-blue-600">
                 <p class="text-sm text-gray-600">إجمالي المشتركين</p>
@@ -109,7 +104,6 @@
             </div>
         </div>
 
-        <!-- Filters -->
         <div class="bg-white rounded-lg p-6 shadow-sm mb-6">
                 <div class="flex flex-wrap gap-4 items-center">
                 <div class="flex-1 min-w-48">
@@ -126,7 +120,6 @@
             </div>
         </div>
 
-        <!-- Table -->
         <div class="bg-white rounded-lg shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full">
@@ -147,7 +140,6 @@
                 </table>
             </div>
 
-            <!-- Pagination -->
             <div class="flex justify-between items-center p-4 border-t border-gray-200">
                 <div class="text-sm text-gray-600">
                     عرض <span id="page-info">0</span> سجل
@@ -165,7 +157,6 @@
         </div>
     </main>
 
-    <!-- Add Subscriber Modal -->
     <div id="addModal" class="modal">
         <div class="modal-content">
             <div class="flex justify-between items-center mb-6">
@@ -178,7 +169,7 @@
                     <input type="text" id="add-name" required placeholder="أدخل الاسم الكامل" class="w-full p-3 border border-gray-300 rounded-lg">
                 </div>
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">الاسم</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">الهاتف</label>
                     <input type="text" id="add-phone" placeholder="رقم الهاتف" class="w-full p-3 border border-gray-300 rounded-lg">
                 </div>
                 <div class="flex gap-3 mt-6">
@@ -194,7 +185,35 @@
         </div>
     </div>
 
-    <!-- Activate Subscription Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">تعديل بيانات المشترك</h2>
+                <button onclick="closeEditModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <form onsubmit="saveEditSubscriber(event)">
+                <input type="hidden" id="edit-id">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">الاسم *</label>
+                    <input type="text" id="edit-name" required class="w-full p-3 border border-gray-300 rounded-lg">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">الهاتف</label>
+                    <input type="text" id="edit-phone" class="w-full p-3 border border-gray-300 rounded-lg">
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="closeEditModal()" class="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+                        إلغاء
+                    </button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-save ml-2"></i>
+                        حفظ التعديلات
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="activateModal" class="modal">
         <div class="modal-content">
             <div class="flex justify-between items-center mb-6">
@@ -270,7 +289,6 @@
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="data-manager.js"></script>
     <script>
         let currentPage = 1;
@@ -278,16 +296,22 @@
         let allSubscribers = [];
         let filteredSubscribers = [];
 
+        // تحميل البيانات وعرض الجدول
         function loadSubscribers() {
             const search = document.getElementById('search').value.toLowerCase();
             const statusFilter = document.getElementById('filter-status').value;
 
-            allSubscribers = DataManager.getSubscribers();
+            // حماية ضد البيانات الفارغة
+            allSubscribers = DataManager.getSubscribers() || [];
             
             filteredSubscribers = allSubscribers.filter(s => {
+                if (!s) return false;
+                const name = (s.name || '').toLowerCase();
+                const phone = (s.phone || '').toString();
+                
                 const matchesSearch = !search || 
-                    s.name.toLowerCase().includes(search) ||
-                    s.phone.includes(search);
+                    name.includes(search) ||
+                    phone.includes(search);
                 
                 const matchesStatus = !statusFilter || s.status === statusFilter;
                 
@@ -299,6 +323,7 @@
             updateStats();
         }
 
+        // رسم الجدول مع إضافة زر التعديل
         function renderTable() {
             const start = (currentPage - 1) * itemsPerPage;
             const end = start + itemsPerPage;
@@ -308,18 +333,21 @@
             tbody.innerHTML = pageData.map((s, idx) => `
                 <tr class="hover:bg-gray-50">
                     <td class="p-4">${start + idx + 1}</td>
-                    <td class="p-4 font-medium">${s.name}</td>
+                    <td class="p-4 font-medium">${s.name || 'بدون اسم'}</td>
                     <td class="p-4 text-gray-600">${s.phone || '-'}</td>
                     <td class="p-4 text-gray-600">${s.subscribeDate || '-'}</td>
                     <td class="p-4 text-gray-600">${s.expiryDate || '-'}</td>
                     <td class="p-4">
                         <span class="px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(s.status)}">
-                            ${s.status}
+                            ${s.status || 'غير محدد'}
                         </span>
                     </td>
                     <td class="p-4 font-bold text-blue-600">${(s.price || 0).toLocaleString()} د.ع</td>
                     <td class="p-4">
                         <div class="flex gap-2">
+                            <button onclick="openEditModal(${s.id})" class="text-blue-600 hover:text-blue-800 text-sm" title="تعديل">
+                                <i class="fas fa-edit"></i>
+                            </button>
                             <button onclick="deleteSubscriber(${s.id})" class="text-red-600 hover:text-red-800 text-sm" title="حذف">
                                 <i class="fas fa-trash"></i>
                             </button>
@@ -349,6 +377,8 @@
             return colors[status] || 'bg-gray-100 text-gray-800';
         }
 
+        // --- إدارة النوافذ المنبثقة (Modals) ---
+
         function openAddModal() {
             document.getElementById('addModal').classList.add('active');
         }
@@ -368,6 +398,35 @@
             loadSubscribers();
             closeAddModal();
         }
+
+        // --- وظائف التعديل الجديدة (Edit) ---
+        function openEditModal(id) {
+            const subscriber = DataManager.getSubscriber(id);
+            if(subscriber) {
+                document.getElementById('edit-id').value = subscriber.id;
+                document.getElementById('edit-name').value = subscriber.name;
+                document.getElementById('edit-phone').value = subscriber.phone;
+                document.getElementById('editModal').classList.add('active');
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+        }
+
+        function saveEditSubscriber(e) {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('edit-id').value);
+            const name = document.getElementById('edit-name').value;
+            const phone = document.getElementById('edit-phone').value;
+
+            DataManager.updateSubscriber(id, { name, phone });
+            loadSubscribers();
+            closeEditModal();
+            alert('تم تعديل البيانات بنجاح');
+        }
+
+        // --- وظائف تفعيل الاشتراك (مع إصلاح البحث) ---
 
         function openActivateModal() {
             document.getElementById('activateModal').classList.add('active');
@@ -410,6 +469,60 @@
             }
         }
 
+        // دالة البحث المصححة (تمنع توقف النظام)
+        function searchSubscriber() {
+            const input = document.getElementById('act-name').value.trim();
+            const suggestionBox = document.getElementById('subscriber-suggestions');
+            const infoBox = document.getElementById('subscriber-info');
+            
+            if (!input) {
+                suggestionBox.classList.add('hidden');
+                infoBox.classList.add('hidden');
+                return;
+            }
+
+            let results = [];
+            try {
+                results = DataManager.searchSubscribers(input);
+            } catch (e) {
+                // بحث احتياطي يدوي في حال فشل DataManager
+                const all = DataManager.getSubscribers() || [];
+                const q = input.toLowerCase();
+                results = all.filter(s => (s.name || '').toLowerCase().includes(q));
+            }
+            
+            if (results.length === 0) {
+                suggestionBox.classList.add('hidden');
+                infoBox.classList.add('hidden');
+                return;
+            }
+
+            const suggestionsList = document.getElementById('suggestions-list');
+            // استخدام ID بدلاً من الاسم في دالة النقر (الحل النهائي للمشكلة)
+            suggestionsList.innerHTML = results.map(s => `
+                <div class="p-3 border-b border-gray-200 hover:bg-gray-100 cursor-pointer" onclick="selectSubscriber(${s.id})">
+                    <div class="font-medium">${s.name}</div>
+                    <div class="text-sm text-gray-600">الهاتف: ${s.phone || 'غير متوفر'} | الحالة: ${s.status}</div>
+                </div>
+            `).join('');
+
+            suggestionBox.classList.remove('hidden');
+
+            if (results.length === 1) {
+                showSubscriberInfo(results[0]);
+            }
+        }
+
+        function selectSubscriber(id) {
+            const subscriber = DataManager.getSubscriber(id);
+            
+            if (subscriber) {
+                document.getElementById('act-name').value = subscriber.name;
+                document.getElementById('subscriber-suggestions').classList.add('hidden');
+                showSubscriberInfo(subscriber);
+            }
+        }
+
         function activateSubscription(e) {
             e.preventDefault();
             const name = document.getElementById('act-name').value;
@@ -419,12 +532,14 @@
             const subscribeDate = document.getElementById('sub-date').value;
             const expiryDate = document.getElementById('exp-date').value;
 
-            if (!price) {
-                return;
-            }
+            if (!price) return;
 
-            const existing = DataManager.searchSubscribers(name)[0];
-            
+            let existing = null;
+            try {
+                const results = DataManager.searchSubscribers(name);
+                existing = results.find(s => s.name === name);
+            } catch(e) {}
+
             if (existing) {
                 DataManager.updateSubscriber(existing.id, {
                     price, paymentType, subscribeDate, expiryDate,
@@ -441,6 +556,13 @@
             closeActivateModal();
         }
 
+        function showSubscriberInfo(subscriber) {
+            if (!subscriber) return;
+            document.getElementById('info-phone').textContent = subscriber.phone || 'غير متوفر';
+            document.getElementById('info-status').textContent = subscriber.status || 'قيد الانتظار';
+            document.getElementById('subscriber-info').classList.remove('hidden');
+        }
+
         function printReceipt() {
             const name = document.getElementById('act-name').value;
             const price = document.getElementById('selected-price').value || document.getElementById('custom-price').value;
@@ -448,12 +570,15 @@
             const subscribeDate = document.getElementById('sub-date').value;
             const expiryDate = document.getElementById('exp-date').value;
 
-            if (!name || !price) {
-                return;
-            }
+            if (!name || !price) return;
 
-            const existing = DataManager.searchSubscribers(name)[0];
-            const phone = existing ? existing.phone : 'غير متوفر';
+            // محاولة جلب الهاتف
+            let phone = 'غير متوفر';
+            try {
+                const results = DataManager.searchSubscribers(name);
+                const sub = results.find(s => s.name === name);
+                if (sub) phone = sub.phone;
+            } catch(e) {}
 
             const printContent = `
                 <!DOCTYPE html>
@@ -518,73 +643,22 @@
             DataManager.exportToCSV(data, 'subscribers');
         }
 
-        function searchSubscriber() {
-            const input = document.getElementById('act-name').value.trim();
-            const suggestionBox = document.getElementById('subscriber-suggestions');
-            const infoBox = document.getElementById('subscriber-info');
-            
-            if (!input) {
-                suggestionBox.classList.add('hidden');
-                infoBox.classList.add('hidden');
-                return;
-            }
-
-            const results = DataManager.searchSubscribers(input);
-            
-            if (results.length === 0) {
-                suggestionBox.classList.add('hidden');
-                infoBox.classList.add('hidden');
-                return;
-            }
-
-            const suggestionsList = document.getElementById('suggestions-list');
-            suggestionsList.innerHTML = results.map(s => `
-                <div class="p-3 border-b border-gray-200 hover:bg-gray-100 cursor-pointer" onclick="selectSubscriber('${s.name}', ${s.id})">
-                    <div class="font-medium">${s.name}</div>
-                    <div class="text-sm text-gray-600">الهاتف: ${s.phone || 'غير متوفر'} | الحالة: ${s.status}</div>
-                </div>
-            `).join('');
-
-            suggestionBox.classList.remove('hidden');
-
-            if (results.length === 1) {
-                showSubscriberInfo(results[0]);
-            }
-        }
-
-        function selectSubscriber(name, id) {
-            document.getElementById('act-name').value = name;
-            document.getElementById('subscriber-suggestions').classList.add('hidden');
-            
-            const subscriber = DataManager.getSubscriber(id);
-            showSubscriberInfo(subscriber);
-        }
-
-        function showSubscriberInfo(subscriber) {
-            document.getElementById('info-phone').textContent = subscriber.phone || 'غير متوفر';
-            document.getElementById('info-status').textContent = subscriber.status || 'قيد الانتظار';
-            document.getElementById('subscriber-info').classList.remove('hidden');
-        }
-
-        function previousPage() {
-            if (currentPage > 1) currentPage--;
-            renderTable();
-        }
-
-        function nextPage() {
-            const totalPages = Math.ceil(filteredSubscribers.length / itemsPerPage);
-            if (currentPage < totalPages) currentPage++;
-            renderTable();
-        }
-
         window.onclick = function(e) {
             const addModal = document.getElementById('addModal');
             const activateModal = document.getElementById('activateModal');
+            const editModal = document.getElementById('editModal');
             if (e.target === addModal) closeAddModal();
             if (e.target === activateModal) closeActivateModal();
+            if (e.target === editModal) closeEditModal();
         };
 
-        loadSubscribers();
+        function previousPage() { if (currentPage > 1) { currentPage--; renderTable(); } }
+        function nextPage() { 
+            const totalPages = Math.ceil(filteredSubscribers.length / itemsPerPage);
+            if (currentPage < totalPages) { currentPage++; renderTable(); } 
+        }
+
+        document.addEventListener('DOMContentLoaded', loadSubscribers);
     </script>
 </body>
 </html>
