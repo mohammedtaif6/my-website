@@ -194,10 +194,21 @@
                 if (!s.expiryDate) return false;
                 const expDate = new Date(s.expiryDate);
                 return expDate < today;
+            }).map(s => {
+                const expDate = new Date(s.expiryDate);
+                const daysOverdue = Math.ceil((today - expDate) / (1000 * 60 * 60 * 24));
+                return {
+                    ...s,
+                    daysOverdue: daysOverdue,
+                    plan: 'اشتراك',
+                    email: s.phone || 'بدون بريد',
+                    amount: s.price || 0
+                };
             });
 
             filteredExpired = [...allExpired];
             updateStats();
+            setupFilters();
             renderList();
         }
 
@@ -228,23 +239,22 @@
             document.getElementById('plan-filter').addEventListener('change', filterExpired);
             document.getElementById('days-filter').addEventListener('change', filterExpired);
         }
-
-        function filterExpired() {
             const searchTerm = document.getElementById('search-input').value.toLowerCase();
             const planFilter = document.getElementById('plan-filter').value;
             const daysFilter = document.getElementById('days-filter').value;
 
             filteredExpired = allExpired.filter(subscriber => {
-                const matchesSearch = subscriber.name.toLowerCase().includes(searchTerm) || 
-                                    subscriber.email.toLowerCase().includes(searchTerm) ||
-                                    subscriber.phone.includes(searchTerm);
-                const matchesPlan = !planFilter || subscriber.plan === planFilter;
+                const matchesSearch = (subscriber.name || '').toLowerCase().includes(searchTerm) || 
+                                    (subscriber.email || '').toLowerCase().includes(searchTerm) ||
+                                    (subscriber.phone || '').includes(searchTerm);
+                const matchesPlan = !planFilter || (subscriber.plan || 'اشتراك') === planFilter;
                 const matchesDays = !daysFilter || checkDaysRange(subscriber.daysOverdue, daysFilter);
                 
                 return matchesSearch && matchesPlan && matchesDays;
             });
 
             currentPage = 1;
+            updateStats();
             renderList();
         }
 
@@ -326,22 +336,30 @@
         }
 
         function renewSubscription(id) {
-            const subscriber = allExpired.find(s => s.id === id);
+            const subscriber = DataManager.getSubscriber(id);
             if (subscriber) {
-                subscriber.expiryDate = new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0];
+                const newExpiryDate = new Date();
+                newExpiryDate.setDate(newExpiryDate.getDate() + 30);
+                const expiryStr = newExpiryDate.toISOString().split('T')[0];
+                
+                DataManager.updateSubscriber(id, {
+                    expiryDate: expiryStr,
+                    status: 'نشط'
+                });
                 loadExpiredSubscribers();
+                alert(`✓ تم تجديد اشتراك ${subscriber.name}\nينتهي بتاريخ: ${expiryStr}`);
             }
         }
 
         function sendReminder(id) {
-            const subscriber = allExpired.find(s => s.id === id);
+            const subscriber = DataManager.getSubscriber(id);
             if (subscriber) {
-                alert(`✓ تم إرسال تذكير إلى ${subscriber.email}\nحول تجديد الاشتراك\nمبلغ الاشتراك: ${subscriber.amount}`);
+                alert(`✓ تم إرسال تذكير إلى ${subscriber.name}\nحول تجديد الاشتراك\nمبلغ الاشتراك: ${(subscriber.price || 0).toLocaleString()} د.ع`);
             }
         }
 
         function callSubscriber(id) {
-            const subscriber = allExpired.find(s => s.id === id);
+            const subscriber = DataManager.getSubscriber(id);
             if (subscriber) {
                 alert(`✓ جاري الاتصال برقم: ${subscriber.phone}\nالمشترك: ${subscriber.name}`);
             }
@@ -350,8 +368,6 @@
         function sendBulkRenewalReminders() {
             alert(`✓ تم إرسال ${allExpired.length} تذكير تجديد إلى جميع المشتركين\nالتاريخ: ${new Date().toLocaleDateString('ar-EG')}`);
         }
-
-        function previousPage() {
             if (currentPage > 1) {
                 currentPage--;
                 renderList();

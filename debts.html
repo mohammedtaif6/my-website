@@ -28,15 +28,27 @@
                 <div class="text-2xl font-bold" id="total-debts">0</div>
             </div>
             <div class="bg-white p-4 rounded shadow border-r-4 border-red-500">
-                <div class="text-gray-500">المتأخرين</div>
+                <div class="text-gray-500">عدد الديون المستحقة</div>
                 <div class="text-2xl font-bold" id="overdue-count">0</div>
+            </div>
+            <div class="bg-white p-4 rounded shadow border-r-4 border-orange-500">
+                <div class="text-gray-500">متوسط الدين</div>
+                <div class="text-2xl font-bold" id="average-debt">0</div>
             </div>
         </div>
 
         <div class="bg-white rounded shadow overflow-hidden">
             <table class="w-full text-right">
                 <thead class="bg-gray-50">
-                    <tr><th class="p-4">الاسم</th><th class="p-4">الهاتف</th><th class="p-4">المبلغ</th><th class="p-4">إجراء</th></tr>
+                    <tr>
+                        <th class="p-4">#</th>
+                        <th class="p-4">الاسم</th>
+                        <th class="p-4">الهاتف</th>
+                        <th class="p-4">المبلغ (د.ع)</th>
+                        <th class="p-4">تاريخ الاشتراك</th>
+                        <th class="p-4">تاريخ الانتهاء</th>
+                        <th class="p-4">الإجراء</th>
+                    </tr>
                 </thead>
                 <tbody id="debts-body" class="divide-y"></tbody>
             </table>
@@ -49,24 +61,41 @@
             const all = DataManager.getSubscribers();
             const debts = all.filter(s => s.paymentType === 'أجل' && s.price > 0);
             
-            document.getElementById('total-debts').textContent = debts.reduce((sum, s) => sum + parseInt(s.price), 0).toLocaleString();
+            const totalAmount = debts.reduce((sum, s) => sum + parseInt(s.price), 0);
+            const avgAmount = debts.length > 0 ? Math.round(totalAmount / debts.length) : 0;
+            
+            document.getElementById('total-debts').textContent = totalAmount.toLocaleString() + ' د.ع';
             document.getElementById('overdue-count').textContent = debts.length;
+            document.getElementById('average-debt').textContent = avgAmount.toLocaleString() + ' د.ع';
 
-            document.getElementById('debts-body').innerHTML = debts.map(d => `
+            document.getElementById('debts-body').innerHTML = debts.map((d, idx) => `
                 <tr class="hover:bg-gray-50">
-                    <td class="p-4 font-bold">${d.name}</td>
-                    <td class="p-4 text-gray-500">${d.phone || '-'}</td>
-                    <td class="p-4 text-red-600 font-bold">${parseInt(d.price).toLocaleString()}</td>
+                    <td class="p-4 text-right">${idx + 1}</td>
+                    <td class="p-4 font-bold text-right">${d.name}</td>
+                    <td class="p-4 text-gray-500 text-right">${d.phone || '-'}</td>
+                    <td class="p-4 text-red-600 font-bold text-right">${parseInt(d.price).toLocaleString()} د.ع</td>
+                    <td class="p-4 text-gray-600 text-right">${d.subscribeDate || '-'}</td>
+                    <td class="p-4 text-gray-600 text-right">${d.expiryDate || '-'}</td>
                     <td class="p-4">
-                        <button onclick="pay(${d.id})" class="px-3 py-1 bg-green-600 text-white rounded text-sm">تسديد</button>
+                        <button onclick="markAsPaid(${d.id}, '${d.name}', ${d.price})" class="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition">تسديد</button>
                     </td>
                 </tr>
             `).join('');
         };
 
-        window.pay = (id) => {
-            if(confirm('هل تم تسديد المبلغ؟')) {
-                DataManager.updateSubscriber(id, { paymentType: 'نقد', price: 0 }); // تصفير الدين
+        window.markAsPaid = (id, name, amount) => {
+            if(confirm(`هل تم تسديد المبلغ من ${name}؟\nالمبلغ: ${amount.toLocaleString()} د.ع`)) {
+                const subscriber = DataManager.getSubscriber(id);
+                if(subscriber) {
+                    DataManager.updateSubscriber(id, { 
+                        paymentType: 'نقد',
+                        lastPaymentDate: new Date().toISOString().split('T')[0],
+                        originalPrice: subscriber.price,
+                        price: 0
+                    });
+                    window.loadDebts();
+                    alert('✓ تم تسجيل التسديد بنجاح');
+                }
             }
         };
         

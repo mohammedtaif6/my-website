@@ -24,6 +24,7 @@
                     <a href="subscribers.html" class="text-white hover:bg-white/10 px-3 py-2 rounded">المشتركين</a>
                     <a href="debts.html" class="text-white hover:bg-white/10 px-3 py-2 rounded">الديون</a>
                     <a href="payments.html" class="text-white hover:bg-white/10 px-3 py-2 rounded">المبالغ</a>
+                    <a href="expenses.html" class="text-white hover:bg-white/10 px-3 py-2 rounded">الصرفيات</a>
                     <a href="reports.html" class="text-white hover:bg-white/10 px-3 py-2 rounded">التقارير</a>
                 </div>
             </div>
@@ -73,6 +74,24 @@
                 <h3 class="text-gray-500 text-sm font-bold">الديون (أجل)</h3>
                 <p class="text-3xl font-bold text-gray-800 mt-1" id="stat-debts">...</p>
             </a>
+
+            <a href="payments.html" class="card rounded-xl p-6 shadow-sm border border-gray-100 block">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="p-3 bg-green-100 rounded-lg text-green-600"><i class="fas fa-check-circle text-xl"></i></div>
+                    <span class="text-xs text-gray-500 font-bold">إيرادات</span>
+                </div>
+                <h3 class="text-gray-500 text-sm font-bold">المبالغ المستلمة</h3>
+                <p class="text-3xl font-bold text-gray-800 mt-1" id="stat-received">...</p>
+            </a>
+
+            <a href="expenses.html" class="card rounded-xl p-6 shadow-sm border border-gray-100 block">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="p-3 bg-red-100 rounded-lg text-red-600"><i class="fas fa-receipt text-xl"></i></div>
+                    <span class="text-xs text-gray-500 font-bold">مصروفات</span>
+                </div>
+                <h3 class="text-gray-500 text-sm font-bold">الصرفيات</h3>
+                <p class="text-3xl font-bold text-gray-800 mt-1" id="stat-expenses">...</p>
+            </a>
         </div>
     </main>
 
@@ -83,12 +102,25 @@
         window.updateDashboard = function() {
             const stats = DataManager.getStatistics();
             const subs = DataManager.getSubscribers();
-            const debts = subs.filter(s => s.paymentType === 'أجل').reduce((sum, s) => sum + (parseInt(s.price) || 0), 0);
+            const debts = subs.filter(s => s.paymentType === 'أجل' && s.price > 0).reduce((sum, s) => sum + (parseInt(s.price) || 0), 0);
+            
+            // حساب المبالغ المستلمة
+            const received = subs.filter(s => s.paymentType === 'نقد' && s.price > 0).reduce((sum, s) => sum + (parseInt(s.price) || 0), 0) +
+                            subs.filter(s => s.lastPaymentDate && s.originalPrice > 0).reduce((sum, s) => sum + (parseInt(s.originalPrice) || 0), 0);
+            
+            // حساب الصرفيات من localStorage
+            let expenses = 0;
+            const expensesData = JSON.parse(localStorage.getItem('expenses') || '[]');
+            if (Array.isArray(expensesData)) {
+                expenses = expensesData.reduce((sum, e) => sum + (parseInt(e.amount) || 0), 0);
+            }
 
             document.getElementById('stat-total').textContent = stats.totalSubscribers;
             document.getElementById('stat-expired').textContent = stats.expiredSubscribers;
             document.getElementById('stat-expiring').textContent = stats.expiringSubscribers;
             document.getElementById('stat-debts').textContent = debts.toLocaleString() + ' د.ع';
+            document.getElementById('stat-received').textContent = received.toLocaleString() + ' د.ع';
+            document.getElementById('stat-expenses').textContent = expenses.toLocaleString() + ' د.ع';
         }
     </script>
 </body>

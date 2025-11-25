@@ -156,7 +156,7 @@
             const subscribers = DataManager.getSubscribers();
             
             // جمع الدفعات النقدية
-            allPayments = subscribers.filter(s => s.paymentType === 'نقد' && s.price).map(s => ({
+            allPayments = subscribers.filter(s => s.paymentType === 'نقد' && s.price > 0).map(s => ({
                 id: s.id,
                 name: s.name,
                 phone: s.phone,
@@ -166,20 +166,21 @@
                 status: s.status
             }));
 
-            // جمع الدفعات من الأجل التي تم تحويلها إلى نقد (price = 0)
-            subscribers.filter(s => s.paymentType === 'أجل' && s.price === 0).forEach(s => {
-                if (s.lastPaymentDate) {
-                    allPayments.push({
-                        id: s.id,
-                        name: s.name,
-                        phone: s.phone,
-                        amount: parseFloat(s.originalPrice || 0),
-                        type: 'أجل',
-                        date: s.lastPaymentDate,
-                        status: 'مدفوع'
-                    });
-                }
+            // جمع الدفعات من الأجل التي تم تحويلها إلى نقد (price = 0 بعد التسديد)
+            subscribers.filter(s => s.lastPaymentDate && s.originalPrice > 0).forEach(s => {
+                allPayments.push({
+                    id: s.id,
+                    name: s.name,
+                    phone: s.phone,
+                    amount: parseFloat(s.originalPrice || 0),
+                    type: s.paymentType === 'نقد' ? 'نقد' : 'أجل',
+                    date: s.lastPaymentDate,
+                    status: 'مدفوع'
+                });
             });
+
+            // ترتيب حسب التاريخ الأحدث أولاً
+            allPayments.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             filteredPayments = [...allPayments];
             updateStats();

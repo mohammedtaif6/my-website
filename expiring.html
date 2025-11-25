@@ -221,13 +221,21 @@
                 if (!s.expiryDate) return false;
                 const expDate = new Date(s.expiryDate);
                 return expDate > today && expDate <= threeDaysFromNow;
-            }).map(s => ({
-                ...s,
-                daysLeft: Math.ceil((new Date(s.expiryDate) - today) / (1000 * 60 * 60 * 24))
-            }));
+            }).map(s => {
+                const daysLeft = Math.ceil((new Date(s.expiryDate) - today) / (1000 * 60 * 60 * 24));
+                return {
+                    ...s,
+                    daysLeft: daysLeft,
+                    plan: 'اشتراك',
+                    email: s.phone || 'بدون بريد',
+                    amount: s.price || 0,
+                    notified: false
+                };
+            });
 
             filteredExpiring = [...allExpiring];
             updateStats();
+            setupFilters();
             renderList();
         }
 
@@ -261,8 +269,8 @@
             const daysFilter = document.getElementById('days-filter').value;
 
             filteredExpiring = allExpiring.filter(subscriber => {
-                const matchesSearch = subscriber.name.toLowerCase().includes(searchTerm) || 
-                                    subscriber.phone.includes(searchTerm);
+                const matchesSearch = (subscriber.name || '').toLowerCase().includes(searchTerm) || 
+                                    (subscriber.phone || '').includes(searchTerm);
                 const matchesDays = !daysFilter || checkDaysRange(subscriber.daysLeft, daysFilter);
                 
                 return matchesSearch && matchesDays;
@@ -345,42 +353,49 @@
         }
 
         function renewSubscription(id) {
-            const subscriber = allExpiring.find(s => s.id === id);
+            const subscriber = DataManager.getSubscriber(id);
             if (subscriber) {
-                subscriber.expiryDate = new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0];
-                subscriber.daysLeft = 30;
+                const newExpiryDate = new Date();
+                newExpiryDate.setDate(newExpiryDate.getDate() + 30);
+                const expiryStr = newExpiryDate.toISOString().split('T')[0];
+                
+                DataManager.updateSubscriber(id, {
+                    expiryDate: expiryStr,
+                    status: 'نشط'
+                });
                 loadExpiringSubscribers();
-                alert(`✓ تم تجديد اشتراك ${subscriber.name}\nينتهي بتاريخ: ${subscriber.expiryDate}`);
+                alert(`✓ تم تجديد اشتراك ${subscriber.name}\nينتهي بتاريخ: ${expiryStr}`);
             }
         }
 
         function sendNotification(id) {
-            const subscriber = allExpiring.find(s => s.id === id);
+            const subscriber = DataManager.getSubscriber(id);
             if (subscriber) {
-                subscriber.notified = true;
-                renderList();
-                alert(`✓ تم إرسال إشعار إلى ${subscriber.email}\nحول انتهاء الاشتراك خلال ${subscriber.daysLeft} يوم`);
+                DataManager.updateSubscriber(id, { notified: true });
+                loadExpiringSubscribers();
+                alert(`✓ تم إرسال إشعار إلى ${subscriber.name}\nحول انتهاء الاشتراك`);
             }
         }
 
         function callSubscriber(id) {
-            const subscriber = allExpiring.find(s => s.id === id);
+            const subscriber = DataManager.getSubscriber(id);
             if (subscriber) {
-                alert(`✓ جاري الاتصال برقم: ${subscriber.phone}\nالمشترك: ${subscriber.name}\nالأيام المتبقية: ${subscriber.daysLeft}`);
+                const daysLeft = Math.ceil((new Date(subscriber.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
+                alert(`✓ جاري الاتصال برقم: ${subscriber.phone}\nالمشترك: ${subscriber.name}\nالأيام المتبقية: ${daysLeft}`);
             }
         }
 
         function sendBulkNotifications() {
             const notNotified = allExpiring.filter(s => !s.notified);
-            notNotified.forEach(s => s.notified = true);
-            renderList();
+            notNotified.forEach(s => DataManager.updateSubscriber(s.id, { notified: true }));
+            loadExpiringSubscribers();
             alert(`✓ تم إرسال ${notNotified.length} إشعار إلى المشتركين\nالتاريخ: ${new Date().toLocaleDateString('ar-EG')}`);
         }
 
         function exportExpiringList() {
-            let csv = 'الاسم,البريد,الهاتف,الخطة,تاريخ الانتهاء,الأيام المتبقية,الإشعار\n';
+            let csv = 'الاسم,الهاتف,السعر,تاريخ الانتهاء,الأيام المتبقية,الحالة\n';
             filteredExpiring.forEach(s => {
-                csv += `${s.name},${s.email},${s.phone},${s.plan},${s.expiryDate},${s.daysLeft},${s.notified ? 'تم' : 'لم يتم'}\n`;
+                csv += `${s.name},${s.phone},${s.price},${s.expiryDate},${s.daysLeft},${s.notified ? 'تم الإشعار' : 'قيد الانتظار'}\n`;
             });
             const link = document.createElement('a');
             link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
