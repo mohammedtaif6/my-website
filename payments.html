@@ -13,14 +13,94 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        body { font-family: 'Inter', sans-serif; padding-top: env(safe-area-inset-top); }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            background-color: #f9fafb;
+        }
+
+        /* --- تصميم نافذة الحذف (Delete Modal) --- */
+        .modal-backdrop { 
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+            background-color: rgba(0, 0, 0, 0.6); 
+            backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center; 
+            z-index: 2000; opacity: 0; visibility: hidden; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        } 
+        
+        .modal-backdrop.active { opacity: 1; visibility: visible; } 
+        
+        .modal-content { 
+            background: white; border-radius: 20px; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
+            max-width: 450px; width: 90%; 
+            transform: scale(0.95) translateY(10px); 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            overflow: hidden; 
+        } 
+        
+        .modal-backdrop.active .modal-content { transform: scale(1) translateY(0); } 
+        
+        .modal-header { 
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); 
+            color: white; padding: 20px 24px; 
+            display: flex; align-items: center; gap: 12px; 
+        } 
+        
+        .modal-header i { font-size: 24px; background: rgba(255,255,255,0.2); padding: 8px; border-radius: 50%; } 
+        .modal-header h2 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.5px; } 
+        
+        .modal-body { padding: 24px; } 
+        .modal-body p { margin: 0 0 16px; color: #4b5563; line-height: 1.6; font-size: 15px; } 
+        
+        .payment-details { 
+            background: #fef2f2; border: 1px solid #fee2e2; 
+            padding: 16px; border-radius: 12px; margin: 16px 0; 
+        } 
+        
+        .detail-row { display: flex; justify-content: space-between; margin: 8px 0; font-size: 14px; border-bottom: 1px dashed #fca5a5; padding-bottom: 8px; }
+        .detail-row:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+        
+        .detail-label { color: #7f1d1d; font-weight: 500; } 
+        .detail-value { color: #991b1b; font-weight: 700; font-family: monospace; font-size: 15px; } 
+        
+        .warning-text { 
+            color: #b91c1c; font-size: 13px; margin-top: 16px; 
+            padding: 10px 12px; background: #fff1f2; border-radius: 8px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        
+        .modal-footer { 
+            padding: 16px 24px; background: #f9fafb; 
+            display: flex; gap: 12px; justify-content: flex-end; 
+            border-top: 1px solid #f3f4f6; 
+        } 
+        
+        .btn-cancel { 
+            padding: 10px 20px; border: 1px solid #e5e7eb; background: white; 
+            color: #374151; border-radius: 10px; cursor: pointer; 
+            font-size: 14px; font-weight: 600; transition: all 0.2s; 
+        } 
+        .btn-cancel:hover { background: #f9fafb; border-color: #d1d5db; } 
+        
+        .btn-confirm { 
+            padding: 10px 24px; background: #dc2626; 
+            color: white; border: none; border-radius: 10px; cursor: pointer; 
+            font-size: 14px; font-weight: 600; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.2);
+        } 
+        .btn-confirm:hover { background: #b91c1c; transform: translateY(-1px); } 
+        .btn-confirm:active { transform: translateY(0); }
+
         /* إخفاء الـ Checkbox بشكل افتراضي */
         .select-col { display: none; }
         .select-col.active { display: table-cell; }
     </style>
 </head>
-<body class="bg-gray-50">
+<body>
     <nav class="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex justify-between items-center h-16">
@@ -75,7 +155,7 @@
                 <button onclick="toggleEditMode()" id="edit-btn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
                     <i class="fas fa-edit"></i> تحديد
                 </button>
-                <button onclick="deleteSelected()" id="delete-btn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition hidden">
+                <button onclick="prepareDeleteSelected()" id="delete-btn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition hidden">
                     <i class="fas fa-trash"></i> حذف (<span id="sel-count">0</span>)
                 </button>
                 <button onclick="exportPayments()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
@@ -111,66 +191,79 @@
         </div>
     </main>
 
-    <script type="module" src="data-manager.js?v=2.0"></script>
+    <div id="deleteModal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="fas fa-trash-alt"></i>
+                <h2>تأكيد عملية الحذف</h2>
+            </div>
+            <div class="modal-body">
+                <p id="delete-msg-text">هل أنت متأكد من رغبتك في حذف هذا السجل؟ لا يمكن التراجع عن هذا الإجراء.</p>
+                
+                <div class="payment-details" id="single-delete-details">
+                    <div class="detail-row">
+                        <span class="detail-label">المبلغ:</span>
+                        <span class="detail-value" id="del-modal-amount"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">الاسم:</span>
+                        <span class="detail-value" id="del-modal-name"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">التاريخ:</span>
+                        <span class="detail-value" id="del-modal-date"></span>
+                    </div>
+                </div>
+
+                <div class="warning-text">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>تنبيه: سيتم التأثير على حساب المشترك وإعادة ضبط المبالغ المستحقة عليه.</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeDeleteModal()">إلغاء الأمر</button>
+                <button class="btn-confirm" id="confirm-delete-btn" onclick="confirmDelete()">تأكيد الحذف</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="data-manager.js?v=2.1"></script>
     
     <script>
         let allPayments = [], filteredPayments = [];
         let currentPage = 1, itemsPerPage = 10;
         let isEditMode = false;
+        let paymentToDelete = null; // لتخزين بيانات الحذف المؤقتة
+        let isBulkDelete = false; // هل هو حذف جماعي؟
 
-        // دالة لتعريف loadPayments عالمياً ليستخدمها data-manager.js
         window.loadPayments = function() {
             const subs = DataManager.getSubscribers();
             const partials = JSON.parse(localStorage.getItem('partial_payments') || '[]');
             
             allPayments = [];
 
-            // 1. الدفعات النقدية المباشرة (عند الاشتراك)
             subs.filter(s => s.paymentType === 'نقد' && s.price > 0).forEach(s => {
                 allPayments.push({
-                    id: `sub_${s.id}`,
-                    source: 'subscriber',
-                    realId: s.id,
-                    name: s.name,
-                    amount: parseInt(s.price),
-                    type: 'نقد',
-                    date: s.subscribeDate,
-                    canDelete: true // يمكن حذفه (تصفير السعر)
+                    id: `sub_${s.id}`, source: 'subscriber', realId: s.id,
+                    name: s.name, amount: parseInt(s.price), type: 'نقد', date: s.subscribeDate
                 });
             });
 
-            // 2. ديون تم تسديدها بالكامل (تحولت لنقد)
             subs.filter(s => s.lastPaymentDate && s.originalPrice > 0).forEach(s => {
                 allPayments.push({
-                    id: `debt_${s.id}`,
-                    source: 'debt_full',
-                    realId: s.id,
-                    name: s.name,
-                    amount: parseInt(s.originalPrice),
-                    type: 'تسديد كامل',
-                    date: s.lastPaymentDate,
-                    canDelete: true // يمكن حذفه (إرجاع الدين)
+                    id: `debt_${s.id}`, source: 'debt_full', realId: s.id,
+                    name: s.name, amount: parseInt(s.originalPrice), type: 'تسديد كامل', date: s.lastPaymentDate
                 });
             });
 
-            // 3. دفعات جزئية (من localStorage)
             partials.forEach(p => {
                 allPayments.push({
-                    id: `part_${p.id}`,
-                    source: 'partial',
-                    realId: p.id, // ID الدفعة نفسها
-                    subId: p.subscriberId,
-                    name: p.name,
-                    amount: parseInt(p.amount),
-                    type: p.type || 'جزئي',
-                    date: p.date,
-                    canDelete: true
+                    id: `part_${p.id}`, source: 'partial', realId: p.id, subId: p.subscriberId,
+                    name: p.name, amount: parseInt(p.amount), type: p.type || 'جزئي', date: p.date
                 });
             });
 
-            // ترتيب حسب التاريخ الأحدث
             allPayments.sort((a, b) => new Date(b.date) - new Date(a.date));
-            
             filterPayments();
         };
 
@@ -191,9 +284,7 @@
 
         function updateStats() {
             const total = filteredPayments.reduce((sum, p) => sum + p.amount, 0);
-            // حساب الصرفيات للطرح
             const expenses = JSON.parse(localStorage.getItem('expenses') || '[]').reduce((s, e) => s + (parseInt(e.amount)||0), 0);
-            
             const today = new Date().toISOString().split('T')[0];
             const todayTotal = filteredPayments.filter(p => p.date === today).reduce((s, p) => s + p.amount, 0);
 
@@ -220,64 +311,99 @@
                     <td class="p-4"><span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">${p.type}</span></td>
                     <td class="p-4 text-gray-600">${p.date}</td>
                     <td class="p-4">
-                        <button onclick="deleteOne('${p.id}')" class="text-red-500 hover:bg-red-50 p-2 rounded transition"><i class="fas fa-trash"></i></button>
+                        <button onclick="prepareDeleteOne('${p.id}')" class="text-red-500 hover:bg-red-50 p-2 rounded transition"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
 
             document.getElementById('page-info').innerText = `عرض ${Math.min(end, filteredPayments.length)} من ${filteredPayments.length}`;
-            
-            // الحفاظ على حالة وضع التحرير
             document.querySelectorAll('.select-col').forEach(el => el.style.display = isEditMode ? 'table-cell' : 'none');
         }
 
-        // --- منطق الحذف الذكي ---
-        window.deleteOne = async (id) => {
-            if(confirm('هل أنت متأكد من حذف هذا السجل؟ سيتم التأثير على حساب المشترك.')) {
-                await processDelete([id]);
-            }
+        // --- دوال المودال (النافذة المنبثقة) ---
+        
+        window.prepareDeleteOne = (id) => {
+            const payment = allPayments.find(p => p.id === id);
+            if(!payment) return;
+
+            paymentToDelete = [id]; // مصفوفة تحتوي عنصر واحد
+            isBulkDelete = false;
+
+            // تعبئة بيانات المودال
+            document.getElementById('del-modal-name').innerText = payment.name;
+            document.getElementById('del-modal-amount').innerText = payment.amount.toLocaleString() + ' د.ع';
+            document.getElementById('del-modal-date').innerText = payment.date;
+            
+            // إظهار التفاصيل الخاصة بالعنصر الواحد
+            document.getElementById('single-delete-details').style.display = 'block';
+            document.getElementById('delete-msg-text').innerText = 'هل أنت متأكد من رغبتك في حذف هذا السجل؟';
+
+            openDeleteModal();
         };
 
-        window.deleteSelected = async () => {
+        window.prepareDeleteSelected = () => {
             const selected = Array.from(document.querySelectorAll('.pay-check:checked')).map(cb => cb.value);
-            if(!selected.length) return;
+            if(selected.length === 0) return;
+
+            paymentToDelete = selected;
+            isBulkDelete = true;
+
+            // إخفاء تفاصيل العنصر الواحد وتغيير النص
+            document.getElementById('single-delete-details').style.display = 'none';
+            document.getElementById('delete-msg-text').innerText = `هل أنت متأكد من حذف (${selected.length}) سجلات محددة؟`;
+
+            openDeleteModal();
+        };
+
+        function openDeleteModal() {
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        window.closeDeleteModal = function() {
+            document.getElementById('deleteModal').classList.remove('active');
+            paymentToDelete = null;
+        };
+
+        window.confirmDelete = async () => {
+            if(!paymentToDelete) return;
             
-            if(confirm(`هل تريد حذف ${selected.length} سجلات؟`)) {
-                await processDelete(selected);
-                toggleEditMode(); // الخروج من وضع التحرير
-            }
+            const btn = document.getElementById('confirm-delete-btn');
+            const originalText = btn.innerText;
+            btn.innerText = 'جاري الحذف...';
+            btn.disabled = true;
+
+            await processDelete(paymentToDelete);
+            
+            btn.innerText = originalText;
+            btn.disabled = false;
+            closeDeleteModal();
+            
+            if(isBulkDelete) toggleEditMode(); // الخروج من وضع التحرير بعد الحذف الجماعي
         };
 
         async function processDelete(ids) {
-            const paymentsToDelete = allPayments.filter(p => ids.includes(p.id));
+            const paymentsToDeleteList = allPayments.filter(p => ids.includes(p.id));
             let partials = JSON.parse(localStorage.getItem('partial_payments') || '[]');
             let expensesChanged = false;
 
-            for (const p of paymentsToDelete) {
+            for (const p of paymentsToDeleteList) {
                 if (p.source === 'subscriber') {
-                    // حذف اشتراك نقدي -> تصفير السعر فقط (لا نحذف المشترك)
                     await DataManager.updateSubscriber(p.realId, { price: 0, status: 'غير نشط' });
                 }
                 else if (p.source === 'debt_full') {
-                    // حذف تسديد كامل -> إرجاع الدين كما كان
                     await DataManager.updateSubscriber(p.realId, {
-                        price: p.amount, // يرجع المبلغ كدين
-                        paymentType: 'أجل',
-                        lastPaymentDate: null,
-                        originalPrice: 0
+                        price: p.amount, paymentType: 'أجل', lastPaymentDate: null, originalPrice: 0
                     });
                 }
                 else if (p.source === 'partial') {
-                    // حذف دفعة جزئية -> إرجاع المبلغ للدين
                     const sub = DataManager.getSubscriber(p.subId);
                     if(sub) {
                         const currentDebt = parseInt(sub.price || 0);
                         await DataManager.updateSubscriber(p.subId, {
-                            price: currentDebt + p.amount, // زيادة الدين
+                            price: currentDebt + p.amount,
                             partialPayments: (sub.partialPayments || 0) - p.amount
                         });
                     }
-                    // حذف من localStorage
                     partials = partials.filter(item => item.id !== p.realId);
                     expensesChanged = true;
                 }
@@ -287,11 +413,10 @@
                 localStorage.setItem('partial_payments', JSON.stringify(partials));
             }
 
-            // تحديث البيانات
             setTimeout(() => {
                 window.loadPayments();
                 if(window.updateDashboard) window.updateDashboard();
-            }, 500);
+            }, 300);
         }
 
         // --- أدوات الواجهة ---
@@ -324,29 +449,18 @@
         };
 
         window.prevPage = () => { if(currentPage > 1) { currentPage--; renderTable(); } };
-        window.nextPage = () => { 
-            if(currentPage * itemsPerPage < filteredPayments.length) { currentPage++; renderTable(); } 
-        };
+        window.nextPage = () => { if(currentPage * itemsPerPage < filteredPayments.length) { currentPage++; renderTable(); } };
 
-        window.exportPayments = () => {
-            DataManager.exportToCSV(filteredPayments, 'payments');
-        };
+        window.exportPayments = () => DataManager.exportToCSV(filteredPayments, 'payments');
 
-        // 3. كود إيقاف الـ Service Worker لحل مشكلة التحديثات
+        // Force cache update
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) {
-                    registration.unregister();
-                    console.log("Service Worker Unregistered to force update");
-                }
+                for(let registration of registrations) registration.unregister();
             });
         }
 
-        // تحميل أولي
-        document.addEventListener('DOMContentLoaded', () => {
-            // تأخير بسيط لضمان تحميل DataManager
-            setTimeout(window.loadPayments, 500);
-        });
+        document.addEventListener('DOMContentLoaded', () => setTimeout(window.loadPayments, 500));
     </script>
 </body>
 </html>
