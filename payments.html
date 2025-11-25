@@ -27,7 +27,7 @@
         .select-col { display: none; }
         .select-col.active { display: table-cell; }
 
-        /* --- تصميم نافذة الحذف (Modal Styles) --- */
+        /* --- تصميم نافذة الحذف (Modal Styles) - تم وضعها هنا بشكل صحيح --- */
         .modal-backdrop { 
             position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
             background-color: rgba(0, 0, 0, 0.6); 
@@ -228,7 +228,7 @@
         </div>
     </div>
 
-    <script type="module" src="data-manager.js?v=2.1"></script>
+    <script type="module" src="data-manager.js?v=2.2"></script>
     
     <script>
         let allPayments = [], filteredPayments = [];
@@ -243,6 +243,7 @@
             
             allPayments = [];
 
+            // دفعات نقدية مباشرة
             subs.filter(s => s.paymentType === 'نقد' && s.price > 0).forEach(s => {
                 allPayments.push({
                     id: `sub_${s.id}`, source: 'subscriber', realId: s.id,
@@ -250,6 +251,7 @@
                 });
             });
 
+            // دفعات تسديد ديون
             subs.filter(s => s.lastPaymentDate && s.originalPrice > 0).forEach(s => {
                 allPayments.push({
                     id: `debt_${s.id}`, source: 'debt_full', realId: s.id,
@@ -257,6 +259,7 @@
                 });
             });
 
+            // دفعات جزئية
             partials.forEach(p => {
                 allPayments.push({
                     id: `part_${p.id}`, source: 'partial', realId: p.id, subId: p.subscriberId,
@@ -449,10 +452,13 @@
 
         window.exportPayments = () => DataManager.exportToCSV(filteredPayments, 'payments');
 
-        // إيقاف الكاش للتحديث الفوري
+        // --- كود مهم لإيقاف الـ Cache القديم ---
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) registration.unregister();
+                for(let registration of registrations) {
+                    registration.unregister();
+                    console.log("تم إيقاف Service Worker لتحديث النظام");
+                }
             });
         }
 
