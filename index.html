@@ -2,14 +2,40 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="OKComputer">
+    <meta name="theme-color" content="#1e40af">
+    <meta name="description" content="تطبيق لوحة التحكم لإدارة الاشتراكات والديون والمبالغ المستلمة">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%231e40af' width='192' height='192'/><text x='50%' y='50%' font-size='80' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle' font-family='Arial'>OC</text></svg>">
     <title>لوحة التحكم</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>body{font-family:'Inter',sans-serif;background:#f3f4f6}.card{background:white;transition:transform .2s}.card:hover{transform:translateY(-2px)}</style>
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: #f3f4f6;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .card { 
+            background: white; 
+            transition: transform 0.2s;
+        }
+        .card:hover { 
+            transform: translateY(-2px);
+        }
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow-x: hidden;
+        }
+    </style>
 </head>
 <body class="bg-gray-100">
     <nav class="bg-blue-800 shadow-lg sticky top-0 z-50">
@@ -521,14 +547,11 @@
 
         window.updateDashboard = function() {
             const stats = DataManager.getStatistics();
-            const subs = DataManager.getSubscribers() || [];
+            const subs = DataManager.getSubscribers();
             const debts = subs.filter(s => s.paymentType === 'أجل' && s.price > 0).reduce((sum, s) => sum + (parseInt(s.price) || 0), 0);
             
-            let received = 0;
-            // الدفعات النقدية المباشرة
-            received += subs.filter(s => s.paymentType === 'نقد' && s.price > 0).reduce((sum, s) => sum + (parseInt(s.price) || 0), 0);
-            // الدفعات المستلمة من الأجل (الجزئية والكاملة)
-            received += subs.filter(s => s.lastPaymentDate && s.lastPaymentAmount > 0).reduce((sum, s) => sum + (parseInt(s.lastPaymentAmount) || 0), 0);
+            const received = subs.filter(s => s.paymentType === 'نقد' && s.price > 0).reduce((sum, s) => sum + (parseInt(s.price) || 0), 0) +
+                            subs.filter(s => s.lastPaymentDate && s.originalPrice > 0).reduce((sum, s) => sum + (parseInt(s.originalPrice) || 0), 0);
             
             let expenses = 0;
             const expensesData = JSON.parse(localStorage.getItem('expenses') || '[]');
@@ -541,9 +564,9 @@
             document.getElementById('stat-total').textContent = stats.totalSubscribers;
             document.getElementById('stat-expired').textContent = stats.expiredSubscribers;
             document.getElementById('stat-expiring').textContent = stats.expiringSubscribers;
-            document.getElementById('stat-debts').textContent = debts.toLocaleString('ar-IQ') + ' د.ع';
-            document.getElementById('stat-received').textContent = netReceived.toLocaleString('ar-IQ') + ' د.ع';
-            document.getElementById('stat-expenses').textContent = expenses.toLocaleString('ar-IQ') + ' د.ع';
+            document.getElementById('stat-debts').textContent = debts.toLocaleString() + ' د.ع';
+            document.getElementById('stat-received').textContent = netReceived.toLocaleString() + ' د.ع';
+            document.getElementById('stat-expenses').textContent = expenses.toLocaleString() + ' د.ع';
         }
 
         // استدعاء updateDashboard عند فتح الصفحة
@@ -554,6 +577,13 @@
                 }
             }, 500);
         });
+
+        // تسجيل Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js').catch(() => {
+                // تجاهل الأخطاء
+            });
+        }
     </script>
 </body>
 </html>
