@@ -1,6 +1,6 @@
 /**
- * نظام إدارة البيانات المركزي - Firebase Integration
- * اتصال سلس وسريع مع معالجة ذكية للأخطاء والتخزين المحلي
+ * نظام إدارة البيانات المركزي - Full Real-time Sync
+ * يدعم المزامنة الفورية للمشتركين، المعاملات، والصرفيات بين الأجهزة
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -13,12 +13,10 @@ import {
     doc, 
     onSnapshot, 
     query, 
-    orderBy,
-    getDocs,
-    writeBatch
+    orderBy
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// === إعدادات Firebase ===
+// === إعدادات Firebase الخاصة بمشروعك ===
 const firebaseConfig = {
     apiKey: "AIzaSyA-raYlvzPz8T7Mnx8bTWA4O8CyHvp7K_0",
     authDomain: "okcomputer-system.firebaseapp.com",
@@ -28,448 +26,263 @@ const firebaseConfig = {
     appId: "1:17748146044:web:e4a2063ac34c6ee27016f9"
 };
 
-// تهيئة Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// === متغيرات عامة ===
-let localSubscribers = [];
+// === مخازن البيانات المحلية (للعرض السريع) ===
+let localData = {
+    subscribers: [],
+    transactions: [],
+    expenses: []
+};
+
 let isOnline = navigator.onLine;
-let syncInProgress = false;
 
-// === معالج الاتصال ===
-window.addEventListener('online', () => {
-    isOnline = true;
-    console.log('✓ الاتصال استعاد - جاري المزامنة...');
-    DataManager.syncWithFirebase();
-});
+// === مراقبة حالة الاتصال ===
+window.addEventListener('online', () => { isOnline = true; console.log('🟢 متصل بالإنترنت'); });
+window.addEventListener('offline', () => { isOnline = false; console.log('🔴 انقطع الاتصال'); });
 
-window.addEventListener('offline', () => {
-    isOnline = false;
-    console.log('⚠ انقطع الاتصال - العمل بالبيانات المحلية');
-});
-
-// === مدير البيانات ===
 const DataManager = {
-    CACHE_KEYS: {
-        SUBS: 'ok_cache_subs',
-        LAST_SYNC: 'ok_last_sync'
-    },
-
-    /**
-     * تهيئة النظام عند التحميل
-     */
-    async init() {
-        console.log("🔄 جاري تهيئة نظام إدارة البيانات...");
+    init() {
+        console.log("🚀 جاري بدء نظام المزامنة الشامل...");
         
-        // 1. تحميل البيانات من التخزين المحلي فوراً
-        this.loadFromCache();
+        // تحميل بيانات مؤقتة من الكاش لسرعة العرض قبل وصول بيانات الإنترنت
+        this.loadFromCache('subscribers');
+        this.loadFromCache('transactions');
+        this.loadFromCache('expenses');
         this.refreshUI();
+
+        // تفعيل المستمعين للبيانات الحية من السيرفر
+        this.subscribeToCollection('subscribers');
+        this.subscribeToCollection('transactions');
+        this.subscribeToCollection('expenses');
+    },
+
+    loadFromCache(key) {
+        const cached = localStorage.getItem(`cache_${key}`);
+        if (cached) localData[key] = JSON.parse(cached);
+    },
+
+    /**
+     * الاستماع للتغييرات الحية من قاعدة البيانات
+     * هذه الدالة هي سر التزامن اللحظي
+     */
+    subscribeToCollection(collectionName) {
+        if (!isOnline) return;
         
-        // 2. مزامنة مع Firebase إذا كان الاتصال متاح
-        if (isOnline) {
-            await this.syncWithFirebase();
-        }
-    },
-
-    /**
-     * تحميل البيانات من التخزين المحلي
-     */
-    loadFromCache() {
-        try {
-            const cached = localStorage.getItem(this.CACHE_KEYS.SUBS);
-            if (cached) {
-                localSubscribers = JSON.parse(cached);
-                console.log(`✓ تم تحميل ${localSubscribers.length} مشترك من الكاش المحلي`);
-            }
-        } catch (error) {
-            console.error('❌ خطأ في تحميل الكاش:', error);
-            localSubscribers = [];
-        }
-    },
-
-    /**
-     * حفظ البيانات في التخزين المحلي
-     */
-    saveToCache() {
-        try {
-            localStorage.setItem(this.CACHE_KEYS.SUBS, JSON.stringify(localSubscribers));
-            localStorage.setItem(this.CACHE_KEYS.LAST_SYNC, new Date().toISOString());
-        } catch (error) {
-            console.error('❌ خطأ في حفظ الكاش:', error);
-        }
-    },
-
-    /**
-     * مزامنة ثنائية الاتجاه مع Firebase
-     */
-    async syncWithFirebase() {
-        if (syncInProgress || !isOnline) return;
-        syncInProgress = true;
-
-        try {
-            // استدعاء البيانات الحالية من Firebase
-            const q = query(collection(db, "subscribers"), orderBy("id", "desc"));
-            const snapshot = await getDocs(q);
-            
-            const firebaseData = snapshot.docs.map(doc => ({
+        // ترتيب البيانات حسب الأحدث (id يعتمد على الوقت)
+        const q = query(collection(db, collectionName), orderBy("id", "desc")); 
+        
+        onSnapshot(q, (snapshot) => {
+            localData[collectionName] = snapshot.docs.map(doc => ({
                 ...doc.data(),
                 firebaseId: doc.id
             }));
-
-            // تحديث البيانات المحلية
-            localSubscribers = firebaseData.length > 0 ? firebaseData : localSubscribers;
-            this.saveToCache();
             
-            console.log(`✓ تم مزامنة ${localSubscribers.length} مشترك من Firebase`);
+            // تحديث الكاش المحلي دائماً بأحدث نسخة
+            localStorage.setItem(`cache_${collectionName}`, JSON.stringify(localData[collectionName]));
+            
+            console.log(`✨ تحديث ${collectionName}: ${localData[collectionName].length} عنصر`);
             this.refreshUI();
-
-        } catch (error) {
-            console.error('❌ خطأ في المزامنة:', error.message);
-        } finally {
-            syncInProgress = false;
-        }
-    },
-
-    /**
-     * الاستماع للتغييرات الحية من Firebase
-     */
-    listenForChanges() {
-        if (!isOnline) return;
-
-        try {
-            const q = query(collection(db, "subscribers"), orderBy("id", "desc"));
-            
-            onSnapshot(q, (snapshot) => {
-                localSubscribers = snapshot.docs.map(doc => ({
-                    ...doc.data(),
-                    firebaseId: doc.id
-                }));
-                
-                this.saveToCache();
-                this.refreshUI();
-                
-            }, (error) => {
-                console.error('❌ خطأ في الاستماع للتغييرات:', error.message);
-            });
-
-        } catch (error) {
-            console.error('❌ فشل إعداد المستمع:', error);
-        }
-    },
-
-    /**
-     * تحديث واجهة المستخدم
-     */
-    refreshUI() {
-        if (typeof window.loadSubscribers === 'function') window.loadSubscribers();
-        if (typeof window.updateDashboard === 'function') window.updateDashboard();
-        if (typeof window.updateStats === 'function') window.updateStats();
-        if (typeof window.loadDebts === 'function') window.loadDebts();
-        if (typeof window.loadPayments === 'function') window.loadPayments();
-        if (typeof window.loadExpiredSubscribers === 'function') window.loadExpiredSubscribers();
-        if (typeof window.loadExpiringSubscribers === 'function') window.loadExpiringSubscribers();
-    },
-
-    // === عمليات المشتركين ===
-
-    /**
-     * إضافة مشترك جديد
-     */
-    async addSubscriber(data) {
-        const maxId = localSubscribers.length > 0 ? Math.max(...localSubscribers.map(s => s.id || 0)) : 0;
-        const newId = maxId + 1;
-        
-        const subscriber = {
-            id: newId,
-            name: data.name || 'بدون اسم',
-            phone: data.phone || '',
-            subscribeDate: data.subscribeDate || new Date().toISOString().split('T')[0],
-            expiryDate: data.expiryDate || '',
-            status: data.status || 'قيد الانتظار',
-            price: parseInt(data.price || 0),
-            paymentType: data.paymentType || 'نقد',
-            lastPaymentDate: data.lastPaymentDate || null,
-            originalPrice: data.originalPrice || 0,
-            partialPayments: data.partialPayments || 0,
-            createdAt: new Date().toISOString()
-        };
-
-        // إضافة محلياً
-        localSubscribers.push(subscriber);
-        this.saveToCache();
-        this.refreshUI();
-
-        // إضافة في Firebase بشكل غير متزامن
-        if (isOnline) {
-            try {
-                const docRef = await addDoc(collection(db, "subscribers"), subscriber);
-                subscriber.firebaseId = docRef.id;
-                this.saveToCache();
-                console.log('✓ تم إضافة المشترك في Firebase');
-            } catch (error) {
-                console.error('⚠ تم الحفظ محلياً لكن فشل الاتصال بـ Firebase:', error.message);
-            }
-        }
-    },
-
-    /**
-     * تحديث مشترك
-     */
-    async updateSubscriber(id, data) {
-        const sub = localSubscribers.find(s => s.id === id);
-        if (!sub) return;
-
-        // تحديث محلي فوري
-        Object.assign(sub, data);
-        this.saveToCache();
-        this.refreshUI();
-
-        // تحديث في Firebase بشكل غير متزامن
-        if (isOnline && sub.firebaseId) {
-            try {
-                await updateDoc(doc(db, "subscribers", sub.firebaseId), data);
-                console.log('✓ تم تحديث المشترك في Firebase');
-            } catch (error) {
-                console.error('⚠ تم التحديث محلياً لكن فشل في Firebase:', error.message);
-            }
-        }
-    },
-
-    /**
-     * حذف مشترك
-     */
-    async deleteSubscriber(id) {
-        const sub = localSubscribers.find(s => s.id === id);
-        if (!sub) return;
-
-        // حذف محلي فوري
-        localSubscribers = localSubscribers.filter(s => s.id !== id);
-        this.saveToCache();
-        this.refreshUI();
-
-        // حذف من Firebase بشكل غير متزامن
-        if (isOnline && sub.firebaseId) {
-            try {
-                await deleteDoc(doc(db, "subscribers", sub.firebaseId));
-                console.log('✓ تم حذف المشترك من Firebase');
-            } catch (error) {
-                console.error('⚠ تم الحذف محلياً لكن فشل في Firebase:', error.message);
-            }
-        }
-    },
-
-    /**
-     * الحصول على مشترك واحد
-     */
-    getSubscriber(id) {
-        return localSubscribers.find(s => s.id === id);
-    },
-
-    /**
-     * الحصول على قائمة جميع المشتركين
-     */
-    getSubscribers() {
-        return localSubscribers || [];
-    },
-
-    /**
-     * البحث السريع
-     */
-    searchSubscribers(query) {
-        if (!query) return [];
-        const q = String(query).toLowerCase().trim();
-        return localSubscribers.filter(s => {
-            if (!s) return false;
-            const name = (s.name || '').toString().toLowerCase();
-            const phone = (s.phone || '').toString();
-            return name.includes(q) || phone.includes(q);
+        }, (error) => {
+            console.error(`❌ خطأ في مزامنة ${collectionName}:`, error);
         });
     },
 
-    // === الإحصائيات والتقارير ===
+    // تحديث أي صفحة مفتوحة حالياً
+    refreshUI() {
+        if (typeof window.loadSubscribers === 'function') window.loadSubscribers();
+        if (typeof window.updateDashboard === 'function') window.updateDashboard();
+        if (typeof window.loadDebts === 'function') window.loadDebts();
+        if (typeof window.loadPayments === 'function') window.loadPayments();
+        if (typeof window.loadExpenses === 'function') window.loadExpenses();
+        if (typeof window.loadExpiredSubscribers === 'function') window.loadExpiredSubscribers();
+        if (typeof window.loadExpiringSubscribers === 'function') window.loadExpiringSubscribers();
+        
+        // تحديث الإحصائيات في الصفحة الرئيسية إذا وجدت
+        if (document.getElementById('stat-total')) window.updateDashboard();
+    },
 
-    /**
-     * الحصول على الإحصائيات
-     */
+    // ==========================================
+    // 👥 إدارة المشتركين (Subscribers)
+    // ==========================================
+    
+    getSubscribers() { return localData.subscribers; },
+    
+    getSubscriber(id) { return localData.subscribers.find(s => s.id === id); },
+
+    async addSubscriber(data) {
+        const newId = Date.now(); // استخدام الوقت كمعرف فريد
+        const subscriber = {
+            ...data,
+            id: newId,
+            price: parseInt(data.price || 0),
+            createdAt: new Date().toISOString()
+        };
+
+        try {
+            await addDoc(collection(db, "subscribers"), subscriber);
+            return true;
+        } catch (e) {
+            console.error("فشل الإضافة:", e);
+            alert("فشل الحفظ. تأكد من الاتصال بالإنترنت.");
+            return false;
+        }
+    },
+
+    async updateSubscriber(id, data) {
+        const sub = this.getSubscriber(id);
+        if (sub && sub.firebaseId) {
+            try {
+                await updateDoc(doc(db, "subscribers", sub.firebaseId), data);
+            } catch (e) {
+                console.error("فشل التحديث:", e);
+            }
+        }
+    },
+
+    async deleteSubscriber(id) {
+        if(!confirm('هل أنت متأكد من الحذف؟')) return;
+        const sub = this.getSubscriber(id);
+        if (sub && sub.firebaseId) {
+            await deleteDoc(doc(db, "subscribers", sub.firebaseId));
+        }
+    },
+
+    searchSubscribers(query) {
+        if (!query) return [];
+        const q = String(query).toLowerCase();
+        return localData.subscribers.filter(s => 
+            (s.name || '').toLowerCase().includes(q) || 
+            (s.phone || '').includes(q)
+        );
+    },
+
+    // ==========================================
+    // 💰 إدارة المعاملات (Transactions)
+    // ==========================================
+
+    getAllTransactions() { return localData.transactions; },
+
+    getSubscriberTransactions(subscriberId) {
+        return localData.transactions.filter(t => t.subscriberId === subscriberId);
+    },
+
+    async recordTransaction(subscriberId, amount, type = 'جزئي', details = {}) {
+        const transaction = {
+            id: Date.now(),
+            transactionNumber: localData.transactions.length + 1,
+            subscriberId: subscriberId,
+            amount: parseInt(amount),
+            type: type,
+            date: new Date().toISOString().split('T')[0],
+            details: details,
+            createdAt: new Date().toISOString()
+        };
+
+        try {
+            await addDoc(collection(db, "transactions"), transaction);
+            console.log("تم تسجيل المعاملة سحابياً");
+            return transaction;
+        } catch (e) {
+            console.error("فشل تسجيل المعاملة:", e);
+            alert("فشل تسجيل المعاملة. تحقق من الإنترنت.");
+        }
+    },
+
+    async deleteTransaction(id) {
+        const trans = localData.transactions.find(t => t.id === id);
+        if (!trans || !trans.firebaseId) return;
+
+        // 1. إرجاع المبلغ للمشترك (تعديل الدين)
+        const sub = this.getSubscriber(trans.subscriberId);
+        if (sub) {
+            const newPrice = (parseInt(sub.price) || 0) + parseInt(trans.amount);
+            // تحديث المشترك ليعكس الدين القديم
+            await this.updateSubscriber(sub.id, { 
+                price: newPrice,
+                // إذا كان الدين قد صُفر، نعيده لحالة أجل إذا لزم الأمر، لكن الأبسط تعديل السعر فقط
+            });
+        }
+
+        // 2. حذف المعاملة نهائياً
+        await deleteDoc(doc(db, "transactions", trans.firebaseId));
+    },
+
+    // ==========================================
+    // 🧾 إدارة الصرفيات (Expenses)
+    // ==========================================
+
+    getExpenses() { return localData.expenses; },
+
+    async addExpense(data) {
+        const expense = {
+            id: Date.now(),
+            description: data.description,
+            amount: parseInt(data.amount),
+            date: data.date,
+            createdAt: new Date().toISOString()
+        };
+
+        try {
+            await addDoc(collection(db, "expenses"), expense);
+        } catch (e) {
+            console.error("خطأ في حفظ الصرفية:", e);
+        }
+    },
+
+    async deleteExpense(id) {
+        const exp = localData.expenses.find(e => e.id === id);
+        if (exp && exp.firebaseId) {
+            await deleteDoc(doc(db, "expenses", exp.firebaseId));
+        }
+    },
+
+    // ==========================================
+    // 📊 الإحصائيات العامة (تستخدم في الصفحة الرئيسية)
+    // ==========================================
+    
     getStatistics() {
         const subs = this.getSubscribers();
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        today.setHours(0,0,0,0);
+
+        // حساب الديون: المشتركين الذين نوع دفعهم "أجل" ولديهم مبلغ متبقي
+        const debts = subs.filter(s => s.paymentType === 'أجل' && s.price > 0)
+                          .reduce((sum, s) => sum + (parseInt(s.price)||0), 0);
 
         return {
             totalSubscribers: subs.length,
             activeSubscribers: subs.filter(s => s.status === 'نشط').length,
             pendingSubscribers: subs.filter(s => s.status === 'قيد الانتظار').length,
-            inactiveSubscribers: subs.filter(s => s.status === 'غير نشط').length,
-            expiredSubscribers: subs.filter(s => {
-                if (!s.expiryDate) return false;
-                const expiry = new Date(s.expiryDate);
-                expiry.setHours(0, 0, 0, 0);
-                return expiry < today;
-            }).length,
+            expiredSubscribers: subs.filter(s => s.expiryDate && new Date(s.expiryDate) < today).length,
             expiringSubscribers: subs.filter(s => {
-                if (!s.expiryDate) return false;
-                const expiry = new Date(s.expiryDate);
-                expiry.setHours(0, 0, 0, 0);
-                const threeDaysFromNow = new Date(today);
-                threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
-                return expiry > today && expiry <= threeDaysFromNow;
+                if(!s.expiryDate) return false;
+                const d = new Date(s.expiryDate);
+                const diff = (d - today) / (1000*60*60*24);
+                return diff >= 0 && diff <= 3;
             }).length,
-            totalRevenue: subs.reduce((sum, s) => sum + (parseInt(s.price) || 0), 0)
+            debtsTotal: debts
         };
     },
 
-    /**
-     * تصدير البيانات إلى CSV
-     */
     exportToCSV(data, filename) {
-        if (!data || !data.length) {
-            console.warn('لا توجد بيانات للتصدير');
-            return;
-        }
-
-        const headers = Object.keys(data[0]).filter(k => !k.startsWith('_') && k !== 'firebaseId');
+        if (!data || !data.length) return alert('لا توجد بيانات للتصدير');
+        const headers = Object.keys(data[0]).filter(k => k !== 'firebaseId');
         let csv = headers.join(',') + '\n';
-        
         data.forEach(row => {
-            csv += headers.map(k => {
-                const value = row[k] || '';
-                if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
-                    return `"${value.replace(/"/g, '""')}"`;
-                }
-                return `"${value}"`;
-            }).join(',') + '\n';
+            csv += headers.map(k => `"${row[k] || ''}"`).join(',') + '\n';
         });
-
         const link = document.createElement('a');
         link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-        link.download = `${filename}_${new Date().toISOString().slice(0, 10)}.csv`;
+        link.download = `${filename}_${new Date().toISOString().slice(0,10)}.csv`;
         link.click();
-    },
-
-    /**
-     * نظام إدارة المعاملات الذكية
-     * كل معاملة مرتبطة بـ subscriberId وتحتفظ بسجل كامل
-     */
-    recordTransaction(subscriberId, amount, type = 'جزئي', details = {}) {
-        try {
-            let transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-            
-            const transaction = {
-                id: Date.now() + Math.random().toString(36).substr(2, 9),
-                transactionNumber: transactions.length + 1,
-                subscriberId: subscriberId,
-                amount: parseInt(amount),
-                type: type, // 'جزئي' أو 'كامل'
-                date: new Date().toISOString().split('T')[0],
-                timestamp: new Date().toISOString(),
-                details: details,
-                createdAt: new Date().toISOString()
-            };
-
-            transactions.push(transaction);
-            localStorage.setItem('transactions', JSON.stringify(transactions));
-            console.log(`✓ تم تسجيل معاملة #${transaction.transactionNumber} للمشترك #${subscriberId}`);
-            
-            return transaction;
-        } catch (error) {
-            console.error('❌ خطأ في تسجيل المعاملة:', error);
-            return null;
-        }
-    },
-
-    /**
-     * الحصول على جميع معاملات مشترك معين
-     */
-    getSubscriberTransactions(subscriberId) {
-        try {
-            const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-            return transactions.filter(t => t.subscriberId === subscriberId);
-        } catch (error) {
-            console.error('❌ خطأ في الحصول على المعاملات:', error);
-            return [];
-        }
-    },
-
-    /**
-     * الحصول على جميع المعاملات
-     */
-    getAllTransactions() {
-        try {
-            return JSON.parse(localStorage.getItem('transactions') || '[]');
-        } catch (error) {
-            console.error('❌ خطأ في الحصول على جميع المعاملات:', error);
-            return [];
-        }
-    },
-
-    /**
-     * حذف معاملة وإرجاع المبلغ للمشترك
-     */
-    deleteTransaction(transactionId) {
-        try {
-            let transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-            const transaction = transactions.find(t => t.id === transactionId);
-            
-            if (!transaction) {
-                console.error('❌ المعاملة غير موجودة');
-                return false;
-            }
-
-            const subscriber = this.getSubscriber(transaction.subscriberId);
-            if (!subscriber) {
-                console.error('❌ المشترك غير موجود');
-                return false;
-            }
-
-            // إرجاع المبلغ للمشترك
-            const newPrice = parseInt(subscriber.price || 0) + transaction.amount;
-            this.updateSubscriber(transaction.subscriberId, { 
-                price: newPrice,
-                partialPayments: Math.max((subscriber.partialPayments || 0) - transaction.amount, 0)
-            });
-
-            // حذف المعاملة
-            transactions = transactions.filter(t => t.id !== transactionId);
-            localStorage.setItem('transactions', JSON.stringify(transactions));
-            
-            console.log(`✓ تم حذف المعاملة #${transaction.transactionNumber}`);
-            return true;
-        } catch (error) {
-            console.error('❌ خطأ في حذف المعاملة:', error);
-            return false;
-        }
-    },
-
-    /**
-     * حساب إجمالي الدفعات لمشترك معين
-     */
-    getTotalPaymentsForSubscriber(subscriberId) {
-        const transactions = this.getSubscriberTransactions(subscriberId);
-        return transactions.reduce((sum, t) => sum + (t.amount || 0), 0);
-    },
-
-    /**
-     * حساب إجمالي الدفعات من جميع المشتركين
-     */
-    getTotalPayments() {
-        const transactions = this.getAllTransactions();
-        return transactions.reduce((sum, t) => sum + (t.amount || 0), 0);
     }
 };
 
-// === تصدير مدير البيانات ===
 window.DataManager = DataManager;
 
-// === التهيئة عند تحميل الصفحة ===
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        DataManager.init();
-        DataManager.listenForChanges();
-    });
-} else {
+// تشغيل النظام فور التحميل
+document.addEventListener('DOMContentLoaded', () => {
     DataManager.init();
-    DataManager.listenForChanges();
-}
-
+});
