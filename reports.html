@@ -13,12 +13,13 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="responsive.css">
     <style>
         body {
             font-family: 'Inter', sans-serif;
             padding-top: env(safe-area-inset-top);
             padding-bottom: env(safe-area-inset-bottom);
-        }
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             min-height: 100vh;
         }
@@ -28,6 +29,51 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+        }
+        
+        .activity-card {
+            transition: all 0.3s ease;
+            border-right: 4px solid;
+        }
+        
+        .activity-card:hover {
+            transform: translateX(-4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .activity-card.activation {
+            border-right-color: #10b981;
+        }
+        
+        .activity-card.payment {
+            border-right-color: #3b82f6;
+        }
+        
+        .activity-card.expense {
+            border-right-color: #ef4444;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-activation {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .badge-payment {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .badge-expense {
+            background: #fee2e2;
+            color: #991b1b;
         }
     </style>
 </head>
@@ -66,8 +112,8 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <button onclick="generateCustomReport()" class="text-white p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-all" title="تقرير مخصص">
-                        <i class="fas fa-plus text-lg"></i>
+                    <button onclick="exportReport()" class="text-white p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-all" title="تصدير التقرير">
+                        <i class="fas fa-download text-lg"></i>
                     </button>
                     <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white font-bold hover:bg-opacity-30 transition-all cursor-pointer">
                         <i class="fas fa-user"></i>
@@ -84,9 +130,9 @@
                 <div>
                     <h1 class="text-4xl font-bold text-gray-900 flex items-center">
                         <i class="fas fa-chart-bar text-green-600 ml-3 text-3xl"></i>
-                        التقارير والإحصائيات
+                        سجل الحركات والتقارير
                     </h1>
-                    <p class="text-gray-600 mt-2">إنشاء وتحليل التقارير المختلفة</p>
+                    <p class="text-gray-600 mt-2">عرض شامل لجميع التفعيلات والدفعات والمصروفات</p>
                 </div>
             </div>
         </div>
@@ -94,207 +140,250 @@
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Quick Reports -->
-        <div class="mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">تقارير سريعة</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div class="report-card bg-white rounded-2xl p-6 shadow-sm">
-                    <div class="flex items-center mb-4">
-                        <div class="p-3 bg-blue-100 rounded-xl">
-                            <i class="fas fa-chart-line text-blue-600 text-xl"></i>
-                        </div>
-                        <div class="mr-4">
-                            <h3 class="font-semibold text-gray-800">تقرير شهري</h3>
-                            <p class="text-sm text-gray-600">أداء الاشتراكات</p>
-                        </div>
-                    </div>
-                    <p class="text-sm text-gray-600 mb-4">تحليل شامل لنمو الاشتراكات والإيرادات الشهرية</p>
-                    <button onclick="generateMonthlyReport()" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-                        <i class="fas fa-download ml-2"></i>
-                        تحميل التقرير
-                    </button>
-                </div>
-
-                <div class="report-card bg-white rounded-2xl p-6 shadow-sm">
-                    <div class="flex items-center mb-4">
-                        <div class="p-3 bg-green-100 rounded-xl">
-                            <i class="fas fa-money-bill text-green-600 text-xl"></i>
-                        </div>
-                        <div class="mr-4">
-                            <h3 class="font-semibold text-gray-800">تقرير مالي</h3>
-                            <p class="text-sm text-gray-600">الإيرادات والمصروفات</p>
-                        </div>
-                    </div>
-                    <p class="text-sm text-gray-600 mb-4">تحليل مالي شامل للأرباح والخسائر</p>
-                    <button onclick="generateFinancialReport()" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
-                        <i class="fas fa-download ml-2"></i>
-                        تحميل التقرير
-                    </button>
-                </div>
-
-                <div class="report-card bg-white rounded-2xl p-6 shadow-sm">
-                    <div class="flex items-center mb-4">
-                        <div class="p-3 bg-purple-100 rounded-xl">
-                            <i class="fas fa-users text-purple-600 text-xl"></i>
-                        </div>
-                        <div class="mr-4">
-                            <h3 class="font-semibold text-gray-800">تحليل المشتركين</h3>
-                            <p class="text-sm text-gray-600">سلوك المستخدمين</p>
-                        </div>
-                    </div>
-                    <p class="text-sm text-gray-600 mb-4">تحليل سلوك المشتركين ونمط الاستخدام</p>
-                    <button onclick="generateUserReport()" class="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
-                        <i class="fas fa-download ml-2"></i>
-                        تحميل التقرير
-                    </button>
-                </div>
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow border-r-4 border-green-500">
+                <p class="text-gray-500 text-sm">إجمالي التفعيلات</p>
+                <p class="text-2xl font-bold text-gray-900" id="total-activations">0</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow border-r-4 border-blue-500">
+                <p class="text-gray-500 text-sm">إجمالي الدفعات</p>
+                <p class="text-2xl font-bold text-gray-900" id="total-payments">0 د.ع</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow border-r-4 border-red-500">
+                <p class="text-gray-500 text-sm">إجمالي المصروفات</p>
+                <p class="text-2xl font-bold text-gray-900" id="total-expenses">0 د.ع</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow border-r-4 border-purple-500">
+                <p class="text-gray-500 text-sm">الصافي</p>
+                <p class="text-2xl font-bold text-gray-900" id="net-amount">0 د.ع</p>
             </div>
         </div>
 
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow p-4 mb-6">
+            <div class="flex flex-wrap gap-4 items-center">
+                <input type="text" id="search-input" placeholder="بحث عن اسم..." class="flex-1 min-w-48 p-2 border rounded-lg focus:ring-2 focus:ring-blue-500" onkeyup="filterActivities()">
+                <input type="date" id="date-filter" class="p-2 border rounded-lg focus:ring-2 focus:ring-blue-500" onchange="filterActivities()">
+                <select id="type-filter" class="p-2 border rounded-lg focus:ring-2 focus:ring-blue-500" onchange="filterActivities()">
+                    <option value="">جميع الأنواع</option>
+                    <option value="activation">التفعيلات فقط</option>
+                    <option value="payment">الدفعات فقط</option>
+                    <option value="expense">المصروفات فقط</option>
+                </select>
+                <button onclick="exportReport()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                    <i class="fas fa-download ml-2"></i>تصدير
+                </button>
+            </div>
+        </div>
 
-
-        <!-- Report History -->
-        <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <!-- Activities Timeline -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
             <div class="p-6 border-b border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-800">سجل التقارير</h3>
+                <h3 class="text-lg font-semibold text-gray-800">سجل الحركات</h3>
             </div>
             
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="text-right p-4 font-semibold text-gray-700">اسم التقرير</th>
-                            <th class="text-right p-4 font-semibold text-gray-700">النوع</th>
-                            <th class="text-right p-4 font-semibold text-gray-700">تاريخ الإنشاء</th>
-                            <th class="text-right p-4 font-semibold text-gray-700">الحجم</th>
-                            <th class="text-right p-4 font-semibold text-gray-700">الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="reports-table" class="divide-y divide-gray-200">
-                        <!-- Dynamic content will be loaded here -->
-                    </tbody>
-                </table>
+            <div class="divide-y divide-gray-200 p-4">
+                <div id="activities-list" class="space-y-3">
+                    <div class="text-center py-12 text-gray-500">
+                        <i class="fas fa-inbox text-4xl mb-3 block opacity-50"></i>
+                        <p>جاري تحميل البيانات...</p>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
 
     <script type="module" src="data-manager.js"></script>
     <script>
-        // Sample reports data
-        let sampleReports = [];
+        let allActivities = [];
+        let filteredActivities = [];
 
-        document.addEventListener('DOMContentLoaded', function() {
-            loadReports();
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => loadActivities(), 500);
         });
 
-        function loadReports() {
-            const tableBody = document.getElementById('reports-table');
-            tableBody.innerHTML = sampleReports.map((report, idx) => `
-                <tr class="hover:bg-gray-50">
-                    <td class="p-4">
-                        <div class="flex items-center">
-                            <i class="fas fa-file-alt text-blue-600 ml-3"></i>
-                            <span class="font-medium text-gray-800">${report.name}</span>
-                        </div>
-                    </td>
-                    <td class="p-4">
-                        <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                            ${report.type}
-                        </span>
-                    </td>
-                    <td class="p-4 text-gray-600">${report.date}</td>
-                    <td class="p-4 text-gray-600">${report.size}</td>
-                    <td class="p-4">
-                        <div class="flex space-x-2">
-                            <button onclick="downloadReport(${idx})" class="text-blue-600 hover:text-blue-800">
-                                <i class="fas fa-download"></i>
-                            </button>
-                            <button onclick="deleteReport(${idx})" class="text-red-600 hover:text-red-800">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
+        /**
+         * تحميل جميع الحركات (تفعيلات، دفعات، مصروفات)
+         */
+        function loadActivities() {
+            allActivities = [];
+
+            // 1. حركات التفعيلات
+            const subscribers = DataManager.getSubscribers();
+            subscribers.forEach(sub => {
+                if (sub.subscribeDate && sub.price > 0) {
+                    allActivities.push({
+                        id: `act_${sub.id}`,
+                        type: 'activation',
+                        name: sub.name,
+                        amount: sub.price,
+                        date: sub.subscribeDate,
+                        paymentType: sub.paymentType,
+                        expiryDate: sub.expiryDate,
+                        status: sub.status,
+                        icon: 'fa-check-circle',
+                        color: 'green'
+                    });
+                }
+            });
+
+            // 2. حركات الدفعات
+            const partialPayments = JSON.parse(localStorage.getItem('partial_payments') || '[]');
+            partialPayments.forEach(pay => {
+                allActivities.push({
+                    id: `pay_${pay.id}`,
+                    type: 'payment',
+                    name: pay.name,
+                    amount: pay.amount,
+                    date: pay.date,
+                    paymentType: pay.type || 'جزئي',
+                    icon: 'fa-money-bill-wave',
+                    color: 'blue'
+                });
+            });
+
+            // 3. حركات المصروفات
+            const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+            expenses.forEach(exp => {
+                allActivities.push({
+                    id: `exp_${exp.id}`,
+                    type: 'expense',
+                    name: exp.description,
+                    amount: exp.amount,
+                    date: exp.date,
+                    icon: 'fa-receipt',
+                    color: 'red'
+                });
+            });
+
+            // ترتيب حسب التاريخ (الأحدث أولاً)
+            allActivities.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            updateStats();
+            filterActivities();
         }
 
-        function generateMonthlyReport() {
-            const stats = DataManager.getStatistics();
-            const subscribers = DataManager.getSubscribers();
-            const timestamp = new Date().toLocaleDateString('ar-EG');
-            const report = {
-                name: `تقرير الاشتراكات - ${timestamp}`,
-                type: 'شهري',
-                date: timestamp,
-                size: '2.5 MB',
-                data: `إجمالي المشتركين: ${stats.totalSubscribers}\nالمشتركون النشطون: ${stats.activeSubscribers}\nالمشتركون المعلقون: ${stats.pendingSubscribers}`
-            };
-            sampleReports.unshift(report);
-            loadReports();
+        /**
+         * تحديث الإحصائيات
+         */
+        function updateStats() {
+            const activations = allActivities.filter(a => a.type === 'activation');
+            const payments = allActivities.filter(a => a.type === 'payment');
+            const expenses = allActivities.filter(a => a.type === 'expense');
+
+            const totalActivations = activations.length;
+            const totalPayments = payments.reduce((sum, p) => sum + p.amount, 0);
+            const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+            const net = totalPayments - totalExpenses;
+
+            document.getElementById('total-activations').textContent = totalActivations;
+            document.getElementById('total-payments').textContent = totalPayments.toLocaleString() + ' د.ع';
+            document.getElementById('total-expenses').textContent = totalExpenses.toLocaleString() + ' د.ع';
+            document.getElementById('net-amount').textContent = (net >= 0 ? '+' : '') + net.toLocaleString() + ' د.ع';
         }
 
-        function generateFinancialReport() {
-            const subscribers = DataManager.getSubscribers();
-            const totalRevenue = subscribers.filter(s => s.price).reduce((sum, s) => sum + s.price, 0);
-            const cashPayments = subscribers.filter(s => s.paymentType === 'نقد' && s.price).reduce((sum, s) => sum + s.price, 0);
-            const duePayments = subscribers.filter(s => s.paymentType === 'أجل' && s.price).reduce((sum, s) => sum + s.price, 0);
+        /**
+         * تصفية وعرض الحركات
+         */
+        function filterActivities() {
+            const search = document.getElementById('search-input').value.toLowerCase();
+            const date = document.getElementById('date-filter').value;
+            const type = document.getElementById('type-filter').value;
+
+            filteredActivities = allActivities.filter(activity => {
+                const matchSearch = activity.name.toLowerCase().includes(search);
+                const matchDate = !date || activity.date === date;
+                const matchType = !type || activity.type === type;
+                return matchSearch && matchDate && matchType;
+            });
+
+            renderActivities();
+        }
+
+        /**
+         * عرض الحركات في الصفحة
+         */
+        function renderActivities() {
+            const container = document.getElementById('activities-list');
+
+            if (filteredActivities.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-gray-500">
+                        <i class="fas fa-inbox text-4xl mb-3 block opacity-50"></i>
+                        <p>لم يتم العثور على حركات</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filteredActivities.map(activity => {
+                const badgeClass = `badge badge-${activity.type}`;
+                const typeLabel = activity.type === 'activation' ? 'تفعيل' : 
+                                  activity.type === 'payment' ? 'دفعة' : 'مصروف';
+                const typeIcon = activity.type === 'activation' ? 'fa-check-circle' :
+                                 activity.type === 'payment' ? 'fa-money-bill-wave' : 'fa-receipt';
+                
+                return `
+                    <div class="activity-card bg-gray-50 p-4 rounded-lg activity-card.${activity.type}">
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-start gap-4 flex-1">
+                                <div class="p-3 bg-${activity.color}-100 rounded-lg">
+                                    <i class="fas ${typeIcon} text-${activity.color}-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h4 class="font-bold text-gray-900">${activity.name}</h4>
+                                        <span class="${badgeClass}">${typeLabel}</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600">
+                                        ${activity.type === 'activation' ? 
+                                            `نوع الدفع: <strong>${activity.paymentType}</strong> | ينتهي: ${activity.expiryDate || 'لم يحدد'}` :
+                                            activity.type === 'payment' ?
+                                            `نوع: <strong>${activity.paymentType}</strong>` :
+                                            `وصف: <strong>${activity.name}</strong>`
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="text-right ml-4">
+                                <p class="text-lg font-bold text-gray-900">${activity.amount.toLocaleString()} د.ع</p>
+                                <p class="text-xs text-gray-500">${new Date(activity.date).toLocaleDateString('ar-IQ')}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /**
+         * تصدير التقرير
+         */
+        function exportReport() {
+            let csv = 'النوع,الاسم/الوصف,المبلغ,التاريخ,التفاصيل\n';
             
-            const timestamp = new Date().toLocaleDateString('ar-EG');
-            const report = {
-                name: `التحليل المالي - ${timestamp}`,
-                type: 'مالي',
-                date: timestamp,
-                size: '3.2 MB',
-                data: `إجمالي الإيرادات: ${totalRevenue} د.ع\nالدفع النقدي: ${cashPayments} د.ع\nالدفع الأجل: ${duePayments} د.ع`
-            };
-            sampleReports.unshift(report);
-            loadReports();
+            filteredActivities.forEach(activity => {
+                const type = activity.type === 'activation' ? 'تفعيل' : 
+                             activity.type === 'payment' ? 'دفعة' : 'مصروف';
+                const details = activity.type === 'activation' ? 
+                                `${activity.paymentType} ينتهي ${activity.expiryDate}` :
+                                activity.type === 'payment' ?
+                                activity.paymentType :
+                                '';
+                
+                csv += `${type},"${activity.name}",${activity.amount},"${activity.date}","${details}"\n`;
+            });
+
+            const link = document.createElement('a');
+            link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+            link.download = `report_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
         }
 
-        function generateUserReport() {
-            const stats = DataManager.getStatistics();
-            const timestamp = new Date().toLocaleDateString('ar-EG');
-            const report = {
-                name: `تحليل المستخدمين - ${timestamp}`,
-                type: 'تحليلي',
-                date: timestamp,
-                size: '1.9 MB',
-                data: `عدد المشتركين: ${stats.totalSubscribers}\nالمشتركون النشطون: ${stats.activeSubscribers}\nالمشتركون المنتهية اشتراكاتهم: ${stats.expiredSubscribers}`
-            };
-            sampleReports.unshift(report);
-            loadReports();
-        }
-
-        function generateCustomReport() {
-            const name = prompt('أدخل اسم التقرير المخصص:');
-            if (name) {
-                const timestamp = new Date().toLocaleDateString('ar-EG');
-                const report = {
-                    name: `${name} - ${timestamp}`,
-                    type: 'مخصص',
-                    date: timestamp,
-                    size: '2.0 MB'
-                };
-                sampleReports.unshift(report);
-                loadReports();
-            }
-        }
-
-        function downloadReport(id) {
-            const report = sampleReports[id];
-            if (report) {
-                const content = report.data ? report.name + '\n\n' + report.data : report.name;
-                const link = document.createElement('a');
-                link.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(content);
-                link.download = `${report.name}.txt`;
-                link.click();
-            }
-        }
-
-        function deleteReport(id) {
-            sampleReports.splice(id, 1);
-            loadReports();
-        }
+        // تحديث عند تغيير البيانات
+        window.addEventListener('storage', () => {
+            loadActivities();
+        });
     </script>
 <script>
     document.addEventListener('keydown', e => {
