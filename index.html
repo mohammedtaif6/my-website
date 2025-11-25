@@ -539,19 +539,40 @@
         window.updateDashboard = function() {
             const stats = DataManager.getStatistics();
             const subs = DataManager.getSubscribers();
-            const debts = subs.filter(s => s.paymentType === 'أجل' && s.price > 0).reduce((sum, s) => sum + (parseInt(s.price) || 0), 0);
             
-            const received = subs.filter(s => s.paymentType === 'نقد' && s.price > 0).reduce((sum, s) => sum + (parseInt(s.price) || 0), 0) +
-                            subs.filter(s => s.lastPaymentDate && s.originalPrice > 0).reduce((sum, s) => sum + (parseInt(s.originalPrice) || 0), 0);
+            // حساب الديون (المشتركين بنوع أجل)
+            const debts = subs.filter(s => s.paymentType === 'أجل' && s.price > 0)
+                .reduce((sum, s) => sum + (parseInt(s.price) || 0), 0);
             
+            // حساب المبالغ المستلمة من ثلاث مصادر:
+            
+            // 1. المشتركين النقد المباشرين
+            let received = subs.filter(s => s.paymentType === 'نقد' && s.price > 0)
+                .reduce((sum, s) => sum + (parseInt(s.price) || 0), 0);
+            
+            // 2. المعاملات المسجلة (التسديد الجزئي والكامل) - ✓ المهم جداً
+            const transactions = DataManager.getAllTransactions();
+            if (transactions && Array.isArray(transactions)) {
+                const totalTransactions = transactions.reduce((sum, t) => sum + (parseInt(t.amount) || 0), 0);
+                received += totalTransactions;
+            }
+            
+            // 3. الاشتراكات المسددة كاملاً (للتوافقية مع النظام القديم)
+            const fullPayments = subs.filter(s => s.lastPaymentDate && s.originalPrice > 0 && !transactions.some(t => t.subscriberId === s.id))
+                .reduce((sum, s) => sum + (parseInt(s.originalPrice) || 0), 0);
+            received += fullPayments;
+            
+            // حساب المصروفات
             let expenses = 0;
             const expensesData = JSON.parse(localStorage.getItem('expenses') || '[]');
             if (Array.isArray(expensesData)) {
                 expenses = expensesData.reduce((sum, e) => sum + (parseInt(e.amount) || 0), 0);
             }
 
+            // حساب الصافي
             const netReceived = received - expenses;
 
+            // تحديث الواجهة
             document.getElementById('stat-total').textContent = stats.totalSubscribers;
             document.getElementById('stat-expired').textContent = stats.expiredSubscribers;
             document.getElementById('stat-expiring').textContent = stats.expiringSubscribers;
