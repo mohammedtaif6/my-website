@@ -211,8 +211,17 @@
             </form>
         </div>
     </div>
+
+    <script type="module" src="data-manager.js"></script>
     <script>
         document.getElementById('current-date').textContent = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+        // تحميل البيانات عند فتح الصفحة
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof updateDashboard === 'function') {
+                updateDashboard();
+            }
+        });
 
         function openActivateModal() {
             document.getElementById('activateModal').style.display = 'flex';
@@ -536,6 +545,15 @@
             document.getElementById('stat-received').textContent = netReceived.toLocaleString() + ' د.ع';
             document.getElementById('stat-expenses').textContent = expenses.toLocaleString() + ' د.ع';
         }
+
+        // استدعاء updateDashboard عند فتح الصفحة
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                if (typeof updateDashboard === 'function') {
+                    updateDashboard();
+                }
+            }, 500);
+        });
     </script>
 </body>
 </html>
