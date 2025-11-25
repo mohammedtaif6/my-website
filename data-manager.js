@@ -1,13 +1,12 @@
 /**
- * نظام إدارة البيانات المركزي - Firebase Edition
- * يدعم التزامن اللحظي بين الأجهزة عبر الإنترنت
+ * نظام إدارة البيانات المركزي - النسخة السريعة (Hybrid Cache)
+ * يجمع بين سرعة التخزين المحلي وقوة التزامن السحابي
  */
 
-// 1. استيراد مكتبات فايربيس من السيرفرات مباشرة
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// 2. إعدادات مشروعك (التي أرسلتها لي)
+// إعدادات فايربيس الخاصة بك
 const firebaseConfig = {
   apiKey: "AIzaSyA-raYlvzPz8T7Mnx8bTWA4O8CyHvp7K_0",
   authDomain: "okcomputer-system.firebaseapp.com",
@@ -18,53 +17,81 @@ const firebaseConfig = {
   measurementId: "G-CNMCQ04CFD"
 };
 
-// 3. تهيئة الاتصال
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// مخزن مؤقت للبيانات (لضمان سرعة العرض وعدم تعليق الصفحة)
+// متغيرات لتخزين البيانات محلياً
 let localSubscribers = [];
 let localDebts = [];
 
-// تعريف النظام
 const DataManager = {
-    
-    // دالة التهيئة: تبدأ الاستماع الفوري للتغييرات
+    // مفاتيح التخزين المؤقت
+    CACHE_KEYS: {
+        SUBS: 'ok_cache_subs',
+        DEBTS: 'ok_cache_debts'
+    },
+
     init() {
-        console.log("جاري الاتصال بقاعدة البيانات السحابية...");
+        // 1. التحميل الفوري من الذاكرة المحلية (لسرعة العرض)
+        this.loadFromCache();
+
+        // 2. الاتصال بالسحابة لجلب التحديثات
+        console.log("جاري المزامنة مع السحابة...");
         
-        // استماع للمشتركين (أي تغيير في أي جهاز سيصل هنا فوراً)
+        // مزامنة المشتركين
         const subCol = collection(db, "subscribers");
-        const q = query(subCol, orderBy("id", "desc")); // ترتيب تنازلي حسب الرقم
+        const q = query(subCol, orderBy("id", "desc"));
         
         onSnapshot(q, (snapshot) => {
             localSubscribers = snapshot.docs.map(doc => ({
                 ...doc.data(),
-                firebaseId: doc.id // نحفظ معرف الوثيقة للتعديل والحذف لاحقاً
+                firebaseId: doc.id
             }));
             
-            console.log("تم تحديث البيانات من السحابة:", localSubscribers.length);
+            // تحديث الكاش المحلي
+            localStorage.setItem(this.CACHE_KEYS.SUBS, JSON.stringify(localSubscribers));
             
-            // تحديث الواجهة تلقائياً إذا كانت الدوال موجودة في الصفحة
-            if (typeof window.loadSubscribers === 'function') window.loadSubscribers();
-            if (typeof window.updateDashboard === 'function') window.updateDashboard();
-            if (typeof window.updateStats === 'function') window.updateStats();
+            // تحديث الواجهة
+            this.refreshUI();
         });
 
-        // استماع للديون (اختياري حالياً إذا كنت تستخدمها)
+        // مزامنة الديون
         const debtCol = collection(db, "debts");
         onSnapshot(debtCol, (snapshot) => {
             localDebts = snapshot.docs.map(doc => ({ ...doc.data(), firebaseId: doc.id }));
+            localStorage.setItem(this.CACHE_KEYS.DEBTS, JSON.stringify(localDebts));
         });
     },
 
-    // ═══════════════════════════════════════════════════════════════════
-    // إدارة المشتركين (Cloud Functions)
-    // ═══════════════════════════════════════════════════════════════════
+    // دالة لاسترجاع البيانات المخزنة مؤقتاً
+    loadFromCache() {
+        const cachedSubs = localStorage.getItem(this.CACHE_KEYS.SUBS);
+        const cachedDebts = localStorage.getItem(this.CACHE_KEYS.DEBTS);
+
+        if (cachedSubs) {
+            localSubscribers = JSON.parse(cachedSubs);
+            this.refreshUI();
+        }
+        if (cachedDebts) {
+            localDebts = JSON.parse(cachedDebts);
+        }
+    },
+
+    // دالة موحدة لتحديث الواجهة في أي صفحة
+    refreshUI() {
+        if (typeof window.loadSubscribers === 'function') window.loadSubscribers();
+        if (typeof window.updateDashboard === 'function') window.updateDashboard();
+        if (typeof window.updateStats === 'function') window.updateStats();
+        if (typeof window.loadDebts === 'function') window.loadDebts();
+        if (typeof window.loadPayments === 'function') window.loadPayments();
+        if (typeof window.loadExpiredSubscribers === 'function') window.loadExpiredSubscribers();
+        if (typeof window.loadExpiringSubscribers === 'function') window.loadExpiringSubscribers();
+    },
+
+    // --- عمليات المشتركين ---
 
     async addSubscriber(data) {
-        // حساب ID رقمي بسيط للعرض (مثل 1, 2, 3)
-        // نستخدم 0 كقيمة افتراضية لتجنب الخطأ في أول مرة
+        // حساب ID محلي سريع
         const maxId = localSubscribers.length > 0 ? Math.max(...localSubscribers.map(s => s.id || 0)) : 0;
         const newId = maxId + 1;
         
@@ -75,53 +102,42 @@ const DataManager = {
             subscribeDate: data.subscribeDate || '',
             expiryDate: data.expiryDate || '',
             status: data.status || 'قيد الانتظار',
-            price: data.price || 0,
+            price: parseInt(data.price || 0),
             paymentType: data.paymentType || 'نقد',
             createdAt: new Date().toISOString()
         };
 
         try {
             await addDoc(collection(db, "subscribers"), subscriber);
-            // لا نحتاج لتحديث المصفوفة يدوياً، onSnapshot ستقوم بذلك
         } catch (e) {
-            console.error("خطأ في الإضافة:", e);
-            alert("فشل الحفظ في قاعدة البيانات. تحقق من الإنترنت.");
+            alert("مشكلة في الاتصال! تأكد من الإنترنت.");
+            console.error(e);
         }
     },
 
     async updateSubscriber(id, data) {
-        // نجد المشترك في القائمة المحلية لنحصل على معرفه في فايربيس
         const sub = localSubscribers.find(s => s.id === id);
         if (sub && sub.firebaseId) {
-            try {
-                const docRef = doc(db, "subscribers", sub.firebaseId);
-                await updateDoc(docRef, data);
-            } catch (e) {
-                console.error("خطأ في التعديل:", e);
-            }
+            await updateDoc(doc(db, "subscribers", sub.firebaseId), data);
         }
     },
 
     async deleteSubscriber(id) {
         const sub = localSubscribers.find(s => s.id === id);
         if (sub && sub.firebaseId) {
-            try {
-                await deleteDoc(doc(db, "subscribers", sub.firebaseId));
-            } catch (e) {
-                console.error("خطأ في الحذف:", e);
-            }
+            await deleteDoc(doc(db, "subscribers", sub.firebaseId));
         }
     },
 
-    // هذه الدوال تقرأ من النسخة المحلية (سريعة جداً للبحث)
     getSubscriber(id) {
         return localSubscribers.find(s => s.id === id);
     },
 
     getSubscribers() {
-        return localSubscribers;
+        return localSubscribers || [];
     },
 
+    // بحث سريع جداً في الذاكرة
     searchSubscribers(query) {
         if (!query) return [];
         const q = String(query).toLowerCase().trim();
@@ -133,52 +149,40 @@ const DataManager = {
         });
     },
 
-    // ═══════════════════════════════════════════════════════════════════
-    // الإحصائيات والتقارير
-    // ═══════════════════════════════════════════════════════════════════
+    // --- الإحصائيات والتقارير ---
 
     getStatistics() {
-        const subscribers = this.getSubscribers();
-        
+        const subs = this.getSubscribers();
         return {
-            totalSubscribers: subscribers.length,
-            activeSubscribers: subscribers.filter(s => s && s.status === 'نشط').length,
-            pendingSubscribers: subscribers.filter(s => s && s.status === 'قيد الانتظار').length,
-            inactiveSubscribers: subscribers.filter(s => s && s.status === 'غير نشط').length,
-            expiredSubscribers: subscribers.filter(s => s && s.expiryDate && new Date(s.expiryDate) < new Date()).length,
-            // حساب القريب من الانتهاء
-            expiringSubscribers: subscribers.filter(s => {
-                if (!s || !s.expiryDate) return false;
+            totalSubscribers: subs.length,
+            activeSubscribers: subs.filter(s => s.status === 'نشط').length,
+            pendingSubscribers: subs.filter(s => s.status === 'قيد الانتظار').length,
+            inactiveSubscribers: subs.filter(s => s.status === 'غير نشط').length,
+            expiredSubscribers: subs.filter(s => s.expiryDate && new Date(s.expiryDate) < new Date()).length,
+            expiringSubscribers: subs.filter(s => {
+                if (!s.expiryDate) return false;
                 const today = new Date(); today.setHours(0,0,0,0);
                 const expiry = new Date(s.expiryDate); expiry.setHours(0,0,0,0);
                 const threeDays = new Date(today); threeDays.setDate(threeDays.getDate() + 3);
                 return expiry > today && expiry <= threeDays;
             }).length,
-            totalRevenue: subscribers.reduce((sum, s) => sum + (s.price || 0), 0)
+            totalRevenue: subs.reduce((sum, s) => sum + (parseInt(s.price) || 0), 0)
         };
     },
 
     exportToCSV(data, filename) {
-        if (!data || data.length === 0) { alert('لا توجد بيانات'); return; }
-        // استبعاد الحقول الداخلية الخاصة بفايربيس
+        if (!data || !data.length) { alert('لا توجد بيانات'); return; }
         const headers = Object.keys(data[0]).filter(k => k !== 'firebaseId');
         let csv = headers.join(',') + '\n';
         data.forEach(row => {
-            const values = headers.map(header => {
-                const value = row[header];
-                return typeof value === 'string' && value.includes(',') ? `"${value}"` : (value || '');
-            });
-            csv += values.join(',') + '\n';
+            csv += headers.map(k => `"${row[k] || ''}"`).join(',') + '\n';
         });
         const link = document.createElement('a');
         link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-        link.download = `${filename || 'data'}_${new Date().toISOString().slice(0,10)}.csv`;
+        link.download = `${filename}_${new Date().toISOString().slice(0,10)}.csv`;
         link.click();
     }
 };
 
-// 4. جعل DataManager متاحاً لكل ملفات HTML
 window.DataManager = DataManager;
-
-// بدء النظام
 DataManager.init();
