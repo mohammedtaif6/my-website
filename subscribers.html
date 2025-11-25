@@ -58,11 +58,24 @@
 
     <header class="bg-white border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <h1 class="text-4xl font-bold text-gray-900 flex items-center">
-                <i class="fas fa-users text-blue-600 ml-3 text-3xl"></i>
-                المشتركين
-            </h1>
-            <p class="text-gray-600 mt-2">إدارة ومتابعة المشتركين وبيانات الاشتراكات</p>
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-4xl font-bold text-gray-900 flex items-center">
+                        <i class="fas fa-users text-blue-600 ml-3 text-3xl"></i>
+                        المشتركين
+                    </h1>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="openActivateModal()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 font-medium">
+                        <i class="fas fa-check"></i>
+                        تفعيل المشترك
+                    </button>
+                    <button onclick="openAddModal()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium">
+                        <i class="fas fa-plus"></i>
+                        إضافة صرفية
+                    </button>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -583,38 +596,105 @@
                 if (sub) phone = sub.phone;
             } catch(e) {}
 
-            const printContent = `
+            // حساب المدة
+            const start = new Date(subscribeDate);
+            const end = new Date(expiryDate);
+            const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+
+            // محتوى الإيصال (تصميم أحادي اللون واحترافي)
+            const receiptHTML = `
                 <!DOCTYPE html>
-                <html>
+                <html lang="ar" dir="rtl">
                 <head>
+                    <meta charset="UTF-8">
                     <title>إيصال</title>
                     <style>
-                        body { font-family: Arial; direction: rtl; text-align: right; }
-                        .receipt { border: 2px solid #333; padding: 20px; max-width: 300px; margin: 20px auto; }
-                        h1 { text-align: center; }
-                        .line { display: flex; justify-content: space-between; margin: 10px 0; }
+                        @page { size: 80mm auto; margin: 0; }
+                        body { margin: 0; padding: 0; font-family: Arial, sans-serif; direction: rtl; color: #222; }
+                        .receipt { width: 80mm; padding: 8px; background: #fff; }
+                        .header { text-align: center; padding: 6px 0; border-bottom: 1px solid #e6e6e6; }
+                        .header h1 { margin: 0; font-size: 16px; font-weight: 700; color: #111; }
+                        .header p { margin: 4px 0 0; font-size: 11px; color: #666; }
+                        .content { padding: 6px; font-size: 12px; line-height: 1.6; }
+                        .row { margin: 6px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+                        .label { color: #333; font-weight: 600; text-align: right; }
+                        .value { color: #111; text-align: left; }
+                        .divider { border-bottom: 1px dashed #e6e6e6; margin: 8px 0; }
+                        .amount-box { padding: 8px; border: 1px solid #ddd; text-align: center; margin: 8px 0; background: #fff; }
+                        .amount-box .value { font-size: 18px; font-weight: 700; font-family: 'Courier New', monospace; color: #111; }
+                        .details { font-size: 11px; color: #444; padding: 6px; border-top: 1px solid #f5f5f5; margin-top: 8px; }
+                        .status { display: inline-block; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-weight: 600; color: #111; background: #fff; margin-top: 8px; }
+                        .footer { text-align: center; font-size: 10px; color: #666; border-top: 1px solid #f1f1f1; padding-top: 6px; margin-top: 8px; }
+                        .signature { display: flex; justify-content: space-between; margin-top: 10px; }
+                        .sig-line { width: 60px; height: 28px; border-top: 1px solid #333; margin: 0 auto 4px; }
                     </style>
                 </head>
                 <body>
                     <div class="receipt">
-                        <h1>إيصال تفعيل</h1>
-                        <div class="line"><span>الاسم:</span><span>${name}</span></div>
-                        <div class="line"><span>الهاتف:</span><span>${phone}</span></div>
-                        <div class="line"><span>السعر:</span><span>${price} د.ع</span></div>
-                        <div class="line"><span>الدفع:</span><span>${paymentType}</span></div>
-                        <div class="line"><span>من:</span><span>${subscribeDate}</span></div>
-                        <div class="line"><span>إلى:</span><span>${expiryDate}</span></div>
-                        <hr style="border: 1px solid #333;">
-                        <div class="line" style="font-weight: bold;"><span>المجموع:</span><span>${price} د.ع</span></div>
+                        <div class="header">
+                            <h1>OKComputer</h1>
+                            <p>إيصال تفعيل الاشتراك</p>
+                        </div>
+                        <div class="content">
+                            <div class="row"><span class="label">الاسم</span><span class="value">${name}</span></div>
+                            <div class="row"><span class="label">الهاتف</span><span class="value">${phone}</span></div>
+                            <div class="divider"></div>
+                            <div class="amount-box">
+                                <div class="label">المبلغ المستحق</div>
+                                <div class="value">${parseInt(price).toLocaleString('ar-IQ')} د.ع</div>
+                            </div>
+                            <div class="row"><span class="label">نوع الدفع</span><span class="value">${paymentType}</span></div>
+                            <div class="details">
+                                <div class="row"><span class="label">من</span><span class="value">${subscribeDate}</span></div>
+                                <div class="row"><span class="label">إلى</span><span class="value">${expiryDate}</span></div>
+                                <div class="row"><span class="label">المدة</span><span class="value">${days} يوم</span></div>
+                            </div>
+                            <div class="status">نشط</div>
+                            <div class="footer">
+                                <div>شكراً لتعاملكم معنا</div>
+                                <div style="margin-top:6px;color:#999;font-size:10px;">${new Date().toLocaleString('ar-IQ')}</div>
+                            </div>
+                            <div class="signature">
+                               
+                        </div>
                     </div>
                 </body>
                 </html>
             `;
 
-            const w = window.open();
-            w.document.write(printContent);
-            w.document.close();
-            setTimeout(() => w.print(), 100);
+            // طباعة مباشرة داخل iframe مخفي (لا تظهر صفحة إضافية)
+            const iframe = document.createElement('iframe');
+            iframe.style.position = 'fixed';
+            iframe.style.right = '-10000px';
+            iframe.style.width = '0px';
+            iframe.style.height = '0px';
+            iframe.style.border = '0';
+            document.body.appendChild(iframe);
+
+            const iwin = iframe.contentWindow || iframe;
+            const idoc = iframe.contentDocument || iframe.contentWindow.document;
+            idoc.open();
+            idoc.write(receiptHTML);
+            idoc.close();
+
+            // محاولة الطباعة عند تحميل الإطار، مع احتياطي زمني
+            let _printed = false;
+            const _cleanup = () => { try { document.body.removeChild(iframe); } catch(e) {} };
+            const doPrint = () => {
+                if (_printed) return;
+                _printed = true;
+                try {
+                    iwin.focus();
+                    if (iwin.print) iwin.print();
+                } catch (err) {
+                    console.error('Print error:', err);
+                }
+                setTimeout(_cleanup, 800);
+            };
+
+            iframe.onload = () => doPrint();
+            // fallback (will call doPrint only if not already printed)
+            const _fallbackTimer = setTimeout(() => doPrint(), 700);
         }
 
         function resetActivateForm() {

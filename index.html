@@ -32,10 +32,20 @@
     </nav>
 
     <main class="max-w-7xl mx-auto px-4 py-8">
-        <div class="mb-8 bg-gradient-to-r from-blue-700 to-indigo-800 rounded-xl p-8 text-white shadow-lg">
-            <h2 class="text-3xl font-bold mb-2">مرحباً بك</h2>
-            <p class="text-blue-100">إدارة الاشتراكات أصبحت أسرع وأسهل</p>
-            <p class="text-sm mt-2 opacity-75" id="current-date"></p>
+        <div class="mb-8 bg-gradient-to-r from-blue-700 to-indigo-800 rounded-xl p-8 text-white shadow-lg flex justify-between items-center">
+            <div>
+                <p class="text-sm opacity-75" id="current-date"></p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="openActivateModal()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 font-medium">
+                    <i class="fas fa-check"></i>
+                    تفعيل المشترك
+                </button>
+                <button onclick="openAddExpenseModal()" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 font-medium">
+                    <i class="fas fa-plus"></i>
+                    إضافة صرفية
+                </button>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -95,27 +105,428 @@
         </div>
     </main>
 
-    <script type="module" src="data-manager.js"></script>
+    <div id="activateModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div class="modal-content" style="background: white; border-radius: 12px; padding: 2rem; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">تفعيل اشتراك جديد</h2>
+                <button onclick="closeActivateModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <form onsubmit="activateSubscription(event)">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">اسم المشترك *</label>
+                    <input type="text" id="act-name" required placeholder="أدخل اسم المشترك" 
+                           class="w-full p-3 border border-gray-300 rounded-lg"
+                           oninput="searchSubscriber()">
+                    <div id="subscriber-suggestions" class="mt-2 border border-gray-300 rounded-lg max-h-48 overflow-y-auto hidden">
+                        <div id="suggestions-list"></div>
+                    </div>
+                    <div id="subscriber-info" class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg hidden">
+                        <p><span class="font-medium">الهاتف:</span> <span id="info-phone" class="text-gray-700"></span></p>
+                        <p><span class="font-medium">الحالة الحالية:</span> <span id="info-status" class="text-gray-700"></span></p>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">سعر الاشتراك *</label>
+                    <div class="grid grid-cols-3 gap-2 mb-3">
+                        <button type="button" class="price-btn p-3 border-2 border-gray-300 rounded-lg text-center hover:border-blue-600 font-medium" onclick="selectPrice(35000, this)">
+                            35,000 د.ع
+                        </button>
+                        <button type="button" class="price-btn p-3 border-2 border-gray-300 rounded-lg text-center hover:border-blue-600 font-medium" onclick="selectPrice(30000, this)">
+                            30,000 د.ع
+                        </button>
+                        <button type="button" class="price-btn p-3 border-2 border-gray-300 rounded-lg text-center hover:border-blue-600 font-medium" onclick="toggleCustomPrice(this)">
+                            مخصص
+                        </button>
+                    </div>
+                    <input type="hidden" id="selected-price">
+                    <input type="number" id="custom-price" placeholder="السعر المخصص" class="w-full p-3 border border-gray-300 rounded-lg hidden" step="1000">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">نوع الدفع *</label>
+                    <select id="payment-type" required class="w-full p-3 border border-gray-300 rounded-lg">
+                        <option value="">اختر نوع الدفع</option>
+                        <option value="نقد">نقد</option>
+                        <option value="أجل">أجل</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">تاريخ الاشتراك</label>
+                        <input type="date" id="sub-date" disabled class="w-full p-3 border border-gray-300 rounded-lg bg-gray-100">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">تاريخ الانتهاء</label>
+                        <input type="date" id="exp-date" disabled class="w-full p-3 border border-gray-300 rounded-lg bg-gray-100">
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="closeActivateModal()" class="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+                        إلغاء
+                    </button>
+                    <button type="button" onclick="printReceipt()" class="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                        <i class="fas fa-print ml-2"></i>
+                        طباعة
+                    </button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                        <i class="fas fa-check ml-2"></i>
+                        تفعيل
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="addExpenseModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div class="modal-content" style="background: white; border-radius: 12px; padding: 2rem; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">إضافة صرفية جديدة</h2>
+                <button onclick="closeAddExpenseModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <form onsubmit="saveNewExpense(event)">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">البيان *</label>
+                    <input type="text" id="add-description" required placeholder="وصف الصرفية" class="w-full p-3 border border-gray-300 rounded-lg">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">المبلغ (د.ع) *</label>
+                    <input type="number" id="add-amount" required placeholder="0" class="w-full p-3 border border-gray-300 rounded-lg" min="0" step="1000">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">التاريخ</label>
+                    <input type="date" id="add-date" class="w-full p-3 border border-gray-300 rounded-lg">
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="closeAddExpenseModal()" class="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+                        إلغاء
+                    </button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                        <i class="fas fa-save ml-2"></i>
+                        حفظ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
     <script>
         document.getElementById('current-date').textContent = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+        function openActivateModal() {
+            document.getElementById('activateModal').style.display = 'flex';
+            setDefaultDates();
+        }
+
+        function closeActivateModal() {
+            document.getElementById('activateModal').style.display = 'none';
+            resetActivateForm();
+        }
+
+        function setDefaultDates() {
+            const today = new Date().toISOString().split('T')[0];
+            const expiry = new Date();
+            expiry.setDate(expiry.getDate() + 30);
+            const expiryStr = expiry.toISOString().split('T')[0];
+
+            document.getElementById('sub-date').value = today;
+            document.getElementById('exp-date').value = expiryStr;
+        }
+
+        function selectPrice(price, btn) {
+            document.querySelectorAll('.price-btn').forEach(b => b.classList.remove('border-blue-600', 'bg-blue-50'));
+            btn.classList.add('border-blue-600', 'bg-blue-50');
+            document.getElementById('selected-price').value = price;
+            document.getElementById('custom-price').classList.add('hidden');
+        }
+
+        function toggleCustomPrice(btn) {
+            const customInput = document.getElementById('custom-price');
+            const isHidden = customInput.classList.contains('hidden');
+            
+            document.querySelectorAll('.price-btn').forEach(b => b.classList.remove('border-blue-600', 'bg-blue-50'));
+            if (isHidden) {
+                btn.classList.add('border-blue-600', 'bg-blue-50');
+                customInput.classList.remove('hidden');
+                customInput.focus();
+            } else {
+                customInput.classList.add('hidden');
+            }
+        }
+
+        function searchSubscriber() {
+            const input = document.getElementById('act-name').value.trim();
+            const suggestionBox = document.getElementById('subscriber-suggestions');
+            const infoBox = document.getElementById('subscriber-info');
+            
+            if (!input) {
+                suggestionBox.classList.add('hidden');
+                infoBox.classList.add('hidden');
+                return;
+            }
+
+            let results = [];
+            try {
+                results = DataManager.searchSubscribers(input);
+            } catch (e) {
+                const all = DataManager.getSubscribers() || [];
+                const q = input.toLowerCase();
+                results = all.filter(s => (s.name || '').toLowerCase().includes(q));
+            }
+            
+            if (results.length === 0) {
+                suggestionBox.classList.add('hidden');
+                infoBox.classList.add('hidden');
+                return;
+            }
+
+            const suggestionsList = document.getElementById('suggestions-list');
+            suggestionsList.innerHTML = results.map(s => `
+                <div class="p-3 border-b border-gray-200 hover:bg-gray-100 cursor-pointer" onclick="selectSubscriber(${s.id})">
+                    <div class="font-medium">${s.name}</div>
+                    <div class="text-sm text-gray-600">الهاتف: ${s.phone || 'غير متوفر'} | الحالة: ${s.status}</div>
+                </div>
+            `).join('');
+
+            suggestionBox.classList.remove('hidden');
+
+            if (results.length === 1) {
+                showSubscriberInfo(results[0]);
+            }
+        }
+
+        function selectSubscriber(id) {
+            const subscriber = DataManager.getSubscriber(id);
+            
+            if (subscriber) {
+                document.getElementById('act-name').value = subscriber.name;
+                document.getElementById('subscriber-suggestions').classList.add('hidden');
+                showSubscriberInfo(subscriber);
+            }
+        }
+
+        function showSubscriberInfo(subscriber) {
+            if (!subscriber) return;
+            document.getElementById('info-phone').textContent = subscriber.phone || 'غير متوفر';
+            document.getElementById('info-status').textContent = subscriber.status || 'قيد الانتظار';
+            document.getElementById('subscriber-info').classList.remove('hidden');
+        }
+
+        function activateSubscription(e) {
+            e.preventDefault();
+            const name = document.getElementById('act-name').value;
+            const priceInput = document.getElementById('selected-price').value || document.getElementById('custom-price').value;
+            const price = parseInt(priceInput) || 0;
+            const paymentType = document.getElementById('payment-type').value;
+            const subscribeDate = document.getElementById('sub-date').value;
+            const expiryDate = document.getElementById('exp-date').value;
+
+            if (!price) return;
+
+            let existing = null;
+            try {
+                const results = DataManager.searchSubscribers(name);
+                existing = results.find(s => s.name === name);
+            } catch(e) {}
+
+            if (existing) {
+                DataManager.updateSubscriber(existing.id, {
+                    price, paymentType, subscribeDate, expiryDate,
+                    status: 'نشط'
+                });
+            } else {
+                DataManager.addSubscriber({
+                    name, price, paymentType, subscribeDate, expiryDate,
+                    status: 'نشط'
+                });
+            }
+
+            updateDashboard();
+            closeActivateModal();
+            alert('تم تفعيل الاشتراك بنجاح');
+        }
+
+        function printReceipt() {
+            const name = document.getElementById('act-name').value;
+            const price = document.getElementById('selected-price').value || document.getElementById('custom-price').value;
+            const paymentType = document.getElementById('payment-type').value;
+            const subscribeDate = document.getElementById('sub-date').value;
+            const expiryDate = document.getElementById('exp-date').value;
+
+            if (!name || !price) return;
+
+            let phone = 'غير متوفر';
+            try {
+                const results = DataManager.searchSubscribers(name);
+                const sub = results.find(s => s.name === name);
+                if (sub) phone = sub.phone;
+            } catch(e) {}
+
+            const start = new Date(subscribeDate);
+            const end = new Date(expiryDate);
+            const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+
+            const receiptHTML = `
+                <!DOCTYPE html>
+                <html lang="ar" dir="rtl">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>إيصال</title>
+                    <style>
+                        @page { size: 80mm auto; margin: 0; }
+                        body { margin: 0; padding: 0; font-family: Arial, sans-serif; direction: rtl; color: #222; }
+                        .receipt { width: 80mm; padding: 8px; background: #fff; }
+                        .header { text-align: center; padding: 6px 0; border-bottom: 1px solid #e6e6e6; }
+                        .header h1 { margin: 0; font-size: 16px; font-weight: 700; color: #111; }
+                        .header p { margin: 4px 0 0; font-size: 11px; color: #666; }
+                        .content { padding: 6px; font-size: 12px; line-height: 1.6; }
+                        .row { margin: 6px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+                        .label { color: #333; font-weight: 600; text-align: right; }
+                        .value { color: #111; text-align: left; }
+                        .divider { border-bottom: 1px dashed #e6e6e6; margin: 8px 0; }
+                        .amount-box { padding: 8px; border: 1px solid #ddd; text-align: center; margin: 8px 0; background: #fff; }
+                        .amount-box .value { font-size: 18px; font-weight: 700; font-family: 'Courier New', monospace; color: #111; }
+                        .details { font-size: 11px; color: #444; padding: 6px; border-top: 1px solid #f5f5f5; margin-top: 8px; }
+                        .status { display: inline-block; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-weight: 600; color: #111; background: #fff; margin-top: 8px; }
+                        .footer { text-align: center; font-size: 10px; color: #666; border-top: 1px solid #f1f1f1; padding-top: 6px; margin-top: 8px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="receipt">
+                        <div class="header">
+                            <h1>OKComputer</h1>
+                            <p>إيصال تفعيل الاشتراك</p>
+                        </div>
+                        <div class="content">
+                            <div class="row"><span class="label">الاسم</span><span class="value">${name}</span></div>
+                            <div class="row"><span class="label">الهاتف</span><span class="value">${phone}</span></div>
+                            <div class="divider"></div>
+                            <div class="amount-box">
+                                <div class="label">المبلغ المستحق</div>
+                                <div class="value">${parseInt(price).toLocaleString('ar-IQ')} د.ع</div>
+                            </div>
+                            <div class="row"><span class="label">نوع الدفع</span><span class="value">${paymentType}</span></div>
+                            <div class="details">
+                                <div class="row"><span class="label">من</span><span class="value">${subscribeDate}</span></div>
+                                <div class="row"><span class="label">إلى</span><span class="value">${expiryDate}</span></div>
+                                <div class="row"><span class="label">المدة</span><span class="value">${days} يوم</span></div>
+                            </div>
+                            <div class="status">نشط</div>
+                            <div class="footer">
+                                <div>شكراً لتعاملكم معنا</div>
+                                <div style="margin-top:6px;color:#999;font-size:10px;">${new Date().toLocaleString('ar-IQ')}</div>
+                            </div>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            const iframe = document.createElement('iframe');
+            iframe.style.position = 'fixed';
+            iframe.style.right = '-10000px';
+            iframe.style.width = '0px';
+            iframe.style.height = '0px';
+            iframe.style.border = '0';
+            document.body.appendChild(iframe);
+
+            const iwin = iframe.contentWindow || iframe;
+            const idoc = iframe.contentDocument || iframe.contentWindow.document;
+            idoc.open();
+            idoc.write(receiptHTML);
+            idoc.close();
+
+            let _printed = false;
+            const _cleanup = () => { try { document.body.removeChild(iframe); } catch(e) {} };
+            const doPrint = () => {
+                if (_printed) return;
+                _printed = true;
+                try {
+                    iwin.focus();
+                    if (iwin.print) iwin.print();
+                } catch (err) {
+                    console.error('Print error:', err);
+                }
+                setTimeout(_cleanup, 800);
+            };
+
+            iframe.onload = () => doPrint();
+            const _fallbackTimer = setTimeout(() => doPrint(), 700);
+        }
+
+        function resetActivateForm() {
+            document.getElementById('act-name').value = '';
+            document.getElementById('payment-type').value = '';
+            document.getElementById('selected-price').value = '';
+            document.getElementById('custom-price').value = '';
+            document.getElementById('subscriber-suggestions').classList.add('hidden');
+            document.getElementById('subscriber-info').classList.add('hidden');
+            document.querySelectorAll('.price-btn').forEach(b => b.classList.remove('border-blue-600', 'bg-blue-50'));
+        }
+
+        window.onclick = function(e) {
+            const activateModal = document.getElementById('activateModal');
+            const addExpenseModal = document.getElementById('addExpenseModal');
+            if (e.target === activateModal) closeActivateModal();
+            if (e.target === addExpenseModal) closeAddExpenseModal();
+        };
+
+        // --- وظائف إضافة الصرفية ---
+        function openAddExpenseModal() {
+            document.getElementById('add-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('addExpenseModal').style.display = 'flex';
+        }
+
+        function closeAddExpenseModal() {
+            document.getElementById('addExpenseModal').style.display = 'none';
+            document.getElementById('add-description').value = '';
+            document.getElementById('add-amount').value = '';
+            document.getElementById('add-date').value = '';
+        }
+
+        function saveNewExpense(e) {
+            e.preventDefault();
+            const description = document.getElementById('add-description').value;
+            const amount = parseInt(document.getElementById('add-amount').value) || 0;
+            const date = document.getElementById('add-date').value;
+
+            if (!description || amount <= 0) {
+                alert('يرجى ملء جميع الحقول بشكل صحيح');
+                return;
+            }
+
+            let allExpenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+            
+            const newExpense = {
+                id: Date.now(),
+                description,
+                amount,
+                date,
+                createdAt: new Date().toISOString()
+            };
+
+            allExpenses.push(newExpense);
+            localStorage.setItem('expenses', JSON.stringify(allExpenses));
+            updateDashboard();
+            closeAddExpenseModal();
+            alert('تم إضافة الصرفية بنجاح');
+        }
 
         window.updateDashboard = function() {
             const stats = DataManager.getStatistics();
             const subs = DataManager.getSubscribers();
             const debts = subs.filter(s => s.paymentType === 'أجل' && s.price > 0).reduce((sum, s) => sum + (parseInt(s.price) || 0), 0);
             
-            // حساب المبالغ المستلمة
             const received = subs.filter(s => s.paymentType === 'نقد' && s.price > 0).reduce((sum, s) => sum + (parseInt(s.price) || 0), 0) +
                             subs.filter(s => s.lastPaymentDate && s.originalPrice > 0).reduce((sum, s) => sum + (parseInt(s.originalPrice) || 0), 0);
             
-            // حساب الصرفيات من localStorage
             let expenses = 0;
             const expensesData = JSON.parse(localStorage.getItem('expenses') || '[]');
             if (Array.isArray(expensesData)) {
                 expenses = expensesData.reduce((sum, e) => sum + (parseInt(e.amount) || 0), 0);
             }
 
-            // حساب الصافي (المبالغ المستلمة - الصرفيات)
             const netReceived = received - expenses;
 
             document.getElementById('stat-total').textContent = stats.totalSubscribers;
