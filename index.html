@@ -126,75 +126,132 @@
         </div>
     </main>
 
+    <!-- ===== تبويب تفعيل الاشتراك ===== -->
     <div id="activateModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-        <div class="modal-content" style="background: white; border-radius: 12px; padding: 2rem; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">تفعيل اشتراك جديد</h2>
-                <button onclick="closeActivateModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        <div class="modal-content" style="background: white; border-radius: 12px; padding: 0; max-width: 550px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+            
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 1.5rem; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h2 style="color: white; font-size: 1.5rem; font-weight: bold; margin: 0;">
+                        <i class="fas fa-check-circle ml-2"></i>تفعيل اشتراك جديد
+                    </h2>
+                    <p style="color: rgba(255,255,255,0.9); font-size: 0.875rem; margin: 0.5rem 0 0 0;">أضف مشترك جديد أو حدّث اشتراك موجود</p>
+                </div>
+                <button onclick="closeActivateModal()" style="background: rgba(255,255,255,0.2); border: none; color: white; font-size: 1.5rem; cursor: pointer; padding: 0.25rem 0.5rem; border-radius: 4px;">✕</button>
             </div>
-            <form onsubmit="activateSubscription(event)">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">اسم المشترك *</label>
-                    <input type="text" id="act-name" required placeholder="أدخل اسم المشترك" 
-                           class="w-full p-3 border border-gray-300 rounded-lg"
-                           oninput="searchSubscriber()">
-                    <div id="subscriber-suggestions" class="mt-2 border border-gray-300 rounded-lg max-h-48 overflow-y-auto hidden">
+
+            <!-- Form Content -->
+            <form onsubmit="activateSubscription(event)" style="padding: 1.5rem;">
+                
+                <!-- البحث عن المشترك -->
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem;">
+                        <i class="fas fa-user-plus ml-2" style="color: #10b981;"></i>اسم المشترك *
+                    </label>
+                    <input type="text" id="act-name" required placeholder="ابدأ بكتابة الاسم للبحث..." 
+                           style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem; transition: all 0.3s;"
+                           oninput="searchSubscriber()"
+                           onfocus="this.style.borderColor='#10b981'"
+                           onblur="this.style.borderColor='#e5e7eb'">
+                    
+                    <!-- قائمة الاقتراحات -->
+                    <div id="subscriber-suggestions" style="margin-top: 0.5rem; border: 1px solid #e5e7eb; border-radius: 8px; max-height: 200px; overflow-y: auto; display: none; background: #f9fafb;">
                         <div id="suggestions-list"></div>
                     </div>
-                    <div id="subscriber-info" class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg hidden">
-                        <p><span class="font-medium">الهاتف:</span> <span id="info-phone" class="text-gray-700"></span></p>
-                        <p><span class="font-medium">الحالة الحالية:</span> <span id="info-status" class="text-gray-700"></span></p>
+                    
+                    <!-- معلومات المشترك -->
+                    <div id="subscriber-info" style="margin-top: 0.75rem; padding: 0.75rem; background: #dbeafe; border: 1px solid #93c5fd; border-radius: 8px; display: none;">
+                        <p style="margin: 0.25rem 0; font-size: 0.875rem;">
+                            <span style="font-weight: 600; color: #1e40af;">📞 الهاتف:</span> 
+                            <span id="info-phone" style="color: #1f2937;"></span>
+                        </p>
+                        <p style="margin: 0.25rem 0; font-size: 0.875rem;">
+                            <span style="font-weight: 600; color: #1e40af;">📊 الحالة الحالية:</span> 
+                            <span id="info-status" style="color: #1f2937;"></span>
+                        </p>
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">سعر الاشتراك *</label>
-                    <div class="grid grid-cols-3 gap-2 mb-3">
-                        <button type="button" class="price-btn p-3 border-2 border-gray-300 rounded-lg text-center hover:border-blue-600 font-medium" onclick="selectPrice(35000, this)">
-                            35,000 د.ع
+                <!-- الفاصل -->
+                <hr style="border: none; border-top: 2px solid #f3f4f6; margin: 1.5rem 0;">
+
+                <!-- اختيار السعر -->
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #1f2937; margin-bottom: 0.75rem;">
+                        <i class="fas fa-tag ml-2" style="color: #10b981;"></i>سعر الاشتراك *
+                    </label>
+                    
+                    <!-- الأسعار المسبقة -->
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 0.75rem;">
+                        <button type="button" class="price-btn" onclick="selectPrice(35000, this)" 
+                                style="padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; background: white; font-weight: 600; color: #1f2937; cursor: pointer; transition: all 0.2s;">
+                            <i class="fas fa-money-bill-wave ml-1"></i>35,000 د.ع
                         </button>
-                        <button type="button" class="price-btn p-3 border-2 border-gray-300 rounded-lg text-center hover:border-blue-600 font-medium" onclick="selectPrice(30000, this)">
-                            30,000 د.ع
+                        <button type="button" class="price-btn" onclick="selectPrice(30000, this)" 
+                                style="padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; background: white; font-weight: 600; color: #1f2937; cursor: pointer; transition: all 0.2s;">
+                            <i class="fas fa-money-bill-wave ml-1"></i>30,000 د.ع
                         </button>
-                        <button type="button" class="price-btn p-3 border-2 border-gray-300 rounded-lg text-center hover:border-blue-600 font-medium" onclick="toggleCustomPrice(this)">
-                            مخصص
+                        <button type="button" class="price-btn" onclick="toggleCustomPrice(this)" 
+                                style="padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; background: white; font-weight: 600; color: #1f2937; cursor: pointer; transition: all 0.2s;">
+                            <i class="fas fa-sliders-h ml-1"></i>مخصص
                         </button>
                     </div>
+                    
+                    <!-- السعر المخصص -->
+                    <input type="number" id="custom-price" placeholder="أدخل السعر المخصص" 
+                           style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem; display: none; transition: all 0.2s;" 
+                           step="1000" min="0">
                     <input type="hidden" id="selected-price">
-                    <input type="number" id="custom-price" placeholder="السعر المخصص" class="w-full p-3 border border-gray-300 rounded-lg hidden" step="1000">
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">نوع الدفع *</label>
-                    <select id="payment-type" required class="w-full p-3 border border-gray-300 rounded-lg">
-                        <option value="">اختر نوع الدفع</option>
-                        <option value="نقد">نقد</option>
-                        <option value="أجل">أجل</option>
+                <!-- نوع الدفع -->
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem;">
+                        <i class="fas fa-credit-card ml-2" style="color: #10b981;"></i>نوع الدفع *
+                    </label>
+                    <select id="payment-type" required 
+                            style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem; transition: all 0.2s;">
+                        <option value="">✓ اختر نوع الدفع</option>
+                        <option value="نقد">💰 نقد (فوري)</option>
+                        <option value="أجل">📅 أجل (مؤجل)</option>
                     </select>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 mb-4">
+                <!-- التواريخ -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">تاريخ الاشتراك</label>
-                        <input type="date" id="sub-date" disabled class="w-full p-3 border border-gray-300 rounded-lg bg-gray-100">
+                        <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem;">
+                            <i class="fas fa-calendar-check ml-1" style="color: #10b981;"></i>تاريخ الاشتراك
+                        </label>
+                        <input type="date" id="sub-date" disabled 
+                               style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; background: #f9fafb; font-size: 0.875rem;">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">تاريخ الانتهاء</label>
-                        <input type="date" id="exp-date" disabled class="w-full p-3 border border-gray-300 rounded-lg bg-gray-100">
+                        <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem;">
+                            <i class="fas fa-calendar-times ml-1" style="color: #ef4444;"></i>تاريخ الانتهاء
+                        </label>
+                        <input type="date" id="exp-date" disabled 
+                               style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; background: #f9fafb; font-size: 0.875rem;">
                     </div>
                 </div>
 
-                <div class="flex gap-3 mt-6">
-                    <button type="button" onclick="closeActivateModal()" class="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
-                        إلغاء
+                <!-- الفاصل -->
+                <hr style="border: none; border-top: 2px solid #f3f4f6; margin: 1.5rem 0;">
+
+                <!-- الأزرار -->
+                <div style="display: flex; gap: 0.75rem;">
+                    <button type="button" onclick="closeActivateModal()" 
+                            style="flex: 1; padding: 0.75rem; background: #f3f4f6; color: #1f2937; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                        <i class="fas fa-times ml-1"></i>إلغاء
                     </button>
-                    <button type="button" onclick="printReceipt()" class="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-                        <i class="fas fa-print ml-2"></i>
-                        طباعة
+                    <button type="button" onclick="printReceipt()" 
+                            style="flex: 1; padding: 0.75rem; background: #6b7280; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                        <i class="fas fa-print ml-1"></i>طباعة
                     </button>
-                    <button type="submit" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                        <i class="fas fa-check ml-2"></i>
-                        تفعيل
+                    <button type="submit" 
+                            style="flex: 1; padding: 0.75rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                        <i class="fas fa-check-circle ml-1"></i>تفعيل
                     </button>
                 </div>
             </form>
@@ -265,23 +322,46 @@
         }
 
         function selectPrice(price, btn) {
-            document.querySelectorAll('.price-btn').forEach(b => b.classList.remove('border-blue-600', 'bg-blue-50'));
-            btn.classList.add('border-blue-600', 'bg-blue-50');
+            // إزالة الحالة السابقة من جميع الأزرار
+            document.querySelectorAll('.price-btn').forEach(b => {
+                b.classList.remove('selected');
+                b.style.borderColor = '#e5e7eb';
+                b.style.background = 'white';
+                b.style.color = '#1f2937';
+            });
+            
+            // إضافة الحالة الجديدة
+            btn.classList.add('selected');
             document.getElementById('selected-price').value = price;
-            document.getElementById('custom-price').classList.add('hidden');
+            document.getElementById('custom-price').style.display = 'none';
+            
+            // تأثير بصري
+            btn.style.transform = 'scale(1.05)';
+            setTimeout(() => { btn.style.transform = 'scale(1)'; }, 100);
         }
 
         function toggleCustomPrice(btn) {
             const customInput = document.getElementById('custom-price');
-            const isHidden = customInput.classList.contains('hidden');
+            const isHidden = customInput.style.display === 'none';
             
-            document.querySelectorAll('.price-btn').forEach(b => b.classList.remove('border-blue-600', 'bg-blue-50'));
+            // إزالة الحالة السابقة من جميع الأزرار
+            document.querySelectorAll('.price-btn').forEach(b => {
+                b.classList.remove('selected');
+                b.style.borderColor = '#e5e7eb';
+                b.style.background = 'white';
+                b.style.color = '#1f2937';
+            });
+            
             if (isHidden) {
-                btn.classList.add('border-blue-600', 'bg-blue-50');
-                customInput.classList.remove('hidden');
+                // إظهار حقل السعر المخصص
+                btn.classList.add('selected');
+                customInput.style.display = 'block';
                 customInput.focus();
+                customInput.style.borderColor = '#10b981';
             } else {
-                customInput.classList.add('hidden');
+                // إخفاء حقل السعر المخصص
+                customInput.style.display = 'none';
+                document.getElementById('selected-price').value = '';
             }
         }
 
@@ -291,8 +371,8 @@
             const infoBox = document.getElementById('subscriber-info');
             
             if (!input) {
-                suggestionBox.classList.add('hidden');
-                infoBox.classList.add('hidden');
+                suggestionBox.style.display = 'none';
+                infoBox.style.display = 'none';
                 return;
             }
 
@@ -306,20 +386,25 @@
             }
             
             if (results.length === 0) {
-                suggestionBox.classList.add('hidden');
-                infoBox.classList.add('hidden');
+                suggestionBox.style.display = 'none';
+                infoBox.style.display = 'none';
                 return;
             }
 
             const suggestionsList = document.getElementById('suggestions-list');
             suggestionsList.innerHTML = results.map(s => `
-                <div class="p-3 border-b border-gray-200 hover:bg-gray-100 cursor-pointer" onclick="selectSubscriber(${s.id})">
-                    <div class="font-medium">${s.name}</div>
-                    <div class="text-sm text-gray-600">الهاتف: ${s.phone || 'غير متوفر'} | الحالة: ${s.status}</div>
+                <div style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; hover:background #f3f4f6; cursor: pointer; transition: all 0.2s;" 
+                     onclick="selectSubscriber(${s.id})" 
+                     onmouseover="this.style.background='#f3f4f6'" 
+                     onmouseout="this.style.background='white'">
+                    <div style="font-weight: 600; color: #1f2937;">${s.name}</div>
+                    <div style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">
+                        📞 ${s.phone || 'غير متوفر'} | 📊 ${s.status || 'بدون حالة'}
+                    </div>
                 </div>
             `).join('');
 
-            suggestionBox.classList.remove('hidden');
+            suggestionBox.style.display = 'block';
 
             if (results.length === 1) {
                 showSubscriberInfo(results[0]);
@@ -331,7 +416,7 @@
             
             if (subscriber) {
                 document.getElementById('act-name').value = subscriber.name;
-                document.getElementById('subscriber-suggestions').classList.add('hidden');
+                document.getElementById('subscriber-suggestions').style.display = 'none';
                 showSubscriberInfo(subscriber);
             }
         }
@@ -340,7 +425,7 @@
             if (!subscriber) return;
             document.getElementById('info-phone').textContent = subscriber.phone || 'غير متوفر';
             document.getElementById('info-status').textContent = subscriber.status || 'قيد الانتظار';
-            document.getElementById('subscriber-info').classList.remove('hidden');
+            document.getElementById('subscriber-info').style.display = 'block';
         }
 
         function activateSubscription(e) {
@@ -485,13 +570,27 @@
         }
 
         function resetActivateForm() {
+            // مسح الإدخالات
             document.getElementById('act-name').value = '';
             document.getElementById('payment-type').value = '';
             document.getElementById('selected-price').value = '';
             document.getElementById('custom-price').value = '';
-            document.getElementById('subscriber-suggestions').classList.add('hidden');
-            document.getElementById('subscriber-info').classList.add('hidden');
-            document.querySelectorAll('.price-btn').forEach(b => b.classList.remove('border-blue-600', 'bg-blue-50'));
+            document.getElementById('custom-price').style.display = 'none';
+            
+            // إخفاء القوائم والمعلومات
+            document.getElementById('subscriber-suggestions').style.display = 'none';
+            document.getElementById('subscriber-info').style.display = 'none';
+            
+            // إعادة تعيين الأزرار
+            document.querySelectorAll('.price-btn').forEach(b => {
+                b.classList.remove('selected');
+                b.style.borderColor = '#e5e7eb';
+                b.style.background = 'white';
+                b.style.color = '#1f2937';
+            });
+            
+            // تعيين التواريخ الافتراضية
+            setDefaultDates();
         }
 
         window.onclick = function(e) {
