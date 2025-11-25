@@ -3,21 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="OKComputer">
     <meta name="theme-color" content="#dc2626">
-    <link rel="manifest" href="manifest.json">
     <title>الصرفيات - لوحة التحكم</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { 
-            font-family: 'Inter', sans-serif;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-        }
+        body { font-family: 'Inter', sans-serif; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
         .modal.active { display: flex; }
         .modal-content { background: white; border-radius: 12px; padding: 2rem; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
@@ -29,28 +21,14 @@
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center space-x-8">
                     <a href="index.html" class="flex items-center space-x-2 text-white font-bold text-lg hover:opacity-90">
-                        <i class="fas fa-chart-line text-2xl"></i>
-                        <span>OKComputer</span>
+                        <i class="fas fa-chart-line text-2xl"></i> <span>OKComputer</span>
                     </a>
                     <div class="hidden md:flex space-x-1">
-                        <a href="index.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-home ml-2"></i>الرئيسية
-                        </a>
-                        <a href="subscribers.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-users ml-2"></i>المشتركين
-                        </a>
-                        <a href="debts.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-credit-card ml-2"></i>الديون
-                        </a>
-                        <a href="payments.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-money-bill ml-2"></i>المبالغ المستلمة
-                        </a>
-                        <a href="expenses.html" class="text-white bg-white bg-opacity-20 px-3 py-2 rounded-lg transition-all font-medium">
-                            <i class="fas fa-receipt ml-2"></i>الصرفيات
-                        </a>
-                        <a href="reports.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-chart-bar ml-2"></i>التقارير
-                        </a>
+                        <a href="index.html" class="text-white hover:bg-white/20 px-3 py-2 rounded-lg">الرئيسية</a>
+                        <a href="subscribers.html" class="text-white hover:bg-white/20 px-3 py-2 rounded-lg">المشتركين</a>
+                        <a href="debts.html" class="text-white hover:bg-white/20 px-3 py-2 rounded-lg">الديون</a>
+                        <a href="payments.html" class="text-white hover:bg-white/20 px-3 py-2 rounded-lg">المبالغ</a>
+                        <a href="expenses.html" class="text-white bg-white/20 px-3 py-2 rounded-lg font-bold">الصرفيات</a>
                     </div>
                 </div>
             </div>
@@ -58,24 +36,20 @@
     </nav>
 
     <header class="bg-white border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="max-w-7xl mx-auto px-4 py-6">
             <h1 class="text-4xl font-bold text-gray-900 flex items-center">
-                <i class="fas fa-receipt text-red-600 ml-3 text-3xl"></i>
-                الصرفيات
+                <i class="fas fa-receipt text-red-600 ml-3 text-3xl"></i> الصرفيات
             </h1>
-            <p class="text-gray-600 mt-2">إدارة ومتابعة المصروفات والصرفيات</p>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="max-w-7xl mx-auto px-4 py-8">
         <div class="flex flex-wrap gap-3 mb-8">
-            <button onclick="openAddModal()" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 font-medium">
-                <i class="fas fa-plus"></i>
-                إضافة صرفية
+            <button onclick="openAddModal()" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 font-medium">
+                <i class="fas fa-plus ml-2"></i> إضافة صرفية
             </button>
-            <button onclick="exportExpenses()" class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2 font-medium">
-                <i class="fas fa-download"></i>
-                تصدير CSV
+            <button onclick="exportExpenses()" class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 font-medium">
+                <i class="fas fa-download ml-2"></i> تصدير CSV
             </button>
         </div>
 
@@ -84,57 +58,43 @@
                 <p class="text-sm text-gray-600">إجمالي الصرفيات</p>
                 <p class="text-2xl font-bold text-gray-900" id="total-expenses">0 د.ع</p>
             </div>
-            
             <div class="bg-white rounded-lg p-6 shadow-sm border-r-4 border-orange-600">
-                <p class="text-sm text-gray-600">عدد الصرفيات</p>
+                <p class="text-sm text-gray-600">العدد</p>
                 <p class="text-2xl font-bold text-gray-900" id="expenses-count">0</p>
             </div>
-            
             <div class="bg-white rounded-lg p-6 shadow-sm border-r-4 border-yellow-600">
-                <p class="text-sm text-gray-600">متوسط الصرفية</p>
+                <p class="text-sm text-gray-600">المتوسط</p>
                 <p class="text-2xl font-bold text-gray-900" id="average-expense">0 د.ع</p>
             </div>
         </div>
 
         <div class="bg-white rounded-lg p-6 shadow-sm mb-6">
-            <div class="flex flex-wrap gap-4 items-center">
-                <div class="flex-1 min-w-48">
-                    <input type="text" id="search" placeholder="بحث عن صرفية..." 
-                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                           onkeyup="loadExpenses()">
-                </div>
-            </div>
+            <input type="text" id="search" placeholder="بحث عن صرفية..." 
+                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                   onkeyup="loadExpenses()">
         </div>
 
         <div class="bg-white rounded-lg shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="w-full">
+                <table class="w-full text-right">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="text-right p-4 font-semibold text-gray-700">#</th>
-                            <th class="text-right p-4 font-semibold text-gray-700">البيان</th>
-                            <th class="text-right p-4 font-semibold text-gray-700">المبلغ (د.ع)</th>
-                            <th class="text-right p-4 font-semibold text-gray-700">التاريخ</th>
-                            <th class="text-right p-4 font-semibold text-gray-700">الإجراء</th>
+                            <th class="p-4">#</th>
+                            <th class="p-4">البيان</th>
+                            <th class="p-4">المبلغ</th>
+                            <th class="p-4">التاريخ</th>
+                            <th class="p-4">إجراء</th>
                         </tr>
                     </thead>
-                    <tbody id="expenses-body" class="divide-y divide-gray-200">
-                    </tbody>
+                    <tbody id="expenses-body" class="divide-y divide-gray-200"></tbody>
                 </table>
             </div>
-
             <div class="flex justify-between items-center p-4 border-t border-gray-200">
-                <div class="text-sm text-gray-600">
-                    عرض <span id="page-info">0</span> سجل
-                </div>
-                <div class="flex space-x-2">
-                    <button onclick="previousPage()" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                    <span id="current-page" class="px-3 py-2 bg-red-600 text-white rounded-lg">1</span>
-                    <button onclick="nextPage()" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
+                <div class="text-sm text-gray-600">عرض <span id="page-info">0</span> سجل</div>
+                <div class="flex gap-2">
+                    <button onclick="previousPage()" class="px-3 py-2 border rounded hover:bg-gray-50"><i class="fas fa-chevron-right"></i></button>
+                    <span id="current-page" class="px-3 py-2 bg-red-600 text-white rounded">1</span>
+                    <button onclick="nextPage()" class="px-3 py-2 border rounded hover:bg-gray-50"><i class="fas fa-chevron-left"></i></button>
                 </div>
             </div>
         </div>
@@ -144,29 +104,24 @@
         <div class="modal-content">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold">إضافة صرفية جديدة</h2>
-                <button onclick="closeAddModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                <button onclick="closeAddModal()" class="text-gray-500 text-2xl">&times;</button>
             </div>
             <form onsubmit="saveNewExpense(event)">
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">البيان *</label>
-                    <input type="text" id="add-description" required placeholder="وصف الصرفية" class="w-full p-3 border border-gray-300 rounded-lg">
+                    <label class="block text-sm font-medium mb-2">البيان *</label>
+                    <input type="text" id="add-description" required class="w-full p-3 border rounded-lg">
                 </div>
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">المبلغ (د.ع) *</label>
-                    <input type="number" id="add-amount" required placeholder="0" class="w-full p-3 border border-gray-300 rounded-lg" min="0" step="1000">
+                    <label class="block text-sm font-medium mb-2">المبلغ (د.ع) *</label>
+                    <input type="number" id="add-amount" required class="w-full p-3 border rounded-lg" min="0" step="250">
                 </div>
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">التاريخ</label>
-                    <input type="date" id="add-date" class="w-full p-3 border border-gray-300 rounded-lg">
+                    <label class="block text-sm font-medium mb-2">التاريخ</label>
+                    <input type="date" id="add-date" class="w-full p-3 border rounded-lg">
                 </div>
                 <div class="flex gap-3 mt-6">
-                    <button type="button" onclick="closeAddModal()" class="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
-                        إلغاء
-                    </button>
-                    <button type="submit" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                        <i class="fas fa-save ml-2"></i>
-                        حفظ
-                    </button>
+                    <button type="button" onclick="closeAddModal()" class="flex-1 px-4 py-2 bg-gray-200 rounded-lg">إلغاء</button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg">حفظ</button>
                 </div>
             </form>
         </div>
@@ -176,27 +131,25 @@
     <script>
         let currentPage = 1;
         const itemsPerPage = 10;
-        let allExpenses = [];
         let filteredExpenses = [];
 
-        function loadExpenses() {
+        // دالة التحميل أصبحت تعتمد على DataManager السحابي
+        window.loadExpenses = function() {
+            // جلب البيانات من المدير (الذي جلبها بدوره من السحابة)
+            const allExpenses = DataManager.getExpenses() || [];
             const search = document.getElementById('search').value.toLowerCase();
-
-            allExpenses = JSON.parse(localStorage.getItem('expenses') || '[]');
             
             filteredExpenses = allExpenses.filter(e => {
                 if (!e) return false;
-                const description = (e.description || '').toLowerCase();
-                
-                const matchesSearch = !search || description.includes(search);
-                
-                return matchesSearch;
+                return (!search || (e.description || '').toLowerCase().includes(search));
             });
 
-            currentPage = 1;
+            // ترتيب حسب التاريخ الأحدث
+            filteredExpenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+
             renderTable();
             updateStats();
-        }
+        };
 
         function renderTable() {
             const start = (currentPage - 1) * itemsPerPage;
@@ -206,12 +159,12 @@
             const tbody = document.getElementById('expenses-body');
             tbody.innerHTML = pageData.map((e, idx) => `
                 <tr class="hover:bg-gray-50">
-                    <td class="p-4">${start + idx + 1}</td>
+                    <td class="p-4 text-gray-500">${start + idx + 1}</td>
                     <td class="p-4 font-medium">${e.description || '-'}</td>
                     <td class="p-4 font-bold text-red-600">${(e.amount || 0).toLocaleString()} د.ع</td>
                     <td class="p-4 text-gray-600">${e.date || '-'}</td>
                     <td class="p-4">
-                        <button onclick="deleteExpense(${start + idx})" class="text-red-600 hover:text-red-800 text-sm" title="حذف">
+                        <button onclick="deleteExpense(${e.id})" class="text-red-600 hover:text-red-800 text-sm p-2">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
@@ -232,6 +185,29 @@
             document.getElementById('average-expense').textContent = average.toLocaleString() + ' د.ع';
         }
 
+        // الحفظ يتم الآن سحابياً
+        window.saveNewExpense = function(e) {
+            e.preventDefault();
+            const description = document.getElementById('add-description').value;
+            const amount = parseInt(document.getElementById('add-amount').value) || 0;
+            const date = document.getElementById('add-date').value;
+
+            if (!description || amount <= 0) return;
+
+            DataManager.addExpense({ description, amount, date });
+            closeAddModal();
+        };
+
+        window.deleteExpense = function(id) {
+            if(confirm('هل أنت متأكد من حذف هذه الصرفية؟')) {
+                DataManager.deleteExpense(id);
+            }
+        };
+
+        window.exportExpenses = function() {
+            DataManager.exportToCSV(filteredExpenses, 'expenses');
+        };
+
         function openAddModal() {
             document.getElementById('add-date').value = new Date().toISOString().split('T')[0];
             document.getElementById('addModal').classList.add('active');
@@ -240,60 +216,7 @@
         function closeAddModal() {
             document.getElementById('addModal').classList.remove('active');
             document.getElementById('add-description').value = '';
-            document.getElementById('add-category').value = '';
             document.getElementById('add-amount').value = '';
-            document.getElementById('add-notes').value = '';
-        }
-
-        function saveNewExpense(e) {
-            e.preventDefault();
-            const description = document.getElementById('add-description').value;
-            const amount = parseInt(document.getElementById('add-amount').value) || 0;
-            const date = document.getElementById('add-date').value;
-
-            if (!description || amount <= 0) {
-                return;
-            }
-
-            const newExpense = {
-                id: Date.now(),
-                description,
-                amount,
-                date,
-                createdAt: new Date().toISOString()
-            };
-
-            allExpenses.push(newExpense);
-            localStorage.setItem('expenses', JSON.stringify(allExpenses));
-            loadExpenses();
-            closeAddModal();
-            
-            // تحديث الرئيسية
-            if (typeof window.updateDashboard === 'function') {
-                window.updateDashboard();
-            }
-        }
-
-        function deleteExpense(idx) {
-            allExpenses.splice(idx, 1);
-            localStorage.setItem('expenses', JSON.stringify(allExpenses));
-            loadExpenses();
-            
-            // تحديث الرئيسية
-            if (typeof window.updateDashboard === 'function') {
-                window.updateDashboard();
-            }
-        }
-
-        function exportExpenses() {
-            let csv = 'البيان,الفئة,المبلغ (د.ع),التاريخ,الملاحظات\n';
-            filteredExpenses.forEach(e => {
-                csv += `${e.description},${e.category},${e.amount},${e.date},${e.notes || ''}\n`;
-            });
-            const link = document.createElement('a');
-            link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-            link.download = `expenses_${new Date().toISOString().slice(0,10)}.csv`;
-            link.click();
         }
 
         function previousPage() { if (currentPage > 1) { currentPage--; renderTable(); } }
@@ -303,15 +226,16 @@
         }
 
         window.onclick = function(e) {
-            const addModal = document.getElementById('addModal');
-            if (e.target === addModal) closeAddModal();
+            if (e.target === document.getElementById('addModal')) closeAddModal();
         };
 
-        document.addEventListener('DOMContentLoaded', loadExpenses);
+        // تحميل أولي (سيتم تحديثه تلقائياً عند وصول البيانات من السحابة)
+        document.addEventListener('DOMContentLoaded', () => setTimeout(loadExpenses, 500));
     </script>
+    
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./service-worker.js', { scope: './' }).catch(() => {});
+            navigator.serviceWorker.register('./service-worker.js').catch(() => {});
         }
     </script>
 </body>
