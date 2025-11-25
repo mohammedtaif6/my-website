@@ -12,10 +12,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="responsive.css">
     <style>
-        body{
-            font-family:'Inter',sans-serif;
-            background:#f9fafb;
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f9fafb;
             padding-top: env(safe-area-inset-top);
             padding-bottom: env(safe-area-inset-bottom);
         }
@@ -68,6 +70,37 @@
         </div>
     </main>
 
+    <div id="deleteModal" class="modal-backdrop modal-type-danger">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="fas fa-trash-alt"></i>
+                <h2>تأكيد الحذف</h2>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="debtToDeleteId">
+                <p id="delete-msg-text">هل أنت متأكد من رغبتك في حذف هذا الدين؟</p>
+                <div class="payment-details">
+                    <div class="detail-row">
+                        <span class="detail-label">الاسم:</span>
+                        <span class="detail-value" id="del-modal-name"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">المبلغ:</span>
+                        <span class="detail-value" id="del-modal-amount"></span>
+                    </div>
+                </div>
+                <div class="warning-text">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>تنبيه: سيتم حذف هذا الدين من السجلات نهائياً.</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeDeleteModal()">إلغاء</button>
+                <button class="btn-confirm btn-danger" id="confirm-delete-btn" onclick="confirmDeleteDebt()">حذف نهائي</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="data-manager.js"></script>
     <script>
         window.loadDebts = function() {
@@ -95,6 +128,7 @@
                     <td class="p-4 space-x-2">
                         <button onclick="payPartial(${d.id}, '${d.name}', ${d.price})" class="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition">تسديد جزئي</button>
                         <button onclick="markAsFull(${d.id}, '${d.name}', ${d.price})" class="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 transition">تسديد كامل</button>
+                        <button onclick="prepareDeleteDebt(${d.id}, '${d.name}', ${d.price})" class="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
@@ -163,6 +197,48 @@
                 window.loadDebts();
                 if (typeof window.updateDashboard === 'function') window.updateDashboard();
             }
+        };
+
+        // --- وظائف الحذف ---
+        window.prepareDeleteDebt = (id, name, amount) => {
+            document.getElementById('del-modal-name').innerText = name;
+            document.getElementById('del-modal-amount').innerText = amount.toLocaleString() + ' د.ع';
+            document.getElementById('debtToDeleteId').value = id;
+            openDeleteModal();
+        };
+
+        function openDeleteModal() {
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        window.closeDeleteModal = function() {
+            document.getElementById('deleteModal').classList.remove('active');
+            document.getElementById('debtToDeleteId').value = '';
+        };
+
+        window.confirmDeleteDebt = async () => {
+            const debtId = parseInt(document.getElementById('debtToDeleteId').value);
+            if (!debtId) return;
+
+            const btn = document.getElementById('confirm-delete-btn');
+            const originalText = btn.innerText;
+            btn.innerText = 'جاري الحذف...';
+            btn.disabled = true;
+
+            // حذف الدين (تعيين price إلى 0 وتغيير الحالة)
+            DataManager.updateSubscriber(debtId, { 
+                price: 0, 
+                status: 'غير نشط',
+                paymentType: 'نقد'
+            });
+
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.disabled = false;
+                closeDeleteModal();
+                window.loadDebts();
+                if (typeof window.updateDashboard === 'function') window.updateDashboard();
+            }, 300);
         };
         
         // تحميل أولي

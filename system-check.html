@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✅ التحقق من النظام</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .check-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px; margin: 8px 0; }
+        .check-pass { background: #dcfce7; color: #166534; }
+        .check-fail { background: #fee2e2; color: #991b1b; }
+        .check-pending { background: #fef3c7; color: #92400e; }
+    </style>
+</head>
+<body class="bg-gray-50 p-6">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-lg shadow p-8">
+            <h1 class="text-3xl font-bold mb-2 flex items-center gap-3">
+                <i class="fas fa-clipboard-check text-green-600"></i>
+                التحقق من النظام
+            </h1>
+            <p class="text-gray-600 mb-6">فحص شامل لجميع مكونات النظام</p>
+
+            <div id="checks" class="space-y-3">
+                <!-- سيتم ملؤه ديناميكياً -->
+            </div>
+
+            <div class="mt-8 pt-6 border-t">
+                <button onclick="runAllChecks()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium">
+                    <i class="fas fa-sync ml-2"></i>إعادة الفحص
+                </button>
+                <button onclick="location.href='index.html'" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 font-medium mr-3">
+                    <i class="fas fa-home ml-2"></i>الذهاب للرئيسية
+                </button>
+            </div>
+
+            <div class="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-gray-700">
+                <p class="font-medium mb-2">💡 ملاحظات:</p>
+                <ul class="list-disc list-inside space-y-1">
+                    <li>جميع الاختبارات أساسية لعمل النظام</li>
+                    <li>افتح Console (F12) لرؤية التفاصيل</li>
+                    <li>إذا فشل أي اختبار، تحقق من الإعدادات</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const checks = [
+            {
+                name: '📄 تحميل DOM',
+                test: () => document.readyState === 'complete' || document.readyState === 'interactive'
+            },
+            {
+                name: '💾 LocalStorage',
+                test: () => {
+                    try {
+                        localStorage.setItem('test', '1');
+                        localStorage.removeItem('test');
+                        return true;
+                    } catch (e) {
+                        return false;
+                    }
+                }
+            },
+            {
+                name: '🔄 Service Worker Support',
+                test: () => 'serviceWorker' in navigator
+            },
+            {
+                name: '📱 ES6 Modules',
+                test: () => !!document.currentScript?.type.includes('module')
+            },
+            {
+                name: '🌐 Fetch API',
+                test: () => 'fetch' in window
+            },
+            {
+                name: '⏰ IndexedDB',
+                test: () => !!window.indexedDB
+            },
+            {
+                name: '🔐 HTTPS Ready',
+                test: () => window.location.protocol === 'https:' || window.location.hostname === 'localhost'
+            },
+            {
+                name: '📡 Online Status',
+                test: () => navigator.onLine
+            },
+            {
+                name: '🎨 CSS Grid',
+                test: () => CSS.supports('display', 'grid')
+            },
+            {
+                name: '🎯 CSS Flexbox',
+                test: () => CSS.supports('display', 'flex')
+            }
+        ];
+
+        function addCheck(name, pass, message = '') {
+            const container = document.getElementById('checks');
+            const item = document.createElement('div');
+            item.className = `check-item ${pass ? 'check-pass' : 'check-fail'}`;
+            item.innerHTML = `
+                <i class="fas fa-${pass ? 'check-circle' : 'times-circle'} text-xl"></i>
+                <div>
+                    <div class="font-medium">${name}</div>
+                    ${message ? `<div class="text-xs opacity-75">${message}</div>` : ''}
+                </div>
+            `;
+            container.appendChild(item);
+        }
+
+        function runAllChecks() {
+            document.getElementById('checks').innerHTML = '';
+            console.clear();
+            console.log('🔄 جاري فحص النظام...');
+
+            let passed = 0;
+            let total = checks.length;
+
+            checks.forEach(check => {
+                try {
+                    const result = check.test();
+                    addCheck(check.name, result);
+                    if (result) passed++;
+                    console.log(`${result ? '✓' : '✗'} ${check.name}`);
+                } catch (error) {
+                    addCheck(check.name, false, error.message);
+                    console.error(`✗ ${check.name}:`, error);
+                }
+            });
+
+            // ملخص النتائج
+            setTimeout(() => {
+                console.log(`\n✅ النتائج: ${passed}/${total} اختبار نجح`);
+                if (passed === total) {
+                    console.log('🎉 جميع الاختبارات نجحت! النظام جاهز للاستخدام');
+                } else {
+                    console.warn(`⚠️ ${total - passed} اختبار فشل - تحقق من الإعدادات`);
+                }
+            }, 100);
+        }
+
+        // تشغيل الفحوصات عند التحميل
+        window.addEventListener('load', runAllChecks);
+    </script>
+</body>
+</html>
