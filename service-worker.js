@@ -1,4 +1,4 @@
-const CACHE_NAME = 'okcomputer-v1';
+const CACHE_NAME = 'okcomputer-v2.0';
 const urlsToCache = [
   './',
   './index.html',
@@ -10,6 +10,7 @@ const urlsToCache = [
   './expiring.html',
   './reports.html',
   './data-manager.js',
+  './cache-manager.js',
   './manifest.json'
 ];
 
@@ -31,7 +32,9 @@ self.addEventListener('activate', event => {
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
+          // حذف الكاشات القديمة
           if (cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -47,7 +50,6 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') {
     return;
   }
-
   event.respondWith(
     caches.match(event.request).then(response => {
       return response || fetch(event.request).then(response => {
