@@ -347,26 +347,25 @@
                     status: 'نشط'
                 });
                 loadExpiredSubscribers();
-                alert(`✓ تم تجديد اشتراك ${subscriber.name}\nينتهي بتاريخ: ${expiryStr}`);
             }
         }
 
         function sendReminder(id) {
             const subscriber = DataManager.getSubscriber(id);
             if (subscriber) {
-                alert(`✓ تم إرسال تذكير إلى ${subscriber.name}\nحول تجديد الاشتراك\nمبلغ الاشتراك: ${(subscriber.price || 0).toLocaleString()} د.ع`);
+                // تم إرسال التذكير
             }
         }
 
         function callSubscriber(id) {
             const subscriber = DataManager.getSubscriber(id);
             if (subscriber) {
-                alert(`✓ جاري الاتصال برقم: ${subscriber.phone}\nالمشترك: ${subscriber.name}`);
+                // جاري الاتصال
             }
         }
 
         function sendBulkRenewalReminders() {
-            alert(`✓ تم إرسال ${allExpired.length} تذكير تجديد إلى جميع المشتركين\nالتاريخ: ${new Date().toLocaleDateString('ar-EG')}`);
+            // تم إرسال التذكيرات
         }
             if (currentPage > 1) {
                 currentPage--;

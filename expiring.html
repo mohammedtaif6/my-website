@@ -364,7 +364,6 @@
                     status: 'نشط'
                 });
                 loadExpiringSubscribers();
-                alert(`✓ تم تجديد اشتراك ${subscriber.name}\nينتهي بتاريخ: ${expiryStr}`);
             }
         }
 
@@ -373,7 +372,6 @@
             if (subscriber) {
                 DataManager.updateSubscriber(id, { notified: true });
                 loadExpiringSubscribers();
-                alert(`✓ تم إرسال إشعار إلى ${subscriber.name}\nحول انتهاء الاشتراك`);
             }
         }
 
@@ -381,7 +379,7 @@
             const subscriber = DataManager.getSubscriber(id);
             if (subscriber) {
                 const daysLeft = Math.ceil((new Date(subscriber.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
-                alert(`✓ جاري الاتصال برقم: ${subscriber.phone}\nالمشترك: ${subscriber.name}\nالأيام المتبقية: ${daysLeft}`);
+                // جاري الاتصال
             }
         }
 
@@ -389,7 +387,6 @@
             const notNotified = allExpiring.filter(s => !s.notified);
             notNotified.forEach(s => DataManager.updateSubscriber(s.id, { notified: true }));
             loadExpiringSubscribers();
-            alert(`✓ تم إرسال ${notNotified.length} إشعار إلى المشتركين\nالتاريخ: ${new Date().toLocaleDateString('ar-EG')}`);
         }
 
         function exportExpiringList() {
@@ -401,7 +398,6 @@
             link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
             link.download = `expiring_${new Date().toISOString().slice(0,10)}.csv`;
             link.click();
-            alert('✓ تم تصدير قائمة الاشتراكات القريبة من الانتهاء');
         }
 
         function previousPage() {

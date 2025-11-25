@@ -110,7 +110,6 @@ const DataManager = {
         try {
             await addDoc(collection(db, "subscribers"), subscriber);
         } catch (e) {
-            alert("مشكلة في الاتصال! تأكد من الإنترنت.");
             console.error(e);
         }
     },
@@ -171,7 +170,7 @@ const DataManager = {
     },
 
     exportToCSV(data, filename) {
-        if (!data || !data.length) { alert('لا توجد بيانات'); return; }
+        if (!data || !data.length) { return; }
         const headers = Object.keys(data[0]).filter(k => k !== 'firebaseId');
         let csv = headers.join(',') + '\n';
         data.forEach(row => {

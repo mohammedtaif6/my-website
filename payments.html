@@ -187,17 +187,25 @@
             renderTable();
         }
 
+        function getExpenses() {
+            const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+            return expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+        }
+
         function updateStats() {
             const totalReceived = filteredPayments.reduce((sum, p) => sum + p.amount, 0);
+            const expenses = getExpenses();
+            const netReceived = totalReceived - expenses;
             const count = filteredPayments.length;
-            const avg = count > 0 ? Math.round(totalReceived / count) : 0;
+            const avg = count > 0 ? Math.round(netReceived / count) : 0;
             const today = new Date().toISOString().split('T')[0];
             const todayReceived = filteredPayments.filter(p => p.date === today).reduce((sum, p) => sum + p.amount, 0);
+            const todayNet = todayReceived - expenses;
 
-            document.getElementById('total-received').textContent = totalReceived.toLocaleString() + ' د.ع';
+            document.getElementById('total-received').textContent = netReceived.toLocaleString() + ' د.ع';
             document.getElementById('payment-count').textContent = count;
             document.getElementById('average-payment').textContent = avg.toLocaleString() + ' د.ع';
-            document.getElementById('today-received').textContent = todayReceived.toLocaleString() + ' د.ع';
+            document.getElementById('today-received').textContent = todayNet.toLocaleString() + ' د.ع';
         }
 
         function renderTable() {

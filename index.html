@@ -115,11 +115,14 @@
                 expenses = expensesData.reduce((sum, e) => sum + (parseInt(e.amount) || 0), 0);
             }
 
+            // حساب الصافي (المبالغ المستلمة - الصرفيات)
+            const netReceived = received - expenses;
+
             document.getElementById('stat-total').textContent = stats.totalSubscribers;
             document.getElementById('stat-expired').textContent = stats.expiredSubscribers;
             document.getElementById('stat-expiring').textContent = stats.expiringSubscribers;
             document.getElementById('stat-debts').textContent = debts.toLocaleString() + ' د.ع';
-            document.getElementById('stat-received').textContent = received.toLocaleString() + ' د.ع';
+            document.getElementById('stat-received').textContent = netReceived.toLocaleString() + ' د.ع';
             document.getElementById('stat-expenses').textContent = expenses.toLocaleString() + ' د.ع';
         }
     </script>

@@ -47,6 +47,7 @@
                         <th class="p-4">المبلغ (د.ع)</th>
                         <th class="p-4">تاريخ الاشتراك</th>
                         <th class="p-4">تاريخ الانتهاء</th>
+                        <th class="p-4">المبلغ المدفوع</th>
                         <th class="p-4">الإجراء</th>
                     </tr>
                 </thead>
@@ -77,25 +78,53 @@
                     <td class="p-4 text-gray-600 text-right">${d.subscribeDate || '-'}</td>
                     <td class="p-4 text-gray-600 text-right">${d.expiryDate || '-'}</td>
                     <td class="p-4">
-                        <button onclick="markAsPaid(${d.id}, '${d.name}', ${d.price})" class="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition">تسديد</button>
+                        <input type="number" id="payment-${d.id}" placeholder="0" min="0" max="${d.price}" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm" />
+                    </td>
+                    <td class="p-4 space-x-2">
+                        <button onclick="payPartial(${d.id}, '${d.name}', ${d.price})" class="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition">تسديد جزئي</button>
+                        <button onclick="markAsFull(${d.id}, '${d.name}', ${d.price})" class="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 transition">تسديد كامل</button>
                     </td>
                 </tr>
             `).join('');
         };
 
-        window.markAsPaid = (id, name, amount) => {
-            if(confirm(`هل تم تسديد المبلغ من ${name}؟\nالمبلغ: ${amount.toLocaleString()} د.ع`)) {
-                const subscriber = DataManager.getSubscriber(id);
-                if(subscriber) {
-                    DataManager.updateSubscriber(id, { 
-                        paymentType: 'نقد',
-                        lastPaymentDate: new Date().toISOString().split('T')[0],
-                        originalPrice: subscriber.price,
-                        price: 0
-                    });
-                    window.loadDebts();
-                    alert('✓ تم تسجيل التسديد بنجاح');
-                }
+        window.payPartial = (id, name, fullAmount) => {
+            const inputField = document.getElementById(`payment-${id}`);
+            const amount = parseInt(inputField.value) || 0;
+            
+            if (amount <= 0) {
+                return;
+            }
+
+            if (amount > fullAmount) {
+                return;
+            }
+
+            const subscriber = DataManager.getSubscriber(id);
+            if(subscriber) {
+                const remainingDebt = fullAmount - amount;
+                DataManager.updateSubscriber(id, { 
+                    price: remainingDebt,
+                    lastPaymentDate: new Date().toISOString().split('T')[0],
+                    partialPayments: (subscriber.partialPayments || 0) + amount
+                });
+                window.loadDebts();
+                inputField.value = '';
+                if (typeof window.updateDashboard === 'function') window.updateDashboard();
+            }
+        };
+
+        window.markAsFull = (id, name, amount) => {
+            const subscriber = DataManager.getSubscriber(id);
+            if(subscriber) {
+                DataManager.updateSubscriber(id, { 
+                    paymentType: 'نقد',
+                    lastPaymentDate: new Date().toISOString().split('T')[0],
+                    originalPrice: subscriber.price,
+                    price: 0
+                });
+                window.loadDebts();
+                if (typeof window.updateDashboard === 'function') window.updateDashboard();
             }
         };
         

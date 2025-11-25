@@ -395,14 +395,12 @@
             const phone = document.getElementById('add-phone').value;
 
             if (!name.trim()) {
-                alert('الرجاء إدخال اسم المشترك');
                 return;
             }
 
             DataManager.addSubscriber({ name, phone });
             loadSubscribers();
             closeAddModal();
-            alert('✓ تم إضافة المشترك بنجاح. استخدم "تفعيل اشتراك" لتفعيل الاشتراك');
         }
 
         // --- وظائف التعديل الجديدة (Edit) ---
@@ -429,7 +427,6 @@
             DataManager.updateSubscriber(id, { name, phone });
             loadSubscribers();
             closeEditModal();
-            alert('تم تعديل البيانات بنجاح');
         }
 
         // --- وظائف تفعيل الاشتراك (مع إصلاح البحث) ---
