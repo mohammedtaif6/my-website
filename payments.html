@@ -106,8 +106,14 @@
                            onkeyup="filterPayments()">
                 </div>
                 <input type="date" id="date-filter" class="p-3 border border-gray-300 rounded-lg" onchange="filterPayments()">
+                <button onclick="toggleEditMode()" class="bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-edit ml-2"></i><span id="edit-btn-text">تحرير</span>
+                </button>
                 <button onclick="exportPayments()" class="bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors">
                     <i class="fas fa-download ml-2"></i>تصدير
+                </button>
+                <button id="delete-selected-btn" onclick="deleteSelected()" class="bg-red-600 text-white px-4 py-3 rounded-lg hover:bg-red-700 transition-colors hidden">
+                    <i class="fas fa-trash ml-2"></i>حذف المحدد
                 </button>
             </div>
         </div>
@@ -118,6 +124,9 @@
                 <table class="w-full">
                     <thead class="bg-gray-50">
                         <tr>
+                            <th class="text-right p-4 font-semibold text-gray-700" id="checkbox-header" style="display: none;">
+                                <input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll()" />
+                            </th>
                             <th class="text-right p-4 font-semibold text-gray-700">#</th>
                             <th class="text-right p-4 font-semibold text-gray-700">الاسم</th>
                             <th class="text-right p-4 font-semibold text-gray-700">الهاتف</th>
@@ -239,6 +248,9 @@
             const tbody = document.getElementById('payments-body');
             tbody.innerHTML = pageData.map((p, idx) => `
                 <tr class="hover:bg-gray-50">
+                    <td class="text-center p-4" id="checkbox-cell" style="display: none;">
+                        <input type="checkbox" class="payment-checkbox" data-id="${p.id}" data-date="${p.date}" onchange="updateDeleteButton()" />
+                    </td>
                     <td class="p-4">${start + idx + 1}</td>
                     <td class="p-4 font-medium">${p.name}</td>
                     <td class="p-4 text-gray-600">${p.phone || '-'}</td>
@@ -251,7 +263,7 @@
                     <td class="p-4 text-gray-600">${p.date}</td>
                     <td class="p-4 text-gray-600 text-sm">${p.status}</td>
                     <td class="p-4">
-                        <button onclick="deletePayment(${start + idx})" class="text-red-600 hover:text-red-800 text-sm" title="حذف">
+                        <button onclick="deletePayment('${p.id}', '${p.date}')" class="text-red-600 hover:text-red-800 text-sm" title="حذف">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
@@ -303,19 +315,77 @@
             renderTable();
         }
 
-        function deletePayment(idx) {
-            const payment = filteredPayments[idx];
-            
+        function deletePayment(paymentId, paymentDate) {
             // حذف من partial_payments إذا كانت من هناك
             let partialPayments = JSON.parse(localStorage.getItem('partial_payments') || '[]');
-            const partialIdx = partialPayments.findIndex(p => p.id === payment.id && p.date === payment.date);
-            if (partialIdx !== -1) {
-                partialPayments.splice(partialIdx, 1);
-                localStorage.setItem('partial_payments', JSON.stringify(partialPayments));
-            }
+            partialPayments = partialPayments.filter(p => !(p.id == paymentId && p.date === paymentDate));
+            localStorage.setItem('partial_payments', JSON.stringify(partialPayments));
             
             // إعادة تحميل البيانات
             loadPayments();
+            if (typeof window.updateDashboard === 'function') {
+                window.updateDashboard();
+            }
+        }
+
+        let editMode = false;
+
+        function toggleEditMode() {
+            editMode = !editMode;
+            const checkboxHeader = document.getElementById('checkbox-header');
+            const checkboxCells = document.querySelectorAll('#checkbox-cell');
+            const deleteBtn = document.getElementById('delete-selected-btn');
+            const editBtnText = document.getElementById('edit-btn-text');
+            
+            if (editMode) {
+                checkboxHeader.style.display = '';
+                checkboxCells.forEach(cell => cell.style.display = '');
+                deleteBtn.classList.remove('hidden');
+                editBtnText.textContent = 'إلغاء';
+                document.getElementById('select-all-checkbox').checked = false;
+            } else {
+                checkboxHeader.style.display = 'none';
+                checkboxCells.forEach(cell => cell.style.display = 'none');
+                deleteBtn.classList.add('hidden');
+                editBtnText.textContent = 'تحرير';
+                document.querySelectorAll('.payment-checkbox').forEach(cb => cb.checked = false);
+            }
+        }
+
+        function toggleSelectAll() {
+            const isChecked = document.getElementById('select-all-checkbox').checked;
+            document.querySelectorAll('.payment-checkbox').forEach(cb => cb.checked = isChecked);
+            updateDeleteButton();
+        }
+
+        function updateDeleteButton() {
+            const checkedCount = document.querySelectorAll('.payment-checkbox:checked').length;
+            const deleteBtn = document.getElementById('delete-selected-btn');
+            if (checkedCount > 0) {
+                deleteBtn.textContent = `حذف المحدد (${checkedCount})`;
+            } else {
+                deleteBtn.textContent = 'حذف المحدد';
+            }
+        }
+
+        function deleteSelected() {
+            const selected = document.querySelectorAll('.payment-checkbox:checked');
+            if (selected.length === 0) return;
+            
+            let partialPayments = JSON.parse(localStorage.getItem('partial_payments') || '[]');
+            
+            selected.forEach(checkbox => {
+                const id = checkbox.getAttribute('data-id');
+                const date = checkbox.getAttribute('data-date');
+                partialPayments = partialPayments.filter(p => !(p.id == id && p.date === date));
+            });
+            
+            localStorage.setItem('partial_payments', JSON.stringify(partialPayments));
+            
+            loadPayments();
+            editMode = false;
+            toggleEditMode();
+            
             if (typeof window.updateDashboard === 'function') {
                 window.updateDashboard();
             }
