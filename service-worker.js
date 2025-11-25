@@ -1,4 +1,4 @@
-const CACHE_NAME = 'okcomputer-v1';
+const CACHE_NAME = 'okcomputer-v1.0.1';
 const urlsToCache = [
   './',
   './index.html',
@@ -32,6 +32,7 @@ self.addEventListener('activate', event => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheName !== CACHE_NAME) {
+            console.log('حذف الكاش القديم:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -41,93 +42,47 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// معالجة الطلبات
+// معالجة الطلبات - استراتيجية Network First للملفات الديناميكية
 self.addEventListener('fetch', event => {
   // تخطي طلبات API والملفات الكبيرة
   if (event.request.method !== 'GET') {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request).then(response => {
-        // لا تخزن الطلبات غير الناجحة
-        if (!response || response.status !== 200 || response.type === 'error') {
-          return response;
-        }
-
+  const url = new URL(event.request.url);
+  
+  // للملفات HTML - استخدم Network First
+  if (event.request.destination === 'document' || url.pathname.endsWith('.html')) {
+    event.respondWith(
+      fetch(event.request).then(response => {
         const responseToCache = response.clone();
         caches.open(CACHE_NAME).then(cache => {
-          cache.put(event.request, responseToCache).catch(() => {
-            // تجاهل أخطاء التخزين المؤقت
-          });
+          cache.put(event.request, responseToCache);
         });
-
         return response;
       }).catch(() => {
-        // إرجاع صفحة من الكاش عند فشل الاتصال
         return caches.match(event.request);
-      });
-    })
-  );
-});
-
-
-// تثبيت Service Worker
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(urlsToCache).catch(() => {
-        // تجاهل أخطاء التخزين المؤقت
-      });
-    })
-  );
-  self.skipWaiting();
-});
-
-// تفعيل Service Worker
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
+      })
+    );
+  } else {
+    // للموارد الأخرى - استخدم Cache First
+    event.respondWith(
+      caches.match(event.request).then(response => {
+        return response || fetch(event.request).then(response => {
+          if (!response || response.status !== 200 || response.type === 'error') {
+            return response;
           }
-        })
-      );
-    })
-  );
-  self.clients.claim();
-});
 
-// معالجة الطلبات
-self.addEventListener('fetch', event => {
-  // تخطي طلبات API والملفات الكبيرة
-  if (event.request.method !== 'GET') {
-    return;
-  }
-
-  event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request).then(response => {
-        // لا تخزن الطلبات غير الناجحة
-        if (!response || response.status !== 200 || response.type === 'error') {
-          return response;
-        }
-
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then(cache => {
-          cache.put(event.request, responseToCache).catch(() => {
-            // تجاهل أخطاء التخزين المؤقت
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseToCache).catch(() => {});
           });
-        });
 
-        return response;
-      }).catch(() => {
-        // إرجاع صفحة من الكاش عند فشل الاتصال
-        return caches.match(event.request);
-      });
-    })
-  );
+          return response;
+        }).catch(() => {
+          return caches.match(event.request);
+        });
+      })
+    );
+  }
 });
