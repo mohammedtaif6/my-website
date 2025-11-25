@@ -266,6 +266,24 @@
             }
         });
 
+        // PWA / installed-app detection: when running from Home Screen, apply 'app-mode'
+        function applyAppModeIfInstalled() {
+            try {
+                const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+                if (isStandalone) {
+                    document.body.classList.add('app-mode');
+                    // change theme-color meta dynamically (optional)
+                    const metaTheme = document.querySelector('meta[name="theme-color"]');
+                    if (metaTheme) metaTheme.setAttribute('content', '#10b981');
+                }
+            } catch (e) { /* ignore */ }
+        }
+        applyAppModeIfInstalled();
+        // listen for change (useful when user installs while page open)
+        if (window.matchMedia) {
+            try { window.matchMedia('(display-mode: standalone)').addEventListener('change', (e) => { if (e.matches) document.body.classList.add('app-mode'); else document.body.classList.remove('app-mode'); }); } catch (e) {}
+        }
+
         function openActivateModal() {
             resetActivateForm();
             document.getElementById('activateModal').style.display = 'flex';

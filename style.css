@@ -290,3 +290,33 @@ button[type="submit"]:active {
         transform: scale(1);
     }
 }
+
+/* ===== Responsive tweaks for mobile and PWA installed mode ===== */
+
+/* When running as installed app, hide site chrome and use full viewport */
+body.app-mode nav { display: none !important; }
+body.app-mode .max-w-7xl { max-width: 100% !important; padding-left: 12px !important; padding-right: 12px !important; }
+body.app-mode main { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+
+/* Modal: full-screen on small devices for a native feel */
+@media (max-width: 640px) {
+    .modal-content {
+        border-radius: 0 !important;
+        width: 100% !important;
+        height: 100vh !important;
+        max-width: 100% !important;
+        max-height: 100vh !important;
+        box-shadow: none !important;
+    }
+    .modal-body { padding: 16px !important; }
+    .modal-header { padding: 14px 16px !important; }
+    .modal-footer { padding: 12px !important; }
+}
+
+/* Desktop: tighter max-width for modals */
+@media (min-width: 1024px) {
+    .modal-content { max-width: 520px; }
+}
+
+/* Respect the safe area for devices with notch */
+:root { --safe-top: env(safe-area-inset-top); }
