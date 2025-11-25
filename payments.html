@@ -156,26 +156,52 @@
             
             allPayments = [];
 
-            // إضافة المعاملات المسجلة
+            // تجميع المعاملات حسب المشترك ورقم المعاملة الأساسي
+            const transactionsByNumber = {};
+            
             transactions.forEach(t => {
-                const subscriber = subs.find(s => s.id === t.subscriberId);
-                allPayments.push({
-                    id: t.id,
-                    transactionNumber: t.transactionNumber,
-                    source: 'transaction',
-                    realId: t.id,
-                    subId: t.subscriberId,
-                    name: subscriber ? subscriber.name : t.details.name,
+                // البحث عن أول معاملة لهذا المشترك
+                if (!transactionsByNumber[t.subscriberId]) {
+                    transactionsByNumber[t.subscriberId] = {
+                        transactionNumber: t.transactionNumber,
+                        subscriber: subs.find(s => s.id === t.subscriberId),
+                        totalAmount: 0,
+                        details: [],
+                        firstDate: t.date
+                    };
+                }
+                
+                transactionsByNumber[t.subscriberId].totalAmount += t.amount;
+                transactionsByNumber[t.subscriberId].details.push({
                     amount: t.amount,
                     type: t.type === 'كامل' ? 'تسديد كامل' : 'تسديد جزئي',
-                    date: t.date,
-                    timestamp: t.timestamp,
-                    details: t.details
+                    date: t.date
                 });
             });
 
+            // تحويل البيانات المجمعة إلى صيغة العرض
+            Object.keys(transactionsByNumber).forEach(subId => {
+                const data = transactionsByNumber[subId];
+                if (data.subscriber) {
+                    allPayments.push({
+                        id: `trans_${subId}`,
+                        transactionNumber: data.transactionNumber,
+                        source: 'transaction',
+                        realId: subId,
+                        subId: parseInt(subId),
+                        name: data.subscriber.name,
+                        amount: data.totalAmount,
+                        type: 'معاملة مجمعة',
+                        date: data.firstDate,
+                        paymentCount: data.details.length,
+                        details: data.details,
+                        timestamp: data.firstDate
+                    });
+                }
+            });
+
             // إضافة الاشتراكات النقد المباشرة (للتوافقية مع النظام القديم)
-            subs.filter(s => s.paymentType === 'نقد' && s.price > 0 && !transactions.some(t => t.subscriberId === s.id)).forEach(s => {
+            subs.filter(s => s.paymentType === 'نقد' && s.price > 0 && !transactionsByNumber[s.id]).forEach(s => {
                 allPayments.push({
                     id: `sub_${s.id}`,
                     transactionNumber: 0,
@@ -185,7 +211,8 @@
                     amount: parseInt(s.price),
                     type: 'نقد',
                     date: s.subscribeDate,
-                    details: {}
+                    details: {},
+                    paymentCount: 1
                 });
             });
 
@@ -226,27 +253,42 @@
             const pageData = filteredPayments.slice(start, end);
             const tbody = document.getElementById('payments-body');
 
-            tbody.innerHTML = pageData.map((p, idx) => `
-                <tr class="hover:bg-gray-50 border-b transition">
-                    <td class="p-4 select-col ${isEditMode ? 'active' : ''}">
-                        <input type="checkbox" class="pay-check w-5 h-5" value="${p.id}" onchange="updateSelCount()">
-                    </td>
-                    <td class="p-4 text-gray-500">${start + idx + 1}</td>
-                    <td class="p-4 font-bold text-gray-800">
-                        ${p.name} ${p.transactionNumber ? `<span class="text-xs text-blue-600">رقم المعاملة: #${p.transactionNumber}</span>` : ''}
-                    </td>
-                    <td class="p-4 text-green-600 font-bold" dir="ltr">${p.amount.toLocaleString()} د.ع</td>
-                    <td class="p-4">
-                        <span class="px-2 py-1 ${p.type === 'تسديد كامل' ? 'bg-green-100 text-green-800' : p.type === 'تسديد جزئي' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'} rounded text-xs">
-                            ${p.type}
-                        </span>
-                    </td>
-                    <td class="p-4 text-gray-600">${p.date}</td>
-                    <td class="p-4">
-                        <button onclick="prepareDeleteOne('${p.id}')" class="text-red-500 hover:bg-red-50 p-2 rounded transition"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = pageData.map((p, idx) => {
+                let detailsHtml = '';
+                if (p.transactionNumber && p.details && Array.isArray(p.details)) {
+                    detailsHtml = `<div class="text-xs text-gray-500 mt-1">
+                        <span class="inline-block mr-2">📋 ${p.paymentCount} دفعة</span>`;
+                    p.details.forEach(d => {
+                        detailsHtml += `<div class="text-xs text-gray-600">• ${d.type}: ${d.amount.toLocaleString()} د.ع</div>`;
+                    });
+                    detailsHtml += `</div>`;
+                }
+
+                return `
+                    <tr class="hover:bg-gray-50 border-b transition">
+                        <td class="p-4 select-col ${isEditMode ? 'active' : ''}">
+                            <input type="checkbox" class="pay-check w-5 h-5" value="${p.id}" onchange="updateSelCount()">
+                        </td>
+                        <td class="p-4 text-gray-500">${start + idx + 1}</td>
+                        <td class="p-4">
+                            <div class="font-bold text-gray-800">${p.name}</div>
+                            ${p.transactionNumber ? `<div class="text-xs text-blue-600 font-mono">المعاملة #${p.transactionNumber}</div>` : ''}
+                            ${detailsHtml}
+                        </td>
+                        <td class="p-4 text-green-600 font-bold text-lg" dir="ltr">${p.amount.toLocaleString()} د.ع</td>
+                        <td class="p-4">
+                            ${p.transactionNumber ? 
+                                `<span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">✓ مجمّع</span>` : 
+                                `<span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">${p.type}</span>`
+                            }
+                        </td>
+                        <td class="p-4 text-gray-600">${p.date}</td>
+                        <td class="p-4">
+                            <button onclick="prepareDeleteOne('${p.id}')" class="text-red-500 hover:bg-red-50 p-2 rounded transition"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
 
             document.getElementById('page-info').innerText = `عرض ${Math.min(end, filteredPayments.length)} من ${filteredPayments.length}`;
             document.querySelectorAll('.select-col').forEach(el => el.style.display = isEditMode ? 'table-cell' : 'none');
@@ -259,7 +301,15 @@
             paymentToDelete = [id];
             isBulkDelete = false;
 
-            document.getElementById('del-modal-name').innerText = payment.name + (payment.transactionNumber ? ` - المعاملة #${payment.transactionNumber}` : '');
+            let descriptionText = payment.name;
+            if (payment.transactionNumber) {
+                descriptionText += ` - المعاملة #${payment.transactionNumber}`;
+                if (payment.paymentCount) {
+                    descriptionText += ` (${payment.paymentCount} دفعات)`;
+                }
+            }
+
+            document.getElementById('del-modal-name').innerText = descriptionText;
             document.getElementById('del-modal-amount').innerText = payment.amount.toLocaleString() + ' د.ع';
             document.getElementById('del-modal-date').innerText = payment.date;
             document.getElementById('single-delete-details').style.display = 'block';
@@ -304,8 +354,11 @@
 
             for (const p of paymentsToDeleteList) {
                 if (p.source === 'transaction') {
-                    // حذف المعاملة المسجلة
-                    DataManager.deleteTransaction(p.realId);
+                    // حذف جميع معاملات هذا المشترك
+                    const transactions = DataManager.getAllTransactions();
+                    transactions.filter(t => t.subscriberId === p.subId).forEach(t => {
+                        DataManager.deleteTransaction(t.id);
+                    });
                 }
                 else if (p.source === 'subscriber') {
                     await DataManager.updateSubscriber(p.realId, { price: 0, status: 'غير نشط' });

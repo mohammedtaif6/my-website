@@ -566,19 +566,39 @@
             } catch(e) {}
 
             if (existing) {
+                // تحديث المشترك الموجود - مهم جداً: تعيين status: 'نشط'
                 DataManager.updateSubscriber(existing.id, {
-                    price, paymentType, subscribeDate, expiryDate,
-                    status: 'نشط'
+                    price: parseInt(price),
+                    paymentType: paymentType,
+                    subscribeDate: subscribeDate,
+                    expiryDate: expiryDate,
+                    status: 'نشط' // ✓ تأكيد تعيين الحالة لنشط
                 });
             } else {
+                // إضافة مشترك جديد
                 DataManager.addSubscriber({
-                    name, price, paymentType, subscribeDate, expiryDate,
-                    status: 'نشط'
+                    name: name,
+                    price: parseInt(price),
+                    paymentType: paymentType,
+                    subscribeDate: subscribeDate,
+                    expiryDate: expiryDate,
+                    status: 'نشط' // ✓ تأكيد تعيين الحالة لنشط
                 });
             }
 
-            loadSubscribers();
+            window.loadSubscribers();
             closeActivateModal();
+            
+            // إظهار رسالة نجاح
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded shadow-lg z-50';
+            notification.innerHTML = `<i class="fas fa-check-circle ml-2"></i> تم تفعيل الاشتراك بنجاح`;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.3s';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
         }
 
         function showSubscriberInfo(subscriber) {

@@ -166,11 +166,24 @@
             if(subscriber) {
                 const remainingDebt = fullAmount - amount;
                 
-                // تسجيل المعاملة مع رقم معاملة فريد
+                // البحث عن معاملة موجودة لهذا المشترك
+                const existingTransactions = DataManager.getSubscriberTransactions(id);
+                let transactionNumber;
+                
+                if (existingTransactions.length > 0) {
+                    // استخدام رقم المعاملة الموجود (ثابت)
+                    transactionNumber = existingTransactions[0].transactionNumber;
+                } else {
+                    // لا توجد معاملة، سيتم إنشاء رقم جديد
+                    transactionNumber = null;
+                }
+                
+                // تسجيل المعاملة الجزئية
                 const transaction = DataManager.recordTransaction(id, amount, 'جزئي', {
                     name: name,
                     remainingDebt: remainingDebt,
-                    originalDebt: fullAmount
+                    originalDebt: fullAmount,
+                    previousTransaction: transactionNumber
                 });
 
                 // تحديث بيانات المشترك
@@ -183,8 +196,8 @@
                 window.loadDebts();
                 inputField.value = '';
                 
-                // إظهار رسالة نجاح
-                showNotification(`✓ تم تسجيل معاملة #${transaction.transactionNumber} - دفع جزئي ${amount.toLocaleString()} د.ع`);
+                // إظهار رسالة نجاح مع رقم المعاملة الثابت
+                showNotification(`✓ دفع جزئي - المعاملة #${transaction.transactionNumber} (${amount.toLocaleString()} د.ع)\nالمتبقي: ${remainingDebt.toLocaleString()} د.ع`);
                 
                 if (typeof window.updateDashboard === 'function') window.updateDashboard();
             }
@@ -193,10 +206,23 @@
         window.markAsFull = (id, name, amount) => {
             const subscriber = DataManager.getSubscriber(id);
             if(subscriber) {
-                // تسجيل المعاملة مع رقم معاملة فريد
+                // البحث عن معاملة موجودة لهذا المشترك
+                const existingTransactions = DataManager.getSubscriberTransactions(id);
+                let transactionNumber;
+                
+                if (existingTransactions.length > 0) {
+                    // استخدام رقم المعاملة الموجود (ثابت)
+                    transactionNumber = existingTransactions[0].transactionNumber;
+                } else {
+                    // لا توجد معاملة، سيتم إنشاء رقم جديد
+                    transactionNumber = null;
+                }
+                
+                // تسجيل المعاملة الكاملة
                 const transaction = DataManager.recordTransaction(id, amount, 'كامل', {
                     name: name,
-                    originalPrice: subscriber.price
+                    originalPrice: subscriber.price,
+                    previousTransaction: transactionNumber
                 });
 
                 // تحديث بيانات المشترك
@@ -209,8 +235,8 @@
 
                 window.loadDebts();
                 
-                // إظهار رسالة نجاح
-                showNotification(`✓ تم تسجيل معاملة #${transaction.transactionNumber} - تسديد كامل ${amount.toLocaleString()} د.ع`);
+                // إظهار رسالة نجاح مع رقم المعاملة الثابت
+                showNotification(`✓ تسديد كامل - المعاملة #${transaction.transactionNumber}\n(${amount.toLocaleString()} د.ع) ✓`);
                 
                 if (typeof window.updateDashboard === 'function') window.updateDashboard();
             }
