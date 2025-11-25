@@ -172,7 +172,8 @@
                     <input type="number" id="custom-price" placeholder="سعر مخصص" 
                            style="width: 100%; padding: 0.625rem; border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.875rem; display: none;" 
                            step="1000" min="0">
-                    <input type="hidden" id="selected-price">
+                          <input type="hidden" id="selected-price">
+                          <input type="hidden" id="payment-type">
                 </div>
 
                 <!-- نوع الدفع - أزرار بسيطة -->
@@ -266,6 +267,7 @@
         });
 
         function openActivateModal() {
+            resetActivateForm();
             document.getElementById('activateModal').style.display = 'flex';
             setDefaultDates();
         }
@@ -413,14 +415,33 @@
 
         function activateSubscription(e) {
             e.preventDefault();
-            const name = document.getElementById('act-name').value;
-            const priceInput = document.getElementById('selected-price').value || document.getElementById('custom-price').value;
-            const price = parseInt(priceInput) || 0;
+            
+            const name = document.getElementById('act-name').value.trim();
             const paymentType = document.getElementById('payment-type').value;
+            let price = document.getElementById('selected-price').value;
+            
+            // إذا لم يتم اختيار سعر مسبق، خذ من حقل السعر المخصص
+            if (!price) {
+                price = document.getElementById('custom-price').value;
+            }
+            price = parseInt(price) || 0;
+            
             const subscribeDate = document.getElementById('sub-date').value;
             const expiryDate = document.getElementById('exp-date').value;
 
-            if (!price) return;
+            // التحقق من الحقول المطلوبة
+            if (!name) {
+                alert('الرجاء إدخال اسم المشترك');
+                return;
+            }
+            if (!price) {
+                alert('الرجاء اختيار سعر');
+                return;
+            }
+            if (!paymentType) {
+                alert('الرجاء اختيار نوع الدفع (نقد أو أجل)');
+                return;
+            }
 
             let existing = null;
             try {
@@ -445,13 +466,24 @@
         }
 
         function printReceipt() {
-            const name = document.getElementById('act-name').value;
-            const price = document.getElementById('selected-price').value || document.getElementById('custom-price').value;
+            const name = document.getElementById('act-name').value.trim();
+            let price = document.getElementById('selected-price').value;
+            
+            // إذا لم يتم اختيار سعر مسبق، خذ من حقل السعر المخصص
+            if (!price) {
+                price = document.getElementById('custom-price').value;
+            }
+            price = parseInt(price) || 0;
+            
             const paymentType = document.getElementById('payment-type').value;
             const subscribeDate = document.getElementById('sub-date').value;
             const expiryDate = document.getElementById('exp-date').value;
 
-            if (!name || !price) return;
+            // التحقق من البيانات
+            if (!name || !price || !paymentType) {
+                alert('الرجاء ملء جميع الحقول المطلوبة');
+                return;
+            }
 
             let phone = 'غير متوفر';
             try {
@@ -564,13 +596,22 @@
             document.getElementById('subscriber-suggestions').style.display = 'none';
             document.getElementById('subscriber-info').style.display = 'none';
             
-            // إعادة تعيين الأزرار
+            // إعادة تعيين أزرار السعر
             document.querySelectorAll('.price-btn').forEach(b => {
                 b.classList.remove('selected');
-                b.style.borderColor = '#e5e7eb';
+                b.style.borderColor = '#d1d5db';
                 b.style.background = 'white';
                 b.style.color = '#1f2937';
             });
+            
+            // إعادة تعيين أزرار نوع الدفع
+            document.getElementById('btn-naqdh').style.background = 'white';
+            document.getElementById('btn-naqdh').style.color = '#1f2937';
+            document.getElementById('btn-naqdh').style.borderColor = '#d1d5db';
+            
+            document.getElementById('btn-ajel').style.background = 'white';
+            document.getElementById('btn-ajel').style.color = '#1f2937';
+            document.getElementById('btn-ajel').style.borderColor = '#d1d5db';
             
             // تعيين التواريخ الافتراضية
             setDefaultDates();

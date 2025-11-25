@@ -240,76 +240,94 @@
     </div>
 
     <div id="activateModal" class="modal">
-        <div class="modal-content">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">تفعيل اشتراك جديد</h2>
-                <button onclick="closeActivateModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        <div class="modal-content" style="border-radius: 0; padding: 1rem; max-width: 100%; width: 100%; max-height: 100vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;">
+                <h2 style="font-size: 1.25rem; font-weight: bold; margin: 0; color: #10b981;">تفعيل جديد</h2>
+                <button onclick="closeActivateModal()" style="background: none; border: none; color: #9ca3af; font-size: 1.5rem; cursor: pointer; padding: 0;">✕</button>
             </div>
+            
             <form onsubmit="activateSubscription(event)">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">اسم المشترك *</label>
-                    <input type="text" id="act-name" required placeholder="أدخل اسم المشترك" 
-                           class="w-full p-3 border border-gray-300 rounded-lg"
+                <!-- اسم المشترك -->
+                <div style="margin-bottom: 1rem;">
+                    <input type="text" id="act-name" required placeholder="اسم المشترك" 
+                           style="width: 100%; padding: 0.625rem; border: 1px solid #d1d5db; border-radius: 4px; font-size: 1rem;"
                            oninput="searchSubscriber()">
-                    <div id="subscriber-suggestions" class="mt-2 border border-gray-300 rounded-lg max-h-48 overflow-y-auto hidden">
+                    
+                    <!-- قائمة الاقتراحات -->
+                    <div id="subscriber-suggestions" style="margin-top: 0.25rem; border: 1px solid #e5e7eb; border-radius: 4px; max-height: 120px; overflow-y: auto; display: none; background: #f9fafb;">
                         <div id="suggestions-list"></div>
                     </div>
-                    <div id="subscriber-info" class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg hidden">
-                        <p><span class="font-medium">الهاتف:</span> <span id="info-phone" class="text-gray-700"></span></p>
-                        <p><span class="font-medium">الحالة الحالية:</span> <span id="info-status" class="text-gray-700"></span></p>
+                </div>
+
+                <!-- السعر -->
+                <div style="margin-bottom: 1rem;">
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <button type="button" class="price-btn" onclick="selectPrice(35000, this)" 
+                                style="flex: 1; padding: 0.625rem; border: 1px solid #d1d5db; border-radius: 4px; background: white; font-weight: 500; color: #1f2937; cursor: pointer; font-size: 0.875rem;">
+                            35 ألف
+                        </button>
+                        <button type="button" class="price-btn" onclick="selectPrice(30000, this)" 
+                                style="flex: 1; padding: 0.625rem; border: 1px solid #d1d5db; border-radius: 4px; background: white; font-weight: 500; color: #1f2937; cursor: pointer; font-size: 0.875rem;">
+                            30 ألف
+                        </button>
+                        <button type="button" class="price-btn" onclick="toggleCustomPrice(this)" 
+                                style="flex: 1; padding: 0.625rem; border: 1px solid #d1d5db; border-radius: 4px; background: white; font-weight: 500; color: #1f2937; cursor: pointer; font-size: 0.875rem;">
+                            مخصص
+                        </button>
+                    </div>
+                    
+                    <!-- السعر المخصص -->
+                    <input type="number" id="custom-price" placeholder="سعر مخصص" 
+                           style="width: 100%; padding: 0.625rem; border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.875rem; display: none;" 
+                           step="1000" min="0">
+                    <input type="hidden" id="selected-price">
+                </div>
+
+                <!-- نوع الدفع - أزرار بسيطة -->
+                <div style="margin-bottom: 1rem;">
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button type="button" id="btn-naqdh" onclick="setPaymentType('نقد', this)" 
+                                style="flex: 1; padding: 0.625rem; border: 2px solid #d1d5db; border-radius: 4px; background: white; font-weight: 600; color: #1f2937; cursor: pointer; font-size: 0.875rem;">
+                            نقد
+                        </button>
+                        <button type="button" id="btn-ajel" onclick="setPaymentType('أجل', this)" 
+                                style="flex: 1; padding: 0.625rem; border: 2px solid #d1d5db; border-radius: 4px; background: white; font-weight: 600; color: #1f2937; cursor: pointer; font-size: 0.875rem;">
+                            أجل
+                        </button>
                     </div>
                 </div>
 
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">سعر الاشتراك *</label>
-                        <div class="grid grid-cols-3 gap-2 mb-3">
-                            <button type="button" class="price-btn p-3 border-2 border-gray-300 rounded-lg text-center hover:border-blue-600 font-medium" onclick="selectPrice(35000, this)">
-                                35,000 د.ع
-                            </button>
-                            <button type="button" class="price-btn p-3 border-2 border-gray-300 rounded-lg text-center hover:border-blue-600 font-medium" onclick="selectPrice(30000, this)">
-                                30,000 د.ع
-                            </button>
-                            <button type="button" class="price-btn p-3 border-2 border-gray-300 rounded-lg text-center hover:border-blue-600 font-medium" onclick="toggleCustomPrice(this)">
-                                مخصص
-                            </button>
-                        </div>
-                        <input type="hidden" id="selected-price">
-                        <input type="number" id="custom-price" placeholder="السعر المخصص" class="w-full p-3 border border-gray-300 rounded-lg hidden" step="1000">
-                    </div>
-
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">نوع الدفع *</label>
-                    <select id="payment-type" required class="w-full p-3 border border-gray-300 rounded-lg">
-                        <option value="">اختر نوع الدفع</option>
-                        <option value="نقد">نقد</option>
-                        <option value="أجل">أجل</option>
-                    </select>
+                <!-- التواريخ -->
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                    <input type="date" id="sub-date" disabled 
+                           style="flex: 1; padding: 0.625rem; border: 1px solid #d1d5db; border-radius: 4px; background: #f9fafb; font-size: 0.75rem;">
+                    <input type="date" id="exp-date" disabled 
+                           style="flex: 1; padding: 0.625rem; border: 1px solid #d1d5db; border-radius: 4px; background: #f9fafb; font-size: 0.75rem;">
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">تاريخ الاشتراك</label>
-                        <input type="date" id="sub-date" disabled class="w-full p-3 border border-gray-300 rounded-lg bg-gray-100">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">تاريخ الانتهاء</label>
-                        <input type="date" id="exp-date" disabled class="w-full p-3 border border-gray-300 rounded-lg bg-gray-100">
-                    </div>
+                <!-- معلومات المشترك -->
+                <div id="subscriber-info" style="margin-bottom: 1rem; padding: 0.75rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 4px; display: none; font-size: 0.875rem;">
+                    <p style="margin: 0.25rem 0;">الهاتف: <span id="info-phone" style="font-weight: 600;"></span></p>
+                    <p style="margin: 0.25rem 0;">الحالة: <span id="info-status" style="font-weight: 600;"></span></p>
                 </div>
 
-                <div class="flex gap-3 mt-6">
-                    <button type="button" onclick="closeActivateModal()" class="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+                <!-- الأزرار -->
+                <div style="display: flex; gap: 0.5rem;">
+                    <button type="button" onclick="closeActivateModal()" 
+                            style="flex: 1; padding: 0.625rem; background: #f3f4f6; color: #1f2937; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 0.875rem;">
                         إلغاء
                     </button>
-                    <button type="button" onclick="printReceipt()" class="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-                        <i class="fas fa-print ml-2"></i>
+                    <button type="button" onclick="printReceipt()" 
+                            style="flex: 1; padding: 0.625rem; background: #6b7280; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 0.875rem;">
                         طباعة
                     </button>
-                    <button type="submit" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                        <i class="fas fa-check ml-2"></i>
+                    <button type="submit" 
+                            style="flex: 1; padding: 0.625rem; background: #10b981; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 0.875rem;">
                         تفعيل
                     </button>
                 </div>
+                
+                <input type="hidden" id="payment-type">
             </form>
         </div>
     </div>
@@ -457,6 +475,7 @@
         // --- وظائف تفعيل الاشتراك (مع إصلاح البحث) ---
 
         function openActivateModal() {
+            resetActivateForm();
             document.getElementById('activateModal').classList.add('active');
             setDefaultDates();
         }
@@ -477,25 +496,69 @@
         }
 
         function selectPrice(price, btn) {
-            document.querySelectorAll('.price-btn').forEach(b => b.classList.remove('border-blue-600', 'bg-blue-50'));
-            btn.classList.add('border-blue-600', 'bg-blue-50');
+            // إزالة الحالة السابقة من جميع الأزرار
+            document.querySelectorAll('.price-btn').forEach(b => {
+                b.style.borderColor = '#d1d5db';
+                b.style.background = 'white';
+                b.style.color = '#1f2937';
+            });
+            
+            // إضافة الحالة الجديدة
+            btn.style.borderColor = '#10b981';
+            btn.style.background = '#f0fdf4';
+            btn.style.color = '#1f2937';
             document.getElementById('selected-price').value = price;
-            document.getElementById('custom-price').classList.add('hidden');
+            document.getElementById('custom-price').style.display = 'none';
+            
+            // تأثير بصري
+            btn.style.transform = 'scale(1.05)';
+            setTimeout(() => { btn.style.transform = 'scale(1)'; }, 100);
         }
 
         function toggleCustomPrice(btn) {
             const customInput = document.getElementById('custom-price');
-            const isHidden = customInput.classList.contains('hidden');
+            const isHidden = customInput.style.display === 'none';
             
-            document.querySelectorAll('.price-btn').forEach(b => b.classList.remove('border-blue-600', 'bg-blue-50'));
+            // إزالة الحالة السابقة من جميع الأزرار
+            document.querySelectorAll('.price-btn').forEach(b => {
+                b.style.borderColor = '#d1d5db';
+                b.style.background = 'white';
+                b.style.color = '#1f2937';
+            });
+            
             if (isHidden) {
-                btn.classList.add('border-blue-600', 'bg-blue-50');
-                customInput.classList.remove('hidden');
+                // إظهار حقل السعر المخصص
+                btn.style.borderColor = '#10b981';
+                btn.style.background = '#f0fdf4';
+                customInput.style.display = 'block';
                 customInput.focus();
+                customInput.style.borderColor = '#10b981';
             } else {
-                customInput.classList.add('hidden');
+                // إخفاء حقل السعر المخصص
+                customInput.style.display = 'none';
+                document.getElementById('selected-price').value = '';
             }
         }
+
+        function setPaymentType(type, btn) {
+            // إزالة الحالة من كلا الزرين
+            document.getElementById('btn-naqdh').style.background = 'white';
+            document.getElementById('btn-naqdh').style.color = '#1f2937';
+            document.getElementById('btn-naqdh').style.borderColor = '#d1d5db';
+            
+            document.getElementById('btn-ajel').style.background = 'white';
+            document.getElementById('btn-ajel').style.color = '#1f2937';
+            document.getElementById('btn-ajel').style.borderColor = '#d1d5db';
+            
+            // تطبيق الحالة على الزر المختار
+            btn.style.background = '#10b981';
+            btn.style.color = 'white';
+            btn.style.borderColor = '#10b981';
+            
+            // تحديث القيمة المخفية
+            document.getElementById('payment-type').value = type;
+        }
+        
 
         // دالة البحث المصححة (تمنع توقف النظام)
         function searchSubscriber() {
