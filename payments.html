@@ -316,10 +316,35 @@
         }
 
         function deletePayment(paymentId, paymentDate) {
-            // حذف من partial_payments إذا كانت من هناك
+            // البحث عن الدفعة في جميع المصادر وحذفها
+            
+            // 1. البحث في partial_payments
             let partialPayments = JSON.parse(localStorage.getItem('partial_payments') || '[]');
-            partialPayments = partialPayments.filter(p => !(p.id == paymentId && p.date === paymentDate));
-            localStorage.setItem('partial_payments', JSON.stringify(partialPayments));
+            const foundInPartial = partialPayments.findIndex(p => p.id == paymentId && p.date === paymentDate);
+            if (foundInPartial !== -1) {
+                partialPayments.splice(foundInPartial, 1);
+                localStorage.setItem('partial_payments', JSON.stringify(partialPayments));
+            }
+            
+            // 2. البحث في المشتركين (المدفوعات النقدية والديون المسددة)
+            const subscribers = DataManager.getSubscribers();
+            const subscriber = subscribers.find(s => s.id == paymentId);
+            if (subscriber) {
+                // إذا كانت مدفوعة نقد
+                if (subscriber.paymentType === 'نقد' && subscriber.price > 0) {
+                    // تعيين السعر إلى 0 (حذف الدفعة)
+                    DataManager.updateSubscriber(paymentId, { price: 0 });
+                }
+                // إذا كانت دين مسدد
+                else if (subscriber.lastPaymentDate && subscriber.originalPrice > 0) {
+                    // مسح بيانات الدفع
+                    DataManager.updateSubscriber(paymentId, { 
+                        lastPaymentDate: null,
+                        originalPrice: 0,
+                        price: subscriber.originalPrice // إعادة المبلغ الأصلي
+                    });
+                }
+            }
             
             // إعادة تحميل البيانات
             loadPayments();
@@ -373,11 +398,31 @@
             if (selected.length === 0) return;
             
             let partialPayments = JSON.parse(localStorage.getItem('partial_payments') || '[]');
+            const subscribers = DataManager.getSubscribers();
             
             selected.forEach(checkbox => {
                 const id = checkbox.getAttribute('data-id');
                 const date = checkbox.getAttribute('data-date');
+                
+                // حذف من partial_payments
                 partialPayments = partialPayments.filter(p => !(p.id == id && p.date === date));
+                
+                // حذف من المشتركين إذا كانت من هناك
+                const subscriber = subscribers.find(s => s.id == id);
+                if (subscriber) {
+                    // إذا كانت مدفوعة نقد
+                    if (subscriber.paymentType === 'نقد' && subscriber.price > 0) {
+                        DataManager.updateSubscriber(id, { price: 0 });
+                    }
+                    // إذا كانت دين مسدد
+                    else if (subscriber.lastPaymentDate && subscriber.originalPrice > 0) {
+                        DataManager.updateSubscriber(id, { 
+                            lastPaymentDate: null,
+                            originalPrice: 0,
+                            price: subscriber.originalPrice
+                        });
+                    }
+                }
             });
             
             localStorage.setItem('partial_payments', JSON.stringify(partialPayments));
