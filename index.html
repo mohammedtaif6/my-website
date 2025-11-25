@@ -353,7 +353,6 @@
 
             updateDashboard();
             closeActivateModal();
-            alert('تم تفعيل الاشتراك بنجاح');
         }
 
         function printReceipt() {
@@ -501,7 +500,6 @@
             const date = document.getElementById('add-date').value;
 
             if (!description || amount <= 0) {
-                alert('يرجى ملء جميع الحقول بشكل صحيح');
                 return;
             }
 
@@ -519,7 +517,6 @@
             localStorage.setItem('expenses', JSON.stringify(allExpenses));
             updateDashboard();
             closeAddExpenseModal();
-            alert('تم إضافة الصرفية بنجاح');
         }
 
         window.updateDashboard = function() {

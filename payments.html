@@ -155,28 +155,35 @@
         function loadPayments() {
             const subscribers = DataManager.getSubscribers();
             
-            // جمع الدفعات النقدية
-            allPayments = subscribers.filter(s => s.paymentType === 'نقد' && s.price > 0).map(s => ({
-                id: s.id,
-                name: s.name,
-                phone: s.phone,
-                amount: s.price || 0,
-                type: 'نقد',
-                date: s.subscribeDate,
-                status: s.status
-            }));
-
-            // جمع الدفعات من الأجل التي تم تحويلها إلى نقد (price = 0 بعد التسديد)
-            subscribers.filter(s => s.lastPaymentDate && s.originalPrice > 0).forEach(s => {
-                allPayments.push({
-                    id: s.id,
-                    name: s.name,
-                    phone: s.phone,
-                    amount: parseFloat(s.originalPrice || 0),
-                    type: s.paymentType === 'نقد' ? 'نقد' : 'أجل',
-                    date: s.lastPaymentDate,
-                    status: 'مدفوع'
-                });
+            // جمع جميع الدفعات
+            allPayments = [];
+            
+            subscribers.forEach(s => {
+                // الدفعات النقدية المباشرة
+                if (s.paymentType === 'نقد' && s.price > 0) {
+                    allPayments.push({
+                        id: s.id,
+                        name: s.name,
+                        phone: s.phone,
+                        amount: s.price || 0,
+                        type: 'نقد',
+                        date: s.subscribeDate,
+                        status: s.status
+                    });
+                }
+                
+                // الدفعات من الأجل (الجزئية والكاملة)
+                if (s.lastPaymentDate && s.lastPaymentAmount > 0) {
+                    allPayments.push({
+                        id: s.id,
+                        name: s.name,
+                        phone: s.phone,
+                        amount: s.lastPaymentAmount,
+                        type: 'أجل',
+                        date: s.lastPaymentDate,
+                        status: 'مدفوع'
+                    });
+                }
             });
 
             // ترتيب حسب التاريخ الأحدث أولاً

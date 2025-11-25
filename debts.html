@@ -103,9 +103,13 @@
             const subscriber = DataManager.getSubscriber(id);
             if(subscriber) {
                 const remainingDebt = fullAmount - amount;
+                const today = new Date().toISOString().split('T')[0];
                 DataManager.updateSubscriber(id, { 
                     price: remainingDebt,
-                    lastPaymentDate: new Date().toISOString().split('T')[0],
+                    lastPaymentDate: today,
+                    lastPaymentAmount: amount,
+                    paymentType: 'أجل',
+                    originalPrice: (subscriber.originalPrice || 0) + amount,
                     partialPayments: (subscriber.partialPayments || 0) + amount
                 });
                 window.loadDebts();
@@ -117,11 +121,14 @@
         window.markAsFull = (id, name, amount) => {
             const subscriber = DataManager.getSubscriber(id);
             if(subscriber) {
+                const today = new Date().toISOString().split('T')[0];
                 DataManager.updateSubscriber(id, { 
                     paymentType: 'نقد',
-                    lastPaymentDate: new Date().toISOString().split('T')[0],
-                    originalPrice: subscriber.price,
-                    price: 0
+                    lastPaymentDate: today,
+                    lastPaymentAmount: amount,
+                    originalPrice: (subscriber.originalPrice || 0) + amount,
+                    price: 0,
+                    status: 'مدفوع'
                 });
                 window.loadDebts();
                 if (typeof window.updateDashboard === 'function') window.updateDashboard();
