@@ -3,377 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم - إدارة الاشتراكات</title>
+    <title>لوحة التحكم</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            min-height: 100vh;
-        }
-        
-        .dashboard-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
-        }
-        
-        .dashboard-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        }
-        
-        .gradient-text {
-            background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .pulse-animation {
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-    </style>
+    <style>body{font-family:'Inter',sans-serif;background:#f3f4f6}.card{background:white;transition:transform .2s}.card:hover{transform:translateY(-2px)}</style>
 </head>
-<body>
-    <!-- Navigation Bar -->
-    <nav class="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center space-x-8">
-                    <a href="index.html" class="flex items-center space-x-2 text-white font-bold text-lg hover:opacity-90 transition-opacity">
-                        <i class="fas fa-chart-line text-2xl"></i>
-                        <span>OKComputer</span>
-                    </a>
-                    <div class="hidden md:flex space-x-1">
-                        <a href="index.html" class="text-white bg-white bg-opacity-20 px-3 py-2 rounded-lg transition-all font-medium">
-                            <i class="fas fa-home ml-2"></i>الرئيسية
-                        </a>
-                        <a href="subscribers.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-users ml-2"></i>المشتركين
-                        </a>
-                        <a href="debts.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-credit-card ml-2"></i>الديون
-                        </a>
-                        <a href="payments.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-money-bill ml-2"></i>المبالغ المستلمة
-                        </a>
-                        <a href="expired.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-exclamation-triangle ml-2"></i>منتهية
-                        </a>
-                        <a href="expiring.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-hourglass-half ml-2"></i>قريبة
-                        </a>
-                        <a href="reports.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-chart-bar ml-2"></i>التقارير
-                        </a>
-                    </div>
+<body class="bg-gray-100">
+    <nav class="bg-blue-800 shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center space-x-4 space-x-reverse text-white font-bold text-lg">
+                    <i class="fas fa-chart-line text-2xl"></i>
+                    <span>OKComputer</span>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <button onclick="refreshData()" class="text-white p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-all" title="تحديث البيانات">
-                        <i class="fas fa-sync-alt text-lg"></i>
-                    </button>
-                    <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white font-bold hover:bg-opacity-30 transition-all cursor-pointer">
-                        <i class="fas fa-user"></i>
-                    </div>
+                <div class="hidden md:flex space-x-4 space-x-reverse">
+                    <a href="index.html" class="text-white font-bold px-3 py-2 bg-white/20 rounded">الرئيسية</a>
+                    <a href="subscribers.html" class="text-white hover:bg-white/10 px-3 py-2 rounded">المشتركين</a>
+                    <a href="debts.html" class="text-white hover:bg-white/10 px-3 py-2 rounded">الديون</a>
+                    <a href="payments.html" class="text-white hover:bg-white/10 px-3 py-2 rounded">المبالغ</a>
+                    <a href="reports.html" class="text-white hover:bg-white/10 px-3 py-2 rounded">التقارير</a>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Header -->
-    <header class="bg-white border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-4xl font-bold text-gray-900">لوحة التحكم</h1>
-                    <p class="text-gray-600 mt-2">إدارة الاشتراكات والمشتركين بكفاءة عالية</p>
-                </div>
-                <div class="text-right">
-                    <p class="text-sm text-gray-600" id="current-date"></p>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Hero Section -->
-        <div class="mb-8">
-            <div class="relative bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white overflow-hidden">
-                <div class="relative z-10">
-                    <h2 class="text-3xl font-bold mb-2">مرحباً بك في لوحة التحكم</h2>
-                    <p class="text-blue-100 text-lg">إدارة الاشتراكات والمشتركين بكفاءة عالية</p>
-                </div>
-                <div class="absolute top-0 left-0 w-full h-full opacity-10">
-                    <img src="hero-dashboard.png" alt="Dashboard Background" class="w-full h-full object-cover">
-                </div>
-            </div>
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <div class="mb-8 bg-gradient-to-r from-blue-700 to-indigo-800 rounded-xl p-8 text-white shadow-lg">
+            <h2 class="text-3xl font-bold mb-2">مرحباً بك</h2>
+            <p class="text-blue-100">إدارة الاشتراكات أصبحت أسرع وأسهل</p>
+            <p class="text-sm mt-2 opacity-75" id="current-date"></p>
         </div>
 
-        <!-- Dashboard Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Card 1: عدد المشتركين -->
-            <a href="subscribers.html" class="dashboard-card rounded-2xl p-6 block">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-blue-100 rounded-xl">
-                        <i class="fas fa-users text-blue-600 text-xl"></i>
-                    </div>
-                    <span class="text-sm text-gray-500">+12% هذا الشهر</span>
+            <a href="subscribers.html" class="card rounded-xl p-6 shadow-sm border border-gray-100 block">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="p-3 bg-blue-100 rounded-lg text-blue-600"><i class="fas fa-users text-xl"></i></div>
+                    <span class="text-xs text-gray-500 font-bold">إجمالي</span>
                 </div>
-                <h3 class="text-gray-600 text-sm font-medium mb-1">عدد المشتركين</h3>
-                <p class="text-3xl font-bold text-gray-900 mb-2">1,247</p>
-                <div class="flex items-center text-sm text-green-600">
-                    <i class="fas fa-arrow-up ml-1"></i>
-                    <span>89 مشترك جديد</span>
-                </div>
+                <h3 class="text-gray-500 text-sm font-bold">عدد المشتركين</h3>
+                <p class="text-3xl font-bold text-gray-800 mt-1" id="stat-total">...</p>
             </a>
 
-            <!-- Card 2: المنتهي اشتراكهم -->
-            <a href="expired.html" class="dashboard-card rounded-2xl p-6 block">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-red-100 rounded-xl">
-                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
-                    </div>
-                    <span class="text-sm text-gray-500">يتطلب attention</span>
+            <a href="expired.html" class="card rounded-xl p-6 shadow-sm border border-gray-100 block">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="p-3 bg-red-100 rounded-lg text-red-600"><i class="fas fa-exclamation-triangle text-xl"></i></div>
+                    <span class="text-xs text-gray-500 font-bold">تنبيه</span>
                 </div>
-                <h3 class="text-gray-600 text-sm font-medium mb-1">المنتهي اشتراكهم</h3>
-                <p class="text-3xl font-bold text-gray-900 mb-2">23</p>
-                <div class="flex items-center text-sm text-red-600">
-                    <i class="fas fa-clock ml-1"></i>
-                    <span>يتطلب التجديد</span>
-                </div>
+                <h3 class="text-gray-500 text-sm font-bold">المنتهي اشتراكهم</h3>
+                <p class="text-3xl font-bold text-gray-800 mt-1" id="stat-expired">...</p>
             </a>
 
-            <!-- Card 3: على وشك الانتهاء -->
-            <a href="expiring.html" class="dashboard-card rounded-2xl p-6 block">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-orange-100 rounded-xl">
-                        <i class="fas fa-hourglass-half text-orange-600 text-xl"></i>
-                    </div>
-                    <span class="text-sm text-gray-500">خلال 30 يوم</span>
+            <a href="expiring.html" class="card rounded-xl p-6 shadow-sm border border-gray-100 block">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="p-3 bg-orange-100 rounded-lg text-orange-600"><i class="fas fa-hourglass-half text-xl"></i></div>
+                    <span class="text-xs text-gray-500 font-bold">قريباً</span>
                 </div>
-                <h3 class="text-gray-600 text-sm font-medium mb-1">على وشك الانتهاء</h3>
-                <p class="text-3xl font-bold text-gray-900 mb-2">45</p>
-                <div class="flex items-center text-sm text-orange-600">
-                    <i class="fas fa-bell ml-1"></i>
-                    <span>يحتاج إشعار</span>
-                </div>
+                <h3 class="text-gray-500 text-sm font-bold">على وشك الانتهاء</h3>
+                <p class="text-3xl font-bold text-gray-800 mt-1" id="stat-expiring">...</p>
             </a>
 
-            <!-- Card 4: الديون -->
-            <a href="debts.html" class="dashboard-card rounded-2xl p-6 block">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-yellow-100 rounded-xl">
-                        <i class="fas fa-credit-card text-yellow-600 text-xl"></i>
-                    </div>
-                    <span class="text-sm text-gray-500">مبالغ مستحقة</span>
+            <a href="debts.html" class="card rounded-xl p-6 shadow-sm border border-gray-100 block">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="p-3 bg-yellow-100 rounded-lg text-yellow-600"><i class="fas fa-money-bill text-xl"></i></div>
+                    <span class="text-xs text-gray-500 font-bold">مستحقات</span>
                 </div>
-                <h3 class="text-gray-600 text-sm font-medium mb-1">الديون</h3>
-                <p class="text-3xl font-bold text-gray-900 mb-2">12,450 د.ع</p>
-                <div class="flex items-center text-sm text-yellow-600">
-                    <i class="fas fa-money-bill ml-1"></i>
-                    <span>27 حساب متأخر</span>
-                </div>
+                <h3 class="text-gray-500 text-sm font-bold">الديون (أجل)</h3>
+                <p class="text-3xl font-bold text-gray-800 mt-1" id="stat-debts">...</p>
             </a>
-
-            <!-- Card 5: التقارير -->
-            <a href="reports.html" class="dashboard-card rounded-2xl p-6 block">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-green-100 rounded-xl">
-                        <i class="fas fa-chart-bar text-green-600 text-xl"></i>
-                    </div>
-                    <span class="text-sm text-gray-500">آخر تحديث: اليوم</span>
-                </div>
-                <h3 class="text-gray-600 text-sm font-medium mb-1">التقارير</h3>
-                <p class="text-3xl font-bold text-gray-900 mb-2">15</p>
-                <div class="flex items-center text-sm text-green-600">
-                    <i class="fas fa-download ml-1"></i>
-                    <span>تقارير جاهزة</span>
-                </div>
-            </a>
-
-            <!-- Quick Actions Card -->
-            <div class="dashboard-card rounded-2xl p-6 bg-gradient-to-br from-purple-500 to-blue-600 text-white">
-                <h3 class="text-lg font-semibold mb-4">إجراءات سريعة</h3>
-                <div class="space-y-3">
-                    <button onclick="sendRenewalReminders()" class="w-full bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg py-2 px-4 text-sm transition-all">
-                        <i class="fas fa-bell ml-2"></i>
-                        إرسال تذكيرات التجديد
-                    </button>
-                    <button onclick="generateReport()" class="w-full bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg py-2 px-4 text-sm transition-all">
-                        <i class="fas fa-file-alt ml-2"></i>
-                        إنشاء تقرير شهري
-                    </button>
-                    <button onclick="exportData()" class="w-full bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg py-2 px-4 text-sm transition-all">
-                        <i class="fas fa-download ml-2"></i>
-                        تصدير البيانات
-                    </button>
-                </div>
-            </div>
         </div>
     </main>
 
     <script type="module" src="data-manager.js"></script>
     <script>
-        // Set current date
-        document.addEventListener('DOMContentLoaded', function() {
-            const today = new Date();
-            document.getElementById('current-date').textContent = today.toLocaleDateString('ar-EG', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-            updateDashboard();
-        });
+        document.getElementById('current-date').textContent = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-        function updateDashboard() {
+        window.updateDashboard = function() {
             const stats = DataManager.getStatistics();
-            const subscribers = DataManager.getSubscribers();
-            
-            // تحديث بطاقة المشتركين
-            document.querySelectorAll('.dashboard-card')[0].innerHTML = `
-                <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-blue-100 rounded-xl">
-                        <i class="fas fa-users text-blue-600 text-xl"></i>
-                    </div>
-                    <span class="text-sm text-gray-500">إجمالي</span>
-                </div>
-                <h3 class="text-gray-600 text-sm font-medium mb-1">عدد المشتركين</h3>
-                <p class="text-3xl font-bold text-gray-900 mb-2">${stats.totalSubscribers}</p>
-                <div class="flex items-center text-sm text-green-600">
-                    <i class="fas fa-check ml-1"></i>
-                    <span>${stats.activeSubscribers} نشط</span>
-                </div>
-            `;
+            const subs = DataManager.getSubscribers();
+            const debts = subs.filter(s => s.paymentType === 'أجل').reduce((sum, s) => sum + (parseInt(s.price) || 0), 0);
 
-            // تحديث بطاقة المنتهي اشتراكهم
-            document.querySelectorAll('.dashboard-card')[1].innerHTML = `
-                <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-red-100 rounded-xl">
-                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
-                    </div>
-                    <span class="text-sm text-gray-500">يتطلب تجديد</span>
-                </div>
-                <h3 class="text-gray-600 text-sm font-medium mb-1">المنتهي اشتراكهم</h3>
-                <p class="text-3xl font-bold text-gray-900 mb-2">${stats.expiredSubscribers}</p>
-                <div class="flex items-center text-sm text-red-600">
-                    <i class="fas fa-clock ml-1"></i>
-                    <span>اشتراك منتهي</span>
-                </div>
-            `;
-
-            // تحديث بطاقة قريبة الانتهاء
-            document.querySelectorAll('.dashboard-card')[2].innerHTML = `
-                <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-orange-100 rounded-xl">
-                        <i class="fas fa-hourglass-half text-orange-600 text-xl"></i>
-                    </div>
-                    <span class="text-sm text-gray-500">خلال 3 أيام</span>
-                </div>
-                <h3 class="text-gray-600 text-sm font-medium mb-1">على وشك الانتهاء</h3>
-                <p class="text-3xl font-bold text-gray-900 mb-2">${stats.expiringSubscribers}</p>
-                <div class="flex items-center text-sm text-orange-600">
-                    <i class="fas fa-bell ml-1"></i>
-                    <span>يحتاج تنبيه</span>
-                </div>
-            `;
-
-            // تحديث بطاقة الديون
-            const totalDebts = subscribers.filter(s => s.paymentType === 'أجل' && s.price > 0).reduce((sum, s) => sum + s.price, 0);
-            const debtCount = subscribers.filter(s => s.paymentType === 'أجل' && s.price > 0).length;
-
-            document.querySelectorAll('.dashboard-card')[3].innerHTML = `
-                <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-yellow-100 rounded-xl">
-                        <i class="fas fa-credit-card text-yellow-600 text-xl"></i>
-                    </div>
-                    <span class="text-sm text-gray-500">مستحق</span>
-                </div>
-                <h3 class="text-gray-600 text-sm font-medium mb-1">الديون</h3>
-                <p class="text-3xl font-bold text-gray-900 mb-2">${totalDebts.toLocaleString()} د.ع</p>
-                <div class="flex items-center text-sm text-yellow-600">
-                    <i class="fas fa-money-bill ml-1"></i>
-                    <span>${debtCount} حساب أجل</span>
-                </div>
-            `;
-
-            // تحديث بطاقة المبالغ المستلمة
-            const cashPayments = subscribers.filter(s => s.paymentType === 'نقد' && s.price > 0).reduce((sum, s) => sum + s.price, 0);
-            const cashCount = subscribers.filter(s => s.paymentType === 'نقد' && s.price > 0).length;
-
-            document.querySelectorAll('.dashboard-card')[4].innerHTML = `
-                <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-green-100 rounded-xl">
-                        <i class="fas fa-money-bill-wave text-green-600 text-xl"></i>
-                    </div>
-                    <span class="text-sm text-gray-500">مستقبل نقدي</span>
-                </div>
-                <h3 class="text-gray-600 text-sm font-medium mb-1">المبالغ المستلمة</h3>
-                <p class="text-3xl font-bold text-gray-900 mb-2">${cashPayments.toLocaleString()} د.ع</p>
-                <div class="flex items-center text-sm text-green-600">
-                    <i class="fas fa-check-circle ml-1"></i>
-                    <span>${cashCount} دفعة نقدية</span>
-                </div>
-            `;
-        }
-
-        function refreshData() {
-            updateDashboard();
-        }
-
-        function sendRenewalReminders() {
-            const subscribers = DataManager.getSubscribers();
-            const expiringCount = subscribers.filter(s => {
-                const expDate = new Date(s.expiryDate);
-                const today = new Date();
-                const daysLeft = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
-                return daysLeft > 0 && daysLeft <= 30;
-            }).length;
-        }
-
-        function generateReport() {
-            const stats = DataManager.getStatistics();
-            const subscribers = DataManager.getSubscribers();
-            const totalDebts = subscribers.filter(s => s.paymentType === 'أجل').reduce((sum, s) => sum + (s.price || 0), 0);
-            const timestamp = new Date().toLocaleDateString('ar-EG');
-            const report = `التقرير الشهري - ${timestamp}\n\nإجمالي المشتركين: ${stats.totalSubscribers}\nالمشتركون النشطون: ${stats.activeSubscribers}\nالاشتراكات المنتهية: ${stats.expiredSubscribers}\nالاشتراكات على وشك الانتهاء: ${stats.expiringSubscribers}\nإجمالي الديون: ${totalDebts.toLocaleString()} د.ع`;
-        }
-
-        function exportData() {
-            const stats = DataManager.getStatistics();
-            const subscribers = DataManager.getSubscribers();
-            const totalDebts = subscribers.filter(s => s.paymentType === 'أجل').reduce((sum, s) => sum + (s.price || 0), 0);
-            let csv = 'نوع البيانات,العدد,آخر تحديث\n';
-            csv += `المشتركين,${stats.totalSubscribers},${new Date().toLocaleDateString('ar-EG')}\n`;
-            csv += `الديون المستحقة,${totalDebts},${new Date().toLocaleDateString('ar-EG')}\n`;
-            csv += `الاشتراكات المنتهية,${stats.expiredSubscribers},${new Date().toLocaleDateString('ar-EG')}\n`;
-            csv += `الاشتراكات القريبة من الانتهاء,${stats.expiringSubscribers},${new Date().toLocaleDateString('ar-EG')}`;
-            const link = document.createElement('a');
-            link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-            link.download = `dashboard_${new Date().toISOString().slice(0,10)}.csv`;
-            link.click();
+            document.getElementById('stat-total').textContent = stats.totalSubscribers;
+            document.getElementById('stat-expired').textContent = stats.expiredSubscribers;
+            document.getElementById('stat-expiring').textContent = stats.expiringSubscribers;
+            document.getElementById('stat-debts').textContent = debts.toLocaleString() + ' د.ع';
         }
     </script>
-<script>
-    document.addEventListener('keydown', e => {
-        if (e.key === 'ArrowRight' || e.key === ' ') {
-            e.preventDefault();
-            window.parent.postMessage('go-next', '*');
-        } else if (e.key === 'ArrowLeft') {
-            e.preventDefault();
-            window.parent.postMessage('go-prev', '*');
-        }
-    });
-</script>
 </body>
 </html>
