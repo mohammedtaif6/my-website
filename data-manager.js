@@ -1,6 +1,6 @@
 /**
  * نظام إدارة البيانات المركزي - Full Real-time Sync
- * يدعم المزامنة الفورية للمشتركين، المعاملات، والصرفيات بين الأجهزة
+ * يدعم المزامنة الفورية للمشتركين، المعاملات، والصرفيات بين جميع الأجهزة
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -16,7 +16,7 @@ import {
     orderBy
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// === إعدادات Firebase الخاصة بمشروعك ===
+// === إعدادات Firebase ===
 const firebaseConfig = {
     apiKey: "AIzaSyA-raYlvzPz8T7Mnx8bTWA4O8CyHvp7K_0",
     authDomain: "okcomputer-system.firebaseapp.com",
@@ -46,7 +46,7 @@ const DataManager = {
     init() {
         console.log("🚀 جاري بدء نظام المزامنة الشامل...");
         
-        // تحميل بيانات مؤقتة من الكاش لسرعة العرض قبل وصول بيانات الإنترنت
+        // تحميل بيانات مؤقتة من الكاش لسرعة العرض
         this.loadFromCache('subscribers');
         this.loadFromCache('transactions');
         this.loadFromCache('expenses');
@@ -65,13 +65,11 @@ const DataManager = {
 
     /**
      * الاستماع للتغييرات الحية من قاعدة البيانات
-     * هذه الدالة هي سر التزامن اللحظي
      */
     subscribeToCollection(collectionName) {
         if (!isOnline) return;
         
-        // ترتيب البيانات حسب الأحدث (id يعتمد على الوقت)
-        const q = query(collection(db, collectionName), orderBy("id", "desc")); 
+        const q = query(collection(db, collectionName), orderBy("createdAt", "desc")); 
         
         onSnapshot(q, (snapshot) => {
             localData[collectionName] = snapshot.docs.map(doc => ({
@@ -79,7 +77,7 @@ const DataManager = {
                 firebaseId: doc.id
             }));
             
-            // تحديث الكاش المحلي دائماً بأحدث نسخة
+            // تحديث الكاش المحلي
             localStorage.setItem(`cache_${collectionName}`, JSON.stringify(localData[collectionName]));
             
             console.log(`✨ تحديث ${collectionName}: ${localData[collectionName].length} عنصر`);
@@ -98,9 +96,6 @@ const DataManager = {
         if (typeof window.loadExpenses === 'function') window.loadExpenses();
         if (typeof window.loadExpiredSubscribers === 'function') window.loadExpiredSubscribers();
         if (typeof window.loadExpiringSubscribers === 'function') window.loadExpiringSubscribers();
-        
-        // تحديث الإحصائيات في الصفحة الرئيسية إذا وجدت
-        if (document.getElementById('stat-total')) window.updateDashboard();
     },
 
     // ==========================================
@@ -112,7 +107,7 @@ const DataManager = {
     getSubscriber(id) { return localData.subscribers.find(s => s.id === id); },
 
     async addSubscriber(data) {
-        const newId = Date.now(); // استخدام الوقت كمعرف فريد
+        const newId = Date.now(); 
         const subscriber = {
             ...data,
             id: newId,
@@ -194,18 +189,14 @@ const DataManager = {
         const trans = localData.transactions.find(t => t.id === id);
         if (!trans || !trans.firebaseId) return;
 
-        // 1. إرجاع المبلغ للمشترك (تعديل الدين)
+        // إرجاع المبلغ للمشترك
         const sub = this.getSubscriber(trans.subscriberId);
         if (sub) {
             const newPrice = (parseInt(sub.price) || 0) + parseInt(trans.amount);
-            // تحديث المشترك ليعكس الدين القديم
-            await this.updateSubscriber(sub.id, { 
-                price: newPrice,
-                // إذا كان الدين قد صُفر، نعيده لحالة أجل إذا لزم الأمر، لكن الأبسط تعديل السعر فقط
-            });
+            await this.updateSubscriber(sub.id, { price: newPrice });
         }
 
-        // 2. حذف المعاملة نهائياً
+        // حذف المعاملة نهائياً
         await deleteDoc(doc(db, "transactions", trans.firebaseId));
     },
 
@@ -239,7 +230,7 @@ const DataManager = {
     },
 
     // ==========================================
-    // 📊 الإحصائيات العامة (تستخدم في الصفحة الرئيسية)
+    // 📊 الإحصائيات العامة
     // ==========================================
     
     getStatistics() {
@@ -247,7 +238,6 @@ const DataManager = {
         const today = new Date();
         today.setHours(0,0,0,0);
 
-        // حساب الديون: المشتركين الذين نوع دفعهم "أجل" ولديهم مبلغ متبقي
         const debts = subs.filter(s => s.paymentType === 'أجل' && s.price > 0)
                           .reduce((sum, s) => sum + (parseInt(s.price)||0), 0);
 
@@ -282,7 +272,6 @@ const DataManager = {
 
 window.DataManager = DataManager;
 
-// تشغيل النظام فور التحميل
 document.addEventListener('DOMContentLoaded', () => {
     DataManager.init();
 });
