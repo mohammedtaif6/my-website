@@ -315,38 +315,40 @@
             renderTable();
         }
 
-        function deletePayment(paymentId, paymentDate) {
+        async function deletePayment(paymentId, paymentDate) {
             // البحث عن الدفعة في جميع المصادر وحذفها
-            
-            // 1. البحث في partial_payments
+
+            // 1. البحث في partial_payments (التخزين المحلي)
             let partialPayments = JSON.parse(localStorage.getItem('partial_payments') || '[]');
             const foundInPartial = partialPayments.findIndex(p => p.id == paymentId && p.date === paymentDate);
             if (foundInPartial !== -1) {
                 partialPayments.splice(foundInPartial, 1);
                 localStorage.setItem('partial_payments', JSON.stringify(partialPayments));
             }
-            
-            // 2. البحث في المشتركين (المدفوعات النقدية والديون المسددة)
-            const subscribers = DataManager.getSubscribers();
-            const subscriber = subscribers.find(s => s.id == paymentId);
-            if (subscriber) {
-                // إذا كانت مدفوعة نقد
-                if (subscriber.paymentType === 'نقد' && subscriber.price > 0) {
-                    // تعيين السعر إلى 0 (حذف الدفعة)
-                    DataManager.updateSubscriber(paymentId, { price: 0 });
+
+            // 2. البحث في المشتركين (التعديل في قاعدة البيانات عبر DataManager)
+            try {
+                const subscribers = DataManager.getSubscribers();
+                const subscriber = subscribers.find(s => s.id == paymentId);
+                if (subscriber) {
+                    // إذا كانت دفعة نقدية مسجلة في حقل السعر
+                    if (subscriber.paymentType === 'نقد' && subscriber.price > 0) {
+                        await DataManager.updateSubscriber(paymentId, { price: 0 });
+                    }
+                    // إذا كانت دفعة من دين مُسدد (نستخدم lastPaymentDate + originalPrice)
+                    else if (subscriber.lastPaymentDate && subscriber.originalPrice > 0) {
+                        await DataManager.updateSubscriber(paymentId, {
+                            lastPaymentDate: null,
+                            originalPrice: 0,
+                            price: subscriber.originalPrice
+                        });
+                    }
                 }
-                // إذا كانت دين مسدد
-                else if (subscriber.lastPaymentDate && subscriber.originalPrice > 0) {
-                    // مسح بيانات الدفع
-                    DataManager.updateSubscriber(paymentId, { 
-                        lastPaymentDate: null,
-                        originalPrice: 0,
-                        price: subscriber.originalPrice // إعادة المبلغ الأصلي
-                    });
-                }
+            } catch (err) {
+                console.error('خطأ أثناء تحديث المشترك في قاعدة البيانات:', err);
             }
-            
-            // إعادة تحميل البيانات
+
+            // إعادة تحميل البيانات وتحديث الواجهة
             loadPayments();
             if (typeof window.updateDashboard === 'function') {
                 window.updateDashboard();
@@ -393,12 +395,13 @@
             }
         }
 
-        function deleteSelected() {
+        async function deleteSelected() {
             const selected = document.querySelectorAll('.payment-checkbox:checked');
             if (selected.length === 0) return;
             
             let partialPayments = JSON.parse(localStorage.getItem('partial_payments') || '[]');
             const subscribers = DataManager.getSubscribers();
+            const updates = [];
             
             selected.forEach(checkbox => {
                 const id = checkbox.getAttribute('data-id');
@@ -407,26 +410,30 @@
                 // حذف من partial_payments
                 partialPayments = partialPayments.filter(p => !(p.id == id && p.date === date));
                 
-                // حذف من المشتركين إذا كانت من هناك
+                // تجهيز تحديثات المشتركين إن وجدت
                 const subscriber = subscribers.find(s => s.id == id);
                 if (subscriber) {
-                    // إذا كانت مدفوعة نقد
                     if (subscriber.paymentType === 'نقد' && subscriber.price > 0) {
-                        DataManager.updateSubscriber(id, { price: 0 });
-                    }
-                    // إذا كانت دين مسدد
-                    else if (subscriber.lastPaymentDate && subscriber.originalPrice > 0) {
-                        DataManager.updateSubscriber(id, { 
+                        updates.push(DataManager.updateSubscriber(id, { price: 0 }));
+                    } else if (subscriber.lastPaymentDate && subscriber.originalPrice > 0) {
+                        updates.push(DataManager.updateSubscriber(id, {
                             lastPaymentDate: null,
                             originalPrice: 0,
                             price: subscriber.originalPrice
-                        });
+                        }));
                     }
                 }
             });
             
             localStorage.setItem('partial_payments', JSON.stringify(partialPayments));
             
+            // انتظر تحديثات قاعدة البيانات (إن وُجدت)
+            try {
+                await Promise.allSettled(updates);
+            } catch (err) {
+                console.error('خطأ أثناء تحديثات الحذف المتعدد:', err);
+            }
+
             loadPayments();
             editMode = false;
             toggleEditMode();
