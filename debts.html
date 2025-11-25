@@ -103,6 +103,20 @@
 
     <script type="module" src="data-manager.js"></script>
     <script>
+        // دالة إظهار الإشعارات
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 left-4 bg-green-500 text-white px-6 py-3 rounded shadow-lg animate-pulse';
+            notification.innerHTML = `<i class="fas fa-check-circle ml-2"></i> ${message}`;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.3s';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
         window.loadDebts = function() {
             const all = DataManager.getSubscribers();
             const debts = all.filter(s => s.paymentType === 'أجل' && s.price > 0);
@@ -139,10 +153,12 @@
             const amount = parseInt(inputField.value) || 0;
             
             if (amount <= 0) {
+                alert('يرجى إدخال مبلغ صحيح');
                 return;
             }
 
             if (amount > fullAmount) {
+                alert('المبلغ أكثر من الدين');
                 return;
             }
 
@@ -150,25 +166,26 @@
             if(subscriber) {
                 const remainingDebt = fullAmount - amount;
                 
-                // حفظ الدفعة الجزئية في localStorage
-                let payments = JSON.parse(localStorage.getItem('partial_payments') || '[]');
-                payments.push({
-                    id: Date.now(),
-                    subscriberId: id,
+                // تسجيل المعاملة مع رقم معاملة فريد
+                const transaction = DataManager.recordTransaction(id, amount, 'جزئي', {
                     name: name,
-                    amount: amount,
-                    date: new Date().toISOString().split('T')[0],
-                    type: 'جزئي'
+                    remainingDebt: remainingDebt,
+                    originalDebt: fullAmount
                 });
-                localStorage.setItem('partial_payments', JSON.stringify(payments));
-                
+
+                // تحديث بيانات المشترك
                 DataManager.updateSubscriber(id, { 
                     price: remainingDebt,
                     lastPaymentDate: new Date().toISOString().split('T')[0],
                     partialPayments: (subscriber.partialPayments || 0) + amount
                 });
+
                 window.loadDebts();
                 inputField.value = '';
+                
+                // إظهار رسالة نجاح
+                showNotification(`✓ تم تسجيل معاملة #${transaction.transactionNumber} - دفع جزئي ${amount.toLocaleString()} د.ع`);
+                
                 if (typeof window.updateDashboard === 'function') window.updateDashboard();
             }
         };
@@ -176,25 +193,25 @@
         window.markAsFull = (id, name, amount) => {
             const subscriber = DataManager.getSubscriber(id);
             if(subscriber) {
-                // حفظ الدفعة الكاملة في localStorage
-                let payments = JSON.parse(localStorage.getItem('partial_payments') || '[]');
-                payments.push({
-                    id: Date.now(),
-                    subscriberId: id,
+                // تسجيل المعاملة مع رقم معاملة فريد
+                const transaction = DataManager.recordTransaction(id, amount, 'كامل', {
                     name: name,
-                    amount: amount,
-                    date: new Date().toISOString().split('T')[0],
-                    type: 'كامل'
+                    originalPrice: subscriber.price
                 });
-                localStorage.setItem('partial_payments', JSON.stringify(payments));
-                
+
+                // تحديث بيانات المشترك
                 DataManager.updateSubscriber(id, { 
                     paymentType: 'نقد',
                     lastPaymentDate: new Date().toISOString().split('T')[0],
                     originalPrice: subscriber.price,
                     price: 0
                 });
+
                 window.loadDebts();
+                
+                // إظهار رسالة نجاح
+                showNotification(`✓ تم تسجيل معاملة #${transaction.transactionNumber} - تسديد كامل ${amount.toLocaleString()} د.ع`);
+                
                 if (typeof window.updateDashboard === 'function') window.updateDashboard();
             }
         };

@@ -212,7 +212,7 @@
             // 1. حركات التفعيلات
             const subscribers = DataManager.getSubscribers();
             subscribers.forEach(sub => {
-                if (sub.subscribeDate && sub.price > 0) {
+                if (sub.subscribeDate && sub.price > 0 && sub.status !== 'غير نشط') {
                     allActivities.push({
                         id: `act_${sub.id}`,
                         type: 'activation',
@@ -228,18 +228,21 @@
                 }
             });
 
-            // 2. حركات الدفعات
-            const partialPayments = JSON.parse(localStorage.getItem('partial_payments') || '[]');
-            partialPayments.forEach(pay => {
+            // 2. حركات الدفعات من نظام المعاملات الجديد
+            const transactions = DataManager.getAllTransactions();
+            transactions.forEach(t => {
+                const subscriber = subscribers.find(s => s.id === t.subscriberId);
                 allActivities.push({
-                    id: `pay_${pay.id}`,
+                    id: `trans_${t.id}`,
                     type: 'payment',
-                    name: pay.name,
-                    amount: pay.amount,
-                    date: pay.date,
-                    paymentType: pay.type || 'جزئي',
+                    transactionNumber: t.transactionNumber,
+                    name: subscriber ? subscriber.name : t.details.name,
+                    amount: t.amount,
+                    date: t.date,
+                    paymentType: t.type === 'كامل' ? 'تسديد كامل' : 'تسديد جزئي',
                     icon: 'fa-money-bill-wave',
-                    color: 'blue'
+                    color: 'blue',
+                    subscriberId: t.subscriberId
                 });
             });
 
@@ -324,6 +327,15 @@
                 const typeIcon = activity.type === 'activation' ? 'fa-check-circle' :
                                  activity.type === 'payment' ? 'fa-money-bill-wave' : 'fa-receipt';
                 
+                let detailsText = '';
+                if (activity.type === 'activation') {
+                    detailsText = `نوع الدفع: <strong>${activity.paymentType}</strong> | ينتهي: ${activity.expiryDate || 'لم يحدد'}`;
+                } else if (activity.type === 'payment') {
+                    detailsText = `${activity.paymentType}${activity.transactionNumber ? ` - المعاملة #${activity.transactionNumber}` : ''}`;
+                } else {
+                    detailsText = `وصف: <strong>${activity.name}</strong>`;
+                }
+                
                 return `
                     <div class="activity-card bg-gray-50 p-4 rounded-lg activity-card.${activity.type}">
                         <div class="flex justify-between items-start">
@@ -337,12 +349,7 @@
                                         <span class="${badgeClass}">${typeLabel}</span>
                                     </div>
                                     <p class="text-sm text-gray-600">
-                                        ${activity.type === 'activation' ? 
-                                            `نوع الدفع: <strong>${activity.paymentType}</strong> | ينتهي: ${activity.expiryDate || 'لم يحدد'}` :
-                                            activity.type === 'payment' ?
-                                            `نوع: <strong>${activity.paymentType}</strong>` :
-                                            `وصف: <strong>${activity.name}</strong>`
-                                        }
+                                        ${detailsText}
                                     </p>
                                 </div>
                             </div>

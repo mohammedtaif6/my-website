@@ -152,28 +152,40 @@
 
         window.loadPayments = function() {
             const subs = DataManager.getSubscribers();
-            const partials = JSON.parse(localStorage.getItem('partial_payments') || '[]');
+            const transactions = DataManager.getAllTransactions();
             
             allPayments = [];
 
-            subs.filter(s => s.paymentType === 'نقد' && s.price > 0).forEach(s => {
+            // إضافة المعاملات المسجلة
+            transactions.forEach(t => {
+                const subscriber = subs.find(s => s.id === t.subscriberId);
                 allPayments.push({
-                    id: `sub_${s.id}`, source: 'subscriber', realId: s.id,
-                    name: s.name, amount: parseInt(s.price), type: 'نقد', date: s.subscribeDate
+                    id: t.id,
+                    transactionNumber: t.transactionNumber,
+                    source: 'transaction',
+                    realId: t.id,
+                    subId: t.subscriberId,
+                    name: subscriber ? subscriber.name : t.details.name,
+                    amount: t.amount,
+                    type: t.type === 'كامل' ? 'تسديد كامل' : 'تسديد جزئي',
+                    date: t.date,
+                    timestamp: t.timestamp,
+                    details: t.details
                 });
             });
 
-            subs.filter(s => s.lastPaymentDate && s.originalPrice > 0).forEach(s => {
+            // إضافة الاشتراكات النقد المباشرة (للتوافقية مع النظام القديم)
+            subs.filter(s => s.paymentType === 'نقد' && s.price > 0 && !transactions.some(t => t.subscriberId === s.id)).forEach(s => {
                 allPayments.push({
-                    id: `debt_${s.id}`, source: 'debt_full', realId: s.id,
-                    name: s.name, amount: parseInt(s.originalPrice), type: 'تسديد كامل', date: s.lastPaymentDate
-                });
-            });
-
-            partials.forEach(p => {
-                allPayments.push({
-                    id: `part_${p.id}`, source: 'partial', realId: p.id, subId: p.subscriberId,
-                    name: p.name, amount: parseInt(p.amount), type: p.type || 'جزئي', date: p.date
+                    id: `sub_${s.id}`,
+                    transactionNumber: 0,
+                    source: 'subscriber',
+                    realId: s.id,
+                    name: s.name,
+                    amount: parseInt(s.price),
+                    type: 'نقد',
+                    date: s.subscribeDate,
+                    details: {}
                 });
             });
 
@@ -220,9 +232,15 @@
                         <input type="checkbox" class="pay-check w-5 h-5" value="${p.id}" onchange="updateSelCount()">
                     </td>
                     <td class="p-4 text-gray-500">${start + idx + 1}</td>
-                    <td class="p-4 font-bold text-gray-800">${p.name}</td>
+                    <td class="p-4 font-bold text-gray-800">
+                        ${p.name} ${p.transactionNumber ? `<span class="text-xs text-blue-600">رقم المعاملة: #${p.transactionNumber}</span>` : ''}
+                    </td>
                     <td class="p-4 text-green-600 font-bold" dir="ltr">${p.amount.toLocaleString()} د.ع</td>
-                    <td class="p-4"><span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">${p.type}</span></td>
+                    <td class="p-4">
+                        <span class="px-2 py-1 ${p.type === 'تسديد كامل' ? 'bg-green-100 text-green-800' : p.type === 'تسديد جزئي' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'} rounded text-xs">
+                            ${p.type}
+                        </span>
+                    </td>
                     <td class="p-4 text-gray-600">${p.date}</td>
                     <td class="p-4">
                         <button onclick="prepareDeleteOne('${p.id}')" class="text-red-500 hover:bg-red-50 p-2 rounded transition"><i class="fas fa-trash"></i></button>
@@ -241,7 +259,7 @@
             paymentToDelete = [id];
             isBulkDelete = false;
 
-            document.getElementById('del-modal-name').innerText = payment.name;
+            document.getElementById('del-modal-name').innerText = payment.name + (payment.transactionNumber ? ` - المعاملة #${payment.transactionNumber}` : '');
             document.getElementById('del-modal-amount').innerText = payment.amount.toLocaleString() + ' د.ع';
             document.getElementById('del-modal-date').innerText = payment.date;
             document.getElementById('single-delete-details').style.display = 'block';
@@ -283,33 +301,17 @@
 
         async function processDelete(ids) {
             const paymentsToDeleteList = allPayments.filter(p => ids.includes(p.id));
-            let partials = JSON.parse(localStorage.getItem('partial_payments') || '[]');
-            let expensesChanged = false;
 
             for (const p of paymentsToDeleteList) {
-                if (p.source === 'subscriber') {
+                if (p.source === 'transaction') {
+                    // حذف المعاملة المسجلة
+                    DataManager.deleteTransaction(p.realId);
+                }
+                else if (p.source === 'subscriber') {
                     await DataManager.updateSubscriber(p.realId, { price: 0, status: 'غير نشط' });
-                }
-                else if (p.source === 'debt_full') {
-                    await DataManager.updateSubscriber(p.realId, {
-                        price: p.amount, paymentType: 'أجل', lastPaymentDate: null, originalPrice: 0
-                    });
-                }
-                else if (p.source === 'partial') {
-                    const sub = DataManager.getSubscriber(p.subId);
-                    if(sub) {
-                        const currentDebt = parseInt(sub.price || 0);
-                        await DataManager.updateSubscriber(p.subId, {
-                            price: currentDebt + p.amount,
-                            partialPayments: (sub.partialPayments || 0) - p.amount
-                        });
-                    }
-                    partials = partials.filter(item => item.id !== p.realId);
-                    expensesChanged = true;
                 }
             }
 
-            if(expensesChanged) localStorage.setItem('partial_payments', JSON.stringify(partials));
             setTimeout(() => { window.loadPayments(); if(window.updateDashboard) window.updateDashboard(); }, 300);
         }
 

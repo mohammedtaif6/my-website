@@ -346,6 +346,116 @@ const DataManager = {
         link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
         link.download = `${filename}_${new Date().toISOString().slice(0, 10)}.csv`;
         link.click();
+    },
+
+    /**
+     * نظام إدارة المعاملات الذكية
+     * كل معاملة مرتبطة بـ subscriberId وتحتفظ بسجل كامل
+     */
+    recordTransaction(subscriberId, amount, type = 'جزئي', details = {}) {
+        try {
+            let transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+            
+            const transaction = {
+                id: Date.now() + Math.random().toString(36).substr(2, 9),
+                transactionNumber: transactions.length + 1,
+                subscriberId: subscriberId,
+                amount: parseInt(amount),
+                type: type, // 'جزئي' أو 'كامل'
+                date: new Date().toISOString().split('T')[0],
+                timestamp: new Date().toISOString(),
+                details: details,
+                createdAt: new Date().toISOString()
+            };
+
+            transactions.push(transaction);
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+            console.log(`✓ تم تسجيل معاملة #${transaction.transactionNumber} للمشترك #${subscriberId}`);
+            
+            return transaction;
+        } catch (error) {
+            console.error('❌ خطأ في تسجيل المعاملة:', error);
+            return null;
+        }
+    },
+
+    /**
+     * الحصول على جميع معاملات مشترك معين
+     */
+    getSubscriberTransactions(subscriberId) {
+        try {
+            const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+            return transactions.filter(t => t.subscriberId === subscriberId);
+        } catch (error) {
+            console.error('❌ خطأ في الحصول على المعاملات:', error);
+            return [];
+        }
+    },
+
+    /**
+     * الحصول على جميع المعاملات
+     */
+    getAllTransactions() {
+        try {
+            return JSON.parse(localStorage.getItem('transactions') || '[]');
+        } catch (error) {
+            console.error('❌ خطأ في الحصول على جميع المعاملات:', error);
+            return [];
+        }
+    },
+
+    /**
+     * حذف معاملة وإرجاع المبلغ للمشترك
+     */
+    deleteTransaction(transactionId) {
+        try {
+            let transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+            const transaction = transactions.find(t => t.id === transactionId);
+            
+            if (!transaction) {
+                console.error('❌ المعاملة غير موجودة');
+                return false;
+            }
+
+            const subscriber = this.getSubscriber(transaction.subscriberId);
+            if (!subscriber) {
+                console.error('❌ المشترك غير موجود');
+                return false;
+            }
+
+            // إرجاع المبلغ للمشترك
+            const newPrice = parseInt(subscriber.price || 0) + transaction.amount;
+            this.updateSubscriber(transaction.subscriberId, { 
+                price: newPrice,
+                partialPayments: Math.max((subscriber.partialPayments || 0) - transaction.amount, 0)
+            });
+
+            // حذف المعاملة
+            transactions = transactions.filter(t => t.id !== transactionId);
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+            
+            console.log(`✓ تم حذف المعاملة #${transaction.transactionNumber}`);
+            return true;
+        } catch (error) {
+            console.error('❌ خطأ في حذف المعاملة:', error);
+            return false;
+        }
+    },
+
+    /**
+     * حساب إجمالي الدفعات لمشترك معين
+     */
+    getTotalPaymentsForSubscriber(subscriberId) {
+        const transactions = this.getSubscriberTransactions(subscriberId);
+        return transactions.reduce((sum, t) => sum + (t.amount || 0), 0);
+    },
+
+    /**
+     * حساب إجمالي الدفعات من جميع المشتركين
+     */
+    getTotalPayments() {
+        const transactions = this.getAllTransactions();
+        return transactions.reduce((sum, t) => sum + (t.amount || 0), 0);
     }
 };
 
