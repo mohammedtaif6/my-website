@@ -18,6 +18,164 @@
             padding-top: env(safe-area-inset-top);
             padding-bottom: env(safe-area-inset-bottom);
         }
+        
+        /* Modal Styles */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-backdrop.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+            transform: scale(0.9) translateY(-20px);
+            transition: transform 0.3s ease;
+            overflow: hidden;
+        }
+
+        .modal-backdrop.active .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-header i {
+            font-size: 24px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-body p {
+            margin: 12px 0;
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        .payment-details {
+            background: #f9fafb;
+            border-right: 4px solid #ef4444;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+        }
+
+        .payment-details strong {
+            color: #1f2937;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .detail-label {
+            color: #6b7280;
+        }
+
+        .detail-value {
+            color: #1f2937;
+            font-weight: 600;
+        }
+
+        .modal-footer {
+            padding: 20px 24px;
+            background: #f9fafb;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .btn-cancel {
+            padding: 10px 20px;
+            border: 1px solid #d1d5db;
+            background: white;
+            color: #374151;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-cancel:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+        }
+
+        .btn-confirm {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-confirm:active {
+            transform: translateY(0);
+        }
+
+        .btn-confirm:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .warning-text {
+            color: #dc2626;
+            font-size: 13px;
+            margin-top: 12px;
+            padding: 8px 12px;
+            background: #fee2e2;
+            border-radius: 6px;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -71,6 +229,44 @@
             <p class="text-gray-600 mt-2">متابعة الدفعات النقدية والمبالغ المستلمة</p>
         </div>
     </header>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="fas fa-exclamation-circle"></i>
+                <h2>تأكيد الحذف</h2>
+            </div>
+            <div class="modal-body">
+                <p>هل أنت متأكد من رغبتك في حذف هذه الدفعة؟</p>
+                <div class="payment-details">
+                    <strong id="modal-payment-name">-</strong>
+                    <div class="detail-row">
+                        <span class="detail-label">المبلغ:</span>
+                        <span class="detail-value" id="modal-payment-amount">0 د.ع</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">التاريخ:</span>
+                        <span class="detail-value" id="modal-payment-date">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">النوع:</span>
+                        <span class="detail-value" id="modal-payment-type">-</span>
+                    </div>
+                </div>
+                <div class="warning-text">
+                    <i class="fas fa-info-circle ml-2"></i>
+                    لن يمكن التراجع عن هذا الإجراء
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeDeleteModal()">إلغاء</button>
+                <button class="btn-confirm" id="confirmDeleteBtn" onclick="confirmDelete()">
+                    <i class="fas fa-trash ml-2"></i>حذف نهائياً
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -167,9 +363,7 @@
         let allPayments = [];
         let filteredPayments = [];
 
-        document.addEventListener('DOMContentLoaded', function() {
-            loadPayments();
-        });
+        // لا نستدعي loadPayments هنا - سيتم استدعاؤها في DOMContentLoaded أدناه
 
         function loadPayments() {
             const subscribers = DataManager.getSubscribers();
@@ -271,7 +465,7 @@
                     <td class="p-4 text-gray-600">${p.date}</td>
                     <td class="p-4 text-gray-600 text-sm">${p.status}</td>
                     <td class="p-4">
-                        <button onclick="deletePayment('${p.entryId || ''}', '${p.source || ''}', '${p.sourceId || ''}', '${p.date}', ${p.amount})" class="text-red-600 hover:text-red-800 text-sm" title="حذف">
+                        <button onclick="showDeleteModal('${p.entryId || ''}', '${p.source || ''}', '${p.sourceId || ''}', '${p.date}', ${p.amount}, '${p.name}', '${p.type}')" class="text-red-600 hover:text-red-800 text-sm hover:bg-red-50 p-2 rounded transition-colors" title="حذف">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
@@ -322,6 +516,76 @@
             if (currentPage < totalPages) currentPage++;
             renderTable();
         }
+
+        // متغيرات للحفاظ على بيانات الحذف المؤقتة
+        let pendingDeleteData = null;
+
+        function showDeleteModal(entryId, source, sourceId, paymentDate, amount, name, type) {
+            // حفظ البيانات مؤقتاً
+            pendingDeleteData = { entryId, source, sourceId, paymentDate, amount };
+
+            // تحديث محتوى Modal
+            document.getElementById('modal-payment-name').textContent = name;
+            document.getElementById('modal-payment-amount').textContent = amount.toLocaleString() + ' د.ع';
+            document.getElementById('modal-payment-date').textContent = paymentDate;
+            document.getElementById('modal-payment-type').textContent = type;
+
+            // إظهار Modal مع تأثير
+            const modal = document.getElementById('deleteModal');
+            modal.classList.add('active');
+
+            // منع تمرير الأحداث للخلف
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            modal.classList.remove('active');
+            pendingDeleteData = null;
+            document.body.style.overflow = '';
+        }
+
+        async function confirmDelete() {
+            if (!pendingDeleteData) return;
+
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'جاري الحذف...';
+
+            try {
+                await deletePayment(
+                    pendingDeleteData.entryId,
+                    pendingDeleteData.source,
+                    pendingDeleteData.sourceId,
+                    pendingDeleteData.paymentDate,
+                    pendingDeleteData.amount
+                );
+                closeDeleteModal();
+            } catch (err) {
+                console.error('خطأ أثناء الحذف:', err);
+                alert('حدث خطأ أثناء حذف الدفعة. يرجى المحاولة مرة أخرى.');
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<i class="fas fa-trash ml-2"></i>حذف نهائياً';
+            }
+        }
+
+        // إغلاق Modal عند الضغط على الخلفية
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('deleteModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeDeleteModal();
+                }
+            });
+
+            // إغلاق Modal عند الضغط على ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeDeleteModal();
+                }
+            });
+
+            loadPayments();
+        });
 
         async function deletePayment(entryId, source, sourceId, paymentDate, amount) {
             // entryId: المعرف الظاهر في الجدول
@@ -444,62 +708,134 @@
             const selected = document.querySelectorAll('.payment-checkbox:checked');
             if (selected.length === 0) return;
             
-            let partialPayments = JSON.parse(localStorage.getItem('partial_payments') || '[]');
-            const subscribers = DataManager.getSubscribers();
-            const updates = [];
+            // عرض Modal تأكيد للحذف المتعدد
+            if (!confirm(`هل أنت متأكد من حذف ${selected.length} دفعة؟\n\nلن يمكن التراجع عن هذا الإجراء.`)) {
+                return;
+            }
 
-            selected.forEach(checkbox => {
-                const entryId = checkbox.getAttribute('data-entryid') || checkbox.getAttribute('data-id');
-                const source = checkbox.getAttribute('data-source') || '';
-                const sourceId = checkbox.getAttribute('data-sourceid') || '';
-                const date = checkbox.getAttribute('data-date');
-                const id = entryId;
+            const deleteBtn = document.getElementById('delete-selected-btn');
+            const originalText = deleteBtn.innerHTML;
+            deleteBtn.disabled = true;
+            deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i>جاري الحذف...';
 
-                // إذا كانت من partial
-                if (source === 'partial') {
-                    // حذف من partial_payments
-                    partialPayments = partialPayments.filter(p => p.id.toString() !== id || p.date !== date);
-                    // استرجاع حالة المشترك لاحقاً
-                    const paymentObj = JSON.parse(localStorage.getItem('partial_payments') || '[]').find(p => p.id.toString() === id && p.date === date);
-                    // ملاحظة: paymentObj قد يكون undefined لأننا حذفناها للتو من المتغير partialPayments، لذلك نبحث في النسخة القديمة قبل الحذف
-                }
+            try {
+                let partialPayments = JSON.parse(localStorage.getItem('partial_payments') || '[]');
+                const subscribers = DataManager.getSubscribers();
+                const updates = [];
 
-                // إذا كانت من subscriber
-                if (source === 'subscriber') {
-                    const subId = parseInt(sourceId);
-                    const sub = subscribers.find(s => s.id === subId);
-                    if (sub) {
-                        if (sub.lastPaymentDate === date && (parseInt(sub.originalPrice) || 0) > 0) {
-                            updates.push(DataManager.updateSubscriber(subId, {
-                                paymentType: 'أجل',
-                                price: parseInt(sub.originalPrice) || 0,
-                                lastPaymentDate: null,
-                                originalPrice: 0
-                            }));
-                        } else if (sub.paymentType === 'نقد' && parseInt(sub.price || 0) > 0 && sub.subscribeDate === date) {
-                            updates.push(DataManager.updateSubscriber(subId, { price: 0 }));
+                selected.forEach(checkbox => {
+                    const entryId = checkbox.getAttribute('data-entryid') || checkbox.getAttribute('data-id');
+                    const source = checkbox.getAttribute('data-source') || '';
+                    const sourceId = checkbox.getAttribute('data-sourceid') || '';
+                    const date = checkbox.getAttribute('data-date');
+                    const id = entryId;
+
+                    // إذا كانت من partial
+                    if (source === 'partial') {
+                        // حذف من partial_payments
+                        partialPayments = partialPayments.filter(p => p.id.toString() !== id || p.date !== date);
+                        // استرجاع حالة المشترك لاحقاً
+                        const paymentObj = JSON.parse(localStorage.getItem('partial_payments') || '[]').find(p => p.id.toString() === id && p.date === date);
+                        // ملاحظة: paymentObj قد يكون undefined لأننا حذفناها للتو من المتغير partialPayments، لذلك نبحث في النسخة القديمة قبل الحذف
+                    }
+
+                    // إذا كانت من subscriber
+                    if (source === 'subscriber') {
+                        const subId = parseInt(sourceId);
+                        const sub = subscribers.find(s => s.id === subId);
+                        if (sub) {
+                            if (sub.lastPaymentDate === date && (parseInt(sub.originalPrice) || 0) > 0) {
+                                updates.push(DataManager.updateSubscriber(subId, {
+                                    paymentType: 'أجل',
+                                    price: parseInt(sub.originalPrice) || 0,
+                                    lastPaymentDate: null,
+                                    originalPrice: 0
+                                }));
+                            } else if (sub.paymentType === 'نقد' && parseInt(sub.price || 0) > 0 && sub.subscribeDate === date) {
+                                updates.push(DataManager.updateSubscriber(subId, { price: 0 }));
+                            }
                         }
                     }
+                });
+                
+                localStorage.setItem('partial_payments', JSON.stringify(partialPayments));
+                
+                // انتظر تحديثات قاعدة البيانات (إن وُجدت)
+                try {
+                    await Promise.allSettled(updates);
+                } catch (err) {
+                    console.error('خطأ أثناء تحديثات الحذف المتعدد:', err);
                 }
-            });
-            
-            localStorage.setItem('partial_payments', JSON.stringify(partialPayments));
-            
-            // انتظر تحديثات قاعدة البيانات (إن وُجدت)
-            try {
-                await Promise.allSettled(updates);
-            } catch (err) {
-                console.error('خطأ أثناء تحديثات الحذف المتعدد:', err);
-            }
 
-            loadPayments();
-            editMode = false;
-            toggleEditMode();
-            
-            if (typeof window.updateDashboard === 'function') {
-                window.updateDashboard();
+                loadPayments();
+                editMode = false;
+                toggleEditMode();
+                
+                if (typeof window.updateDashboard === 'function') {
+                    window.updateDashboard();
+                }
+
+                // إظهار رسالة نجاح
+                showSuccessMessage(`تم حذف ${selected.length} دفعة بنجاح`);
+            } catch (err) {
+                console.error('خطأ أثناء حذف الدفعات:', err);
+                alert('حدث خطأ أثناء حذف الدفعات. يرجى المحاولة مرة أخرى.');
+            } finally {
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = originalText;
             }
         }
+
+        function showSuccessMessage(message) {
+            // إنشاء رسالة نجاح مؤقتة
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+                padding: 16px 24px;
+                border-radius: 8px;
+                box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+                z-index: 2000;
+                animation: slideIn 0.3s ease;
+                font-weight: 500;
+            `;
+            notification.innerHTML = `<i class="fas fa-check-circle ml-2"></i>${message}`;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // إضافة CSS Animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
     <script>
         if ('serviceWorker' in navigator) {
