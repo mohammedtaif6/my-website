@@ -8,7 +8,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', sans-serif; background: #f9fafb; }
+        .card-stat { transition: all 0.3s ease; }
+        .card-stat:hover { transform: translateY(-4px); box-shadow: 0 12px 20px rgba(0,0,0,0.1); }
+        table tbody tr { border-bottom: 1px solid #e5e7eb; transition: background-color 0.2s; }
+        table tbody tr:hover { background-color: #f3f4f6; }
+        .badge { display: inline-block; padding: 0.375rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+        .badge-cash { background-color: #d1fae5; color: #065f46; }
+        .badge-credit { background-color: #bfdbfe; color: #1e40af; }
+        .badge-paid { background-color: #fecaca; color: #7c2d12; }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -67,73 +75,158 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white rounded-2xl p-6 shadow-sm border-r-4 border-green-600">
-                <p class="text-sm text-gray-600">إجمالي المبالغ المستلمة</p>
-                <p class="text-2xl font-bold text-gray-900" id="total-received">0 د.ع</p>
+            <div class="card-stat bg-white rounded-2xl p-6 shadow-sm border-r-4 border-green-600">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">إجمالي المبالغ المستلمة</p>
+                        <p class="text-3xl font-bold text-gray-900" id="total-received">0 د.ع</p>
+                    </div>
+                    <div class="p-3 bg-green-100 rounded-lg text-green-600">
+                        <i class="fas fa-coins text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-green-600"><i class="fas fa-arrow-up ml-1"></i>الإجمالي الصافي</p>
             </div>
             
-            <div class="bg-white rounded-2xl p-6 shadow-sm border-r-4 border-blue-600">
-                <p class="text-sm text-gray-600">عدد الدفعات</p>
-                <p class="text-2xl font-bold text-gray-900" id="payment-count">0</p>
+            <div class="card-stat bg-white rounded-2xl p-6 shadow-sm border-r-4 border-blue-600">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">عدد الدفعات</p>
+                        <p class="text-3xl font-bold text-gray-900" id="payment-count">0</p>
+                    </div>
+                    <div class="p-3 bg-blue-100 rounded-lg text-blue-600">
+                        <i class="fas fa-receipt text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-blue-600"><i class="fas fa-calendar ml-1"></i>العدد الكلي</p>
             </div>
             
-            <div class="bg-white rounded-2xl p-6 shadow-sm border-r-4 border-purple-600">
-                <p class="text-sm text-gray-600">متوسط الدفعة</p>
-                <p class="text-2xl font-bold text-gray-900" id="average-payment">0 د.ع</p>
+            <div class="card-stat bg-white rounded-2xl p-6 shadow-sm border-r-4 border-purple-600">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">متوسط الدفعة</p>
+                        <p class="text-3xl font-bold text-gray-900" id="average-payment">0 د.ع</p>
+                    </div>
+                    <div class="p-3 bg-purple-100 rounded-lg text-purple-600">
+                        <i class="fas fa-chart-pie text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-purple-600"><i class="fas fa-calculator ml-1"></i>المتوسط الحسابي</p>
             </div>
             
-            <div class="bg-white rounded-2xl p-6 shadow-sm border-r-4 border-orange-600">
-                <p class="text-sm text-gray-600">اليوم</p>
-                <p class="text-2xl font-bold text-gray-900" id="today-received">0 د.ع</p>
+            <div class="card-stat bg-white rounded-2xl p-6 shadow-sm border-r-4 border-orange-600">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">دفعات اليوم</p>
+                        <p class="text-3xl font-bold text-gray-900" id="today-received">0 د.ع</p>
+                    </div>
+                    <div class="p-3 bg-orange-100 rounded-lg text-orange-600">
+                        <i class="fas fa-calendar-check text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-orange-600"><i class="fas fa-clock ml-1"></i>اليوم الحالي</p>
+            </div>
+        </div>
+
+        <!-- Additional Stats Row -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-2xl p-6 shadow-sm">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-sm text-gray-600">الدفعات النقدية</p>
+                        <p class="text-2xl font-bold text-gray-900 mt-1" id="cash-count">0</p>
+                    </div>
+                    <i class="fas fa-money-bill text-3xl text-green-500 opacity-20"></i>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-sm">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-sm text-gray-600">الدفعات من الأجل</p>
+                        <p class="text-2xl font-bold text-gray-900 mt-1" id="credit-count">0</p>
+                    </div>
+                    <i class="fas fa-credit-card text-3xl text-blue-500 opacity-20"></i>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-sm">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-sm text-gray-600">إجمالي الصرفيات</p>
+                        <p class="text-2xl font-bold text-gray-900 mt-1" id="total-expenses">0 د.ع</p>
+                    </div>
+                    <i class="fas fa-arrow-trend-down text-3xl text-red-500 opacity-20"></i>
+                </div>
             </div>
         </div>
 
         <!-- Filters -->
         <div class="bg-white rounded-lg p-6 shadow-sm mb-6">
-            <div class="flex flex-wrap gap-4 items-center">
-                <div class="flex-1 min-w-48">
-                    <input type="text" id="search" placeholder="بحث عن اسم أو هاتف..." 
-                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                           onkeyup="filterPayments()">
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-wrap gap-4 items-end">
+                    <div class="flex-1 min-w-48">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">بحث</label>
+                        <input type="text" id="search" placeholder="ابحث عن اسم أو هاتف..." 
+                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                               onkeyup="filterPayments()">
+                    </div>
+                    <div class="flex-1 min-w-40">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">التاريخ</label>
+                        <input type="date" id="date-filter" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500" onchange="filterPayments()">
+                    </div>
+                    <select id="type-filter" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500" onchange="filterPayments()">
+                        <option value="">جميع الأنواع</option>
+                        <option value="نقد">نقد فقط</option>
+                        <option value="أجل">أجل فقط</option>
+                    </select>
+                    <button onclick="resetFilters()" class="px-4 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition font-medium">
+                        <i class="fas fa-redo ml-2"></i>إعادة تعيين
+                    </button>
+                    <button onclick="exportPayments()" class="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">
+                        <i class="fas fa-download ml-2"></i>تصدير CSV
+                    </button>
                 </div>
-                <input type="date" id="date-filter" class="p-3 border border-gray-300 rounded-lg" onchange="filterPayments()">
-                <button onclick="exportPayments()" class="bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors">
-                    <i class="fas fa-download ml-2"></i>تصدير
-                </button>
             </div>
         </div>
 
         <!-- Payments Table -->
         <div class="bg-white rounded-lg shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-gray-50">
+                <table class="w-full text-right">
+                    <thead class="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
                         <tr>
-                            <th class="text-right p-4 font-semibold text-gray-700">#</th>
-                            <th class="text-right p-4 font-semibold text-gray-700">الاسم</th>
-                            <th class="text-right p-4 font-semibold text-gray-700">الهاتف</th>
-                            <th class="text-right p-4 font-semibold text-gray-700">المبلغ</th>
-                            <th class="text-right p-4 font-semibold text-gray-700">نوع الدفع</th>
-                            <th class="text-right p-4 font-semibold text-gray-700">التاريخ</th>
-                            <th class="text-right p-4 font-semibold text-gray-700">ملاحظات</th>
+                            <th class="p-4 font-semibold text-gray-700">#</th>
+                            <th class="p-4 font-semibold text-gray-700">الاسم</th>
+                            <th class="p-4 font-semibold text-gray-700">الهاتف</th>
+                            <th class="p-4 font-semibold text-gray-700">المبلغ</th>
+                            <th class="p-4 font-semibold text-gray-700">النوع</th>
+                            <th class="p-4 font-semibold text-gray-700">التاريخ</th>
+                            <th class="p-4 font-semibold text-gray-700">الحالة</th>
                         </tr>
                     </thead>
                     <tbody id="payments-body" class="divide-y divide-gray-200">
+                        <tr>
+                            <td colspan="7" class="p-8 text-center text-gray-500">
+                                <i class="fas fa-inbox text-4xl mb-4 opacity-30"></i>
+                                <p>جاري تحميل البيانات...</p>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
 
             <!-- Pagination -->
-            <div class="flex justify-between items-center p-4 border-t border-gray-200">
+            <div class="flex justify-between items-center p-4 border-t border-gray-200 bg-gray-50">
                 <div class="text-sm text-gray-600">
-                    عرض <span id="page-info">0</span> سجل
+                    عرض <span id="page-info" class="font-semibold">0</span> سجل
                 </div>
-                <div class="flex space-x-2">
-                    <button onclick="previousPage()" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                <div class="flex gap-2">
+                    <button onclick="previousPage()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition font-medium text-gray-700">
                         <i class="fas fa-chevron-right"></i>
                     </button>
-                    <span id="current-page" class="px-3 py-2 bg-blue-600 text-white rounded-lg">1</span>
-                    <button onclick="nextPage()" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <span id="current-page" class="px-4 py-2 bg-green-600 text-white rounded-lg font-medium">1</span>
+                    <button onclick="nextPage()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition font-medium text-gray-700">
                         <i class="fas fa-chevron-left"></i>
                     </button>
                 </div>
@@ -148,55 +241,70 @@
         let allPayments = [];
         let filteredPayments = [];
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', () => {
             loadPayments();
+            // تحديث البيانات كل 5 ثوان
+            setInterval(loadPayments, 5000);
         });
 
         function loadPayments() {
-            const subscribers = DataManager.getSubscribers();
-            
-            // جمع جميع الدفعات
-            allPayments = [];
-            
-            subscribers.forEach(s => {
-                // الدفعات النقدية المباشرة
-                if (s.paymentType === 'نقد' && s.price > 0) {
-                    allPayments.push({
-                        id: s.id,
-                        name: s.name,
-                        phone: s.phone,
-                        amount: s.price || 0,
-                        type: 'نقد',
-                        date: s.subscribeDate,
-                        status: s.status
-                    });
-                }
+            try {
+                const subscribers = DataManager.getSubscribers() || [];
                 
-                // الدفعات من الأجل (الجزئية والكاملة)
-                if (s.lastPaymentDate && s.lastPaymentAmount > 0) {
-                    allPayments.push({
-                        id: s.id,
-                        name: s.name,
-                        phone: s.phone,
-                        amount: s.lastPaymentAmount,
-                        type: 'أجل',
-                        date: s.lastPaymentDate,
-                        status: 'مدفوع'
-                    });
-                }
-            });
+                // جمع جميع الدفعات
+                allPayments = [];
+                
+                subscribers.forEach(s => {
+                    // الدفعات النقدية المباشرة
+                    if (s.paymentType === 'نقد' && s.price > 0) {
+                        allPayments.push({
+                            id: s.id,
+                            name: s.name || 'بدون اسم',
+                            phone: s.phone || '-',
+                            amount: parseInt(s.price) || 0,
+                            type: 'نقد',
+                            date: s.subscribeDate || new Date().toISOString().split('T')[0],
+                            status: s.status || 'نشط'
+                        });
+                    }
+                    
+                    // الدفعات من الأجل (الجزئية والكاملة)
+                    if (s.lastPaymentDate && parseInt(s.lastPaymentAmount) > 0) {
+                        allPayments.push({
+                            id: s.id + '_payment',
+                            name: s.name || 'بدون اسم',
+                            phone: s.phone || '-',
+                            amount: parseInt(s.lastPaymentAmount) || 0,
+                            type: 'أجل',
+                            date: s.lastPaymentDate,
+                            status: 'مدفوع'
+                        });
+                    }
+                });
 
-            // ترتيب حسب التاريخ الأحدث أولاً
-            allPayments.sort((a, b) => new Date(b.date) - new Date(a.date));
+                // ترتيب حسب التاريخ الأحدث أولاً
+                allPayments.sort((a, b) => {
+                    const dateA = new Date(a.date);
+                    const dateB = new Date(b.date);
+                    return dateB - dateA;
+                });
 
-            filteredPayments = [...allPayments];
-            updateStats();
-            renderTable();
+                filteredPayments = [...allPayments];
+                currentPage = 1;
+                updateStats();
+                renderTable();
+            } catch (err) {
+                console.error('خطأ في تحميل البيانات:', err);
+            }
         }
 
         function getExpenses() {
-            const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
-            return expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+            try {
+                const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+                return Array.isArray(expenses) ? expenses.reduce((sum, e) => sum + (parseInt(e.amount) || 0), 0) : 0;
+            } catch {
+                return 0;
+            }
         }
 
         function updateStats() {
@@ -206,13 +314,21 @@
             const count = filteredPayments.length;
             const avg = count > 0 ? Math.round(netReceived / count) : 0;
             const today = new Date().toISOString().split('T')[0];
-            const todayReceived = filteredPayments.filter(p => p.date === today).reduce((sum, p) => sum + p.amount, 0);
-            const todayNet = todayReceived - expenses;
+            
+            const todayPayments = filteredPayments.filter(p => p.date === today);
+            const todayReceived = todayPayments.reduce((sum, p) => sum + p.amount, 0);
+            
+            const cashPayments = filteredPayments.filter(p => p.type === 'نقد');
+            const creditPayments = filteredPayments.filter(p => p.type === 'أجل');
 
-            document.getElementById('total-received').textContent = netReceived.toLocaleString() + ' د.ع';
+            document.getElementById('total-received').textContent = netReceived.toLocaleString('ar-IQ') + ' د.ع';
             document.getElementById('payment-count').textContent = count;
-            document.getElementById('average-payment').textContent = avg.toLocaleString() + ' د.ع';
-            document.getElementById('today-received').textContent = todayNet.toLocaleString() + ' د.ع';
+            document.getElementById('average-payment').textContent = avg.toLocaleString('ar-IQ') + ' د.ع';
+            document.getElementById('today-received').textContent = todayReceived.toLocaleString('ar-IQ') + ' د.ع';
+            
+            document.getElementById('cash-count').textContent = cashPayments.length;
+            document.getElementById('credit-count').textContent = creditPayments.length;
+            document.getElementById('total-expenses').textContent = expenses.toLocaleString('ar-IQ') + ' د.ع';
         }
 
         function renderTable() {
@@ -221,19 +337,36 @@
             const pageData = filteredPayments.slice(start, end);
 
             const tbody = document.getElementById('payments-body');
+            
+            if (pageData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="p-8 text-center text-gray-500">
+                            <i class="fas fa-inbox text-4xl mb-4 opacity-30 block"></i>
+                            <p class="mt-2">لا توجد دفعات</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
             tbody.innerHTML = pageData.map((p, idx) => `
-                <tr class="hover:bg-gray-50">
-                    <td class="p-4">${start + idx + 1}</td>
-                    <td class="p-4 font-medium">${p.name}</td>
-                    <td class="p-4 text-gray-600">${p.phone || '-'}</td>
-                    <td class="p-4 font-bold text-green-600">${p.amount.toLocaleString()} د.ع</td>
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="p-4 font-semibold text-gray-700">${start + idx + 1}</td>
+                    <td class="p-4 font-medium text-gray-900">${p.name}</td>
+                    <td class="p-4 text-gray-600">${p.phone}</td>
+                    <td class="p-4 font-bold text-green-600">${p.amount.toLocaleString('ar-IQ')} د.ع</td>
                     <td class="p-4">
-                        <span class="px-2 py-1 rounded-full text-xs font-medium ${p.type === 'نقد' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}">
+                        <span class="badge ${p.type === 'نقد' ? 'badge-cash' : 'badge-credit'}">
                             ${p.type}
                         </span>
                     </td>
-                    <td class="p-4 text-gray-600">${p.date}</td>
-                    <td class="p-4 text-gray-600 text-sm">${p.status}</td>
+                    <td class="p-4 text-gray-600 text-sm">${p.date}</td>
+                    <td class="p-4">
+                        <span class="badge badge-paid">
+                            ${p.status}
+                        </span>
+                    </td>
                 </tr>
             `).join('');
 
@@ -244,6 +377,7 @@
         function filterPayments() {
             const search = document.getElementById('search').value.toLowerCase();
             const dateFilter = document.getElementById('date-filter').value;
+            const typeFilter = document.getElementById('type-filter').value;
 
             filteredPayments = allPayments.filter(p => {
                 const matchesSearch = !search || 
@@ -251,8 +385,9 @@
                     p.phone.includes(search);
                 
                 const matchesDate = !dateFilter || p.date === dateFilter;
+                const matchesType = !typeFilter || p.type === typeFilter;
                 
-                return matchesSearch && matchesDate;
+                return matchesSearch && matchesDate && matchesType;
             });
 
             currentPage = 1;
@@ -260,11 +395,28 @@
             renderTable();
         }
 
+        function resetFilters() {
+            document.getElementById('search').value = '';
+            document.getElementById('date-filter').value = '';
+            document.getElementById('type-filter').value = '';
+            filteredPayments = [...allPayments];
+            currentPage = 1;
+            updateStats();
+            renderTable();
+        }
+
         function exportPayments() {
-            let csv = 'الاسم,الهاتف,المبلغ (د.ع),النوع,التاريخ\n';
+            if (filteredPayments.length === 0) {
+                return;
+            }
+
+            let csv = '\ufeff'; // BOM للتعريف بـ UTF-8
+            csv += 'الاسم,الهاتف,المبلغ (د.ع),النوع,التاريخ,الحالة\n';
+            
             filteredPayments.forEach(p => {
-                csv += `${p.name},${p.phone},${p.amount},${p.type},${p.date}\n`;
+                csv += `"${p.name}","${p.phone}",${p.amount},"${p.type}","${p.date}","${p.status}"\n`;
             });
+
             const link = document.createElement('a');
             link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
             link.download = `payments_${new Date().toISOString().slice(0,10)}.csv`;
@@ -272,14 +424,20 @@
         }
 
         function previousPage() {
-            if (currentPage > 1) currentPage--;
-            renderTable();
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         }
 
         function nextPage() {
             const totalPages = Math.ceil(filteredPayments.length / itemsPerPage);
-            if (currentPage < totalPages) currentPage++;
-            renderTable();
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         }
     </script>
 </body>
