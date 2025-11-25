@@ -1,28 +1,10 @@
 /**
- * نظام إدارة البيانات المركزي - النسخة السريعة (Hybrid Cache)
- * يجمع بين سرعة التخزين المحلي وقوة التزامن السحابي
+ * نظام إدارة البيانات المركزي
+ * تخزين محلي آمن وموثوق مع واجهة موحدة
  */
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-// إعدادات فايربيس الخاصة بك
-const firebaseConfig = {
-  apiKey: "AIzaSyA-raYlvzPz8T7Mnx8bTWA4O8CyHvp7K_0",
-  authDomain: "okcomputer-system.firebaseapp.com",
-  projectId: "okcomputer-system",
-  storageBucket: "okcomputer-system.firebasestorage.app",
-  messagingSenderId: "17748146044",
-  appId: "1:17748146044:web:e4a2063ac34c6ee27016f9",
-  measurementId: "G-CNMCQ04CFD"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// متغيرات لتخزين البيانات محلياً
+// تهيئة التخزين المحلي
 let localSubscribers = [];
-let localDebts = [];
 
 const DataManager = {
     // مفاتيح التخزين المؤقت
@@ -31,53 +13,45 @@ const DataManager = {
         DEBTS: 'ok_cache_debts'
     },
 
+    /**
+     * تهيئة مدير البيانات
+     */
     init() {
-        // 1. التحميل الفوري من الذاكرة المحلية (لسرعة العرض)
+        // تحميل البيانات من الذاكرة المحلية
         this.loadFromCache();
-
-        // 2. الاتصال بالسحابة لجلب التحديثات
-        console.log("جاري المزامنة مع السحابة...");
-        
-        // مزامنة المشتركين
-        const subCol = collection(db, "subscribers");
-        const q = query(subCol, orderBy("id", "desc"));
-        
-        onSnapshot(q, (snapshot) => {
-            localSubscribers = snapshot.docs.map(doc => ({
-                ...doc.data(),
-                firebaseId: doc.id
-            }));
-            
-            // تحديث الكاش المحلي
-            localStorage.setItem(this.CACHE_KEYS.SUBS, JSON.stringify(localSubscribers));
-            
-            // تحديث الواجهة
-            this.refreshUI();
-        });
-
-        // مزامنة الديون
-        const debtCol = collection(db, "debts");
-        onSnapshot(debtCol, (snapshot) => {
-            localDebts = snapshot.docs.map(doc => ({ ...doc.data(), firebaseId: doc.id }));
-            localStorage.setItem(this.CACHE_KEYS.DEBTS, JSON.stringify(localDebts));
-        });
+        console.log("✓ تم تحميل نظام إدارة البيانات");
     },
 
-    // دالة لاسترجاع البيانات المخزنة مؤقتاً
+    /**
+     * تحميل البيانات من التخزين المحلي
+     */
     loadFromCache() {
-        const cachedSubs = localStorage.getItem(this.CACHE_KEYS.SUBS);
-        const cachedDebts = localStorage.getItem(this.CACHE_KEYS.DEBTS);
-
-        if (cachedSubs) {
-            localSubscribers = JSON.parse(cachedSubs);
-            this.refreshUI();
-        }
-        if (cachedDebts) {
-            localDebts = JSON.parse(cachedDebts);
+        try {
+            const cachedSubs = localStorage.getItem(this.CACHE_KEYS.SUBS);
+            if (cachedSubs) {
+                localSubscribers = JSON.parse(cachedSubs);
+            }
+        } catch (error) {
+            console.error('خطأ في تحميل البيانات:', error);
+            localSubscribers = [];
         }
     },
 
-    // دالة موحدة لتحديث الواجهة في أي صفحة
+    /**
+     * حفظ البيانات في التخزين المحلي
+     */
+    saveToCache() {
+        try {
+            localStorage.setItem(this.CACHE_KEYS.SUBS, JSON.stringify(localSubscribers));
+            this.refreshUI();
+        } catch (error) {
+            console.error('خطأ في حفظ البيانات:', error);
+        }
+    },
+
+    /**
+     * تحديث واجهة المستخدم
+     */
     refreshUI() {
         if (typeof window.loadSubscribers === 'function') window.loadSubscribers();
         if (typeof window.updateDashboard === 'function') window.updateDashboard();
@@ -90,8 +64,10 @@ const DataManager = {
 
     // --- عمليات المشتركين ---
 
-    async addSubscriber(data) {
-        // حساب ID محلي سريع
+    /**
+     * إضافة مشترك جديد
+     */
+    addSubscriber(data) {
         const maxId = localSubscribers.length > 0 ? Math.max(...localSubscribers.map(s => s.id || 0)) : 0;
         const newId = maxId + 1;
         
@@ -99,44 +75,57 @@ const DataManager = {
             id: newId,
             name: data.name || 'بدون اسم',
             phone: data.phone || '',
-            subscribeDate: data.subscribeDate || '',
+            subscribeDate: data.subscribeDate || new Date().toISOString().split('T')[0],
             expiryDate: data.expiryDate || '',
             status: data.status || 'قيد الانتظار',
             price: parseInt(data.price || 0),
             paymentType: data.paymentType || 'نقد',
+            lastPaymentDate: data.lastPaymentDate || null,
+            originalPrice: data.originalPrice || 0,
+            partialPayments: data.partialPayments || 0,
             createdAt: new Date().toISOString()
         };
 
-        try {
-            await addDoc(collection(db, "subscribers"), subscriber);
-        } catch (e) {
-            console.error(e);
-        }
+        localSubscribers.push(subscriber);
+        this.saveToCache();
     },
 
-    async updateSubscriber(id, data) {
+    /**
+     * تحديث بيانات مشترك
+     */
+    updateSubscriber(id, data) {
         const sub = localSubscribers.find(s => s.id === id);
-        if (sub && sub.firebaseId) {
-            await updateDoc(doc(db, "subscribers", sub.firebaseId), data);
+        if (sub) {
+            Object.assign(sub, data);
+            this.saveToCache();
         }
     },
 
-    async deleteSubscriber(id) {
-        const sub = localSubscribers.find(s => s.id === id);
-        if (sub && sub.firebaseId) {
-            await deleteDoc(doc(db, "subscribers", sub.firebaseId));
-        }
+    /**
+     * حذف مشترك
+     */
+    deleteSubscriber(id) {
+        localSubscribers = localSubscribers.filter(s => s.id !== id);
+        this.saveToCache();
     },
 
+    /**
+     * الحصول على مشترك واحد
+     */
     getSubscriber(id) {
         return localSubscribers.find(s => s.id === id);
     },
 
+    /**
+     * الحصول على قائمة جميع المشتركين
+     */
     getSubscribers() {
         return localSubscribers || [];
     },
 
-    // بحث سريع جداً في الذاكرة
+    /**
+     * البحث السريع عن المشتركين
+     */
     searchSubscribers(query) {
         if (!query) return [];
         const q = String(query).toLowerCase().trim();
@@ -150,38 +139,72 @@ const DataManager = {
 
     // --- الإحصائيات والتقارير ---
 
+    /**
+     * الحصول على الإحصائيات
+     */
     getStatistics() {
         const subs = this.getSubscribers();
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
         return {
             totalSubscribers: subs.length,
             activeSubscribers: subs.filter(s => s.status === 'نشط').length,
             pendingSubscribers: subs.filter(s => s.status === 'قيد الانتظار').length,
             inactiveSubscribers: subs.filter(s => s.status === 'غير نشط').length,
-            expiredSubscribers: subs.filter(s => s.expiryDate && new Date(s.expiryDate) < new Date()).length,
+            expiredSubscribers: subs.filter(s => {
+                if (!s.expiryDate) return false;
+                const expiry = new Date(s.expiryDate);
+                expiry.setHours(0, 0, 0, 0);
+                return expiry < today;
+            }).length,
             expiringSubscribers: subs.filter(s => {
                 if (!s.expiryDate) return false;
-                const today = new Date(); today.setHours(0,0,0,0);
-                const expiry = new Date(s.expiryDate); expiry.setHours(0,0,0,0);
-                const threeDays = new Date(today); threeDays.setDate(threeDays.getDate() + 3);
-                return expiry > today && expiry <= threeDays;
+                const expiry = new Date(s.expiryDate);
+                expiry.setHours(0, 0, 0, 0);
+                const threeDaysFromNow = new Date(today);
+                threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+                return expiry > today && expiry <= threeDaysFromNow;
             }).length,
             totalRevenue: subs.reduce((sum, s) => sum + (parseInt(s.price) || 0), 0)
         };
     },
 
+    /**
+     * تصدير البيانات إلى CSV
+     */
     exportToCSV(data, filename) {
-        if (!data || !data.length) { return; }
-        const headers = Object.keys(data[0]).filter(k => k !== 'firebaseId');
+        if (!data || !data.length) {
+            console.warn('لا توجد بيانات للتصدير');
+            return;
+        }
+
+        const headers = Object.keys(data[0]).filter(k => !k.startsWith('_') && k !== 'firebaseId');
         let csv = headers.join(',') + '\n';
+        
         data.forEach(row => {
-            csv += headers.map(k => `"${row[k] || ''}"`).join(',') + '\n';
+            csv += headers.map(k => {
+                const value = row[k] || '';
+                // معالجة النصوص التي تحتوي على فواصل
+                if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+                    return `"${value.replace(/"/g, '""')}"`;
+                }
+                return `"${value}"`;
+            }).join(',') + '\n';
         });
+
         const link = document.createElement('a');
         link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-        link.download = `${filename}_${new Date().toISOString().slice(0,10)}.csv`;
+        link.download = `${filename}_${new Date().toISOString().slice(0, 10)}.csv`;
         link.click();
     }
 };
 
+// تصدير مدير البيانات للاستخدام العام
 window.DataManager = DataManager;
-DataManager.init();
+
+// التهيئة عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', () => {
+    DataManager.init();
+});
+

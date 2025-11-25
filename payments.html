@@ -5,101 +5,14 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>المبالغ المستلمة</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        body { 
-            font-family: 'Inter', sans-serif; 
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-            background-color: #f9fafb;
-        }
-
-        /* إخفاء خانات الاختيار افتراضياً */
-        .select-col { display: none; }
-        .select-col.active { display: table-cell; }
-
-        /* --- تصميم نافذة الحذف (Modal Styles) - تم وضعها هنا بشكل صحيح --- */
-        .modal-backdrop { 
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
-            background-color: rgba(0, 0, 0, 0.6); 
-            backdrop-filter: blur(4px);
-            display: flex; align-items: center; justify-content: center; 
-            z-index: 2000; opacity: 0; visibility: hidden; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-        } 
-        
-        .modal-backdrop.active { opacity: 1; visibility: visible; } 
-        
-        .modal-content { 
-            background: white; border-radius: 20px; 
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
-            max-width: 450px; width: 90%; 
-            transform: scale(0.95) translateY(10px); 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            overflow: hidden; 
-        } 
-        
-        .modal-backdrop.active .modal-content { transform: scale(1) translateY(0); } 
-        
-        .modal-header { 
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); 
-            color: white; padding: 20px 24px; 
-            display: flex; align-items: center; gap: 12px; 
-        } 
-        
-        .modal-header i { font-size: 24px; background: rgba(255,255,255,0.2); padding: 8px; border-radius: 50%; } 
-        .modal-header h2 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.5px; } 
-        
-        .modal-body { padding: 24px; } 
-        .modal-body p { margin: 0 0 16px; color: #4b5563; line-height: 1.6; font-size: 15px; } 
-        
-        .payment-details { 
-            background: #fef2f2; border: 1px solid #fee2e2; 
-            padding: 16px; border-radius: 12px; margin: 16px 0; 
-        } 
-        
-        .detail-row { display: flex; justify-content: space-between; margin: 8px 0; font-size: 14px; border-bottom: 1px dashed #fca5a5; padding-bottom: 8px; }
-        .detail-row:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
-        
-        .detail-label { color: #7f1d1d; font-weight: 500; } 
-        .detail-value { color: #991b1b; font-weight: 700; font-family: monospace; font-size: 15px; } 
-        
-        .warning-text { 
-            color: #b91c1c; font-size: 13px; margin-top: 16px; 
-            padding: 10px 12px; background: #fff1f2; border-radius: 8px;
-            display: flex; align-items: center; gap: 8px;
-        }
-        
-        .modal-footer { 
-            padding: 16px 24px; background: #f9fafb; 
-            display: flex; gap: 12px; justify-content: flex-end; 
-            border-top: 1px solid #f3f4f6; 
-        } 
-        
-        .btn-cancel { 
-            padding: 10px 20px; border: 1px solid #e5e7eb; background: white; 
-            color: #374151; border-radius: 10px; cursor: pointer; 
-            font-size: 14px; font-weight: 600; transition: all 0.2s; 
-        } 
-        .btn-cancel:hover { background: #f9fafb; border-color: #d1d5db; } 
-        
-        .btn-confirm { 
-            padding: 10px 24px; background: #dc2626; 
-            color: white; border: none; border-radius: 10px; cursor: pointer; 
-            font-size: 14px; font-weight: 600; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.2);
-        } 
-        .btn-confirm:hover { background: #b91c1c; transform: translateY(-1px); } 
-        .btn-confirm:active { transform: translateY(0); }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="responsive.css">
 </head>
 <body class="bg-gray-50">
     <nav class="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg sticky top-0 z-50">
@@ -130,19 +43,19 @@
     <main class="max-w-7xl mx-auto px-4 py-8">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-white p-6 rounded-xl shadow-sm border-r-4 border-green-500">
-                <p class="text-gray-500 text-sm">الصافي (بعد الصرفيات)</p>
+                <p class="text-gray-500 text-sm">الصافي</p>
                 <p class="text-2xl font-bold text-gray-900" id="net-received">0 د.ع</p>
             </div>
             <div class="bg-white p-6 rounded-xl shadow-sm border-r-4 border-blue-500">
-                <p class="text-gray-500 text-sm">إجمالي المقبوضات</p>
+                <p class="text-gray-500 text-sm">الإجمالي</p>
                 <p class="text-2xl font-bold text-gray-900" id="total-received">0 د.ع</p>
             </div>
             <div class="bg-white p-6 rounded-xl shadow-sm border-r-4 border-purple-500">
-                <p class="text-gray-500 text-sm">عدد الدفعات</p>
+                <p class="text-gray-500 text-sm">العدد</p>
                 <p class="text-2xl font-bold text-gray-900" id="count-received">0</p>
             </div>
             <div class="bg-white p-6 rounded-xl shadow-sm border-r-4 border-orange-500">
-                <p class="text-gray-500 text-sm">وارد اليوم</p>
+                <p class="text-gray-500 text-sm">اليوم</p>
                 <p class="text-2xl font-bold text-gray-900" id="today-received">0 د.ع</p>
             </div>
         </div>
@@ -192,14 +105,14 @@
         </div>
     </main>
 
-    <div id="deleteModal" class="modal-backdrop">
+    <div id="deleteModal" class="modal-backdrop modal-type-danger">
         <div class="modal-content">
             <div class="modal-header">
                 <i class="fas fa-trash-alt"></i>
-                <h2>تأكيد عملية الحذف</h2>
+                <h2>تأكيد الحذف</h2>
             </div>
             <div class="modal-body">
-                <p id="delete-msg-text">هل أنت متأكد من رغبتك في حذف هذا السجل؟</p>
+                <p id="delete-msg-text">هل أنت متأكد؟</p>
                 
                 <div class="payment-details" id="single-delete-details">
                     <div class="detail-row">
@@ -218,17 +131,17 @@
 
                 <div class="warning-text">
                     <i class="fas fa-exclamation-circle"></i>
-                    <span>تنبيه: سيتم إعادة ضبط حساب المشترك بناءً على هذا الحذف.</span>
+                    <span>تنبيه: سيتم إعادة ضبط الحساب المرتبط.</span>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn-cancel" onclick="closeDeleteModal()">إلغاء الأمر</button>
-                <button class="btn-confirm" id="confirm-delete-btn" onclick="confirmDelete()">تأكيد الحذف</button>
+                <button class="btn-cancel" onclick="closeDeleteModal()">إلغاء</button>
+                <button class="btn-confirm btn-danger" id="confirm-delete-btn" onclick="confirmDelete()">حذف نهائي</button>
             </div>
         </div>
     </div>
 
-    <script type="module" src="data-manager.js?v=2.2"></script>
+    <script type="module" src="data-manager.js"></script>
     
     <script>
         let allPayments = [], filteredPayments = [];
@@ -243,7 +156,6 @@
             
             allPayments = [];
 
-            // دفعات نقدية مباشرة
             subs.filter(s => s.paymentType === 'نقد' && s.price > 0).forEach(s => {
                 allPayments.push({
                     id: `sub_${s.id}`, source: 'subscriber', realId: s.id,
@@ -251,7 +163,6 @@
                 });
             });
 
-            // دفعات تسديد ديون
             subs.filter(s => s.lastPaymentDate && s.originalPrice > 0).forEach(s => {
                 allPayments.push({
                     id: `debt_${s.id}`, source: 'debt_full', realId: s.id,
@@ -259,7 +170,6 @@
                 });
             });
 
-            // دفعات جزئية
             partials.forEach(p => {
                 allPayments.push({
                     id: `part_${p.id}`, source: 'partial', realId: p.id, subId: p.subscriberId,
@@ -324,7 +234,6 @@
             document.querySelectorAll('.select-col').forEach(el => el.style.display = isEditMode ? 'table-cell' : 'none');
         }
 
-        // --- دوال المودال (النافذة المنبثقة) ---
         window.prepareDeleteOne = (id) => {
             const payment = allPayments.find(p => p.id === id);
             if(!payment) return;
@@ -354,18 +263,11 @@
             openDeleteModal();
         };
 
-        function openDeleteModal() {
-            document.getElementById('deleteModal').classList.add('active');
-        }
-
-        window.closeDeleteModal = function() {
-            document.getElementById('deleteModal').classList.remove('active');
-            paymentToDelete = null;
-        };
+        function openDeleteModal() { document.getElementById('deleteModal').classList.add('active'); }
+        window.closeDeleteModal = function() { document.getElementById('deleteModal').classList.remove('active'); paymentToDelete = null; };
 
         window.confirmDelete = async () => {
             if(!paymentToDelete) return;
-            
             const btn = document.getElementById('confirm-delete-btn');
             const originalText = btn.innerText;
             btn.innerText = 'جاري الحذف...';
@@ -376,7 +278,6 @@
             btn.innerText = originalText;
             btn.disabled = false;
             closeDeleteModal();
-            
             if(isBulkDelete) toggleEditMode();
         };
 
@@ -408,17 +309,10 @@
                 }
             }
 
-            if(expensesChanged) {
-                localStorage.setItem('partial_payments', JSON.stringify(partials));
-            }
-
-            setTimeout(() => {
-                window.loadPayments();
-                if(window.updateDashboard) window.updateDashboard();
-            }, 300);
+            if(expensesChanged) localStorage.setItem('partial_payments', JSON.stringify(partials));
+            setTimeout(() => { window.loadPayments(); if(window.updateDashboard) window.updateDashboard(); }, 300);
         }
 
-        // --- أدوات الواجهة ---
         window.toggleEditMode = () => {
             isEditMode = !isEditMode;
             const btn = document.getElementById('edit-btn');
@@ -449,16 +343,11 @@
 
         window.prevPage = () => { if(currentPage > 1) { currentPage--; renderTable(); } };
         window.nextPage = () => { if(currentPage * itemsPerPage < filteredPayments.length) { currentPage++; renderTable(); } };
-
         window.exportPayments = () => DataManager.exportToCSV(filteredPayments, 'payments');
 
-        // --- كود مهم لإيقاف الـ Cache القديم ---
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) {
-                    registration.unregister();
-                    console.log("تم إيقاف Service Worker لتحديث النظام");
-                }
+                for(let registration of registrations) registration.unregister();
             });
         }
 

@@ -1,0 +1,208 @@
+/* style.css - ملف التصميم الموحد */
+
+/* 1. إعدادات عامة */
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body { 
+    font-family: 'Inter', sans-serif; 
+    background-color: #f9fafb;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    margin: 0;
+    color: #374151;
+    line-height: 1.6;
+}
+
+/* 2. تحسينات الجدول */
+.select-col { display: none; }
+.select-col.active { display: table-cell; }
+
+/* 3. تصميم النوافذ المنبثقة (Modals) - موحد لجميع الصفحات */
+.modal-backdrop { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    bottom: 0; 
+    background-color: rgba(0, 0, 0, 0.6); 
+    backdrop-filter: blur(4px);
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    z-index: 2000; 
+    opacity: 0; 
+    visibility: hidden; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+} 
+
+.modal-backdrop.active { 
+    opacity: 1; 
+    visibility: visible; 
+} 
+
+.modal-content { 
+    background: white; 
+    border-radius: 20px; 
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
+    max-width: 450px; 
+    width: 90%; 
+    transform: scale(0.95) translateY(10px); 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    overflow: hidden; 
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+} 
+
+.modal-backdrop.active .modal-content { 
+    transform: scale(1) translateY(0); 
+} 
+
+.modal-header { 
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%); 
+    color: white; 
+    padding: 20px 24px; 
+    display: flex; 
+    align-items: center; 
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+/* لون خاص لنوافذ الحذف */
+.modal-type-danger .modal-header {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.modal-header i { 
+    font-size: 24px; 
+    background: rgba(255,255,255,0.2); 
+    padding: 8px; 
+    border-radius: 50%; 
+} 
+
+.modal-header h2 { 
+    margin: 0; 
+    font-size: 18px; 
+    font-weight: 700; 
+} 
+
+.modal-body { 
+    padding: 24px; 
+    overflow-y: auto; 
+} 
+
+.modal-body p { 
+    margin: 0 0 16px; 
+    color: #4b5563; 
+    line-height: 1.6; 
+} 
+
+/* تفاصيل الدفع */
+.payment-details { 
+    background: #f8fafc; 
+    border: 1px solid #e2e8f0; 
+    padding: 16px; 
+    border-radius: 12px; 
+    margin: 16px 0; 
+}
+
+.modal-type-danger .payment-details {
+    background: #fef2f2; 
+    border-color: #fee2e2;
+}
+
+.detail-row { 
+    display: flex; 
+    justify-content: space-between; 
+    margin: 8px 0; 
+    font-size: 14px; 
+    border-bottom: 1px dashed #cbd5e1; 
+    padding-bottom: 8px; 
+}
+
+.detail-row:last-child { 
+    border-bottom: none; 
+    padding-bottom: 0; 
+    margin: 0; 
+}
+
+.detail-label { 
+    font-weight: 500; 
+    opacity: 0.8; 
+} 
+
+.detail-value { 
+    font-weight: 700; 
+    font-family: monospace; 
+    font-size: 15px; 
+} 
+
+.warning-text { 
+    color: #b91c1c; 
+    font-size: 13px; 
+    margin-top: 16px; 
+    padding: 10px 12px; 
+    background: #fff1f2; 
+    border-radius: 8px;
+    display: flex; 
+    align-items: center; 
+    gap: 8px;
+}
+
+.modal-footer { 
+    padding: 16px 24px; 
+    background: #f9fafb; 
+    display: flex; 
+    gap: 12px; 
+    justify-content: flex-end; 
+    border-top: 1px solid #f3f4f6;
+    flex-shrink: 0;
+} 
+
+.btn-cancel { 
+    padding: 10px 20px; 
+    border: 1px solid #e5e7eb; 
+    background: white; 
+    color: #374151; 
+    border-radius: 10px; 
+    cursor: pointer; 
+    font-size: 14px; 
+    font-weight: 600; 
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+} 
+
+.btn-cancel:hover { 
+    background: #f9fafb; 
+    border-color: #d1d5db; 
+} 
+
+.btn-confirm { 
+    padding: 10px 24px; 
+    background: #2563eb; 
+    color: white; 
+    border: none; 
+    border-radius: 10px; 
+    cursor: pointer; 
+    font-size: 14px; 
+    font-weight: 600; 
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+}
+
+.btn-confirm:hover { 
+    background: #1d4ed8; 
+    transform: translateY(-1px); 
+}
+
+.btn-danger { 
+    background: #dc2626; 
+    color: white; 
+}
+
+.btn-danger:hover { 
+    background: #b91c1c; 
+}
