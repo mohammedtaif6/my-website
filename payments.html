@@ -174,9 +174,11 @@
         function loadPayments() {
             const subscribers = DataManager.getSubscribers();
             
-            // جمع الدفعات النقدية
+            // جمع الدفعات النقدية (مصدر: subscriber)
             allPayments = subscribers.filter(s => s.paymentType === 'نقد' && s.price > 0).map(s => ({
-                id: s.id,
+                entryId: `sub_${s.id}`,
+                source: 'subscriber',
+                sourceId: s.id,
                 name: s.name,
                 phone: s.phone,
                 amount: s.price || 0,
@@ -186,13 +188,16 @@
             }));
 
             // جمع الدفعات من الأجل التي تم تحويلها إلى نقد (price = 0 بعد التسديد)
+            // جمع الدفعات الكاملة الناتجة عن تحويل دين إلى نقد (مصدر: subscriber)
             subscribers.filter(s => s.lastPaymentDate && s.originalPrice > 0).forEach(s => {
                 allPayments.push({
-                    id: s.id,
+                    entryId: `sub_${s.id}`,
+                    source: 'subscriber',
+                    sourceId: s.id,
                     name: s.name,
                     phone: s.phone,
                     amount: parseFloat(s.originalPrice || 0),
-                    type: s.paymentType === 'نقد' ? 'نقد' : 'أجل',
+                    type: 'نقد',
                     date: s.lastPaymentDate,
                     status: 'مدفوع'
                 });
@@ -200,9 +205,12 @@
 
             // إضافة الدفعات الجزئية والكاملة من localStorage
             const partialPayments = JSON.parse(localStorage.getItem('partial_payments') || '[]');
+            // إضافة الدفعات الجزئية والكاملة من localStorage (مصدر: partial)
             partialPayments.forEach(p => {
                 allPayments.push({
-                    id: p.id,
+                    entryId: p.id.toString(),
+                    source: 'partial',
+                    sourceId: p.subscriberId || null,
                     name: p.name,
                     phone: '-',
                     amount: p.amount,
@@ -249,7 +257,7 @@
             tbody.innerHTML = pageData.map((p, idx) => `
                 <tr class="hover:bg-gray-50">
                     <td class="text-center p-4" id="checkbox-cell" style="display: none;">
-                        <input type="checkbox" class="payment-checkbox" data-id="${p.id}" data-date="${p.date}" onchange="updateDeleteButton()" />
+                        <input type="checkbox" class="payment-checkbox" data-entryid="${p.entryId || ''}" data-source="${p.source || ''}" data-sourceid="${p.sourceId || ''}" data-date="${p.date}" onchange="updateDeleteButton()" />
                     </td>
                     <td class="p-4">${start + idx + 1}</td>
                     <td class="p-4 font-medium">${p.name}</td>
@@ -263,7 +271,7 @@
                     <td class="p-4 text-gray-600">${p.date}</td>
                     <td class="p-4 text-gray-600 text-sm">${p.status}</td>
                     <td class="p-4">
-                        <button onclick="deletePayment('${p.id}', '${p.date}')" class="text-red-600 hover:text-red-800 text-sm" title="حذف">
+                        <button onclick="deletePayment('${p.entryId || ''}', '${p.source || ''}', '${p.sourceId || ''}', '${p.date}', ${p.amount})" class="text-red-600 hover:text-red-800 text-sm" title="حذف">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
@@ -315,37 +323,74 @@
             renderTable();
         }
 
-        async function deletePayment(paymentId, paymentDate) {
-            // البحث عن الدفعة في جميع المصادر وحذفها
+        async function deletePayment(entryId, source, sourceId, paymentDate, amount) {
+            // entryId: المعرف الظاهر في الجدول
+            // source: 'partial' أو 'subscriber'
+            // sourceId: subscriberId عندما يكون المصدر subscriber أو رقم المشترك عند partial
 
-            // 1. البحث في partial_payments (التخزين المحلي)
-            let partialPayments = JSON.parse(localStorage.getItem('partial_payments') || '[]');
-            const foundInPartial = partialPayments.findIndex(p => p.id == paymentId && p.date === paymentDate);
-            if (foundInPartial !== -1) {
-                partialPayments.splice(foundInPartial, 1);
-                localStorage.setItem('partial_payments', JSON.stringify(partialPayments));
-            }
+            // 1) إذا كانت من partial (دفعة جزئية/كاملة)
+            if (source === 'partial') {
+                let partialPayments = JSON.parse(localStorage.getItem('partial_payments') || '[]');
+                const idx = partialPayments.findIndex(p => p.id.toString() === entryId && p.date === paymentDate);
+                if (idx !== -1) {
+                    const paymentObj = partialPayments[idx];
+                    // ازالة من التخزين المحلي
+                    partialPayments.splice(idx, 1);
+                    localStorage.setItem('partial_payments', JSON.stringify(partialPayments));
 
-            // 2. البحث في المشتركين (التعديل في قاعدة البيانات عبر DataManager)
-            try {
-                const subscribers = DataManager.getSubscribers();
-                const subscriber = subscribers.find(s => s.id == paymentId);
-                if (subscriber) {
-                    // إذا كانت دفعة نقدية مسجلة في حقل السعر
-                    if (subscriber.paymentType === 'نقد' && subscriber.price > 0) {
-                        await DataManager.updateSubscriber(paymentId, { price: 0 });
-                    }
-                    // إذا كانت دفعة من دين مُسدد (نستخدم lastPaymentDate + originalPrice)
-                    else if (subscriber.lastPaymentDate && subscriber.originalPrice > 0) {
-                        await DataManager.updateSubscriber(paymentId, {
-                            lastPaymentDate: null,
-                            originalPrice: 0,
-                            price: subscriber.originalPrice
-                        });
+                    // ارجاع الحالة للمشترك المرتبط اذا وُجد
+                    if (paymentObj.subscriberId) {
+                        try {
+                            const sub = DataManager.getSubscriber(paymentObj.subscriberId);
+                            if (sub) {
+                                if (paymentObj.type === 'جزئي') {
+                                    const newPrice = (parseInt(sub.price || 0) || 0) + (parseInt(paymentObj.amount) || 0);
+                                    const newPartial = (parseInt(sub.partialPayments || 0) || 0) - (parseInt(paymentObj.amount) || 0);
+                                    await DataManager.updateSubscriber(paymentObj.subscriberId, {
+                                        price: newPrice,
+                                        partialPayments: Math.max(newPartial, 0)
+                                    });
+                                } else if (paymentObj.type === 'كامل') {
+                                    // استعادة حالة الدين قبل التسديد الكامل
+                                    await DataManager.updateSubscriber(paymentObj.subscriberId, {
+                                        paymentType: 'أجل',
+                                        price: parseInt(paymentObj.amount) || 0,
+                                        lastPaymentDate: null,
+                                        originalPrice: 0
+                                    });
+                                }
+                            }
+                        } catch (err) {
+                            console.error('خطأ أثناء استرجاع حالة المشترك بعد حذف دفعة جزئية/كاملة:', err);
+                        }
                     }
                 }
-            } catch (err) {
-                console.error('خطأ أثناء تحديث المشترك في قاعدة البيانات:', err);
+            }
+
+            // 2) إذا كانت من subscriber (دفعة مشتقة من سجل المشترك)
+            else if (source === 'subscriber') {
+                // حيث يكون sourceId هو id المشترك
+                const subId = parseInt(sourceId);
+                const sub = DataManager.getSubscriber(subId);
+                if (sub) {
+                    try {
+                        // لو كانت دفعة كاملة سابقة (convert from debt)
+                        if (sub.lastPaymentDate === paymentDate && (parseInt(sub.originalPrice) || 0) > 0) {
+                            await DataManager.updateSubscriber(subId, {
+                                paymentType: 'أجل',
+                                price: parseInt(sub.originalPrice) || 0,
+                                lastPaymentDate: null,
+                                originalPrice: 0
+                            });
+                        }
+                        // إذا كان إدخال نقْد مباشر (غير واضح) نحاول إعادة السعر إلى 0 كحذف
+                        else if (sub.paymentType === 'نقد' && parseInt(sub.price || 0) > 0 && sub.subscribeDate === paymentDate) {
+                            await DataManager.updateSubscriber(subId, { price: 0 });
+                        }
+                    } catch (err) {
+                        console.error('خطأ أثناء حذف دفعة من سجل المشترك:', err);
+                    }
+                }
             }
 
             // إعادة تحميل البيانات وتحديث الواجهة
@@ -402,25 +447,38 @@
             let partialPayments = JSON.parse(localStorage.getItem('partial_payments') || '[]');
             const subscribers = DataManager.getSubscribers();
             const updates = [];
-            
+
             selected.forEach(checkbox => {
-                const id = checkbox.getAttribute('data-id');
+                const entryId = checkbox.getAttribute('data-entryid') || checkbox.getAttribute('data-id');
+                const source = checkbox.getAttribute('data-source') || '';
+                const sourceId = checkbox.getAttribute('data-sourceid') || '';
                 const date = checkbox.getAttribute('data-date');
-                
-                // حذف من partial_payments
-                partialPayments = partialPayments.filter(p => !(p.id == id && p.date === date));
-                
-                // تجهيز تحديثات المشتركين إن وجدت
-                const subscriber = subscribers.find(s => s.id == id);
-                if (subscriber) {
-                    if (subscriber.paymentType === 'نقد' && subscriber.price > 0) {
-                        updates.push(DataManager.updateSubscriber(id, { price: 0 }));
-                    } else if (subscriber.lastPaymentDate && subscriber.originalPrice > 0) {
-                        updates.push(DataManager.updateSubscriber(id, {
-                            lastPaymentDate: null,
-                            originalPrice: 0,
-                            price: subscriber.originalPrice
-                        }));
+                const id = entryId;
+
+                // إذا كانت من partial
+                if (source === 'partial') {
+                    // حذف من partial_payments
+                    partialPayments = partialPayments.filter(p => p.id.toString() !== id || p.date !== date);
+                    // استرجاع حالة المشترك لاحقاً
+                    const paymentObj = JSON.parse(localStorage.getItem('partial_payments') || '[]').find(p => p.id.toString() === id && p.date === date);
+                    // ملاحظة: paymentObj قد يكون undefined لأننا حذفناها للتو من المتغير partialPayments، لذلك نبحث في النسخة القديمة قبل الحذف
+                }
+
+                // إذا كانت من subscriber
+                if (source === 'subscriber') {
+                    const subId = parseInt(sourceId);
+                    const sub = subscribers.find(s => s.id === subId);
+                    if (sub) {
+                        if (sub.lastPaymentDate === date && (parseInt(sub.originalPrice) || 0) > 0) {
+                            updates.push(DataManager.updateSubscriber(subId, {
+                                paymentType: 'أجل',
+                                price: parseInt(sub.originalPrice) || 0,
+                                lastPaymentDate: null,
+                                originalPrice: 0
+                            }));
+                        } else if (sub.paymentType === 'نقد' && parseInt(sub.price || 0) > 0 && sub.subscribeDate === date) {
+                            updates.push(DataManager.updateSubscriber(subId, { price: 0 }));
+                        }
                     }
                 }
             });
