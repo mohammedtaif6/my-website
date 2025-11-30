@@ -1,6 +1,6 @@
 /**
- * نظام إدارة البيانات المركزي - Full Real-time Sync
- * يدعم المزامنة الفورية للمشتركين، المعاملات، والصرفيات بين جميع الأجهزة
+ * نظام إدارة البيانات المركزي - Pure Firebase Sync
+ * تم إلغاء LocalStorage للبيانات لضمان دقة المعلومات من السيرفر
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -29,68 +29,56 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// === مخازن البيانات المحلية (للعرض السريع) ===
+// === المتغيرات المحلية (تعمل كمرآة لقاعدة البيانات الحية) ===
 let localData = {
     subscribers: [],
     transactions: [],
     expenses: []
 };
 
-let isOnline = navigator.onLine;
-
-// === مراقبة حالة الاتصال ===
-window.addEventListener('online', () => { isOnline = true; console.log('🟢 متصل بالإنترنت'); });
-window.addEventListener('offline', () => { isOnline = false; console.log('🔴 انقطع الاتصال'); });
+// مؤشر حالة التحميل
+let isDataLoaded = false;
 
 const DataManager = {
     init() {
-        console.log("🚀 جاري بدء نظام المزامنة الشامل...");
+        console.log("🚀 جاري الاتصال بـ Firebase...");
         
-        // تحميل بيانات مؤقتة من الكاش لسرعة العرض
-        this.loadFromCache('subscribers');
-        this.loadFromCache('transactions');
-        this.loadFromCache('expenses');
-        this.refreshUI();
-
-        // تفعيل المستمعين للبيانات الحية من السيرفر
+        // البدء بالاستماع المباشر للتغييرات
         this.subscribeToCollection('subscribers');
         this.subscribeToCollection('transactions');
         this.subscribeToCollection('expenses');
     },
 
-    loadFromCache(key) {
-        const cached = localStorage.getItem(`cache_${key}`);
-        if (cached) localData[key] = JSON.parse(cached);
-    },
-
     /**
      * الاستماع للتغييرات الحية من قاعدة البيانات
+     * أي تغيير في السيرفر سينعكس فوراً هنا ويحدث الواجهة
      */
     subscribeToCollection(collectionName) {
-        if (!isOnline) return;
-        
         const q = query(collection(db, collectionName), orderBy("createdAt", "desc")); 
         
         onSnapshot(q, (snapshot) => {
+            // تحديث البيانات في الذاكرة فقط
             localData[collectionName] = snapshot.docs.map(doc => ({
                 ...doc.data(),
                 firebaseId: doc.id
             }));
             
-            // تحديث الكاش المحلي
-            localStorage.setItem(`cache_${collectionName}`, JSON.stringify(localData[collectionName]));
+            console.log(`☁️ تم جلب ${collectionName} من Firebase: ${localData[collectionName].length} سجل`);
             
-            console.log(`✨ تحديث ${collectionName}: ${localData[collectionName].length} عنصر`);
+            // تحديث الواجهة فور وصول البيانات
+            isDataLoaded = true;
             this.refreshUI();
         }, (error) => {
-            console.error(`❌ خطأ في مزامنة ${collectionName}:`, error);
+            console.error(`❌ خطأ في الاتصال بـ Firebase (${collectionName}):`, error);
+            alert("تنبيه: هناك مشكلة في الاتصال بقاعدة البيانات. تأكد من الإنترنت.");
         });
     },
 
     // تحديث أي صفحة مفتوحة حالياً
     refreshUI() {
-        if (typeof window.loadSubscribers === 'function') window.loadSubscribers();
+        // نتحقق من وجود الدوال في الصفحة الحالية ونستدعيها
         if (typeof window.updateDashboard === 'function') window.updateDashboard();
+        if (typeof window.loadSubscribers === 'function') window.loadSubscribers();
         if (typeof window.loadDebts === 'function') window.loadDebts();
         if (typeof window.loadPayments === 'function') window.loadPayments();
         if (typeof window.loadExpenses === 'function') window.loadExpenses();
@@ -104,7 +92,10 @@ const DataManager = {
     
     getSubscribers() { return localData.subscribers; },
     
-    getSubscriber(id) { return localData.subscribers.find(s => s.id === id); },
+    getSubscriber(id) { 
+        // البحث باستخدام ID الرقمي
+        return localData.subscribers.find(s => s.id == id); 
+    },
 
     async addSubscriber(data) {
         const newId = Date.now(); 
@@ -132,15 +123,24 @@ const DataManager = {
                 await updateDoc(doc(db, "subscribers", sub.firebaseId), data);
             } catch (e) {
                 console.error("فشل التحديث:", e);
+                alert("حدث خطأ أثناء التحديث.");
             }
+        } else {
+            console.error("لم يتم العثور على المشترك للتحديث أو لا يوجد firebaseId");
         }
     },
 
     async deleteSubscriber(id) {
-        if(!confirm('هل أنت متأكد من الحذف؟')) return;
+        if(!confirm('هل أنت متأكد من الحذف النهائي من قاعدة البيانات؟')) return;
+        
         const sub = this.getSubscriber(id);
         if (sub && sub.firebaseId) {
-            await deleteDoc(doc(db, "subscribers", sub.firebaseId));
+            try {
+                await deleteDoc(doc(db, "subscribers", sub.firebaseId));
+            } catch (e) {
+                console.error("فشل الحذف:", e);
+                alert("حدث خطأ أثناء الحذف.");
+            }
         }
     },
 
@@ -160,7 +160,7 @@ const DataManager = {
     getAllTransactions() { return localData.transactions; },
 
     getSubscriberTransactions(subscriberId) {
-        return localData.transactions.filter(t => t.subscriberId === subscriberId);
+        return localData.transactions.filter(t => t.subscriberId == subscriberId);
     },
 
     async recordTransaction(subscriberId, amount, type = 'جزئي', details = {}) {
@@ -177,26 +177,25 @@ const DataManager = {
 
         try {
             await addDoc(collection(db, "transactions"), transaction);
-            console.log("تم تسجيل المعاملة سحابياً");
             return transaction;
         } catch (e) {
             console.error("فشل تسجيل المعاملة:", e);
-            alert("فشل تسجيل المعاملة. تحقق من الإنترنت.");
+            alert("فشل تسجيل المعاملة.");
         }
     },
 
     async deleteTransaction(id) {
-        const trans = localData.transactions.find(t => t.id === id);
+        const trans = localData.transactions.find(t => t.id == id);
         if (!trans || !trans.firebaseId) return;
 
-        // إرجاع المبلغ للمشترك
+        // إرجاع المبلغ للمشترك (تعديل الدين عكسياً)
         const sub = this.getSubscriber(trans.subscriberId);
         if (sub) {
             const newPrice = (parseInt(sub.price) || 0) + parseInt(trans.amount);
+            // إعادة الحالة إلى 'قيد الانتظار' أو إبقائها 'نشط' حسب الحاجة، هنا نحدث السعر فقط
             await this.updateSubscriber(sub.id, { price: newPrice });
         }
 
-        // حذف المعاملة نهائياً
         await deleteDoc(doc(db, "transactions", trans.firebaseId));
     },
 
@@ -219,11 +218,12 @@ const DataManager = {
             await addDoc(collection(db, "expenses"), expense);
         } catch (e) {
             console.error("خطأ في حفظ الصرفية:", e);
+            alert("فشل حفظ الصرفية.");
         }
     },
 
     async deleteExpense(id) {
-        const exp = localData.expenses.find(e => e.id === id);
+        const exp = localData.expenses.find(e => e.id == id);
         if (exp && exp.firebaseId) {
             await deleteDoc(doc(db, "expenses", exp.firebaseId));
         }
@@ -258,7 +258,8 @@ const DataManager = {
 
     exportToCSV(data, filename) {
         if (!data || !data.length) return alert('لا توجد بيانات للتصدير');
-        const headers = Object.keys(data[0]).filter(k => k !== 'firebaseId');
+        // استبعاد الحقول الداخلية
+        const headers = Object.keys(data[0]).filter(k => k !== 'firebaseId' && k !== 'details');
         let csv = headers.join(',') + '\n';
         data.forEach(row => {
             csv += headers.map(k => `"${row[k] || ''}"`).join(',') + '\n';
