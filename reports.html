@@ -1,89 +1,135 @@
-<div class="main-content">
-    <header>
-        <h1>أرشيف التقارير</h1>
-        <div class="stats-cards">
-            <div class="card">
-                <h3>إجمالي الأرشيف</h3>
-                <p id="totalReportAmount">0</p>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التقارير والأرشيف - OK Computer</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="module" src="data-manager.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>OK Computer</h2>
             </div>
-            <div class="card">
-                <h3>عدد الفواتير</h3>
-                <p id="totalReportCount">0</p>
+            <ul class="nav-links">
+                <li><a href="index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
+                <li><a href="subscribers.html"><i class="fas fa-users"></i> المشتركين</a></li>
+                <li><a href="debts.html"><i class="fas fa-money-bill-wave"></i> الديون</a></li>
+                <li><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> المبالغ المستلمة</a></li>
+                <li><a href="expenses.html"><i class="fas fa-file-invoice-dollar"></i> الصرفيات</a></li>
+                <li class="active"><a href="reports.html"><i class="fas fa-chart-bar"></i> التقارير</a></li>
+            </ul>
+        </nav>
+
+        <div class="main-content">
+            <header>
+                <h1>أرشيف الفواتير المرحلة</h1>
+                <div class="header-actions">
+                    <button onclick="window.print()" class="action-btn secondary">
+                        <i class="fas fa-print"></i> طباعة التقرير
+                    </button>
+                    <button onclick="loadReports()" class="action-btn">
+                        <i class="fas fa-sync"></i> تحديث
+                    </button>
+                </div>
+            </header>
+
+            <div class="stats-cards">
+                <div class="card">
+                    <h3>إجمالي الأرشيف</h3>
+                    <p id="totalReportAmount">0 د.ع</p>
+                </div>
+                <div class="card">
+                    <h3>عدد السجلات</h3>
+                    <p id="totalReportCount">0</p>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>تاريخ الترحيل</th>
+                            <th>تاريخ الوصل</th>
+                            <th>رقم الوصل</th>
+                            <th>المبلغ</th>
+                            <th>النوع</th>
+                            <th>حذف</th> </tr>
+                    </thead>
+                    <tbody id="reportsTableBody">
+                        <tr><td colspan="6" style="text-align:center">جاري تحميل البيانات...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-    </header>
-
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>تاريخ الترحيل</th>
-                    <th>تاريخ الوصل</th>
-                    <th>المبلغ</th>
-                    <th>النوع</th>
-                    <th>حذف</th> </tr>
-            </thead>
-            <tbody id="reportsTableBody">
-                </tbody>
-        </table>
     </div>
-</div>
 
-<script type="module">
-    // تأكد من ربط data-manager.js
-</script>
+    <script>
+        // دالة تحميل التقارير من الأرشيف
+        window.loadReports = async function() {
+            if (typeof DataManager === 'undefined') {
+                setTimeout(loadReports, 500);
+                return;
+            }
 
-<script>
-    window.loadReports = async function() {
-        const tbody = document.getElementById('reportsTableBody');
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">جاري تحميل الأرشيف...</td></tr>';
+            const tbody = document.getElementById('reportsTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">جاري جلب الأرشيف من السيرفر...</td></tr>';
 
-        // جلب البيانات من دالة الأرشيف الجديدة
-        const reports = await DataManager.getArchivedTransactions();
+            // استدعاء دالة جلب الأرشيف
+            const reports = await DataManager.getArchivedTransactions();
 
-        tbody.innerHTML = '';
-        if (reports.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">الأرشيف فارغ</td></tr>';
-            updateHeaderStats(0, 0);
-            return;
+            tbody.innerHTML = '';
+            if (!reports || reports.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">سجل الأرشيف فارغ</td></tr>';
+                updateHeaderStats(0, 0);
+                return;
+            }
+
+            let total = 0;
+
+            reports.forEach(r => {
+                total += parseInt(r.amount) || 0;
+                
+                // تنسيق تاريخ الترحيل
+                const archiveDate = r.archivedAt ? r.archivedAt.split('T')[0] : 'غير محدد';
+                const originalDate = r.date || '-';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${archiveDate}</td>
+                    <td>${originalDate}</td>
+                    <td>${r.transactionNumber || '-'}</td>
+                    <td>${parseInt(r.amount).toLocaleString()} د.ع</td>
+                    <td>${r.type || 'تسديد'}</td>
+                    <td>
+                        <button onclick="deleteReport('${r.firebaseId}')" class="action-btn delete-btn" style="background:#f44336; color:white;" title="حذف نهائي">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            updateHeaderStats(total, reports.length);
+        };
+
+        function updateHeaderStats(amount, count) {
+            document.getElementById('totalReportAmount').innerText = amount.toLocaleString() + ' د.ع';
+            document.getElementById('totalReportCount').innerText = count;
         }
 
-        let total = 0;
+        // دالة الحذف الخاصة بالتقارير
+        window.deleteReport = async function(firebaseId) {
+            await DataManager.deleteArchivedTransaction(firebaseId);
+        };
 
-        reports.forEach(r => {
-            total += parseInt(r.amount) || 0;
-            
-            // تحويل التاريخ لصيغة مقروءة
-            const archiveDate = r.archivedAt ? r.archivedAt.split('T')[0] : '-';
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${archiveDate}</td>
-                <td>${r.date}</td>
-                <td>${parseInt(r.amount).toLocaleString()}</td>
-                <td>${r.type || 'تسديد'}</td>
-                <td>
-                    <button onclick="deleteReport('${r.firebaseId}')" class="action-btn delete-btn" style="background:#f44336; color:white;">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
+        // التحميل عند الفتح
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(loadReports, 1000);
         });
-
-        updateHeaderStats(total, reports.length);
-    };
-
-    function updateHeaderStats(amount, count) {
-        document.getElementById('totalReportAmount').innerText = amount.toLocaleString();
-        document.getElementById('totalReportCount').innerText = count;
-    }
-
-    // دالة الحذف التي تستدعي الدالة الجديدة في DataManager
-    window.deleteReport = async function(firebaseId) {
-        await DataManager.deleteArchivedTransaction(firebaseId);
-    };
-
-    // تحميل البيانات عند فتح الصفحة (مع تأخير بسيط لضمان تحميل المدير)
-    setTimeout(loadReports, 1000);
-</script>
+    </script>
+</body>
+</html>
