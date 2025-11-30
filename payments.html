@@ -2,411 +2,135 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <title>المبالغ المستلمة</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المبالغ المستلمة - OK Computer</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="module" src="data-manager.js"></script>
 </head>
-<body class="bg-gray-50">
-    <nav class="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between items-center h-16">
-                <a href="index.html" class="text-white font-bold text-lg flex items-center gap-2">
-                    <i class="fas fa-chart-line"></i> OKComputer
-                </a>
-                <div class="hidden md:flex space-x-1 gap-2">
-                    <a href="index.html" class="text-white hover:bg-white/20 px-3 py-2 rounded transition">الرئيسية</a>
-                    <a href="subscribers.html" class="text-white hover:bg-white/20 px-3 py-2 rounded transition">المشتركين</a>
-                    <a href="debts.html" class="text-white hover:bg-white/20 px-3 py-2 rounded transition">الديون</a>
-                    <a href="payments.html" class="text-white bg-white/20 px-3 py-2 rounded font-bold">المبالغ</a>
-                    <a href="expenses.html" class="text-white hover:bg-white/20 px-3 py-2 rounded transition">الصرفيات</a>
+<body>
+    <div class="dashboard-container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>OK Computer</h2>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
+                <li><a href="subscribers.html"><i class="fas fa-users"></i> المشتركين</a></li>
+                <li><a href="debts.html"><i class="fas fa-money-bill-wave"></i> الديون</a></li>
+                <li class="active"><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> المبالغ المستلمة</a></li>
+                <li><a href="expenses.html"><i class="fas fa-file-invoice-dollar"></i> الصرفيات</a></li>
+                <li><a href="reports.html"><i class="fas fa-chart-bar"></i> التقارير</a></li>
+            </ul>
+        </nav>
+
+        <div class="main-content">
+            <header>
+                <h1>المبالغ المستلمة (اليومية)</h1>
+                <div class="header-actions">
+                    <button onclick="DataManager.archiveAllTransactions()" class="action-btn" style="background-color: #673AB7; color: white;">
+                        <i class="fas fa-file-export"></i> مطابقة وترحيل للتقارير
+                    </button>
+                    
+                    <button onclick="window.print()" class="action-btn secondary">
+                        <i class="fas fa-print"></i> طباعة
+                    </button>
+                </div>
+            </header>
+
+            <div class="stats-cards">
+                <div class="card">
+                    <h3>إجمالي المقبوضات (الحالية)</h3>
+                    <p id="totalPayments">0 د.ع</p>
+                </div>
+                <div class="card">
+                    <h3>عدد الوصلات</h3>
+                    <p id="paymentsCount">0</p>
                 </div>
             </div>
-        </div>
-    </nav>
 
-    <header class="bg-white border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 py-6">
-            <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-2">
-                <i class="fas fa-money-bill text-green-600"></i> المبالغ المستلمة
-            </h1>
-        </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto px-4 py-8">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div class="bg-white p-6 rounded-xl shadow-sm border-r-4 border-green-500">
-                <p class="text-gray-500 text-sm">الصافي</p>
-                <p class="text-2xl font-bold text-gray-900" id="net-received">0 د.ع</p>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border-r-4 border-blue-500">
-                <p class="text-gray-500 text-sm">الإجمالي</p>
-                <p class="text-2xl font-bold text-gray-900" id="total-received">0 د.ع</p>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border-r-4 border-purple-500">
-                <p class="text-gray-500 text-sm">العدد</p>
-                <p class="text-2xl font-bold text-gray-900" id="count-received">0</p>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border-r-4 border-orange-500">
-                <p class="text-gray-500 text-sm">اليوم</p>
-                <p class="text-2xl font-bold text-gray-900" id="today-received">0 د.ع</p>
-            </div>
-        </div>
-
-        <div class="bg-white p-4 rounded-lg shadow-sm mb-6 flex flex-wrap gap-4 items-center justify-between">
-            <div class="flex gap-2 flex-1">
-                <input type="text" id="search" placeholder="بحث..." class="p-2 border rounded w-full" onkeyup="filterPayments()">
-                <input type="date" id="date-filter" class="p-2 border rounded" onchange="filterPayments()">
-            </div>
-            <div class="flex gap-2">
-                <button onclick="toggleEditMode()" id="edit-btn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
-                    <i class="fas fa-edit"></i> تحديد
-                </button>
-                <button onclick="prepareDeleteSelected()" id="delete-btn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition hidden">
-                    <i class="fas fa-trash"></i> حذف (<span id="sel-count">0</span>)
-                </button>
-                <button onclick="exportPayments()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
-                    <i class="fas fa-file-csv"></i> تصدير
-                </button>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-right">
-                    <thead class="bg-gray-50 text-gray-700">
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
                         <tr>
-                            <th class="p-4 select-col"><input type="checkbox" id="select-all" onchange="toggleSelectAll()"></th>
-                            <th class="p-4">#</th>
-                            <th class="p-4">الاسم</th>
-                            <th class="p-4">المبلغ</th>
-                            <th class="p-4">النوع</th>
-                            <th class="p-4">التاريخ</th>
-                            <th class="p-4">إجراء</th>
+                            <th>رقم الوصل</th>
+                            <th>اسم المشترك</th>
+                            <th>المبلغ</th>
+                            <th>نوع الدفع</th>
+                            <th>التاريخ</th>
+                            <th>إجراءات</th>
                         </tr>
                     </thead>
-                    <tbody id="payments-body" class="divide-y divide-gray-200"></tbody>
+                    <tbody id="paymentsTableBody">
+                        </tbody>
                 </table>
-            </div>
-            <div class="p-4 bg-gray-50 flex justify-between items-center">
-                <span id="page-info" class="text-sm text-gray-600"></span>
-                <div class="flex gap-2">
-                    <button onclick="prevPage()" class="px-3 py-1 bg-white border rounded hover:bg-gray-100">سابق</button>
-                    <button onclick="nextPage()" class="px-3 py-1 bg-white border rounded hover:bg-gray-100">تالي</button>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <div id="deleteModal" class="modal-backdrop modal-type-danger">
-        <div class="modal-content">
-            <div class="modal-header">
-                <i class="fas fa-trash-alt"></i>
-                <h2>تأكيد الحذف</h2>
-            </div>
-            <div class="modal-body">
-                <p id="delete-msg-text">هل أنت متأكد؟</p>
-                
-                <div class="payment-details" id="single-delete-details">
-                    <div class="detail-row">
-                        <span class="detail-label">المبلغ:</span>
-                        <span class="detail-value" id="del-modal-amount"></span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">الاسم:</span>
-                        <span class="detail-value" id="del-modal-name"></span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">التاريخ:</span>
-                        <span class="detail-value" id="del-modal-date"></span>
-                    </div>
-                </div>
-
-                <div class="warning-text">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span>تنبيه: سيتم إعادة ضبط الحساب المرتبط.</span>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-cancel" onclick="closeDeleteModal()">إلغاء</button>
-                <button class="btn-confirm btn-danger" id="confirm-delete-btn" onclick="confirmDelete()">حذف نهائي</button>
             </div>
         </div>
     </div>
 
-    <script type="module" src="data-manager.js"></script>
-    
     <script>
-        let allPayments = [], filteredPayments = [];
-        let currentPage = 1, itemsPerPage = 10;
-        let isEditMode = false;
-        let paymentToDelete = null; 
-        let isBulkDelete = false;
-
+        // دالة تحميل البيانات
         window.loadPayments = function() {
-            const subs = DataManager.getSubscribers();
+            // نستخدم setTimeout للتأكد من تحميل DataManager
+            if (typeof DataManager === 'undefined') {
+                setTimeout(loadPayments, 500);
+                return;
+            }
+
             const transactions = DataManager.getAllTransactions();
-            
-            allPayments = [];
+            const tbody = document.getElementById('paymentsTableBody');
+            tbody.innerHTML = '';
 
-            // تجميع المعاملات حسب المشترك ورقم المعاملة الأساسي
-            const transactionsByNumber = {};
-            
+            let total = 0;
+
+            if (transactions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">لا توجد مبالغ مستلمة (تم الترحيل أو لا يوجد إدخال)</td></tr>';
+                updateStats(0, 0);
+                return;
+            }
+
+            // ترتيب تنازلي (الأحدث أولاً)
+            transactions.sort((a, b) => b.id - a.id);
+
             transactions.forEach(t => {
-                // البحث عن أول معاملة لهذا المشترك
-                if (!transactionsByNumber[t.subscriberId]) {
-                    transactionsByNumber[t.subscriberId] = {
-                        transactionNumber: t.transactionNumber,
-                        subscriber: subs.find(s => s.id === t.subscriberId),
-                        totalAmount: 0,
-                        details: [],
-                        firstDate: t.date
-                    };
-                }
+                const sub = DataManager.getSubscriber(t.subscriberId);
+                const subName = sub ? sub.name : 'مشترك غير موجود';
+                total += parseInt(t.amount) || 0;
                 
-                transactionsByNumber[t.subscriberId].totalAmount += t.amount;
-                transactionsByNumber[t.subscriberId].details.push({
-                    amount: t.amount,
-                    type: t.type === 'كامل' ? 'تسديد كامل' : 'تسديد جزئي',
-                    date: t.date
-                });
-            });
-
-            // تحويل البيانات المجمعة إلى صيغة العرض
-            Object.keys(transactionsByNumber).forEach(subId => {
-                const data = transactionsByNumber[subId];
-                if (data.subscriber) {
-                    allPayments.push({
-                        id: `trans_${subId}`,
-                        transactionNumber: data.transactionNumber,
-                        source: 'transaction',
-                        realId: subId,
-                        subId: parseInt(subId),
-                        name: data.subscriber.name,
-                        amount: data.totalAmount,
-                        type: 'معاملة مجمعة',
-                        date: data.firstDate,
-                        paymentCount: data.details.length,
-                        details: data.details,
-                        timestamp: data.firstDate
-                    });
-                }
-            });
-
-            // إضافة الاشتراكات النقد المباشرة (للتوافقية مع النظام القديم)
-            subs.filter(s => s.paymentType === 'نقد' && s.price > 0 && !transactionsByNumber[s.id]).forEach(s => {
-                allPayments.push({
-                    id: `sub_${s.id}`,
-                    transactionNumber: 0,
-                    source: 'subscriber',
-                    realId: s.id,
-                    name: s.name,
-                    amount: parseInt(s.price),
-                    type: 'نقد',
-                    date: s.subscribeDate,
-                    details: {},
-                    paymentCount: 1
-                });
-            });
-
-            allPayments.sort((a, b) => new Date(b.date) - new Date(a.date));
-            filterPayments();
-        };
-
-        window.filterPayments = function() {
-            const search = document.getElementById('search').value.toLowerCase();
-            const date = document.getElementById('date-filter').value;
-
-            filteredPayments = allPayments.filter(p => {
-                const matchName = p.name.toLowerCase().includes(search);
-                const matchDate = !date || p.date === date;
-                return matchName && matchDate;
-            });
-
-            currentPage = 1;
-            updateStats();
-            renderTable();
-        };
-
-        function updateStats() {
-            const total = filteredPayments.reduce((sum, p) => sum + p.amount, 0);
-            const expenses = JSON.parse(localStorage.getItem('expenses') || '[]').reduce((s, e) => s + (parseInt(e.amount)||0), 0);
-            const today = new Date().toISOString().split('T')[0];
-            const todayTotal = filteredPayments.filter(p => p.date === today).reduce((s, p) => s + p.amount, 0);
-
-            document.getElementById('total-received').innerText = total.toLocaleString() + ' د.ع';
-            document.getElementById('net-received').innerText = (total - expenses).toLocaleString() + ' د.ع';
-            document.getElementById('count-received').innerText = filteredPayments.length;
-            document.getElementById('today-received').innerText = todayTotal.toLocaleString() + ' د.ع';
-        }
-
-        function renderTable() {
-            const start = (currentPage - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
-            const pageData = filteredPayments.slice(start, end);
-            const tbody = document.getElementById('payments-body');
-
-            tbody.innerHTML = pageData.map((p, idx) => {
-                let detailsHtml = '';
-                if (p.transactionNumber && p.details && Array.isArray(p.details)) {
-                    detailsHtml = `<div class="text-xs text-gray-500 mt-1">
-                        <span class="inline-block mr-2">📋 ${p.paymentCount} دفعة</span>`;
-                    p.details.forEach(d => {
-                        detailsHtml += `<div class="text-xs text-gray-600">• ${d.type}: ${d.amount.toLocaleString()} د.ع</div>`;
-                    });
-                    detailsHtml += `</div>`;
-                }
-
-                return `
-                    <tr class="hover:bg-gray-50 border-b transition">
-                        <td class="p-4 select-col ${isEditMode ? 'active' : ''}">
-                            <input type="checkbox" class="pay-check w-5 h-5" value="${p.id}" onchange="updateSelCount()">
-                        </td>
-                        <td class="p-4 text-gray-500">${start + idx + 1}</td>
-                        <td class="p-4">
-                            <div class="font-bold text-gray-800">${p.name}</div>
-                            ${p.transactionNumber ? `<div class="text-xs text-blue-600 font-mono">المعاملة #${p.transactionNumber}</div>` : ''}
-                            ${detailsHtml}
-                        </td>
-                        <td class="p-4 text-green-600 font-bold text-lg" dir="ltr">${p.amount.toLocaleString()} د.ع</td>
-                        <td class="p-4">
-                            ${p.transactionNumber ? 
-                                `<span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">✓ مجمّع</span>` : 
-                                `<span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">${p.type}</span>`
-                            }
-                        </td>
-                        <td class="p-4 text-gray-600">${p.date}</td>
-                        <td class="p-4">
-                            <button onclick="prepareDeleteOne('${p.id}')" class="text-red-500 hover:bg-red-50 p-2 rounded transition"><i class="fas fa-trash"></i></button>
-                        </td>
-                    </tr>
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>#${t.transactionNumber}</td>
+                    <td>${subName}</td>
+                    <td>${parseInt(t.amount).toLocaleString()} د.ع</td>
+                    <td>${t.type}</td>
+                    <td>${t.date}</td>
+                    <td>
+                        <button onclick="deleteTrans('${t.id}')" class="action-btn delete-btn" title="حذف وإرجاع الدين">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
                 `;
-            }).join('');
-
-            document.getElementById('page-info').innerText = `عرض ${Math.min(end, filteredPayments.length)} من ${filteredPayments.length}`;
-            document.querySelectorAll('.select-col').forEach(el => el.style.display = isEditMode ? 'table-cell' : 'none');
-        }
-
-        window.prepareDeleteOne = (id) => {
-            const payment = allPayments.find(p => p.id === id);
-            if(!payment) return;
-
-            paymentToDelete = [id];
-            isBulkDelete = false;
-
-            let descriptionText = payment.name;
-            if (payment.transactionNumber) {
-                descriptionText += ` - المعاملة #${payment.transactionNumber}`;
-                if (payment.paymentCount) {
-                    descriptionText += ` (${payment.paymentCount} دفعات)`;
-                }
-            }
-
-            document.getElementById('del-modal-name').innerText = descriptionText;
-            document.getElementById('del-modal-amount').innerText = payment.amount.toLocaleString() + ' د.ع';
-            document.getElementById('del-modal-date').innerText = payment.date;
-            document.getElementById('single-delete-details').style.display = 'block';
-            document.getElementById('delete-msg-text').innerText = 'هل أنت متأكد من رغبتك في حذف هذا السجل؟';
-
-            openDeleteModal();
-        };
-
-        window.prepareDeleteSelected = () => {
-            const selected = Array.from(document.querySelectorAll('.pay-check:checked')).map(cb => cb.value);
-            if(selected.length === 0) return;
-
-            paymentToDelete = selected;
-            isBulkDelete = true;
-
-            document.getElementById('single-delete-details').style.display = 'none';
-            document.getElementById('delete-msg-text').innerText = `هل أنت متأكد من حذف (${selected.length}) سجلات محددة؟`;
-
-            openDeleteModal();
-        };
-
-        function openDeleteModal() { document.getElementById('deleteModal').classList.add('active'); }
-        window.closeDeleteModal = function() { document.getElementById('deleteModal').classList.remove('active'); paymentToDelete = null; };
-
-        window.confirmDelete = async () => {
-            if(!paymentToDelete) return;
-            const btn = document.getElementById('confirm-delete-btn');
-            const originalText = btn.innerText;
-            btn.innerText = 'جاري الحذف...';
-            btn.disabled = true;
-
-            await processDelete(paymentToDelete);
-            
-            btn.innerText = originalText;
-            btn.disabled = false;
-            closeDeleteModal();
-            if(isBulkDelete) toggleEditMode();
-        };
-
-        async function processDelete(ids) {
-            const paymentsToDeleteList = allPayments.filter(p => ids.includes(p.id));
-
-            for (const p of paymentsToDeleteList) {
-                if (p.source === 'transaction') {
-                    // حذف جميع معاملات هذا المشترك
-                    const transactions = DataManager.getAllTransactions();
-                    transactions.filter(t => t.subscriberId === p.subId).forEach(t => {
-                        DataManager.deleteTransaction(t.id);
-                    });
-                }
-                else if (p.source === 'subscriber') {
-                    await DataManager.updateSubscriber(p.realId, { price: 0, status: 'غير نشط' });
-                }
-            }
-
-            setTimeout(() => { window.loadPayments(); if(window.updateDashboard) window.updateDashboard(); }, 300);
-        }
-
-        window.toggleEditMode = () => {
-            isEditMode = !isEditMode;
-            const btn = document.getElementById('edit-btn');
-            const delBtn = document.getElementById('delete-btn');
-            
-            if(isEditMode) {
-                btn.innerHTML = '<i class="fas fa-times"></i> إلغاء';
-                btn.classList.replace('bg-blue-600', 'bg-gray-500');
-                delBtn.classList.remove('hidden');
-            } else {
-                btn.innerHTML = '<i class="fas fa-edit"></i> تحديد';
-                btn.classList.replace('bg-gray-500', 'bg-blue-600');
-                delBtn.classList.add('hidden');
-            }
-            renderTable();
-        };
-
-        window.toggleSelectAll = () => {
-            const checked = document.getElementById('select-all').checked;
-            document.querySelectorAll('.pay-check').forEach(cb => cb.checked = checked);
-            updateSelCount();
-        };
-
-        window.updateSelCount = () => {
-            const count = document.querySelectorAll('.pay-check:checked').length;
-            document.getElementById('sel-count').innerText = count;
-        };
-
-        window.prevPage = () => { if(currentPage > 1) { currentPage--; renderTable(); } };
-        window.nextPage = () => { if(currentPage * itemsPerPage < filteredPayments.length) { currentPage++; renderTable(); } };
-        window.exportPayments = () => DataManager.exportToCSV(filteredPayments, 'payments');
-
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) registration.unregister();
+                tbody.appendChild(tr);
             });
+
+            updateStats(total, transactions.length);
+        };
+
+        function updateStats(total, count) {
+            document.getElementById('totalPayments').innerText = total.toLocaleString() + ' د.ع';
+            document.getElementById('paymentsCount').innerText = count;
         }
 
-        document.addEventListener('DOMContentLoaded', () => setTimeout(window.loadPayments, 500));
+        window.deleteTrans = async function(id) {
+            // المعرف هنا هو الـ id الرقمي، الدالة في DataManager ستعالجه
+            await DataManager.deleteTransaction(id);
+            // التحديث سيتم تلقائياً عبر المستمع
+        };
+
+        // التشغيل الأولي
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(loadPayments, 1000);
+        });
     </script>
 </body>
 </html>
