@@ -1,23 +1,14 @@
 /**
- * نظام إدارة البيانات المركزي - DataManager
- * يدعم: المزامنة الحية، الترحيل للأرشيف، وحذف التقارير
+ * DataManager v3.0 - النظام المركزي الذكي
+ * يتضمن: مزامنة فايربيس، تصحيح البيانات التلقائي، نظام الأرشيف
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
-    getFirestore, 
-    collection, 
-    addDoc, 
-    updateDoc, 
-    deleteDoc, 
-    doc, 
-    onSnapshot, 
-    query, 
-    orderBy,
-    getDocs // تم استيراد هذه الدالة لجلب الأرشيف
+    getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, getDocs 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// === إعدادات Firebase ===
+// إعدادات Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyA-raYlvzPz8T7Mnx8bTWA4O8CyHvp7K_0",
     authDomain: "okcomputer-system.firebaseapp.com",
@@ -30,68 +21,65 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// === المتغيرات المحلية (تعمل كمرآة لقاعدة البيانات الحية) ===
-let localData = {
-    subscribers: [],
-    transactions: [],
-    expenses: []
-};
+let localData = { subscribers: [], transactions: [], expenses: [] };
 
 const DataManager = {
     init() {
-        console.log("🚀 جاري الاتصال بـ Firebase...");
-        this.subscribeToCollection('subscribers');
-        this.subscribeToCollection('transactions');
-        this.subscribeToCollection('expenses');
+        console.log("🚀 جاري تهيئة النظام...");
+        this.syncCollection('subscribers');
+        this.syncCollection('transactions');
+        this.syncCollection('expenses');
     },
 
-    subscribeToCollection(collectionName) {
-        const q = query(collection(db, collectionName), orderBy("createdAt", "desc")); 
-        
+    syncCollection(colName) {
+        const q = query(collection(db, colName), orderBy("createdAt", "desc"));
         onSnapshot(q, (snapshot) => {
-            localData[collectionName] = snapshot.docs.map(doc => ({
-                ...doc.data(),
-                firebaseId: doc.id
-            }));
+            localData[colName] = snapshot.docs.map(d => {
+                const data = d.data();
+                // === التصحيح التلقائي للبيانات ===
+                // تأكد أن السعر رقم دائماً
+                if (data.price && typeof data.price !== 'number') data.price = parseInt(data.price) || 0;
+                if (data.amount && typeof data.amount !== 'number') data.amount = parseInt(data.amount) || 0;
+                return { ...data, firebaseId: d.id };
+            });
             
+            console.log(`✅ تم تحديث ${colName}: ${localData[colName].length}`);
             this.refreshUI();
-        }, (error) => {
-            console.error(`❌ خطأ في الاتصال بـ Firebase (${collectionName}):`, error);
         });
     },
 
     refreshUI() {
-        if (typeof window.updateDashboard === 'function') window.updateDashboard();
-        if (typeof window.loadSubscribers === 'function') window.loadSubscribers();
-        if (typeof window.loadDebts === 'function') window.loadDebts();
-        if (typeof window.loadPayments === 'function') window.loadPayments();
-        if (typeof window.loadExpenses === 'function') window.loadExpenses();
-        if (typeof window.loadReports === 'function') window.loadReports(); // تحديث التقارير إذا كانت مفتوحة
+        // تحديث أي دالة عرض موجودة في الصفحة الحالية
+        if (typeof window.renderPage === 'function') window.renderPage();
     },
 
-    // ==========================================
-    // 👥 إدارة المشتركين
-    // ==========================================
+    // --- العمليات الأساسية ---
     getSubscribers() { return localData.subscribers; },
-    
     getSubscriber(id) { return localData.subscribers.find(s => s.id == id); },
+    getExpenses() { return localData.expenses; },
+    getAllTransactions() { return localData.transactions; },
 
+    // البحث الذكي
+    searchSubscribers(query) {
+        if (!query) return [];
+        const q = query.toLowerCase();
+        return localData.subscribers.filter(s => 
+            (s.name && s.name.toLowerCase().includes(q)) || 
+            (s.phone && s.phone.includes(q))
+        );
+    },
+
+    // --- عمليات الكتابة (CRUD) ---
     async addSubscriber(data) {
-        const newId = Date.now(); 
-        const subscriber = {
-            ...data,
-            id: newId,
-            price: parseInt(data.price || 0),
-            createdAt: new Date().toISOString()
-        };
         try {
-            await addDoc(collection(db, "subscribers"), subscriber);
+            await addDoc(collection(db, "subscribers"), {
+                ...data,
+                id: Date.now(), // ID ثابت
+                price: parseInt(data.price) || 0, // ضمان الرقم
+                createdAt: new Date().toISOString()
+            });
             return true;
-        } catch (e) {
-            console.error("فشل الإضافة:", e);
-            alert("فشل الحفظ.");
-            return false;
-        }
+        } catch(e) { alert("خطأ في الإضافة: " + e.message); }
     },
 
     async updateSubscriber(id, data) {
@@ -102,154 +90,99 @@ const DataManager = {
     },
 
     async deleteSubscriber(id) {
-        if(!confirm('تحذير: سيتم حذف المشترك وجميع ديونه وسجلاته نهائياً.\nهل أنت متأكد؟')) return;
-        
+        if(!confirm("تحذير: سيتم حذف المشترك وجميع سجلاته نهائياً!")) return;
         const sub = this.getSubscriber(id);
-        if (sub && sub.firebaseId) {
-            try {
-                // حذف المعاملات المرتبطة
-                const userTransactions = localData.transactions.filter(t => t.subscriberId == id);
-                const deletePromises = userTransactions.map(trans => {
-                    if (trans.firebaseId) return deleteDoc(doc(db, "transactions", trans.firebaseId));
-                });
-                await Promise.all(deletePromises);
+        if (!sub) return;
 
-                // حذف المشترك
-                await deleteDoc(doc(db, "subscribers", sub.firebaseId));
-                alert("تم حذف المشترك وكافة بياناته.");
-            } catch (e) {
-                console.error("فشل الحذف:", e);
-            }
+        // حذف الديون والمعاملات المرتبطة أولاً
+        const subTrans = localData.transactions.filter(t => t.subscriberId == id);
+        for (const t of subTrans) {
+            await deleteDoc(doc(db, "transactions", t.firebaseId));
         }
+        // حذف المشترك
+        await deleteDoc(doc(db, "subscribers", sub.firebaseId));
+        alert("تم الحذف بنجاح.");
     },
 
-    searchSubscribers(query) {
-        if (!query) return [];
-        const q = String(query).toLowerCase();
-        return localData.subscribers.filter(s => 
-            (s.name || '').toLowerCase().includes(q) || 
-            (s.phone || '').includes(q) ||
-            String(s.id).includes(q)
-        );
-    },
-
-    // ==========================================
-    // 💰 إدارة المعاملات (Transactions)
-    // ==========================================
-
-    getAllTransactions() { return localData.transactions; },
-
-    getSubscriberTransactions(subscriberId) {
-        return localData.transactions.filter(t => t.subscriberId == subscriberId);
-    },
-
-    async recordTransaction(subscriberId, amount, type = 'جزئي', details = {}) {
-        const transaction = {
+    // --- المعاملات والديون ---
+    async recordTransaction(subscriberId, amount, type = 'جزئي') {
+        await addDoc(collection(db, "transactions"), {
             id: Date.now(),
-            transactionNumber: localData.transactions.length + 1,
             subscriberId: subscriberId,
             amount: parseInt(amount),
             type: type,
             date: new Date().toISOString().split('T')[0],
-            details: details,
             createdAt: new Date().toISOString()
-        };
-        await addDoc(collection(db, "transactions"), transaction);
+        });
     },
 
     async deleteTransaction(id) {
         const trans = localData.transactions.find(t => t.id == id);
-        if (!trans || !trans.firebaseId) return;
-
+        if (!trans) return;
+        
+        // إعادة الدين للمشترك عند حذف الوصل
         const sub = this.getSubscriber(trans.subscriberId);
         if (sub) {
-            const newPrice = (parseInt(sub.price) || 0) + parseInt(trans.amount);
-            await this.updateSubscriber(sub.id, { price: newPrice });
+            const newPrice = (sub.price || 0) + (trans.amount || 0);
+            await this.updateSubscriber(sub.id, { 
+                price: newPrice,
+                paymentType: 'أجل' // إعادة تفعيل الدين
+            });
         }
         await deleteDoc(doc(db, "transactions", trans.firebaseId));
     },
 
-    // ==========================================
-    // 📦 نظام الأرشيف والمطابقة (جديد)
-    // ==========================================
-
-    async archiveAllTransactions() {
-        const allTrans = this.getAllTransactions();
-        if (allTrans.length === 0) return alert('لا توجد مبالغ لترحيلها!');
-
-        if (!confirm(`سيتم ترحيل (${allTrans.length}) فاتورة إلى التقارير وتصفير القائمة الحالية.\nهل أنت متأكد من المطابقة؟`)) return;
-
-        console.log("جاري الترحيل...");
-        let count = 0;
-
-        for (const trans of allTrans) {
-            if (!trans.firebaseId) continue;
-            try {
-                // 1. نسخ للأرشيف مع تاريخ الترحيل
-                await addDoc(collection(db, "archived_transactions"), { 
-                    ...trans, 
-                    archivedAt: new Date().toISOString() 
-                });
-                
-                // 2. حذف من القائمة النشطة
-                await deleteDoc(doc(db, "transactions", trans.firebaseId));
-                count++;
-            } catch (e) { console.error("فشل ترحيل قيد:", e); }
-        }
-        alert(`تم ترحيل ${count} معاملة بنجاح وتصفير الصفحة.`);
-    },
-
-    async getArchivedTransactions() {
-        try {
-             // جلب البيانات من مجموعة الأرشيف
-             const q = query(collection(db, "archived_transactions"), orderBy("archivedAt", "desc"));
-             const snapshot = await getDocs(q);
-             return snapshot.docs.map(doc => ({ ...doc.data(), firebaseId: doc.id }));
-        } catch(e) {
-            console.error("خطأ الأرشيف:", e);
-            return [];
-        }
-    },
-
-    async deleteArchivedTransaction(firebaseId) {
-        if(!confirm('هل أنت متأكد من حذف هذا السجل من الأرشيف نهائياً؟')) return;
-        try {
-            await deleteDoc(doc(db, "archived_transactions", firebaseId));
-            alert("تم الحذف من التقارير.");
-            // إعادة تحميل التقارير
-            if (typeof window.loadReports === 'function') window.loadReports();
-        } catch (e) {
-            console.error("فشل الحذف:", e);
-            alert("حدث خطأ.");
-        }
-    },
-
-    // ==========================================
-    // 🧾 الصرفيات والإحصائيات
-    // ==========================================
-
-    getExpenses() { return localData.expenses; },
-
+    // --- الصرفيات ---
     async addExpense(data) {
         await addDoc(collection(db, "expenses"), {
             ...data,
             id: Date.now(),
+            amount: parseInt(data.amount),
             createdAt: new Date().toISOString()
         });
     },
 
     async deleteExpense(id) {
+        if(!confirm("حذف الصرفية؟")) return;
         const exp = localData.expenses.find(e => e.id == id);
-        if (exp && exp.firebaseId) await deleteDoc(doc(db, "expenses", exp.firebaseId));
+        if (exp) await deleteDoc(doc(db, "expenses", exp.firebaseId));
     },
 
-    getStatistics() {
+    // --- الأرشيف (التقارير) ---
+    async archiveDay() {
+        const trans = this.getAllTransactions();
+        if (trans.length === 0) return alert("لا توجد مبالغ لترحيلها.");
+        if (!confirm(`ترحيل ${trans.length} فاتورة للأرشيف وتصفير اليوم؟`)) return;
+
+        let count = 0;
+        for (const t of trans) {
+            // نسخ للأرشيف
+            await addDoc(collection(db, "archived_transactions"), {
+                ...t,
+                archivedAt: new Date().toISOString()
+            });
+            // حذف من الحالي
+            await deleteDoc(doc(db, "transactions", t.firebaseId));
+            count++;
+        }
+        alert(`تم ترحيل ${count} فاتورة بنجاح.`);
+    },
+
+    async getArchivedData() {
+        const q = query(collection(db, "archived_transactions"), orderBy("archivedAt", "desc"));
+        const snap = await getDocs(q);
+        return snap.docs.map(d => ({...d.data(), firebaseId: d.id}));
+    },
+
+    // --- الإحصائيات ---
+    getStats() {
         const subs = this.getSubscribers();
-        const debts = subs.filter(s => s.paymentType === 'أجل').reduce((sum, s) => sum + (parseInt(s.price)||0), 0);
+        const debts = subs.filter(s => s.paymentType === 'أجل').reduce((sum, s) => sum + (s.price || 0), 0);
         return {
-            totalSubscribers: subs.length,
-            activeSubscribers: subs.filter(s => s.status === 'نشط').length,
-            debtsTotal: debts
+            total: subs.length,
+            active: subs.filter(s => s.status === 'نشط').length,
+            debts: debts,
+            expired: subs.filter(s => s.expiryDate && new Date(s.expiryDate) < new Date()).length
         };
     }
 };
