@@ -2,397 +2,85 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="OKComputer">
-    <meta name="theme-color" content="#dc2626">
-    <link rel="manifest" href="manifest.json">
-    <title>الاشتراكات المنتهية - لوحة التحكم</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>الاشتراكات المنتهية</title>
+    <link rel="stylesheet" href="style.css?v=9">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-            min-height: 100vh;
-        }
-        
-        .gradient-text {
-            background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-    </style>
+    <script type="module" src="data-manager.js"></script>
 </head>
 <body>
-    <!-- Navigation Bar -->
-    <nav class="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center space-x-8">
-                    <a href="index.html" class="flex items-center space-x-2 text-white font-bold text-lg hover:opacity-90 transition-opacity">
-                        <i class="fas fa-chart-line text-2xl"></i>
-                        <span>OKComputer</span>
-                    </a>
-                    <div class="hidden md:flex space-x-1">
-                        <a href="index.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-home ml-2"></i>الرئيسية
-                        </a>
-                        <a href="subscribers.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-users ml-2"></i>المشتركين
-                        </a>
-                        <a href="debts.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-credit-card ml-2"></i>الديون
-                        </a>
-                        <a href="payments.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-money-bill ml-2"></i>المبالغ المستلمة
-                        </a>
-                        <a href="expired.html" class="text-white bg-white bg-opacity-20 px-3 py-2 rounded-lg transition-all font-medium">
-                            <i class="fas fa-exclamation-triangle ml-2"></i>منتهية
-                        </a>
-                        <a href="expiring.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-hourglass-half ml-2"></i>قريبة
-                        </a>
-                        <a href="reports.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-chart-bar ml-2"></i>التقارير
-                        </a>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <button onclick="sendBulkRenewalReminders()" class="text-white px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition-all flex items-center gap-2">
-                        <i class="fas fa-bell"></i>
-                        <span class="hidden sm:inline">تذكيرات جماعية</span>
-                    </button>
-                    <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white font-bold hover:bg-opacity-30 transition-all cursor-pointer">
-                        <i class="fas fa-user"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <nav class="navbar">
+        <div class="logo"><i class="fas fa-exclamation-triangle"></i> المنتهية</div>
+        <ul class="nav-links">
+            <li><a href="index.html"><i class="fas fa-home"></i> <span>الرئيسية</span></a></li>
+            <li><a href="subscribers.html"><i class="fas fa-users"></i> <span>المشتركين</span></a></li>
+            <li><a href="debts.html"><i class="fas fa-money-bill-wave"></i> <span>الديون</span></a></li>
+            <li><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> <span>المبالغ</span></a></li>
+            <li><a href="expenses.html"><i class="fas fa-file-invoice-dollar"></i> <span>الصرفيات</span></a></li>
+            <li><a href="reports.html"><i class="fas fa-chart-bar"></i> <span>التقارير</span></a></li>
+        </ul>
     </nav>
 
-    <!-- Header -->
-    <header class="bg-white border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-4xl font-bold text-gray-900 flex items-center">
-                        <i class="fas fa-exclamation-triangle text-red-600 ml-3 text-3xl"></i>
-                        الاشتراكات المنتهية
-                    </h1>
-                    <p class="text-gray-600 mt-2">متابعة الاشتراكات المنتهية وتجديدها</p>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white rounded-2xl p-6 shadow-sm" id="expired-count-card">
-                <div class="flex items-center">
-                    <div class="p-3 bg-red-100 rounded-xl">
-                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
-                    </div>
-                    <div class="mr-4">
-                        <p class="text-sm text-gray-600">منتهية الاشتراك</p>
-                        <p class="text-2xl font-bold text-gray-900">0</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-white rounded-2xl p-6 shadow-sm" id="avg-days-card">
-                <div class="flex items-center">
-                    <div class="p-3 bg-orange-100 rounded-xl">
-                        <i class="fas fa-clock text-orange-600 text-xl"></i>
-                    </div>
-                    <div class="mr-4">
-                        <p class="text-sm text-gray-600">متوسط التأخير</p>
-                        <p class="text-2xl font-bold text-gray-900">0 أيام</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-white rounded-2xl p-6 shadow-sm" id="due-amount-card">
-                <div class="flex items-center">
-                    <div class="p-3 bg-yellow-100 rounded-xl">
-                        <i class="fas fa-money-bill text-yellow-600 text-xl"></i>
-                    </div>
-                    <div class="mr-4">
-                        <p class="text-sm text-gray-600">المبلغ المستحق</p>
-                        <p class="text-2xl font-bold text-gray-900">0 د.ع</p>
-                    </div>
-                </div>
-            </div>
+    <div class="container">
+        <div class="page-header">
+            <h1>اشتراكات منتهية الصلاحية</h1>
         </div>
 
-        <!-- Filters -->
-        <div class="bg-white rounded-2xl p-6 shadow-sm mb-6">
-            <div class="flex flex-wrap gap-4 items-center">
-                <div class="flex-1 min-w-48">
-                    <input type="text" id="search-input" placeholder="بحث عن مشترك..." 
-                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </div>
-                <select id="plan-filter" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">جميع الخطط</option>
-                    <option value="الأساسي">الأساسي</option>
-                    <option value="المميز">المميز</option>
-                    <option value="المحترف">المحترف</option>
-                </select>
-                <select id="days-filter" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">جميع الفترات</option>
-                    <option value="1-7">1-7 أيام</option>
-                    <option value="8-15">8-15 يوم</option>
-                    <option value="16-30">16-30 يوم</option>
-                    <option value="30+">أكثر من 30 يوم</option>
-                </select>
-            </div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>الهاتف</th>
+                        <th>تاريخ الانتهاء</th>
+                        <th>إجراء</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
         </div>
+    </div>
 
-        <!-- Expired Subscribers List -->
-        <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
-            <div class="p-6 border-b border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-800">قائمة الاشتراكات المنتهية</h3>
-            </div>
-            
-            <div class="divide-y divide-gray-200" id="expired-list">
-                <!-- Dynamic content will be loaded here -->
-            </div>
-            
-            <!-- Pagination -->
-            <div class="flex justify-between items-center p-4 border-t border-gray-200">
-                <div class="text-sm text-gray-600">
-                    عرض <span id="showing-from">1</span> إلى <span id="showing-to">10</span> من <span id="total-records">23</span> سجل
-                </div>
-                <div class="flex space-x-2">
-                    <button onclick="previousPage()" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                    <span id="current-page" class="px-3 py-2 bg-blue-600 text-white rounded-lg">1</span>
-                    <button onclick="nextPage()" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </main>
-
-       <script type="module" src="data-manager.js"></script>    <script>
-        let currentPage = 1;
-        const itemsPerPage = 5;
-        let allExpired = [];
-        let filteredExpired = [];
-
-        document.addEventListener('DOMContentLoaded', function() {
-            loadExpiredSubscribers();
-        });
-
-        function loadExpiredSubscribers() {
-            const subscribers = DataManager.getSubscribers();
+    <script>
+        window.renderPage = function() {
+            if (typeof DataManager === 'undefined') return;
+            const subs = DataManager.getSubscribers();
             const today = new Date();
             
-            allExpired = subscribers.filter(s => {
-                if (!s.expiryDate) return false;
-                const expDate = new Date(s.expiryDate);
-                return expDate < today;
-            }).map(s => {
-                const expDate = new Date(s.expiryDate);
-                const daysOverdue = Math.ceil((today - expDate) / (1000 * 60 * 60 * 24));
-                return {
-                    ...s,
-                    daysOverdue: daysOverdue,
-                    plan: 'اشتراك',
-                    email: s.phone || 'بدون بريد',
-                    amount: s.price || 0
-                };
+            // فلتر: تاريخ الانتهاء أقل من اليوم
+            const expired = subs.filter(s => s.expiryDate && new Date(s.expiryDate) < today);
+            
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if (expired.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px;">لا توجد اشتراكات منتهية</td></tr>';
+                return;
+            }
+
+            expired.forEach(s => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${s.name}</td>
+                        <td>${s.phone || '-'}</td>
+                        <td style="color:var(--danger-color); font-weight:bold;">${s.expiryDate}</td>
+                        <td>
+                            <button onclick="editSub('${s.id}')" class="btn btn-primary btn-sm">تجديد</button>
+                        </td>
+                    </tr>
+                `;
             });
+        };
 
-            filteredExpired = [...allExpired];
-            updateStats();
-            setupFilters();
-            renderList();
-        }
-
-        function updateStats() {
-            const count = filteredExpired.length;
-            let totalDays = 0;
-
-            filteredExpired.forEach(s => {
-                if (s.expiryDate) {
-                    const expiry = new Date(s.expiryDate);
-                    const today = new Date();
-                    const days = Math.ceil((today - expiry) / (1000 * 60 * 60 * 24));
-                    totalDays += days;
-                }
-            });
-
-            const avgDays = count > 0 ? Math.floor(totalDays / count) : 0;
-            const totalDue = filteredExpired.reduce((sum, s) => sum + (s.price || 0), 0);
-
-            // تحديث البطاقات
-            document.querySelector('#expired-count-card .text-2xl').textContent = count;
-            document.querySelector('#avg-days-card .text-2xl').textContent = avgDays + ' أيام';
-            document.querySelector('#due-amount-card .text-2xl').textContent = totalDue.toLocaleString() + ' د.ع';
-        }
-
-        function setupFilters() {
-            document.getElementById('search-input').addEventListener('input', filterExpired);
-            document.getElementById('plan-filter').addEventListener('change', filterExpired);
-            document.getElementById('days-filter').addEventListener('change', filterExpired);
-        }
-            const searchTerm = document.getElementById('search-input').value.toLowerCase();
-            const planFilter = document.getElementById('plan-filter').value;
-            const daysFilter = document.getElementById('days-filter').value;
-
-            filteredExpired = allExpired.filter(subscriber => {
-                const matchesSearch = (subscriber.name || '').toLowerCase().includes(searchTerm) || 
-                                    (subscriber.email || '').toLowerCase().includes(searchTerm) ||
-                                    (subscriber.phone || '').includes(searchTerm);
-                const matchesPlan = !planFilter || (subscriber.plan || 'اشتراك') === planFilter;
-                const matchesDays = !daysFilter || checkDaysRange(subscriber.daysOverdue, daysFilter);
-                
-                return matchesSearch && matchesPlan && matchesDays;
-            });
-
-            currentPage = 1;
-            updateStats();
-            renderList();
-        }
-
-        function checkDaysRange(days, range) {
-            switch(range) {
-                case '1-7': return days >= 1 && days <= 7;
-                case '8-15': return days >= 8 && days <= 15;
-                case '16-30': return days >= 16 && days <= 30;
-                case '30+': return days > 30;
-                default: return true;
+        window.editSub = function(id) {
+            const s = DataManager.getSubscriber(id);
+            // فتح حوار التجديد (يمكن تطويره ليكون modal)
+            const newDate = prompt("تجديد الاشتراك حتى:", new Date().toISOString().split('T')[0]);
+            if(newDate) {
+                DataManager.updateSubscriber(id, { expiryDate: newDate, status: 'نشط' });
             }
-        }
+        };
 
-        function renderList() {
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const pageData = filteredExpired.slice(startIndex, endIndex);
-
-            const listContainer = document.getElementById('expired-list');
-            listContainer.innerHTML = pageData.map(subscriber => `
-                <div class="p-6 hover:bg-gray-50 transition-colors">
-                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-                        <div class="flex-1">
-                            <div class="flex items-center mb-2">
-                                <div class="w-10 h-10 bg-gradient-to-r from-red-500 to-orange-600 rounded-full flex items-center justify-center text-white font-bold ml-3">
-                                    ${subscriber.name.split(' ').map(n => n[0]).join('')}
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-800">${subscriber.name}</h4>
-                                    <p class="text-sm text-gray-600">${subscriber.email}</p>
-                                </div>
-                            </div>
-                            <div class="flex flex-wrap gap-4 mt-3 text-sm">
-                                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
-                                    ${subscriber.plan}
-                                </span>
-                                <span class="text-gray-600">
-                                    <i class="fas fa-phone ml-1"></i>
-                                    ${subscriber.phone}
-                                </span>
-                                <span class="text-gray-600">
-                                    <i class="fas fa-calendar ml-1"></i>
-                                    انتهى بتاريخ: ${subscriber.expiryDate}
-                                </span>
-                                <span class="text-red-600 font-semibold">
-                                    متأخر ${subscriber.daysOverdue} يوم
-                                </span>
-                            </div>
-                        </div>
-                        <div class="flex flex-col sm:flex-row gap-2 mt-4 lg:mt-0">
-                            <div class="text-left mb-2 lg:mb-0 lg:mr-4">
-                                <p class="text-lg font-bold text-gray-900">${subscriber.amount}</p>
-                                <p class="text-sm text-gray-600">المبلغ المستحق</p>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="renewSubscription(${subscriber.id})" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
-                                    <i class="fas fa-sync ml-2"></i>
-                                    تجديد
-                                </button>
-                                <button onclick="sendReminder(${subscriber.id})" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors text-sm">
-                                    <i class="fas fa-bell ml-2"></i>
-                                    تذكير
-                                </button>
-                                <button onclick="callSubscriber(${subscriber.id})" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
-                                    <i class="fas fa-phone ml-2"></i>
-                                    اتصال
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-
-            // Update pagination info
-            document.getElementById('showing-from').textContent = startIndex + 1;
-            document.getElementById('showing-to').textContent = Math.min(endIndex, filteredExpired.length);
-            document.getElementById('total-records').textContent = filteredExpired.length;
-            document.getElementById('current-page').textContent = currentPage;
-        }
-
-        function renewSubscription(id) {
-            const subscriber = DataManager.getSubscriber(id);
-            if (subscriber) {
-                const newExpiryDate = new Date();
-                newExpiryDate.setDate(newExpiryDate.getDate() + 30);
-                const expiryStr = newExpiryDate.toISOString().split('T')[0];
-                
-                DataManager.updateSubscriber(id, {
-                    expiryDate: expiryStr,
-                    status: 'نشط'
-                });
-                loadExpiredSubscribers();
-            }
-        }
-
-        function sendReminder(id) {
-            const subscriber = DataManager.getSubscriber(id);
-            if (subscriber) {
-                // تم إرسال التذكير
-            }
-        }
-
-        function callSubscriber(id) {
-            const subscriber = DataManager.getSubscriber(id);
-            if (subscriber) {
-                // جاري الاتصال
-            }
-        }
-
-        function sendBulkRenewalReminders() {
-            // تم إرسال التذكيرات
-        }
-            if (currentPage > 1) {
-                currentPage--;
-                renderList();
-            }
-        }
-
-        function nextPage() {
-            const totalPages = Math.ceil(filteredExpired.length / itemsPerPage);
-            if (currentPage < totalPages) {
-                currentPage++;
-                renderList();
-            }
-        }
-    </script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./service-worker.js', { scope: './' }).catch(() => {});
-        }
+        setInterval(() => { if(typeof DataManager !== 'undefined') renderPage(); }, 1000);
     </script>
 </body>
 </html>
