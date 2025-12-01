@@ -3,206 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المبالغ المستلمة - OK Computer</title>
+    <title>المبالغ المستلمة</title>
+    <link rel="stylesheet" href="style.css?v=6">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
-
-        :root {
-            --primary-color: #1e40af;
-            --secondary-color: #673AB7;
-            --bg-color: #f3f4f6;
-            --text-color: #333;
-            --sidebar-width: 260px;
-            --white: #ffffff;
-            --danger: #f44336;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-color); }
-
-        /* حاوية الصفحة */
-        .dashboard-container { display: flex; min-height: 100vh; }
-
-        /* القائمة الجانبية */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: linear-gradient(180deg, var(--primary-color) 0%, #1e3a8a 100%);
-            color: var(--white);
-            position: fixed;
-            height: 100vh;
-            right: 0; top: 0;
-            padding: 20px;
-            z-index: 100;
-        }
-        .sidebar .logo h2 { text-align: center; margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 20px; }
-        .nav-links { list-style: none; }
-        .nav-links li { margin-bottom: 10px; }
-        .nav-links a {
-            display: flex; align-items: center; padding: 12px 15px;
-            color: rgba(255,255,255,0.8); text-decoration: none; border-radius: 8px; transition: 0.3s;
-        }
-        .nav-links a:hover, .nav-links li.active a { background: rgba(255,255,255,0.2); color: white; font-weight: bold; }
-        .nav-links a i { margin-left: 10px; width: 25px; text-align: center; }
-
-        /* المحتوى الرئيسي */
-        .main-content {
-            margin-right: var(--sidebar-width);
-            width: calc(100% - var(--sidebar-width));
-            padding: 30px;
-        }
-
-        /* الرأس والبطاقات */
-        header {
-            display: flex; justify-content: space-between; align-items: center;
-            background: white; padding: 20px; border-radius: 12px; margin-bottom: 30px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .stats-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .card { background: white; padding: 25px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--primary-color); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .card h3 { color: #666; font-size: 14px; margin-bottom: 10px; }
-        .card p { font-size: 28px; font-weight: bold; }
-
-        /* الجدول */
-        .table-container { background: white; padding: 20px; border-radius: 12px; overflow-x: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .data-table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        .data-table th, .data-table td { padding: 15px; text-align: right; border-bottom: 1px solid #eee; }
-        .data-table th { background-color: #f8f9fa; color: #555; font-weight: bold; }
-        
-        /* الأزرار */
-        .action-btn {
-            padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer;
-            color: white; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;
-            background-color: var(--primary-color);
-        }
-        .action-btn.secondary { background-color: #607d8b; }
-        .action-btn.delete-btn { background-color: #ffebee; color: var(--danger); padding: 8px; }
-        .action-btn.delete-btn:hover { background-color: var(--danger); color: white; }
-
-        /* تجاوب الجوال */
-        @media (max-width: 768px) {
-            .sidebar { width: 70px; padding: 10px; }
-            .sidebar .logo h2, .nav-links a span { display: none; }
-            .nav-links a { justify-content: center; }
-            .nav-links a i { margin: 0; font-size: 20px; }
-            .main-content { margin-right: 70px; width: calc(100% - 70px); padding: 15px; }
-            header { flex-direction: column; gap: 15px; }
-        }
-    </style>
     <script type="module" src="data-manager.js"></script>
 </head>
 <body>
-    <div class="dashboard-container">
-        <nav class="sidebar">
-            <div class="logo">
-                <h2>OK Computer</h2>
-            </div>
-            <ul class="nav-links">
-                <li><a href="index.html"><i class="fas fa-home"></i> <span>الرئيسية</span></a></li>
-                <li><a href="subscribers.html"><i class="fas fa-users"></i> <span>المشتركين</span></a></li>
-                <li><a href="debts.html"><i class="fas fa-money-bill-wave"></i> <span>الديون</span></a></li>
-                <li class="active"><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> <span>المبالغ المستلمة</span></a></li>
-                <li><a href="expenses.html"><i class="fas fa-file-invoice-dollar"></i> <span>الصرفيات</span></a></li>
-                <li><a href="reports.html"><i class="fas fa-chart-bar"></i> <span>التقارير</span></a></li>
-            </ul>
-        </nav>
+    <nav class="navbar">
+        <div class="logo"><i class="fas fa-hand-holding-usd"></i> المبالغ</div>
+        <ul class="nav-links">
+            <li><a href="index.html"><i class="fas fa-home"></i> <span>الرئيسية</span></a></li>
+            <li><a href="subscribers.html"><i class="fas fa-users"></i> <span>المشتركين</span></a></li>
+            <li><a href="debts.html"><i class="fas fa-money-bill-wave"></i> <span>الديون</span></a></li>
+            <li><a href="payments.html" class="active"><i class="fas fa-hand-holding-usd"></i> <span>المبالغ</span></a></li>
+            <li><a href="expenses.html"><i class="fas fa-file-invoice-dollar"></i> <span>الصرفيات</span></a></li>
+            <li><a href="reports.html"><i class="fas fa-chart-bar"></i> <span>التقارير</span></a></li>
+        </ul>
+    </nav>
 
-        <div class="main-content">
-            <header>
-                <div>
-                    <h1>المبالغ المستلمة (اليومية)</h1>
-                    <p style="color:#666; font-size:14px; margin-top:5px">الفواتير المعروضة هنا هي لليوم الحالي فقط</p>
-                </div>
-                <div class="header-actions">
-                    <button onclick="DataManager.archiveAllTransactions()" class="action-btn" style="background-color: #673AB7;">
-                        <i class="fas fa-file-export"></i> مطابقة وترحيل
-                    </button>
-                    <button onclick="window.print()" class="action-btn secondary">
-                        <i class="fas fa-print"></i> طباعة
-                    </button>
-                </div>
-            </header>
-
-            <div class="stats-cards">
-                <div class="card">
-                    <h3>إجمالي المقبوضات (اليوم)</h3>
-                    <p id="totalPayments">0 د.ع</p>
-                </div>
-                <div class="card">
-                    <h3>عدد الحركات</h3>
-                    <p id="paymentsCount">0</p>
-                </div>
+    <div class="container">
+        <div class="page-header">
+            <h1>المقبوضات اليومية</h1>
+            <div class="actions">
+                <button onclick="DataManager.archiveDay()" class="btn btn-purple"><i class="fas fa-file-export"></i> مطابقة وترحيل</button>
             </div>
+        </div>
 
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>رقم الوصل</th>
-                            <th>اسم المشترك</th>
-                            <th>المبلغ</th>
-                            <th>التاريخ</th>
-                            <th>إجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="paymentsTableBody">
-                        </tbody>
-                </table>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>مجموع اليوم</h3>
+                <div class="value" id="todayTotal">0</div>
             </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>المشترك</th>
+                        <th>المبلغ</th>
+                        <th>النوع</th>
+                        <th>التاريخ</th>
+                        <th>تراجع</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
         </div>
     </div>
 
     <script>
-        // كود تشغيل الصفحة
-        window.loadPayments = function() {
-            if (typeof DataManager === 'undefined') { setTimeout(loadPayments, 500); return; }
-
-            const transactions = DataManager.getAllTransactions();
-            const tbody = document.getElementById('paymentsTableBody');
+        window.renderPage = function() {
+            if (typeof DataManager === 'undefined') return;
+            const trans = DataManager.getAllTransactions();
+            const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
             let total = 0;
 
-            if (transactions.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px;">لا توجد مبالغ مستلمة اليوم (تم الترحيل أو لا يوجد إدخال)</td></tr>';
-                updateStats(0, 0);
-                return;
+            if (trans.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px;">الصندوق فارغ (تم الترحيل)</td></tr>';
+            } else {
+                // ترتيب تنازلي
+                trans.sort((a,b) => b.id - a.id).forEach(t => {
+                    const sub = DataManager.getSubscriber(t.subscriberId);
+                    total += t.amount;
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${sub ? sub.name : 'محذوف'}</td>
+                            <td style="color:var(--success-color); font-weight:bold;">${t.amount.toLocaleString()}</td>
+                            <td>${t.type}</td>
+                            <td>${t.date}</td>
+                            <td>
+                                <button onclick="DataManager.deleteTransaction('${t.id}')" class="btn btn-danger" style="padding:5px 10px;">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
             }
-
-            // ترتيب: الأحدث أولاً
-            transactions.sort((a, b) => b.id - a.id);
-
-            transactions.forEach(t => {
-                const sub = DataManager.getSubscriber(t.subscriberId);
-                const subName = sub ? sub.name : 'مشترك محذوف';
-                total += parseInt(t.amount) || 0;
-                
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>#${t.transactionNumber}</td>
-                    <td>${subName}</td>
-                    <td>${parseInt(t.amount).toLocaleString()} د.ع</td>
-                    <td>${t.date}</td>
-                    <td>
-                        <button onclick="deleteTrans('${t.id}')" class="action-btn delete-btn">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-            updateStats(total, transactions.length);
+            document.getElementById('todayTotal').innerText = total.toLocaleString() + ' د.ع';
         };
 
-        function updateStats(total, count) {
-            document.getElementById('totalPayments').innerText = total.toLocaleString() + ' د.ع';
-            document.getElementById('paymentsCount').innerText = count;
-        }
-
-        window.deleteTrans = async function(id) {
-            await DataManager.deleteTransaction(id);
-        };
-
-        document.addEventListener('DOMContentLoaded', () => { setTimeout(loadPayments, 1000); });
+        setTimeout(renderPage, 1000);
     </script>
 </body>
 </html>
