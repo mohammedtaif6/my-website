@@ -2,28 +2,28 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>المبالغ المستلمة</title>
-    <link rel="stylesheet" href="style.css?v=9">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>المبالغ - OK Computer</title>
+    <link rel="stylesheet" href="style.css?v=12.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script type="module" src="data-manager.js"></script>
 </head>
 <body>
     <nav class="navbar">
         <div class="logo"><i class="fas fa-hand-holding-usd"></i> المبالغ</div>
         <ul class="nav-links">
-            <li><a href="index.html"><i class="fas fa-home"></i> <span>الرئيسية</span></a></li>
-            <li><a href="subscribers.html"><i class="fas fa-users"></i> <span>المشتركين</span></a></li>
-            <li><a href="debts.html"><i class="fas fa-money-bill-wave"></i> <span>الديون</span></a></li>
-            <li><a href="payments.html" class="active"><i class="fas fa-hand-holding-usd"></i> <span>المبالغ</span></a></li>
-            <li><a href="expenses.html"><i class="fas fa-file-invoice-dollar"></i> <span>الصرفيات</span></a></li>
-            <li><a href="reports.html"><i class="fas fa-chart-bar"></i> <span>التقارير</span></a></li>
+            <li><a href="index.html">الرئيسية</a></li>
+            <li><a href="subscribers.html">المشتركين</a></li>
+            <li><a href="debts.html">الديون</a></li>
+            <li><a href="payments.html" class="active">المبالغ</a></li>
+            <li><a href="expenses.html">الصرفيات</a></li>
+            <li><a href="reports.html">التقارير</a></li>
         </ul>
     </nav>
 
     <div class="container">
-        <div class="page-header">
-            <h1>المقبوضات (الصندوق اليومي)</h1>
-            <button onclick="DataManager.archiveDay()" class="btn btn-purple"><i class="fas fa-file-export"></i> ترحيل للأرشيف</button>
+        <div class="header-card">
+            <h1>الصندوق اليومي</h1>
+            <p id="totalIncome" style="color:var(--success); font-weight:bold;">0 د.ع</p>
         </div>
 
         <div class="table-wrapper">
@@ -32,7 +32,6 @@
                     <tr>
                         <th>المشترك</th>
                         <th>المبلغ</th>
-                        <th>النوع</th>
                         <th>التاريخ</th>
                         <th>تراجع</th>
                     </tr>
@@ -40,37 +39,62 @@
                 <tbody id="tableBody"></tbody>
             </table>
         </div>
+        
+        <div style="margin-top:20px; text-align:center;">
+            <button onclick="window.archive()" class="btn btn-primary" style="width:100%">ترحيل للأرشيف (تصفير)</button>
+        </div>
     </div>
 
-    <script>
-        window.renderPage = function() {
-            if (typeof DataManager === 'undefined') return;
+    <script type="module">
+        import { DataManager } from './data-manager.js';
+        window.DataManager = DataManager;
+
+        window.renderPayments = function() {
             const trans = DataManager.getAllTransactions();
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
+            let total = 0;
 
             if (trans.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px;">لا توجد مقبوضات في الصندوق</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">الصندوق فارغ</td></tr>';
             } else {
                 trans.sort((a,b) => b.id - a.id).forEach(t => {
-                    const sub = DataManager.getSubscriber(t.subscriberId);
+                    total += t.amount;
+                    const sub = DataManager.getSubscribers().find(s => s.id == t.subscriberId);
                     tbody.innerHTML += `
                         <tr>
                             <td>${sub ? sub.name : 'محذوف'}</td>
-                            <td style="color:var(--success-color); font-weight:bold;">${t.amount.toLocaleString()}</td>
-                            <td>${t.type}</td>
+                            <td style="color:var(--success); font-weight:bold;">${t.amount.toLocaleString()}</td>
                             <td>${t.date}</td>
                             <td>
-                                <button onclick="DataManager.deleteTransaction('${t.id}')" class="btn btn-danger btn-sm">
-                                    <i class="fas fa-undo"></i>
-                                </button>
+                                <button onclick="window.deleteTrans('${t.id}')" class="btn btn-danger btn-sm"><i class="fas fa-undo"></i></button>
                             </td>
                         </tr>
                     `;
                 });
             }
+            document.getElementById('totalIncome').innerText = `المجموع: ${total.toLocaleString()} د.ع`;
         };
-        setInterval(() => { if(typeof DataManager !== 'undefined') renderPage(); }, 1000);
+
+        window.deleteTrans = async function(id) {
+            await DataManager.deleteTransaction(id);
+        };
+
+        window.archive = async function() {
+            const trans = DataManager.getAllTransactions();
+            if(trans.length === 0) return alert('لا يوجد شيء للترحيل');
+            if(confirm('هل أنت متأكد من ترحيل المبالغ للأرشيف وتصفير الصندوق؟')) {
+                // ترحيل كل المعاملات
+                for(let t of trans) {
+                    await DataManager.addDoc(DataManager.collection(DataManager.db, "archived_transactions"), t);
+                    await DataManager.deleteDoc(DataManager.doc(DataManager.db, "transactions", t.firebaseId));
+                }
+                alert('تم الترحيل');
+            }
+        };
+
+        window.renderPage = window.renderPayments;
+        setTimeout(window.renderPayments, 500);
     </script>
 </body>
 </html>
