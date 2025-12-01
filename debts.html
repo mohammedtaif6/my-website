@@ -2,295 +2,89 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="OKComputer">
-    <meta name="theme-color" content="#1e40af">
-    <link rel="manifest" href="manifest.json">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>الديون</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=6">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="responsive.css">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #f9fafb;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-    </style>
+    <script type="module" src="data-manager.js"></script>
 </head>
 <body>
-    <nav class="bg-blue-800 shadow sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <a href="index.html" class="text-white font-bold text-xl flex items-center gap-2"><i class="fas fa-chart-line"></i> OKComputer</a>
-            <div class="hidden md:flex gap-1">
-                <a href="index.html" class="text-gray-200 hover:text-white px-3 py-2 rounded">الرئيسية</a>
-                <a href="subscribers.html" class="text-gray-200 hover:text-white px-3 py-2 rounded">المشتركين</a>
-                <a href="debts.html" class="text-white font-bold bg-white/20 px-3 py-2 rounded">الديون</a>
-            </div>
-        </div>
+    <nav class="navbar">
+        <div class="logo"><i class="fas fa-money-bill-wave"></i> الديون</div>
+        <ul class="nav-links">
+            <li><a href="index.html"><i class="fas fa-home"></i> <span>الرئيسية</span></a></li>
+            <li><a href="subscribers.html"><i class="fas fa-users"></i> <span>المشتركين</span></a></li>
+            <li><a href="debts.html" class="active"><i class="fas fa-money-bill-wave"></i> <span>الديون</span></a></li>
+            <li><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> <span>المبالغ</span></a></li>
+            <li><a href="expenses.html"><i class="fas fa-file-invoice-dollar"></i> <span>الصرفيات</span></a></li>
+            <li><a href="reports.html"><i class="fas fa-chart-bar"></i> <span>التقارير</span></a></li>
+        </ul>
     </nav>
 
-    <main class="max-w-7xl mx-auto px-4 py-8">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div class="bg-white p-4 rounded shadow border-r-4 border-yellow-500">
-                <div class="text-gray-500">إجمالي الديون</div>
-                <div class="text-2xl font-bold" id="total-debts">0</div>
-            </div>
-            <div class="bg-white p-4 rounded shadow border-r-4 border-red-500">
-                <div class="text-gray-500">عدد الديون المستحقة</div>
-                <div class="text-2xl font-bold" id="overdue-count">0</div>
-            </div>
-            <div class="bg-white p-4 rounded shadow border-r-4 border-orange-500">
-                <div class="text-gray-500">متوسط الدين</div>
-                <div class="text-2xl font-bold" id="average-debt">0</div>
-            </div>
+    <div class="container">
+        <div class="page-header">
+            <h1>سجل الديون المستحقة</h1>
+            <div id="totalDebtDisplay" style="font-weight:bold; color:var(--danger-color); font-size:18px;"></div>
         </div>
 
-        <div class="bg-white rounded shadow overflow-hidden">
-            <table class="w-full text-right">
-                <thead class="bg-gray-50">
+        <div class="table-wrapper">
+            <table>
+                <thead>
                     <tr>
-                        <th class="p-4">#</th>
-                        <th class="p-4">الاسم</th>
-                        <th class="p-4">الهاتف</th>
-                        <th class="p-4">المبلغ (د.ع)</th>
-                        <th class="p-4">تاريخ الاشتراك</th>
-                        <th class="p-4">تاريخ الانتهاء</th>
-                        <th class="p-4">المبلغ المدفوع</th>
-                        <th class="p-4">الإجراء</th>
+                        <th>الاسم</th>
+                        <th>الهاتف</th>
+                        <th>المبلغ المطلوب</th>
+                        <th>إجراء</th>
                     </tr>
                 </thead>
-                <tbody id="debts-body" class="divide-y"></tbody>
+                <tbody id="tableBody"></tbody>
             </table>
-        </div>
-    </main>
-
-    <div id="deleteModal" class="modal-backdrop modal-type-danger">
-        <div class="modal-content">
-            <div class="modal-header">
-                <i class="fas fa-trash-alt"></i>
-                <h2>تأكيد الحذف</h2>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="debtToDeleteId">
-                <p id="delete-msg-text">هل أنت متأكد من رغبتك في حذف هذا الدين؟</p>
-                <div class="payment-details">
-                    <div class="detail-row">
-                        <span class="detail-label">الاسم:</span>
-                        <span class="detail-value" id="del-modal-name"></span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">المبلغ:</span>
-                        <span class="detail-value" id="del-modal-amount"></span>
-                    </div>
-                </div>
-                <div class="warning-text">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span>تنبيه: سيتم حذف هذا الدين من السجلات نهائياً.</span>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-cancel" onclick="closeDeleteModal()">إلغاء</button>
-                <button class="btn-confirm btn-danger" id="confirm-delete-btn" onclick="confirmDeleteDebt()">حذف نهائي</button>
-            </div>
         </div>
     </div>
 
-    <script type="module" src="data-manager.js"></script>
     <script>
-        // دالة إظهار الإشعارات
-        function showNotification(message) {
-            const notification = document.createElement('div');
-            notification.className = 'fixed top-4 left-4 bg-green-500 text-white px-6 py-3 rounded shadow-lg animate-pulse';
-            notification.innerHTML = `<i class="fas fa-check-circle ml-2"></i> ${message}`;
-            document.body.appendChild(notification);
+        window.renderPage = function() {
+            if (typeof DataManager === 'undefined') return;
+            const subs = DataManager.getSubscribers();
+            // الفلتر السحري: نوع أجل + سعر أكبر من صفر
+            const debtors = subs.filter(s => s.paymentType === 'أجل' && s.price > 0);
             
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                notification.style.transition = 'opacity 0.3s';
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
-        }
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            let total = 0;
 
-        window.loadDebts = function() {
-            const all = DataManager.getSubscribers();
-            const debts = all.filter(s => s.paymentType === 'أجل' && s.price > 0);
-            
-            const totalAmount = debts.reduce((sum, s) => sum + parseInt(s.price), 0);
-            const avgAmount = debts.length > 0 ? Math.round(totalAmount / debts.length) : 0;
-            
-            document.getElementById('total-debts').textContent = totalAmount.toLocaleString() + ' د.ع';
-            document.getElementById('overdue-count').textContent = debts.length;
-            document.getElementById('average-debt').textContent = avgAmount.toLocaleString() + ' د.ع';
-
-            document.getElementById('debts-body').innerHTML = debts.map((d, idx) => `
-                <tr class="hover:bg-gray-50">
-                    <td class="p-4 text-right">${idx + 1}</td>
-                    <td class="p-4 font-bold text-right">${d.name}</td>
-                    <td class="p-4 text-gray-500 text-right">${d.phone || '-'}</td>
-                    <td class="p-4 text-red-600 font-bold text-right">${parseInt(d.price).toLocaleString()} د.ع</td>
-                    <td class="p-4 text-gray-600 text-right">${d.subscribeDate || '-'}</td>
-                    <td class="p-4 text-gray-600 text-right">${d.expiryDate || '-'}</td>
-                    <td class="p-4">
-                        <input type="number" id="payment-${d.id}" placeholder="0" min="0" max="${d.price}" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm" />
-                    </td>
-                    <td class="p-4 space-x-2">
-                        <button onclick="payPartial(${d.id}, '${d.name}', ${d.price})" class="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition">تسديد جزئي</button>
-                        <button onclick="markAsFull(${d.id}, '${d.name}', ${d.price})" class="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 transition">تسديد كامل</button>
-                        <button onclick="prepareDeleteDebt(${d.id}, '${d.name}', ${d.price})" class="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-            `).join('');
+            if (debtors.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px;">لا توجد ديون مستحقة (الكل مسدد)</td></tr>';
+            } else {
+                debtors.forEach(s => {
+                    total += s.price;
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${s.name}</td>
+                            <td>${s.phone || '-'}</td>
+                            <td style="color:var(--danger-color); font-weight:bold;">${s.price.toLocaleString()}</td>
+                            <td>
+                                <button onclick="payFull('${s.id}', ${s.price})" class="btn btn-success btn-sm">تسديد كامل</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            document.getElementById('totalDebtDisplay').innerText = `الإجمالي: ${total.toLocaleString()} د.ع`;
         };
 
-        window.payPartial = (id, name, fullAmount) => {
-            const inputField = document.getElementById(`payment-${id}`);
-            const amount = parseInt(inputField.value) || 0;
-            
-            if (amount <= 0) {
-                alert('يرجى إدخال مبلغ صحيح');
-                return;
-            }
-
-            if (amount > fullAmount) {
-                alert('المبلغ أكثر من الدين');
-                return;
-            }
-
-            const subscriber = DataManager.getSubscriber(id);
-            if(subscriber) {
-                const remainingDebt = fullAmount - amount;
-                
-                // البحث عن معاملة موجودة لهذا المشترك
-                const existingTransactions = DataManager.getSubscriberTransactions(id);
-                let transactionNumber;
-                
-                if (existingTransactions.length > 0) {
-                    // استخدام رقم المعاملة الموجود (ثابت)
-                    transactionNumber = existingTransactions[0].transactionNumber;
-                } else {
-                    // لا توجد معاملة، سيتم إنشاء رقم جديد
-                    transactionNumber = null;
-                }
-                
-                // تسجيل المعاملة الجزئية
-                const transaction = DataManager.recordTransaction(id, amount, 'جزئي', {
-                    name: name,
-                    remainingDebt: remainingDebt,
-                    originalDebt: fullAmount,
-                    previousTransaction: transactionNumber
-                });
-
-                // تحديث بيانات المشترك
-                DataManager.updateSubscriber(id, { 
-                    price: remainingDebt,
-                    lastPaymentDate: new Date().toISOString().split('T')[0],
-                    partialPayments: (subscriber.partialPayments || 0) + amount
-                });
-
-                window.loadDebts();
-                inputField.value = '';
-                
-                // إظهار رسالة نجاح مع رقم المعاملة الثابت
-                showNotification(`✓ دفع جزئي - المعاملة #${transaction.transactionNumber} (${amount.toLocaleString()} د.ع)\nالمتبقي: ${remainingDebt.toLocaleString()} د.ع`);
-                
-                if (typeof window.updateDashboard === 'function') window.updateDashboard();
+        window.payFull = function(id, amount) {
+            if(confirm(`تسديد كامل المبلغ (${amount})؟`)) {
+                DataManager.recordTransaction(id, amount, 'تسديد دين')
+                    .then(() => {
+                        // تصفير الدين وتحويله لنقد لكي يختفي من هنا
+                        DataManager.updateSubscriber(id, { price: 0, paymentType: 'نقد' });
+                        alert('تم التسديد!');
+                    });
             }
         };
 
-        window.markAsFull = (id, name, amount) => {
-            const subscriber = DataManager.getSubscriber(id);
-            if(subscriber) {
-                // البحث عن معاملة موجودة لهذا المشترك
-                const existingTransactions = DataManager.getSubscriberTransactions(id);
-                let transactionNumber;
-                
-                if (existingTransactions.length > 0) {
-                    // استخدام رقم المعاملة الموجود (ثابت)
-                    transactionNumber = existingTransactions[0].transactionNumber;
-                } else {
-                    // لا توجد معاملة، سيتم إنشاء رقم جديد
-                    transactionNumber = null;
-                }
-                
-                // تسجيل المعاملة الكاملة
-                const transaction = DataManager.recordTransaction(id, amount, 'كامل', {
-                    name: name,
-                    originalPrice: subscriber.price,
-                    previousTransaction: transactionNumber
-                });
-
-                // تحديث بيانات المشترك
-                DataManager.updateSubscriber(id, { 
-                    paymentType: 'نقد',
-                    lastPaymentDate: new Date().toISOString().split('T')[0],
-                    originalPrice: subscriber.price,
-                    price: 0
-                });
-
-                window.loadDebts();
-                
-                // إظهار رسالة نجاح مع رقم المعاملة الثابت
-                showNotification(`✓ تسديد كامل - المعاملة #${transaction.transactionNumber}\n(${amount.toLocaleString()} د.ع) ✓`);
-                
-                if (typeof window.updateDashboard === 'function') window.updateDashboard();
-            }
-        };
-
-        // --- وظائف الحذف ---
-        window.prepareDeleteDebt = (id, name, amount) => {
-            document.getElementById('del-modal-name').innerText = name;
-            document.getElementById('del-modal-amount').innerText = amount.toLocaleString() + ' د.ع';
-            document.getElementById('debtToDeleteId').value = id;
-            openDeleteModal();
-        };
-
-        function openDeleteModal() {
-            document.getElementById('deleteModal').classList.add('active');
-        }
-
-        window.closeDeleteModal = function() {
-            document.getElementById('deleteModal').classList.remove('active');
-            document.getElementById('debtToDeleteId').value = '';
-        };
-
-        window.confirmDeleteDebt = async () => {
-            const debtId = parseInt(document.getElementById('debtToDeleteId').value);
-            if (!debtId) return;
-
-            const btn = document.getElementById('confirm-delete-btn');
-            const originalText = btn.innerText;
-            btn.innerText = 'جاري الحذف...';
-            btn.disabled = true;
-
-            // حذف الدين (تعيين price إلى 0 وتغيير الحالة)
-            DataManager.updateSubscriber(debtId, { 
-                price: 0, 
-                status: 'غير نشط',
-                paymentType: 'نقد'
-            });
-
-            setTimeout(() => {
-                btn.innerText = originalText;
-                btn.disabled = false;
-                closeDeleteModal();
-                window.loadDebts();
-                if (typeof window.updateDashboard === 'function') window.updateDashboard();
-            }, 300);
-        };
-        
-        // تحميل أولي
-        setTimeout(() => window.loadDebts && window.loadDebts(), 500);
-    </script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./service-worker.js', { scope: './' }).catch(() => {});
-        }
+        setTimeout(renderPage, 1000);
     </script>
 </body>
 </html>
