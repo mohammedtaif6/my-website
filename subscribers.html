@@ -2,844 +2,98 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="OKComputer">
-    <meta name="theme-color" content="#2563eb">
-    <link rel="manifest" href="manifest.json">
-    <title>المشتركين - لوحة التحكم</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المشتركين</title>
+    <link rel="stylesheet" href="style.css?v=6">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body { 
-            font-family: 'Inter', sans-serif;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
-        .modal.active { display: flex; }
-        .modal-content { background: white; border-radius: 12px; padding: 2rem; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
-    </style>
+    <script type="module" src="data-manager.js"></script>
 </head>
-<body class="bg-gray-50">
-    <nav class="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center space-x-8">
-                    <a href="index.html" class="flex items-center space-x-2 text-white font-bold text-lg hover:opacity-90">
-                        <i class="fas fa-chart-line text-2xl"></i>
-                        <span>OKComputer</span>
-                    </a>
-                    <div class="hidden md:flex space-x-1">
-                        <a href="index.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-home ml-2"></i>الرئيسية
-                        </a>
-                        <a href="subscribers.html" class="text-white bg-white bg-opacity-20 px-3 py-2 rounded-lg transition-all font-medium">
-                            <i class="fas fa-users ml-2"></i>المشتركين
-                        </a>
-                        <a href="debts.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-credit-card ml-2"></i>الديون
-                        </a>
-                        <a href="payments.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-money-bill ml-2"></i>المبالغ المستلمة
-                        </a>
-                        <a href="expired.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-exclamation-triangle ml-2"></i>منتهية
-                        </a>
-                        <a href="expiring.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-hourglass-half ml-2"></i>قريبة
-                        </a>
-                        <a href="reports.html" class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition-all">
-                            <i class="fas fa-chart-bar ml-2"></i>التقارير
-                        </a>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white font-bold hover:bg-opacity-30 cursor-pointer">
-                        <i class="fas fa-user"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
+<body>
+    <nav class="navbar">
+        <div class="logo"><i class="fas fa-users"></i> المشتركين</div>
+        <ul class="nav-links">
+            <li><a href="index.html"><i class="fas fa-home"></i> <span>الرئيسية</span></a></li>
+            <li><a href="subscribers.html" class="active"><i class="fas fa-users"></i> <span>المشتركين</span></a></li>
+            <li><a href="debts.html"><i class="fas fa-money-bill-wave"></i> <span>الديون</span></a></li>
+            <li><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> <span>المبالغ</span></a></li>
+            <li><a href="expenses.html"><i class="fas fa-file-invoice-dollar"></i> <span>الصرفيات</span></a></li>
+            <li><a href="reports.html"><i class="fas fa-chart-bar"></i> <span>التقارير</span></a></li>
+        </ul>
     </nav>
 
-    <header class="bg-white border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h1 class="text-4xl font-bold text-gray-900 flex items-center">
-                        <i class="fas fa-users text-blue-600 ml-3 text-3xl"></i>
-                        المشتركين
-                    </h1>
-                </div>
-                <div class="flex gap-3">
-                    <button onclick="openActivateModal()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 font-medium">
-                        <i class="fas fa-check"></i>
-                        تفعيل المشترك
-                    </button>
-                    <button onclick="openAddModal()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium">
-                        <i class="fas fa-plus"></i>
-                        إضافة صرفية
-                    </button>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="flex flex-wrap gap-3 mb-8">
-            <button onclick="openAddModal()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium">
-                <i class="fas fa-plus"></i>
-                إضافة مشترك جديد
-            </button>
-            <button onclick="openActivateModal()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 font-medium">
-                <i class="fas fa-check"></i>
-                تفعيل اشتراك
-            </button>
-            <button onclick="exportData()" class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2 font-medium">
-                <i class="fas fa-download"></i>
-                تصدير CSV
-            </button>
+    <div class="container">
+        <div class="page-header">
+            <h1>قائمة المشتركين</h1>
+            <button onclick="addSubscriber()" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة مشترك</button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white rounded-lg p-6 shadow-sm border-r-4 border-blue-600">
-                <p class="text-sm text-gray-600">إجمالي المشتركين</p>
-                <p class="text-2xl font-bold text-gray-900" id="total-count">0</p>
-            </div>
-            
-            <div class="bg-white rounded-lg p-6 shadow-sm border-r-4 border-green-600">
-                <p class="text-sm text-gray-600">نشط</p>
-                <p class="text-2xl font-bold text-gray-900" id="active-count">0</p>
-            </div>
-            
-            <div class="bg-white rounded-lg p-6 shadow-sm border-r-4 border-orange-600">
-                <p class="text-sm text-gray-600">قيد الانتظار</p>
-                <p class="text-2xl font-bold text-gray-900" id="pending-count">0</p>
-            </div>
-            
-            <div class="bg-white rounded-lg p-6 shadow-sm border-r-4 border-red-600">
-                <p class="text-sm text-gray-600">منتهي</p>
-                <p class="text-2xl font-bold text-gray-900" id="expired-count">0</p>
-            </div>
-        </div>
+        <input type="text" id="search" class="search-box" placeholder="بحث بالاسم أو الهاتف..." onkeyup="renderPage()">
 
-        <div class="bg-white rounded-lg p-6 shadow-sm mb-6">
-                <div class="flex flex-wrap gap-4 items-center">
-                <div class="flex-1 min-w-48">
-                    <input type="text" id="search" placeholder="بحث عن اسم أو هاتف..." 
-                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                           onkeyup="loadSubscribers()">
-                </div>
-                <select id="filter-status" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" onchange="loadSubscribers()">
-                    <option value="">جميع الحالات</option>
-                    <option value="نشط">نشط</option>
-                    <option value="قيد الانتظار">قيد الانتظار</option>
-                    <option value="غير نشط">غير نشط</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="text-right p-4 font-semibold text-gray-700">#</th>
-                            <th class="text-right p-4 font-semibold text-gray-700">الاسم</th>
-                            <th class="text-right p-4 font-semibold text-gray-700">الهاتف</th>
-                            <th class="text-right p-4 font-semibold text-gray-700">تاريخ الاشتراك</th>
-                            <th class="text-right p-4 font-semibold text-gray-700">انتهاء الاشتراك</th>
-                            <th class="text-right p-4 font-semibold text-gray-700">الحالة</th>
-                            <th class="text-right p-4 font-semibold text-gray-700">السعر</th>
-                            <th class="text-right p-4 font-semibold text-gray-700">الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="subscribers-body" class="divide-y divide-gray-200">
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="flex justify-between items-center p-4 border-t border-gray-200">
-                <div class="text-sm text-gray-600">
-                    عرض <span id="page-info">0</span> سجل
-                </div>
-                <div class="flex space-x-2">
-                    <button onclick="previousPage()" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                    <span id="current-page" class="px-3 py-2 bg-blue-600 text-white rounded-lg">1</span>
-                    <button onclick="nextPage()" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <div id="addModal" class="modal">
-        <div class="modal-content">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">إضافة مشترك جديد</h2>
-                <button onclick="closeAddModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-            </div>
-            <form onsubmit="saveNewSubscriber(event)">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">الاسم *</label>
-                    <input type="text" id="add-name" required placeholder="أدخل الاسم الكامل" class="w-full p-3 border border-gray-300 rounded-lg">
-                </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">الهاتف</label>
-                    <input type="text" id="add-phone" placeholder="رقم الهاتف" class="w-full p-3 border border-gray-300 rounded-lg">
-                </div>
-                <div class="flex gap-3 mt-6">
-                    <button type="button" onclick="closeAddModal()" class="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
-                        إلغاء
-                    </button>
-                    <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        <i class="fas fa-save ml-2"></i>
-                        حفظ
-                    </button>
-                </div>
-            </form>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>الهاتف</th>
+                        <th>الحالة</th>
+                        <th>السعر</th>
+                        <th>النوع</th>
+                        <th>تحكم</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
         </div>
     </div>
 
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">تعديل بيانات المشترك</h2>
-                <button onclick="closeEditModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-            </div>
-            <form onsubmit="saveEditSubscriber(event)">
-                <input type="hidden" id="edit-id">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">الاسم *</label>
-                    <input type="text" id="edit-name" required class="w-full p-3 border border-gray-300 rounded-lg">
-                </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">الهاتف</label>
-                    <input type="text" id="edit-phone" class="w-full p-3 border border-gray-300 rounded-lg">
-                </div>
-                <div class="flex gap-3 mt-6">
-                    <button type="button" onclick="closeEditModal()" class="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
-                        إلغاء
-                    </button>
-                    <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        <i class="fas fa-save ml-2"></i>
-                        حفظ التعديلات
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="activateModal" class="modal">
-        <div class="modal-content" style="border-radius: 0; padding: 1rem; max-width: 100%; width: 100%; max-height: 100vh; overflow-y: auto;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;">
-                <h2 style="font-size: 1.25rem; font-weight: bold; margin: 0; color: #10b981;">تفعيل جديد</h2>
-                <button onclick="closeActivateModal()" style="background: none; border: none; color: #9ca3af; font-size: 1.5rem; cursor: pointer; padding: 0;">✕</button>
-            </div>
-            
-            <form onsubmit="activateSubscription(event)">
-                <!-- اسم المشترك -->
-                <div style="margin-bottom: 1rem;">
-                    <input type="text" id="act-name" required placeholder="اسم المشترك" 
-                           style="width: 100%; padding: 0.625rem; border: 1px solid #d1d5db; border-radius: 4px; font-size: 1rem;"
-                           oninput="searchSubscriber()">
-                    
-                    <!-- قائمة الاقتراحات -->
-                    <div id="subscriber-suggestions" style="margin-top: 0.25rem; border: 1px solid #e5e7eb; border-radius: 4px; max-height: 120px; overflow-y: auto; display: none; background: #f9fafb;">
-                        <div id="suggestions-list"></div>
-                    </div>
-                </div>
-
-                <!-- السعر -->
-                <div style="margin-bottom: 1rem;">
-                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
-                        <button type="button" class="price-btn" onclick="selectPrice(35000, this)" 
-                                style="flex: 1; padding: 0.625rem; border: 1px solid #d1d5db; border-radius: 4px; background: white; font-weight: 500; color: #1f2937; cursor: pointer; font-size: 0.875rem;">
-                            35 ألف
-                        </button>
-                        <button type="button" class="price-btn" onclick="selectPrice(30000, this)" 
-                                style="flex: 1; padding: 0.625rem; border: 1px solid #d1d5db; border-radius: 4px; background: white; font-weight: 500; color: #1f2937; cursor: pointer; font-size: 0.875rem;">
-                            30 ألف
-                        </button>
-                        <button type="button" class="price-btn" onclick="toggleCustomPrice(this)" 
-                                style="flex: 1; padding: 0.625rem; border: 1px solid #d1d5db; border-radius: 4px; background: white; font-weight: 500; color: #1f2937; cursor: pointer; font-size: 0.875rem;">
-                            مخصص
-                        </button>
-                    </div>
-                    
-                    <!-- السعر المخصص -->
-                    <input type="number" id="custom-price" placeholder="سعر مخصص" 
-                           style="width: 100%; padding: 0.625rem; border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.875rem; display: none;" 
-                           step="1000" min="0">
-                    <input type="hidden" id="selected-price">
-                </div>
-
-                <!-- نوع الدفع - أزرار بسيطة -->
-                <div style="margin-bottom: 1rem;">
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button type="button" id="btn-naqdh" onclick="setPaymentType('نقد', this)" 
-                                style="flex: 1; padding: 0.625rem; border: 2px solid #d1d5db; border-radius: 4px; background: white; font-weight: 600; color: #1f2937; cursor: pointer; font-size: 0.875rem;">
-                            نقد
-                        </button>
-                        <button type="button" id="btn-ajel" onclick="setPaymentType('أجل', this)" 
-                                style="flex: 1; padding: 0.625rem; border: 2px solid #d1d5db; border-radius: 4px; background: white; font-weight: 600; color: #1f2937; cursor: pointer; font-size: 0.875rem;">
-                            أجل
-                        </button>
-                    </div>
-                </div>
-
-                <!-- التواريخ -->
-                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-                    <input type="date" id="sub-date" disabled 
-                           style="flex: 1; padding: 0.625rem; border: 1px solid #d1d5db; border-radius: 4px; background: #f9fafb; font-size: 0.75rem;">
-                    <input type="date" id="exp-date" disabled 
-                           style="flex: 1; padding: 0.625rem; border: 1px solid #d1d5db; border-radius: 4px; background: #f9fafb; font-size: 0.75rem;">
-                </div>
-
-                <!-- معلومات المشترك -->
-                <div id="subscriber-info" style="margin-bottom: 1rem; padding: 0.75rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 4px; display: none; font-size: 0.875rem;">
-                    <p style="margin: 0.25rem 0;">الهاتف: <span id="info-phone" style="font-weight: 600;"></span></p>
-                    <p style="margin: 0.25rem 0;">الحالة: <span id="info-status" style="font-weight: 600;"></span></p>
-                </div>
-
-                <!-- الأزرار -->
-                <div style="display: flex; gap: 0.5rem;">
-                    <button type="button" onclick="closeActivateModal()" 
-                            style="flex: 1; padding: 0.625rem; background: #f3f4f6; color: #1f2937; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 0.875rem;">
-                        إلغاء
-                    </button>
-                    <button type="button" onclick="printReceipt()" 
-                            style="flex: 1; padding: 0.625rem; background: #6b7280; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 0.875rem;">
-                        طباعة
-                    </button>
-                    <button type="submit" 
-                            style="flex: 1; padding: 0.625rem; background: #10b981; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 0.875rem;">
-                        تفعيل
-                    </button>
-                </div>
-                
-                <input type="hidden" id="payment-type">
-            </form>
-        </div>
-    </div>
-
-    <script type="module" src="data-manager.js"></script>
     <script>
-        let currentPage = 1;
-        const itemsPerPage = 10;
-        let allSubscribers = [];
-        let filteredSubscribers = [];
+        window.renderPage = function() {
+            if (typeof DataManager === 'undefined') return;
+            const q = document.getElementById('search').value;
+            const subs = DataManager.searchSubscribers(q);
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
 
-        // تحميل البيانات وعرض الجدول
-        function loadSubscribers() {
-            const search = document.getElementById('search').value.toLowerCase();
-            const statusFilter = document.getElementById('filter-status').value;
-
-            // حماية ضد البيانات الفارغة
-            allSubscribers = DataManager.getSubscribers() || [];
-            
-            filteredSubscribers = allSubscribers.filter(s => {
-                if (!s) return false;
-                const name = (s.name || '').toLowerCase();
-                const phone = (s.phone || '').toString();
-                
-                const matchesSearch = !search || 
-                    name.includes(search) ||
-                    phone.includes(search);
-                
-                const matchesStatus = !statusFilter || s.status === statusFilter;
-                
-                return matchesSearch && matchesStatus;
+            subs.forEach(s => {
+                let statusColor = s.status === 'نشط' ? 'var(--success-color)' : 'var(--warning-color)';
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${s.name}</td>
+                        <td>${s.phone || '-'}</td>
+                        <td style="color:${statusColor}; font-weight:bold;">${s.status}</td>
+                        <td>${s.price.toLocaleString()}</td>
+                        <td>${s.paymentType}</td>
+                        <td>
+                            <button onclick="editSub('${s.id}')" class="btn btn-primary" style="padding:5px 10px;"><i class="fas fa-edit"></i></button>
+                            <button onclick="DataManager.deleteSubscriber('${s.id}')" class="btn btn-danger" style="padding:5px 10px;"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
             });
-
-            currentPage = 1;
-            renderTable();
-            updateStats();
-        }
-
-        // رسم الجدول مع إضافة زر التعديل
-        function renderTable() {
-            const start = (currentPage - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
-            const pageData = filteredSubscribers.slice(start, end);
-
-            const tbody = document.getElementById('subscribers-body');
-            tbody.innerHTML = pageData.map((s, idx) => `
-                <tr class="hover:bg-gray-50">
-                    <td class="p-4">${start + idx + 1}</td>
-                    <td class="p-4 font-medium">${s.name || 'بدون اسم'}</td>
-                    <td class="p-4 text-gray-600">${s.phone || '-'}</td>
-                    <td class="p-4 text-gray-600">${s.subscribeDate || '-'}</td>
-                    <td class="p-4 text-gray-600">${s.expiryDate || '-'}</td>
-                    <td class="p-4">
-                        <span class="px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(s.status)}">
-                            ${s.status || 'غير محدد'}
-                        </span>
-                    </td>
-                    <td class="p-4 font-bold text-blue-600">${(s.price || 0).toLocaleString()} د.ع</td>
-                    <td class="p-4">
-                        <div class="flex gap-2">
-                            <button onclick="openEditModal(${s.id})" class="text-blue-600 hover:text-blue-800 text-sm" title="تعديل">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="deleteSubscriber(${s.id})" class="text-red-600 hover:text-red-800 text-sm" title="حذف">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-
-            document.getElementById('page-info').textContent = `${start + 1}-${Math.min(end, filteredSubscribers.length)} من ${filteredSubscribers.length}`;
-            document.getElementById('current-page').textContent = currentPage;
-        }
-
-        function updateStats() {
-            const stats = DataManager.getStatistics();
-            document.getElementById('total-count').textContent = stats.totalSubscribers;
-            document.getElementById('active-count').textContent = stats.activeSubscribers;
-            document.getElementById('pending-count').textContent = stats.pendingSubscribers;
-            document.getElementById('expired-count').textContent = stats.expiredSubscribers;
-        }
-
-        function getStatusColor(status) {
-            const colors = {
-                'نشط': 'bg-green-100 text-green-800',
-                'قيد الانتظار': 'bg-orange-100 text-orange-800',
-                'غير نشط': 'bg-red-100 text-red-800'
-            };
-            return colors[status] || 'bg-gray-100 text-gray-800';
-        }
-
-        // --- إدارة النوافذ المنبثقة (Modals) ---
-
-        function openAddModal() {
-            document.getElementById('addModal').classList.add('active');
-        }
-
-        function closeAddModal() {
-            document.getElementById('addModal').classList.remove('active');
-            document.getElementById('add-name').value = '';
-            document.getElementById('add-phone').value = '';
-        }
-
-        function saveNewSubscriber(e) {
-            e.preventDefault();
-            const name = document.getElementById('add-name').value;
-            const phone = document.getElementById('add-phone').value;
-
-            if (!name.trim()) {
-                return;
-            }
-
-            DataManager.addSubscriber({ name, phone });
-            loadSubscribers();
-            closeAddModal();
-        }
-
-        // --- وظائف التعديل الجديدة (Edit) ---
-        function openEditModal(id) {
-            const subscriber = DataManager.getSubscriber(id);
-            if(subscriber) {
-                document.getElementById('edit-id').value = subscriber.id;
-                document.getElementById('edit-name').value = subscriber.name;
-                document.getElementById('edit-phone').value = subscriber.phone;
-                document.getElementById('editModal').classList.add('active');
-            }
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').classList.remove('active');
-        }
-
-        function saveEditSubscriber(e) {
-            e.preventDefault();
-            const id = parseInt(document.getElementById('edit-id').value);
-            const name = document.getElementById('edit-name').value;
-            const phone = document.getElementById('edit-phone').value;
-
-            DataManager.updateSubscriber(id, { name, phone });
-            loadSubscribers();
-            closeEditModal();
-        }
-
-        // --- وظائف تفعيل الاشتراك (مع إصلاح البحث) ---
-
-        function openActivateModal() {
-            resetActivateForm();
-            document.getElementById('activateModal').classList.add('active');
-            setDefaultDates();
-        }
-
-        function closeActivateModal() {
-            document.getElementById('activateModal').classList.remove('active');
-            resetActivateForm();
-        }
-
-        function setDefaultDates() {
-            const today = new Date().toISOString().split('T')[0];
-            const expiry = new Date();
-            expiry.setDate(expiry.getDate() + 30);
-            const expiryStr = expiry.toISOString().split('T')[0];
-
-            document.getElementById('sub-date').value = today;
-            document.getElementById('exp-date').value = expiryStr;
-        }
-
-        function selectPrice(price, btn) {
-            // إزالة الحالة السابقة من جميع الأزرار
-            document.querySelectorAll('.price-btn').forEach(b => {
-                b.style.borderColor = '#d1d5db';
-                b.style.background = 'white';
-                b.style.color = '#1f2937';
-            });
-            
-            // إضافة الحالة الجديدة
-            btn.style.borderColor = '#10b981';
-            btn.style.background = '#f0fdf4';
-            btn.style.color = '#1f2937';
-            document.getElementById('selected-price').value = price;
-            document.getElementById('custom-price').style.display = 'none';
-            
-            // تأثير بصري
-            btn.style.transform = 'scale(1.05)';
-            setTimeout(() => { btn.style.transform = 'scale(1)'; }, 100);
-        }
-
-        function toggleCustomPrice(btn) {
-            const customInput = document.getElementById('custom-price');
-            const isHidden = customInput.style.display === 'none';
-            
-            // إزالة الحالة السابقة من جميع الأزرار
-            document.querySelectorAll('.price-btn').forEach(b => {
-                b.style.borderColor = '#d1d5db';
-                b.style.background = 'white';
-                b.style.color = '#1f2937';
-            });
-            
-            if (isHidden) {
-                // إظهار حقل السعر المخصص
-                btn.style.borderColor = '#10b981';
-                btn.style.background = '#f0fdf4';
-                customInput.style.display = 'block';
-                customInput.focus();
-                customInput.style.borderColor = '#10b981';
-            } else {
-                // إخفاء حقل السعر المخصص
-                customInput.style.display = 'none';
-                document.getElementById('selected-price').value = '';
-            }
-        }
-
-        function setPaymentType(type, btn) {
-            // إزالة الحالة من كلا الزرين
-            document.getElementById('btn-naqdh').style.background = 'white';
-            document.getElementById('btn-naqdh').style.color = '#1f2937';
-            document.getElementById('btn-naqdh').style.borderColor = '#d1d5db';
-            
-            document.getElementById('btn-ajel').style.background = 'white';
-            document.getElementById('btn-ajel').style.color = '#1f2937';
-            document.getElementById('btn-ajel').style.borderColor = '#d1d5db';
-            
-            // تطبيق الحالة على الزر المختار
-            btn.style.background = '#10b981';
-            btn.style.color = 'white';
-            btn.style.borderColor = '#10b981';
-            
-            // تحديث القيمة المخفية
-            document.getElementById('payment-type').value = type;
-        }
-        
-
-        // دالة البحث المصححة (تمنع توقف النظام)
-        function searchSubscriber() {
-            const input = document.getElementById('act-name').value.trim();
-            const suggestionBox = document.getElementById('subscriber-suggestions');
-            const infoBox = document.getElementById('subscriber-info');
-            
-            if (!input) {
-                suggestionBox.classList.add('hidden');
-                infoBox.classList.add('hidden');
-                return;
-            }
-
-            let results = [];
-            try {
-                results = DataManager.searchSubscribers(input);
-            } catch (e) {
-                // بحث احتياطي يدوي في حال فشل DataManager
-                const all = DataManager.getSubscribers() || [];
-                const q = input.toLowerCase();
-                results = all.filter(s => (s.name || '').toLowerCase().includes(q));
-            }
-            
-            if (results.length === 0) {
-                suggestionBox.classList.add('hidden');
-                infoBox.classList.add('hidden');
-                return;
-            }
-
-            const suggestionsList = document.getElementById('suggestions-list');
-            // استخدام ID بدلاً من الاسم في دالة النقر (الحل النهائي للمشكلة)
-            suggestionsList.innerHTML = results.map(s => `
-                <div class="p-3 border-b border-gray-200 hover:bg-gray-100 cursor-pointer" onclick="selectSubscriber(${s.id})">
-                    <div class="font-medium">${s.name}</div>
-                    <div class="text-sm text-gray-600">الهاتف: ${s.phone || 'غير متوفر'} | الحالة: ${s.status}</div>
-                </div>
-            `).join('');
-
-            suggestionBox.classList.remove('hidden');
-
-            if (results.length === 1) {
-                showSubscriberInfo(results[0]);
-            }
-        }
-
-        function selectSubscriber(id) {
-            const subscriber = DataManager.getSubscriber(id);
-            
-            if (subscriber) {
-                document.getElementById('act-name').value = subscriber.name;
-                document.getElementById('subscriber-suggestions').classList.add('hidden');
-                showSubscriberInfo(subscriber);
-            }
-        }
-
-        function activateSubscription(e) {
-            e.preventDefault();
-            const name = document.getElementById('act-name').value;
-            const priceInput = document.getElementById('selected-price').value || document.getElementById('custom-price').value;
-            const price = parseInt(priceInput) || 0;
-            const paymentType = document.getElementById('payment-type').value;
-            const subscribeDate = document.getElementById('sub-date').value;
-            const expiryDate = document.getElementById('exp-date').value;
-
-            if (!price) return;
-
-            let existing = null;
-            try {
-                const results = DataManager.searchSubscribers(name);
-                existing = results.find(s => s.name === name);
-            } catch(e) {}
-
-            if (existing) {
-                // تحديث المشترك الموجود - مهم جداً: تعيين status: 'نشط'
-                DataManager.updateSubscriber(existing.id, {
-                    price: parseInt(price),
-                    paymentType: paymentType,
-                    subscribeDate: subscribeDate,
-                    expiryDate: expiryDate,
-                    status: 'نشط' // ✓ تأكيد تعيين الحالة لنشط
-                });
-            } else {
-                // إضافة مشترك جديد
-                DataManager.addSubscriber({
-                    name: name,
-                    price: parseInt(price),
-                    paymentType: paymentType,
-                    subscribeDate: subscribeDate,
-                    expiryDate: expiryDate,
-                    status: 'نشط' // ✓ تأكيد تعيين الحالة لنشط
-                });
-            }
-
-            window.loadSubscribers();
-            closeActivateModal();
-            
-            // إظهار رسالة نجاح
-            const notification = document.createElement('div');
-            notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded shadow-lg z-50';
-            notification.innerHTML = `<i class="fas fa-check-circle ml-2"></i> تم تفعيل الاشتراك بنجاح`;
-            document.body.appendChild(notification);
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                notification.style.transition = 'opacity 0.3s';
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
-        }
-
-        function showSubscriberInfo(subscriber) {
-            if (!subscriber) return;
-            document.getElementById('info-phone').textContent = subscriber.phone || 'غير متوفر';
-            document.getElementById('info-status').textContent = subscriber.status || 'قيد الانتظار';
-            document.getElementById('subscriber-info').classList.remove('hidden');
-        }
-
-        function printReceipt() {
-            const name = document.getElementById('act-name').value;
-            const price = document.getElementById('selected-price').value || document.getElementById('custom-price').value;
-            const paymentType = document.getElementById('payment-type').value;
-            const subscribeDate = document.getElementById('sub-date').value;
-            const expiryDate = document.getElementById('exp-date').value;
-
-            if (!name || !price) return;
-
-            // محاولة جلب الهاتف
-            let phone = 'غير متوفر';
-            try {
-                const results = DataManager.searchSubscribers(name);
-                const sub = results.find(s => s.name === name);
-                if (sub) phone = sub.phone;
-            } catch(e) {}
-
-            // حساب المدة
-            const start = new Date(subscribeDate);
-            const end = new Date(expiryDate);
-            const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-
-            // محتوى الإيصال (تصميم أحادي اللون واحترافي)
-            const receiptHTML = `
-                <!DOCTYPE html>
-                <html lang="ar" dir="rtl">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>إيصال</title>
-                    <style>
-                        @page { size: 80mm auto; margin: 0; }
-                        body { margin: 0; padding: 0; font-family: Arial, sans-serif; direction: rtl; color: #222; }
-                        .receipt { width: 80mm; padding: 8px; background: #fff; }
-                        .header { text-align: center; padding: 6px 0; border-bottom: 1px solid #e6e6e6; }
-                        .header h1 { margin: 0; font-size: 16px; font-weight: 700; color: #111; }
-                        .header p { margin: 4px 0 0; font-size: 11px; color: #666; }
-                        .content { padding: 6px; font-size: 12px; line-height: 1.6; }
-                        .row { margin: 6px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-                        .label { color: #333; font-weight: 600; text-align: right; }
-                        .value { color: #111; text-align: left; }
-                        .divider { border-bottom: 1px dashed #e6e6e6; margin: 8px 0; }
-                        .amount-box { padding: 8px; border: 1px solid #ddd; text-align: center; margin: 8px 0; background: #fff; }
-                        .amount-box .value { font-size: 18px; font-weight: 700; font-family: 'Courier New', monospace; color: #111; }
-                        .details { font-size: 11px; color: #444; padding: 6px; border-top: 1px solid #f5f5f5; margin-top: 8px; }
-                        .status { display: inline-block; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-weight: 600; color: #111; background: #fff; margin-top: 8px; }
-                        .footer { text-align: center; font-size: 10px; color: #666; border-top: 1px solid #f1f1f1; padding-top: 6px; margin-top: 8px; }
-                        .signature { display: flex; justify-content: space-between; margin-top: 10px; }
-                        .sig-line { width: 60px; height: 28px; border-top: 1px solid #333; margin: 0 auto 4px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="receipt">
-                        <div class="header">
-                            <h1>OKComputer</h1>
-                            <p>إيصال تفعيل الاشتراك</p>
-                        </div>
-                        <div class="content">
-                            <div class="row"><span class="label">الاسم</span><span class="value">${name}</span></div>
-                            <div class="row"><span class="label">الهاتف</span><span class="value">${phone}</span></div>
-                            <div class="divider"></div>
-                            <div class="amount-box">
-                                <div class="label">المبلغ المستحق</div>
-                                <div class="value">${parseInt(price).toLocaleString('ar-IQ')} د.ع</div>
-                            </div>
-                            <div class="row"><span class="label">نوع الدفع</span><span class="value">${paymentType}</span></div>
-                            <div class="details">
-                                <div class="row"><span class="label">من</span><span class="value">${subscribeDate}</span></div>
-                                <div class="row"><span class="label">إلى</span><span class="value">${expiryDate}</span></div>
-                                <div class="row"><span class="label">المدة</span><span class="value">${days} يوم</span></div>
-                            </div>
-                            <div class="status">نشط</div>
-                            <div class="footer">
-                                <div>شكراً لتعاملكم معنا</div>
-                                <div style="margin-top:6px;color:#999;font-size:10px;">${new Date().toLocaleString('ar-IQ')}</div>
-                            </div>
-                            <div class="signature">
-                               
-                        </div>
-                    </div>
-                </body>
-                </html>
-            `;
-
-            // طباعة مباشرة داخل iframe مخفي (لا تظهر صفحة إضافية)
-            const iframe = document.createElement('iframe');
-            iframe.style.position = 'fixed';
-            iframe.style.right = '-10000px';
-            iframe.style.width = '0px';
-            iframe.style.height = '0px';
-            iframe.style.border = '0';
-            document.body.appendChild(iframe);
-
-            const iwin = iframe.contentWindow || iframe;
-            const idoc = iframe.contentDocument || iframe.contentWindow.document;
-            idoc.open();
-            idoc.write(receiptHTML);
-            idoc.close();
-
-            // محاولة الطباعة عند تحميل الإطار، مع احتياطي زمني
-            let _printed = false;
-            const _cleanup = () => { try { document.body.removeChild(iframe); } catch(e) {} };
-            const doPrint = () => {
-                if (_printed) return;
-                _printed = true;
-                try {
-                    iwin.focus();
-                    if (iwin.print) iwin.print();
-                } catch (err) {
-                    console.error('Print error:', err);
-                }
-                setTimeout(_cleanup, 800);
-            };
-
-            iframe.onload = () => doPrint();
-            // fallback (will call doPrint only if not already printed)
-            const _fallbackTimer = setTimeout(() => doPrint(), 700);
-        }
-
-        function resetActivateForm() {
-            document.getElementById('act-name').value = '';
-            document.getElementById('payment-type').value = '';
-            document.getElementById('selected-price').value = '';
-            document.getElementById('custom-price').value = '';
-            document.getElementById('subscriber-suggestions').classList.add('hidden');
-            document.getElementById('subscriber-info').classList.add('hidden');
-            document.querySelectorAll('.price-btn').forEach(b => b.classList.remove('border-blue-600', 'bg-blue-50'));
-        }
-
-        function deleteSubscriber(id) {
-            DataManager.deleteSubscriber(id);
-            loadSubscribers();
-        }
-
-        function exportData() {
-            const data = filteredSubscribers.map(s => ({
-                'الاسم': s.name,
-                'الهاتف': s.phone,
-                'تاريخ الاشتراك': s.subscribeDate,
-                'انتهاء الاشتراك': s.expiryDate,
-                'الحالة': s.status,
-                'السعر': s.price
-            }));
-            DataManager.exportToCSV(data, 'subscribers');
-        }
-
-        window.onclick = function(e) {
-            const addModal = document.getElementById('addModal');
-            const activateModal = document.getElementById('activateModal');
-            const editModal = document.getElementById('editModal');
-            if (e.target === addModal) closeAddModal();
-            if (e.target === activateModal) closeActivateModal();
-            if (e.target === editModal) closeEditModal();
         };
 
-        function previousPage() { if (currentPage > 1) { currentPage--; renderTable(); } }
-        function nextPage() { 
-            const totalPages = Math.ceil(filteredSubscribers.length / itemsPerPage);
-            if (currentPage < totalPages) { currentPage++; renderTable(); } 
-        }
+        window.addSubscriber = function() {
+            const name = prompt("الاسم:");
+            if(!name) return;
+            const phone = prompt("الهاتف:");
+            const price = prompt("سعر الاشتراك:", "0");
+            const type = confirm("هل الدفع آجل (دين)؟") ? "أجل" : "نقد";
+            
+            DataManager.addSubscriber({
+                name, phone, price, paymentType: type, status: "قيد الانتظار"
+            });
+        };
 
-        document.addEventListener('DOMContentLoaded', loadSubscribers);
-    </script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./service-worker.js', { scope: './' }).catch(() => {});
-        }
+        window.editSub = function(id) {
+            const s = DataManager.getSubscriber(id);
+            const newPrice = prompt("تعديل السعر:", s.price);
+            if(newPrice !== null) {
+                // إذا تم وضع سعر، نعتبره مديونية (أجل) تلقائياً لتسهيل العمل
+                DataManager.updateSubscriber(id, { price: parseInt(newPrice), paymentType: 'أجل' });
+            }
+        };
+
+        setTimeout(renderPage, 1000);
     </script>
 </body>
 </html>
