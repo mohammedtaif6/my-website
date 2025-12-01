@@ -1,12 +1,12 @@
-/* style.css - النسخة الاحترافية الشاملة */
+/* style.css - النسخة النهائية مع الإشعارات */
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
 
 :root {
-    --primary-color: #1e40af; /* أزرق */
-    --secondary-color: #673AB7; /* بنفسجي */
-    --success-color: #10b981; /* أخضر */
-    --danger-color: #ef4444; /* أحمر */
-    --warning-color: #f59e0b; /* برتقالي */
+    --primary-color: #1e40af;
+    --secondary-color: #673AB7;
+    --success-color: #10b981;
+    --danger-color: #ef4444;
+    --warning-color: #f59e0b;
     --bg-color: #f3f4f6;
     --text-color: #1f2937;
     --white: #ffffff;
@@ -30,9 +30,7 @@ body { background-color: var(--bg-color); direction: rtl; color: var(--text-colo
     top: 0;
     z-index: 1000;
 }
-
 .navbar .logo { font-size: 20px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
-
 .nav-links { display: flex; list-style: none; gap: 5px; height: 100%; align-items: center; margin: 0; padding: 0; }
 .nav-links li { height: 100%; display: flex; align-items: center; }
 .nav-links a {
@@ -48,9 +46,8 @@ body { background-color: var(--bg-color); direction: rtl; color: var(--text-colo
 }
 .nav-links a:hover, .nav-links a.active { background: rgba(255,255,255,0.15); color: white; font-weight: bold; }
 
-/* === المحتوى الرئيسي === */
+/* === المحتوى === */
 .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
-
 .page-header {
     display: flex; justify-content: space-between; align-items: center;
     background: white; padding: 20px; border-radius: 12px; margin-bottom: 25px;
@@ -58,7 +55,7 @@ body { background-color: var(--bg-color); direction: rtl; color: var(--text-colo
 }
 .page-header h1 { font-size: 20px; color: var(--primary-color); margin: 0; }
 
-/* === الأزرار === */
+/* === الأزرار والكروت === */
 .btn {
     padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;
     font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;
@@ -72,8 +69,7 @@ body { background-color: var(--bg-color); direction: rtl; color: var(--text-colo
 .btn-purple { background: var(--secondary-color); }
 .btn-secondary { background: #6b7280; }
 
-/* === الكروت === */
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
 .stat-card {
     background: white; padding: 20px; border-radius: 12px; text-align: center;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-bottom: 4px solid var(--primary-color);
@@ -90,38 +86,17 @@ th, td { padding: 15px; text-align: right; border-bottom: 1px solid #e5e7eb; }
 th { background: #f9fafb; font-weight: 600; color: #4b5563; }
 tr:hover { background: #f8fafc; }
 
-/* === البحث === */
-.search-box { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; margin-bottom: 20px; outline: none; }
-.search-box:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1); }
-
-/* === النوافذ المنبثقة (Modals) === */
-.modal {
-    display: none; position: fixed; z-index: 2000; left: 0; top: 0;
-    width: 100%; height: 100%; overflow: auto;
-    background-color: rgba(0,0,0,0.5);
-    align-items: center; justify-content: center;
+/* === إشعارات النظام (Toasts) === */
+#toast-container { position: fixed; bottom: 20px; left: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+.toast {
+    background: #333; color: white; padding: 15px 25px; border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px;
+    animation: slideIn 0.3s ease-out; min-width: 300px;
 }
-.modal.active { display: flex; }
-.modal-content {
-    background-color: #fefefe; margin: auto; padding: 25px;
-    border-radius: 15px; width: 90%; max-width: 500px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    position: relative; animation: slideDown 0.3s;
-}
-@keyframes slideDown { from {transform: translateY(-20px); opacity: 0;} to {transform: translateY(0); opacity: 1;} }
-
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-.modal-header h3 { margin: 0; color: var(--primary-color); }
-.close-btn { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; background: none; border: none; }
-.close-btn:hover { color: #000; }
-
-.form-group { margin-bottom: 15px; }
-.form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; color: #374151; }
-.form-group input, .form-group select { 
-    width: 100%; padding: 10px; border: 1px solid #d1d5db; 
-    border-radius: 8px; font-family: 'Cairo', sans-serif; font-size: 14px;
-}
-.form-group input:focus, .form-group select:focus { border-color: var(--primary-color); outline: none; }
+.toast.success { background: var(--success-color); }
+.toast.error { background: var(--danger-color); }
+.toast.info { background: var(--primary-color); }
+@keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
 /* === الموبايل === */
 @media (max-width: 768px) {
