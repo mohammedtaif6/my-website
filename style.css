@@ -1,243 +1,101 @@
-/* style.css - تصميم لوحة التحكم الجديد */
-
+/* style.css - النسخة الذهبية الموحدة (الشريط العلوي) */
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
 
 :root {
-    --primary-color: #1e40af; /* أزرق */
+    --primary-color: #1e40af; /* أزرق رئيسي */
     --secondary-color: #673AB7; /* بنفسجي */
+    --success-color: #10b981; /* أخضر */
+    --danger-color: #ef4444; /* أحمر */
+    --warning-color: #f59e0b; /* برتقالي */
     --bg-color: #f3f4f6;
-    --text-color: #333;
-    --sidebar-width: 260px;
+    --text-color: #1f2937;
     --white: #ffffff;
-    --danger: #f44336;
-    --success: #4CAF50;
 }
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: 'Cairo', sans-serif; /* خط عربي جميل */
-}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
 
-body {
-    background-color: var(--bg-color);
-    direction: rtl; /* اتجاه عربي */
-    color: var(--text-color);
-}
+body { background-color: var(--bg-color); direction: rtl; color: var(--text-color); padding-bottom: 60px; }
 
-/* === تخطيط الصفحة (Layout) === */
-.dashboard-container {
-    display: flex;
-    min-height: 100vh;
-}
-
-/* === القائمة الجانبية (Sidebar) === */
-.sidebar {
-    width: var(--sidebar-width);
-    background: linear-gradient(180deg, var(--primary-color) 0%, #1e3a8a 100%);
-    color: var(--white);
-    position: fixed;
-    height: 100vh;
-    right: 0; /* لأن الموقع عربي */
-    top: 0;
-    padding: 20px;
-    box-shadow: -2px 0 10px rgba(0,0,0,0.1);
-    z-index: 100;
-}
-
-.sidebar .logo h2 {
-    text-align: center;
-    margin-bottom: 40px;
-    font-size: 24px;
-    border-bottom: 1px solid rgba(255,255,255,0.2);
-    padding-bottom: 20px;
-}
-
-.nav-links {
-    list-style: none;
-}
-
-.nav-links li {
-    margin-bottom: 10px;
-}
-
-.nav-links a {
+/* === القائمة العلوية (Top Navbar) === */
+.navbar {
+    background: linear-gradient(to left, #1e3a8a, var(--primary-color));
+    color: white;
+    padding: 0 20px;
+    height: 60px;
     display: flex;
     align-items: center;
-    padding: 12px 15px;
-    color: rgba(255,255,255,0.8);
-    text-decoration: none;
-    border-radius: 8px;
-    transition: 0.3s;
-    font-size: 16px;
-}
-
-.nav-links a i {
-    margin-left: 10px; /* مسافة للأيقونة */
-    width: 25px;
-    text-align: center;
-}
-
-.nav-links a:hover, .nav-links li.active a {
-    background: rgba(255,255,255,0.2);
-    color: var(--white);
-    font-weight: bold;
-}
-
-/* === المحتوى الرئيسي (Main Content) === */
-.main-content {
-    margin-right: var(--sidebar-width); /* ترك مسافة للقائمة الجانبية */
-    width: calc(100% - var(--sidebar-width));
-    padding: 30px;
-}
-
-/* === الرأس (Header) === */
-header {
-    display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    background: var(--white);
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
-header h1 {
-    font-size: 22px;
-    color: var(--primary-color);
-}
+.navbar .logo { font-size: 20px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
 
-.header-actions {
-    display: flex;
-    gap: 10px;
-}
-
-/* === البطاقات (Cards) === */
-.stats-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 20px;
-    margin-bottom: 30px;
-}
-
-.card {
-    background: var(--white);
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    text-align: center;
-    border-bottom: 4px solid var(--primary-color);
-}
-
-.card h3 {
-    color: #666;
-    font-size: 14px;
-    margin-bottom: 10px;
-}
-
-.card p {
-    font-size: 28px;
-    font-weight: bold;
-    color: var(--text-color);
-}
-
-/* === الجداول (Tables) === */
-.table-container {
-    background: var(--white);
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    overflow-x: auto;
-}
-
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.data-table th, .data-table td {
-    padding: 15px;
-    text-align: right;
-    border-bottom: 1px solid #eee;
-}
-
-.data-table th {
-    background-color: #f8f9fa;
-    color: #555;
-    font-weight: bold;
-}
-
-.data-table tr:hover {
-    background-color: #f1f5f9;
-}
-
-/* === الأزرار (Buttons) === */
-.action-btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    background-color: var(--primary-color);
-    color: white;
-    cursor: pointer;
-    font-size: 14px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: 0.2s;
-}
-
-.action-btn:hover {
-    opacity: 0.9;
-    transform: translateY(-2px);
-}
-
-.action-btn.secondary {
-    background-color: #607d8b;
-}
-
-.action-btn.delete-btn {
-    background-color: #ffebee;
-    color: var(--danger);
+.nav-links { display: flex; list-style: none; gap: 5px; height: 100%; align-items: center; }
+.nav-links li { height: 100%; display: flex; align-items: center; }
+.nav-links a {
+    color: rgba(255,255,255,0.9);
+    text-decoration: none;
     padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
+.nav-links a:hover, .nav-links a.active { background: rgba(255,255,255,0.15); color: white; font-weight: bold; }
 
-.action-btn.delete-btn:hover {
-    background-color: var(--danger);
-    color: white;
+/* === المحتوى الرئيسي === */
+.container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+
+/* === الرأس والأزرار === */
+.page-header {
+    display: flex; justify-content: space-between; align-items: center;
+    background: white; padding: 20px; border-radius: 12px; margin-bottom: 25px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
+.page-header h1 { font-size: 20px; color: var(--primary-color); margin: 0; }
 
-/* === تصميم الجوال (Responsive) === */
+.btn {
+    padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;
+    font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;
+    transition: all 0.2s; text-decoration: none;
+}
+.btn:hover { transform: translateY(-2px); opacity: 0.9; }
+.btn-primary { background: var(--primary-color); color: white; }
+.btn-success { background: var(--success-color); color: white; }
+.btn-danger { background: var(--danger-color); color: white; }
+.btn-warning { background: var(--warning-color); color: white; }
+.btn-purple { background: var(--secondary-color); color: white; }
+
+/* === البطاقات الإحصائية === */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
+.stat-card {
+    background: white; padding: 20px; border-radius: 12px; text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-bottom: 4px solid var(--primary-color);
+}
+.stat-card h3 { font-size: 14px; color: #6b7280; margin-bottom: 10px; }
+.stat-card .value { font-size: 28px; font-weight: bold; color: var(--text-color); }
+
+/* === الجداول === */
+.table-wrapper { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+table { width: 100%; border-collapse: collapse; min-width: 600px; }
+th, td { padding: 15px; text-align: right; border-bottom: 1px solid #e5e7eb; }
+th { background: #f9fafb; font-weight: 600; color: #4b5563; }
+tr:hover { background: #f8fafc; }
+
+/* === البحث === */
+.search-box { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; margin-bottom: 20px; outline: none; }
+.search-box:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1); }
+
+/* === الموبايل === */
 @media (max-width: 768px) {
-    .sidebar {
-        width: 70px; /* تصغير القائمة */
-        padding: 10px;
-    }
-    
-    .sidebar .logo h2, .nav-links a span {
-        display: none; /* إخفاء النصوص */
-    }
-    
-    .nav-links a {
-        justify-content: center;
-        padding: 15px 0;
-    }
-    
-    .nav-links a i {
-        margin: 0;
-        font-size: 20px;
-    }
-    
-    .main-content {
-        margin-right: 70px;
-        width: calc(100% - 70px);
-        padding: 15px;
-    }
-    
-    header {
-        flex-direction: column;
-        gap: 15px;
-        text-align: center;
-    }
+    .nav-links a span { display: none; } /* إخفاء النص والاكتفاء بالأيقونات */
+    .nav-links { gap: 2px; }
+    .nav-links a { padding: 8px; font-size: 18px; }
+    .page-header { flex-direction: column; gap: 15px; text-align: center; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
 }
