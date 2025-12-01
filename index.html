@@ -3,16 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>لوحة التحكم - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=10.0"> 
+    <title>OK Computer - لوحة التحكم</title>
+    
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        }
+    </script>
+
+    <link rel="stylesheet" href="style.css?v=12.0"> 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* إصلاح سريع لمشكلة عدم استجابة اللمس في الموبايل */
+        .card, .btn { cursor: pointer; touch-action: manipulation; }
+        a.card { text-decoration: none; display: block; color: inherit; }
+        
+        /* ضمان ظهور القائمة في الموبايل */
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .header-card { flex-direction: column; text-align: center; }
+            .quick-actions { width: 100%; }
+            .quick-actions button { width: 100%; margin-bottom: 10px; }
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
-        <div class="logo">
-            <i class="fas fa-chart-line"></i> OK Computer
-        </div>
-        <button class="mobile-menu-btn" onclick="toggleMenu()">
+        <div class="logo"><i class="fas fa-chart-line"></i> OK Computer</div>
+        <button class="mobile-menu-btn" onclick="document.getElementById('navLinks').classList.toggle('active')">
             <i class="fas fa-bars"></i>
         </button>
         <ul class="nav-links" id="navLinks">
@@ -29,106 +52,70 @@
         <div class="header-card">
             <div class="welcome-text">
                 <h1>لوحة القيادة</h1>
-                <p id="currentDate">جاري التحميل...</p>
+                <p id="currentDate">...</p>
             </div>
             <div class="quick-actions">
-                <button onclick="window.openActivateModal()" class="btn btn-primary">
-                    <i class="fas fa-user-plus"></i> تفعيل مشترك
-                </button>
-                <button onclick="window.openExpenseModal()" class="btn btn-danger">
-                    <i class="fas fa-receipt"></i> إضافة صرفية
-                </button>
-                <button onclick="forceUpdateSystem()" class="btn btn-warning">
-                    <i class="fas fa-sync"></i> تحديث النظام
-                </button>
+                <button onclick="window.openActivateModal()" class="btn btn-primary"><i class="fas fa-user-plus"></i> تفعيل</button>
+                <button onclick="window.openExpenseModal()" class="btn btn-danger"><i class="fas fa-receipt"></i> صرفية</button>
             </div>
         </div>
 
         <div class="stats-grid">
             <a href="subscribers.html" class="card">
                 <div class="icon-box blue"><i class="fas fa-users"></i></div>
-                <div class="card-info">
-                    <h3>المشتركين</h3>
-                    <p id="stat-total">0</p>
-                </div>
+                <div class="card-info"><h3>المشتركين</h3><p id="stat-total">0</p></div>
             </a>
-
             <a href="debts.html" class="card">
                 <div class="icon-box red"><i class="fas fa-money-bill-wave"></i></div>
-                <div class="card-info">
-                    <h3>الديون (أجل)</h3>
-                    <p id="stat-debts" class="text-danger">0</p>
-                </div>
+                <div class="card-info"><h3>الديون (أجل)</h3><p id="stat-debts" class="text-danger">0</p></div>
             </a>
-
             <a href="payments.html" class="card">
                 <div class="icon-box green"><i class="fas fa-hand-holding-usd"></i></div>
-                <div class="card-info">
-                    <h3>الواردات</h3>
-                    <p id="stat-received" class="text-success">0</p>
-                </div>
+                <div class="card-info"><h3>الواردات</h3><p id="stat-received" class="text-success">0</p></div>
             </a>
-
             <a href="expenses.html" class="card">
                 <div class="icon-box orange"><i class="fas fa-file-invoice-dollar"></i></div>
-                <div class="card-info">
-                    <h3>المصروفات</h3>
-                    <p id="stat-expenses" class="text-warning">0</p>
-                </div>
+                <div class="card-info"><h3>المصروفات</h3><p id="stat-expenses" class="text-warning">0</p></div>
             </a>
-
             <a href="expired.html" class="card">
                 <div class="icon-box gray"><i class="fas fa-times-circle"></i></div>
-                <div class="card-info">
-                    <h3>المنتهية</h3>
-                    <p id="stat-expired">0</p>
-                </div>
+                <div class="card-info"><h3>المنتهية</h3><p id="stat-expired">0</p></div>
             </a>
-
             <a href="expiring.html" class="card">
                 <div class="icon-box purple"><i class="fas fa-clock"></i></div>
-                <div class="card-info">
-                    <h3>تنتهي قريباً</h3>
-                    <p id="stat-expiring">0</p>
-                </div>
+                <div class="card-info"><h3>تنتهي قريباً</h3><p id="stat-expiring">0</p></div>
             </a>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <button onclick="localStorage.clear(); window.location.reload(true);" class="btn" style="background:#333; color:white;">
+                <i class="fas fa-sync"></i> إعادة ضبط النظام (اضغط إذا واجهت مشاكل)
+            </button>
         </div>
     </div>
 
     <div id="activateModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
-                <h3>تفعيل اشتراك جديد</h3>
+                <h3>تفعيل اشتراك</h3>
                 <button onclick="window.closeActivateModal()" class="close-btn">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label>اسم المشترك</label>
-                    <input type="text" id="act-name" placeholder="ابحث عن الاسم..." oninput="window.searchSub(this.value)">
+                    <label>الاسم</label>
+                    <input type="text" id="act-name" placeholder="ابحث..." oninput="window.searchSub(this.value)">
                     <div id="search-results" class="search-dropdown"></div>
                 </div>
-                <div class="form-group">
-                    <label>السعر (دينار)</label>
-                    <input type="number" id="act-price" value="35000">
-                </div>
+                <div class="form-group"><label>السعر</label><input type="number" id="act-price" value="35000"></div>
                 <div class="form-group">
                     <label>نوع الدفع</label>
-                    <select id="act-type">
-                        <option value="نقد">نقد (واصل)</option>
-                        <option value="أجل">أجل (دين)</option>
-                    </select>
+                    <select id="act-type"><option value="نقد">نقد</option><option value="أجل">أجل</option></select>
                 </div>
                 <div class="row">
-                    <div class="form-group half">
-                        <label>من تاريخ</label>
-                        <input type="date" id="act-start">
-                    </div>
-                    <div class="form-group half">
-                        <label>إلى تاريخ</label>
-                        <input type="date" id="act-end">
-                    </div>
+                    <div class="half"><label>البدء</label><input type="date" id="act-start"></div>
+                    <div class="half"><label>الانتهاء</label><input type="date" id="act-end"></div>
                 </div>
-                <button onclick="window.saveActivation()" class="btn btn-full btn-success">تفعيل وحفظ</button>
+                <button onclick="window.saveActivation()" class="btn btn-full btn-success">حفظ</button>
             </div>
         </div>
     </div>
@@ -140,116 +127,73 @@
                 <button onclick="window.closeExpenseModal()" class="close-btn">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label>التفاصيل</label>
-                    <input type="text" id="exp-desc" placeholder="مثال: إيجار، كهرباء...">
-                </div>
-                <div class="form-group">
-                    <label>المبلغ</label>
-                    <input type="number" id="exp-amount" placeholder="0">
-                </div>
-                <button onclick="window.saveExpense()" class="btn btn-full btn-danger">حفظ الصرفية</button>
+                <div class="form-group"><label>البيان</label><input type="text" id="exp-desc"></div>
+                <div class="form-group"><label>المبلغ</label><input type="number" id="exp-amount"></div>
+                <button onclick="window.saveExpense()" class="btn btn-full btn-danger">حفظ</button>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { DataManager } from './data-manager.js';
-
-        // جعل الدوال متاحة لزر HTML (حل مشكلة الأزرار التي لا تعمل)
         window.DataManager = DataManager;
 
-        window.toggleMenu = function() {
-            document.getElementById('navLinks').classList.toggle('active');
-        }
-
-        window.openActivateModal = function() {
+        // دوال النافذة
+        window.openActivateModal = () => {
             document.getElementById('activateModal').classList.add('active');
-            // تواريخ افتراضية
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('act-start').value = today;
-            const next = new Date(); next.setDate(next.getDate() + 30);
+            document.getElementById('act-start').value = new Date().toISOString().split('T')[0];
+            const next = new Date(); next.setDate(next.getDate()+30);
             document.getElementById('act-end').value = next.toISOString().split('T')[0];
-        }
+        };
+        window.closeActivateModal = () => document.getElementById('activateModal').classList.remove('active');
+        
+        window.openExpenseModal = () => document.getElementById('expenseModal').classList.add('active');
+        window.closeExpenseModal = () => document.getElementById('expenseModal').classList.remove('active');
 
-        window.closeActivateModal = function() {
-            document.getElementById('activateModal').classList.remove('active');
-        }
-
-        window.openExpenseModal = function() {
-            document.getElementById('expenseModal').classList.add('active');
-        }
-
-        window.closeExpenseModal = function() {
-            document.getElementById('expenseModal').classList.remove('active');
-        }
-
-        window.searchSub = function(val) {
+        // البحث
+        window.searchSub = (val) => {
             const resDiv = document.getElementById('search-results');
-            if(!val) { resDiv.style.display = 'none'; return; }
-            
-            const results = DataManager.searchSubscribers(val);
-            resDiv.innerHTML = results.slice(0, 5).map(s => 
-                `<div onclick="window.selectSub('${s.name}')">${s.name}</div>`
-            ).join('');
+            if(!val) { resDiv.style.display='none'; return; }
+            const res = DataManager.searchSubscribers(val).slice(0,5);
+            resDiv.innerHTML = res.map(s => `<div onclick="window.selectSub('${s.name}')">${s.name}</div>`).join('');
             resDiv.style.display = 'block';
-        }
+        };
+        window.selectSub = (n) => { document.getElementById('act-name').value=n; document.getElementById('search-results').style.display='none'; };
 
-        window.selectSub = function(name) {
-            document.getElementById('act-name').value = name;
-            document.getElementById('search-results').style.display = 'none';
-        }
-
-        window.saveActivation = async function() {
+        // الحفظ
+        window.saveActivation = async () => {
             const name = document.getElementById('act-name').value;
             const price = document.getElementById('act-price').value;
-            const type = document.getElementById('act-type').value;
-            const start = document.getElementById('act-start').value;
-            const end = document.getElementById('act-end').value;
-
-            if(!name || !price) return alert('الرجاء إكمال البيانات');
-
-            // البحث عن المشترك لتحديثه أو إضافته
-            const subs = DataManager.getSubscribers();
-            const existing = subs.find(s => s.name === name);
-
+            if(!name) return alert('ادخل الاسم');
+            
+            const existing = DataManager.getSubscribers().find(s => s.name === name);
             const data = {
-                name, price: parseInt(price), paymentType: type,
-                subscribeDate: start, expiryDate: end, status: 'نشط'
+                name, price: parseInt(price), 
+                paymentType: document.getElementById('act-type').value,
+                subscribeDate: document.getElementById('act-start').value,
+                expiryDate: document.getElementById('act-end').value,
+                status: 'نشط'
             };
 
-            if(existing) {
-                await DataManager.updateSubscriber(existing.id, data);
-            } else {
-                await DataManager.addSubscriber(data);
-            }
+            if(existing) await DataManager.updateSubscriber(existing.id, data);
+            else await DataManager.addSubscriber(data);
             
-            // تسجيل الحركة المالية إذا كان نقد
-            if(type === 'نقد') {
-                // لا نسجلها كدين، بل كاشتراك مدفوع
-                // يمكن تسجيلها في المعاملات لغرض الأرشفة فقط
-            }
-
             window.closeActivateModal();
-            alert('تم التفعيل بنجاح');
-        }
+            alert('تم التفعيل');
+        };
 
-        window.saveExpense = async function() {
-            const desc = document.getElementById('exp-desc').value;
-            const amount = document.getElementById('exp-amount').value;
-            if(!desc || !amount) return alert('أدخل البيانات');
+        window.saveExpense = async () => {
+            const d = document.getElementById('exp-desc').value;
+            const a = document.getElementById('exp-amount').value;
+            if(d && a) {
+                await DataManager.addExpense({ description: d, amount: a, date: new Date().toISOString().split('T')[0] });
+                window.closeExpenseModal();
+                alert('تم الحفظ');
+            }
+        };
 
-            await DataManager.addExpense({
-                description: desc,
-                amount: parseInt(amount),
-                date: new Date().toISOString().split('T')[0]
-            });
-            window.closeExpenseModal();
-            alert('تم حفظ الصرفية');
-        }
-
-        // دالة العرض الرئيسية
-        window.renderDashboard = function() {
+        // التحديث
+        window.updateDashboard = () => {
             const stats = DataManager.getStats();
             document.getElementById('stat-total').innerText = stats.totalSubs;
             document.getElementById('stat-debts').innerText = stats.debts.toLocaleString();
@@ -257,27 +201,10 @@
             document.getElementById('stat-expenses').innerText = stats.expenses.toLocaleString();
             document.getElementById('stat-expired').innerText = stats.expired;
             document.getElementById('stat-expiring').innerText = stats.expiring;
-        }
+        };
 
-        // التاريخ
-        document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-IQ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-        // زر تحديث النظام (لمسح الكاش)
-        window.forceUpdateSystem = async function() {
-            if ('serviceWorker' in navigator) {
-                const registrations = await navigator.serviceWorker.getRegistrations();
-                for (let registration of registrations) {
-                    await registration.unregister();
-                }
-            }
-            localStorage.clear();
-            window.location.reload(true);
-        }
-
-        // بدء التشغيل
+        document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-IQ');
         DataManager.init();
-        // ربط دالة التحديث بالمدير
-        window.updatePageData = window.renderDashboard;
     </script>
 </body>
 </html>
