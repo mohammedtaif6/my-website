@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>المشتركين</title>
-    <link rel="stylesheet" href="style.css?v=6">
+    <link rel="stylesheet" href="style.css?v=7">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="module" src="data-manager.js"></script>
 </head>
@@ -24,7 +24,10 @@
     <div class="container">
         <div class="page-header">
             <h1>قائمة المشتركين</h1>
-            <button onclick="addSubscriber()" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة مشترك</button>
+            <div style="display:flex; gap:10px">
+                <button onclick="window.print()" class="btn btn-purple"><i class="fas fa-print"></i> طباعة القائمة</button>
+                <button onclick="addSubscriber()" class="btn btn-primary"><i class="fas fa-plus"></i> مشترك جديد</button>
+            </div>
         </div>
 
         <input type="text" id="search" class="search-box" placeholder="بحث بالاسم أو الهاتف..." onkeyup="renderPage()">
@@ -50,9 +53,15 @@
         window.renderPage = function() {
             if (typeof DataManager === 'undefined') return;
             const q = document.getElementById('search').value;
+            // دالة البحث الآن ترجع الجميع إذا كان الحقل فارغاً
             const subs = DataManager.searchSubscribers(q);
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
+
+            if (subs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px;">لا يوجد مشتركين</td></tr>';
+                return;
+            }
 
             subs.forEach(s => {
                 let statusColor = s.status === 'نشط' ? 'var(--success-color)' : 'var(--warning-color)';
@@ -61,7 +70,7 @@
                         <td>${s.name}</td>
                         <td>${s.phone || '-'}</td>
                         <td style="color:${statusColor}; font-weight:bold;">${s.status}</td>
-                        <td>${s.price.toLocaleString()}</td>
+                        <td>${parseInt(s.price).toLocaleString()}</td>
                         <td>${s.paymentType}</td>
                         <td>
                             <button onclick="editSub('${s.id}')" class="btn btn-primary" style="padding:5px 10px;"><i class="fas fa-edit"></i></button>
@@ -88,12 +97,17 @@
             const s = DataManager.getSubscriber(id);
             const newPrice = prompt("تعديل السعر:", s.price);
             if(newPrice !== null) {
-                // إذا تم وضع سعر، نعتبره مديونية (أجل) تلقائياً لتسهيل العمل
                 DataManager.updateSubscriber(id, { price: parseInt(newPrice), paymentType: 'أجل' });
             }
         };
 
-        setTimeout(renderPage, 1000);
+        // تشغيل فوري مع فاصل زمني بسيط للتأكد من تحميل DataManager
+        const checkLoad = setInterval(() => {
+            if (typeof DataManager !== 'undefined') {
+                renderPage();
+                clearInterval(checkLoad);
+            }
+        }, 500);
     </script>
 </body>
 </html>
