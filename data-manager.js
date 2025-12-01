@@ -1,6 +1,6 @@
 /**
- * DataManager v4.0 - النسخة الشاملة
- * تم إضافة حسابات دقيقة لكل الكروت (المشتركين، الديون، الواردات، المصروفات)
+ * DataManager v5.0 - النسخة المصححة
+ * تم إصلاح خطأ اختفاء المشتركين في البداية
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -35,7 +35,7 @@ const DataManager = {
         onSnapshot(q, (snapshot) => {
             localData[colName] = snapshot.docs.map(d => {
                 const data = d.data();
-                // تصحيح الأرقام تلقائياً
+                // تصحيح الأرقام لضمان عمل الحسابات
                 if (data.price) data.price = parseInt(data.price) || 0;
                 if (data.amount) data.amount = parseInt(data.amount) || 0;
                 return { ...data, firebaseId: d.id };
@@ -47,6 +47,7 @@ const DataManager = {
     refreshUI() {
         if (typeof window.renderPage === 'function') window.renderPage();
         if (typeof window.updateDashboard === 'function') window.updateDashboard();
+        if (typeof window.loadReports === 'function') window.loadReports();
     },
 
     // --- القراءات ---
@@ -55,8 +56,11 @@ const DataManager = {
     getExpenses() { return localData.expenses; },
     getAllTransactions() { return localData.transactions; },
 
+    // === التصحيح هنا: إظهار الكل إذا كان البحث فارغاً ===
     searchSubscribers(query) {
-        if (!query) return [];
+        if (!query || query.trim() === '') {
+            return localData.subscribers; // إرجاع الجميع
+        }
         const q = query.toLowerCase();
         return localData.subscribers.filter(s => 
             (s.name && s.name.toLowerCase().includes(q)) || 
@@ -64,7 +68,7 @@ const DataManager = {
         );
     },
 
-    // --- العمليات (إضافة/تعديل/حذف) ---
+    // --- العمليات ---
     async addSubscriber(data) {
         try {
             await addDoc(collection(db, "subscribers"), {
@@ -85,10 +89,8 @@ const DataManager = {
         if(!confirm("حذف المشترك نهائياً؟")) return;
         const sub = this.getSubscriber(id);
         if (sub) {
-            // حذف المعاملات المرتبطة أولاً
             const trans = localData.transactions.filter(t => t.subscriberId == id);
             for(let t of trans) await deleteDoc(doc(db, "transactions", t.firebaseId));
-            // حذف المشترك
             await deleteDoc(doc(db, "subscribers", sub.firebaseId));
         }
     },
@@ -107,7 +109,6 @@ const DataManager = {
     async deleteTransaction(id) {
         const trans = localData.transactions.find(t => t.id == id);
         if (!trans) return;
-        // إرجاع الدين
         const sub = this.getSubscriber(trans.subscriberId);
         if (sub) {
             await this.updateSubscriber(sub.id, { 
@@ -132,6 +133,7 @@ const DataManager = {
         if (exp) await deleteDoc(doc(db, "expenses", exp.firebaseId));
     },
 
+    // --- الأرشيف (التقارير) ---
     async archiveDay() {
         const trans = this.getAllTransactions();
         if (trans.length === 0) return alert("لا يوجد مبالغ للترحيل");
@@ -149,39 +151,36 @@ const DataManager = {
         return snap.docs.map(d => ({...d.data(), firebaseId: d.id}));
     },
 
-    // --- الإحصائيات الشاملة (للكروت الستة) ---
+    async deleteArchivedTransaction(firebaseId) {
+        if(!confirm("حذف هذا السجل من الأرشيف؟")) return;
+        await deleteDoc(doc(db, "archived_transactions", firebaseId));
+        if (typeof window.loadReports === 'function') window.loadReports();
+    },
+
+    // --- الإحصائيات ---
     getStats() {
         const subs = this.getSubscribers();
         const trans = this.getAllTransactions();
         const exps = this.getExpenses();
-        const today = new Date();
-
-        // 1. الديون
-        const debts = subs.filter(s => s.paymentType === 'أجل').reduce((sum, s) => sum + (s.price || 0), 0);
         
-        // 2. المبالغ المستلمة (نقد مباشر + واصلات تسديد)
-        const cashSubs = subs.filter(s => s.paymentType === 'نقد').reduce((sum, s) => sum + (s.price || 0), 0); // اشتراكات نقدية
-        const transTotal = trans.reduce((sum, t) => sum + (t.amount || 0), 0); // تسديدات ديون
-        const totalReceived = cashSubs + transTotal; // المجموع الكلي للوارد
-
-        // 3. المصروفات
+        const debts = subs.filter(s => s.paymentType === 'أجل').reduce((sum, s) => sum + (s.price || 0), 0);
+        const cashSubs = subs.filter(s => s.paymentType === 'نقد').reduce((sum, s) => sum + (s.price || 0), 0);
+        const transTotal = trans.reduce((sum, t) => sum + (t.amount || 0), 0);
+        const totalReceived = cashSubs + transTotal;
         const totalExpenses = exps.reduce((sum, e) => sum + (e.amount || 0), 0);
-
-        // 4. المنتهي والقريب
-        const expired = subs.filter(s => s.expiryDate && new Date(s.expiryDate) < today).length;
-        const expiring = subs.filter(s => {
-            if(!s.expiryDate) return false;
-            const diff = (new Date(s.expiryDate) - today) / (1000*60*60*24);
-            return diff >= 0 && diff <= 3;
-        }).length;
 
         return {
             totalSubs: subs.length,
+            active: subs.filter(s => s.status === 'نشط').length,
             debts: debts,
             received: totalReceived,
             expenses: totalExpenses,
-            expired: expired,
-            expiring: expiring
+            expired: subs.filter(s => s.expiryDate && new Date(s.expiryDate) < new Date()).length,
+            expiring: subs.filter(s => {
+                if(!s.expiryDate) return false;
+                const diff = (new Date(s.expiryDate) - new Date()) / (1000*60*60*24);
+                return diff >= 0 && diff <= 3;
+            }).length
         };
     }
 };
