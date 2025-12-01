@@ -3,23 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=7">
+    <title>الرئيسية - OK Computer</title>
+    <link rel="stylesheet" href="style.css?v=8">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="module" src="data-manager.js"></script>
-    <style>
-        /* ستايل النوافذ المنبثقة (Modals) */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; }
-        .modal.active { display: flex; }
-        .modal-content { background: white; border-radius: 12px; padding: 20px; width: 95%; max-width: 450px; max-height: 90vh; overflow-y: auto; }
-        .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
-        /* ستايل الكروت لتكون قابلة للضغط */
-        .stat-card { cursor: pointer; transition: transform 0.2s; display: block; text-decoration: none; }
-        .stat-card:hover { transform: translateY(-5px); }
-    </style>
 </head>
 <body>
     <nav class="navbar">
@@ -37,7 +24,7 @@
     <div class="container">
         <div class="page-header" style="background: linear-gradient(to left, #1e40af, #3b82f6); color: white;">
             <div>
-                <h1 style="color:white; font-size: 24px;">أهلاً بك، المدير</h1>
+                <h1 style="color:white; font-size: 24px;">لوحة التحكم</h1>
                 <span id="dateDisplay" style="opacity: 0.8; font-size: 14px;"></span>
             </div>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
@@ -50,43 +37,36 @@
             </div>
         </div>
 
-        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));">
-            
+        <div class="stats-grid">
             <a href="subscribers.html" class="stat-card">
-                <h3 style="color:#1e40af"><i class="fas fa-users"></i> المشتركين</h3>
+                <h3><i class="fas fa-users"></i> المشتركين</h3>
                 <div class="value" id="val-subs">0</div>
             </a>
-
             <a href="debts.html" class="stat-card" style="border-bottom-color: #ef4444;">
-                <h3 style="color:#ef4444"><i class="fas fa-money-bill"></i> الديون (أجل)</h3>
+                <h3><i class="fas fa-money-bill"></i> الديون (أجل)</h3>
                 <div class="value" id="val-debts">0</div>
             </a>
-
             <a href="payments.html" class="stat-card" style="border-bottom-color: #10b981;">
-                <h3 style="color:#10b981"><i class="fas fa-hand-holding-usd"></i> الواردات</h3>
+                <h3><i class="fas fa-hand-holding-usd"></i> الواردات</h3>
                 <div class="value" id="val-received">0</div>
             </a>
-
             <a href="expenses.html" class="stat-card" style="border-bottom-color: #f59e0b;">
-                <h3 style="color:#f59e0b"><i class="fas fa-file-invoice"></i> المصروفات</h3>
+                <h3><i class="fas fa-file-invoice"></i> المصروفات</h3>
                 <div class="value" id="val-expenses">0</div>
             </a>
-
             <a href="expired.html" class="stat-card" style="border-bottom-color: #6b7280;">
-                <h3 style="color:#6b7280"><i class="fas fa-exclamation-circle"></i> المنتهية</h3>
+                <h3><i class="fas fa-exclamation-circle"></i> المنتهية</h3>
                 <div class="value" id="val-expired">0</div>
             </a>
-
             <a href="expiring.html" class="stat-card" style="border-bottom-color: #8b5cf6;">
-                <h3 style="color:#8b5cf6"><i class="fas fa-clock"></i> قريباً</h3>
+                <h3><i class="fas fa-clock"></i> قريباً</h3>
                 <div class="value" id="val-expiring">0</div>
             </a>
-
         </div>
-
+        
         <div style="text-align: center; margin-top: 20px;">
-            <button onclick="forceUpdate()" class="btn" style="background: #333; color: white; padding: 10px 30px;">
-                <i class="fas fa-sync"></i> تحديث النظام
+            <button onclick="window.location.reload(true)" class="btn btn-secondary">
+                <i class="fas fa-sync"></i> تحديث الصفحة
             </button>
         </div>
     </div>
@@ -95,11 +75,11 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>تفعيل اشتراك جديد</h3>
-                <button onclick="closeModal('activateModal')" style="background:none;border:none;font-size:20px;">&times;</button>
+                <button class="close-btn" onclick="closeModal('activateModal')">&times;</button>
             </div>
             <div class="form-group">
                 <label>اسم المشترك</label>
-                <input type="text" id="act-name" placeholder="ابحث عن الاسم..." oninput="searchSub(this.value)">
+                <input type="text" id="act-name" placeholder="ابحث..." oninput="searchSub(this.value)">
                 <div id="search-results" style="max-height:100px; overflow-y:auto; border:1px solid #eee; display:none;"></div>
             </div>
             <div class="form-group">
@@ -115,15 +95,18 @@
             </div>
             <div class="form-group" style="display:flex; gap:10px;">
                 <div style="flex:1">
-                    <label>تاريخ البدء</label>
+                    <label>البدء</label>
                     <input type="date" id="act-start">
                 </div>
                 <div style="flex:1">
-                    <label>تاريخ الانتهاء</label>
+                    <label>الانتهاء</label>
                     <input type="date" id="act-end">
                 </div>
             </div>
-            <button onclick="saveActivation()" class="btn btn-primary" style="width:100%">تفعيل وحفظ</button>
+            <div class="modal-footer">
+                <button onclick="printReceiptFromModal()" class="btn btn-secondary"><i class="fas fa-print"></i> طباعة وصل</button>
+                <button onclick="saveActivation()" class="btn btn-primary">تفعيل وحفظ</button>
+            </div>
         </div>
     </div>
 
@@ -131,35 +114,32 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>إضافة صرفية</h3>
-                <button onclick="closeModal('expenseModal')" style="background:none;border:none;font-size:20px;">&times;</button>
+                <button class="close-btn" onclick="closeModal('expenseModal')">&times;</button>
             </div>
             <div class="form-group">
                 <label>التفاصيل</label>
-                <input type="text" id="exp-desc" placeholder="مثال: فاتورة انترنت">
+                <input type="text" id="exp-desc" placeholder="مثال: فاتورة كهرباء">
             </div>
             <div class="form-group">
                 <label>المبلغ</label>
                 <input type="number" id="exp-amount" placeholder="0">
             </div>
-            <button onclick="saveExpense()" class="btn btn-danger" style="width:100%">إضافة</button>
+            <button onclick="saveExpense()" class="btn btn-danger" style="width:100%">حفظ</button>
         </div>
     </div>
 
     <script>
-        // إعداد التواريخ الافتراضية
+        // إعدادات أولية
         const today = new Date().toISOString().split('T')[0];
-        document.getElementById('dateDisplay').innerText = today;
+        document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('ar-IQ');
         document.getElementById('act-start').value = today;
-        
-        const nextMonth = new Date();
-        nextMonth.setDate(nextMonth.getDate() + 30);
-        document.getElementById('act-end').value = nextMonth.toISOString().split('T')[0];
+        const next = new Date(); next.setDate(next.getDate()+30);
+        document.getElementById('act-end').value = next.toISOString().split('T')[0];
 
-        // تحديث الواجهة
+        // تحديث البيانات
         window.updateDashboard = function() {
             if (typeof DataManager === 'undefined') return;
             const stats = DataManager.getStats();
-            
             document.getElementById('val-subs').innerText = stats.totalSubs;
             document.getElementById('val-debts').innerText = stats.debts.toLocaleString();
             document.getElementById('val-received').innerText = stats.received.toLocaleString();
@@ -168,83 +148,76 @@
             document.getElementById('val-expiring').innerText = stats.expiring;
         };
 
-        // دوال النوافذ
+        // نوافذ
         window.openModal = (id) => document.getElementById(id).classList.add('active');
         window.closeModal = (id) => document.getElementById(id).classList.remove('active');
 
-        // البحث السريع في نافذة التفعيل
+        // بحث سريع
         window.searchSub = function(val) {
             const resDiv = document.getElementById('search-results');
-            if(!val) { resDiv.style.display = 'none'; return; }
-            
-            const results = DataManager.searchSubscribers(val);
-            resDiv.innerHTML = results.map(s => `
-                <div style="padding:8px; border-bottom:1px solid #eee; cursor:pointer;" 
-                     onclick="fillSub('${s.name}')">
-                     ${s.name}
-                </div>
-            `).join('');
+            if(!val) { resDiv.style.display='none'; return; }
+            const res = DataManager.searchSubscribers(val);
+            resDiv.innerHTML = res.map(s => `<div style="padding:8px; border-bottom:1px solid #eee; cursor:pointer" onclick="fill('${s.name}')">${s.name}</div>`).join('');
             resDiv.style.display = 'block';
         };
-
-        window.fillSub = function(name) {
-            document.getElementById('act-name').value = name;
-            document.getElementById('search-results').style.display = 'none';
-        };
+        window.fill = (n) => { document.getElementById('act-name').value=n; document.getElementById('search-results').style.display='none'; };
 
         // حفظ التفعيل
         window.saveActivation = function() {
             const name = document.getElementById('act-name').value;
             const price = document.getElementById('act-price').value;
-            const type = document.getElementById('act-type').value;
-            const start = document.getElementById('act-start').value;
-            const end = document.getElementById('act-end').value;
-
             if(!name || !price) return alert('أكمل البيانات');
-
-            // البحث عن المشترك لتحديثه أو إضافة جديد
-            const existing = DataManager.searchSubscribers(name).find(s => s.name === name);
             
+            const existing = DataManager.searchSubscribers(name).find(s => s.name===name);
             const data = {
-                name, 
-                price: parseInt(price), 
-                paymentType: type,
-                subscribeDate: start, 
-                expiryDate: end,
+                name, price: parseInt(price), paymentType: document.getElementById('act-type').value,
+                subscribeDate: document.getElementById('act-start').value,
+                expiryDate: document.getElementById('act-end').value,
                 status: 'نشط'
             };
 
-            if(existing) {
-                DataManager.updateSubscriber(existing.id, data);
-            } else {
-                DataManager.addSubscriber(data);
-            }
+            if(existing) DataManager.updateSubscriber(existing.id, data);
+            else DataManager.addSubscriber(data);
+            
             closeModal('activateModal');
-            alert('تم التفعيل بنجاح');
+            alert('تم التفعيل');
         };
 
-        // حفظ الصرفية
+        // طباعة الوصل
+        window.printReceiptFromModal = function() {
+            const name = document.getElementById('act-name').value;
+            const price = document.getElementById('act-price').value;
+            const date = document.getElementById('act-start').value;
+            
+            if(!name) return alert('ادخل الاسم أولاً');
+
+            const win = window.open('', '', 'width=400,height=600');
+            win.document.write(`
+                <html dir="rtl"><body style="font-family:Cairo; text-align:center; padding:20px;">
+                    <h2>OK Computer</h2>
+                    <p>وصل اشتراك انترنت</p>
+                    <hr>
+                    <p><strong>الاسم:</strong> ${name}</p>
+                    <p><strong>المبلغ:</strong> ${parseInt(price).toLocaleString()} د.ع</p>
+                    <p><strong>التاريخ:</strong> ${date}</p>
+                    <hr>
+                    <p>شكراً لاشتراككم معنا</p>
+                    <script>window.print();window.close();<\/script>
+                </body></html>
+            `);
+            win.document.close();
+        };
+
         window.saveExpense = function() {
-            const desc = document.getElementById('exp-desc').value;
-            const amount = document.getElementById('exp-amount').value;
-            if(!desc || !amount) return alert('أكمل البيانات');
-
-            DataManager.addExpense({
-                description: desc,
-                amount: parseInt(amount),
-                date: new Date().toISOString().split('T')[0]
-            });
-            closeModal('expenseModal');
-            document.getElementById('exp-desc').value = '';
-            document.getElementById('exp-amount').value = '';
+            const d = document.getElementById('exp-desc').value;
+            const a = document.getElementById('exp-amount').value;
+            if(d && a) {
+                DataManager.addExpense({ description: d, amount: a, date: today });
+                closeModal('expenseModal');
+                alert('تم الحفظ');
+            }
         };
 
-        window.forceUpdate = function() {
-            localStorage.clear();
-            window.location.reload(true);
-        };
-
-        // التحميل
         setTimeout(updateDashboard, 1000);
     </script>
 </body>
