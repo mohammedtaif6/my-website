@@ -2,9 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>المشتركين</title>
-    <link rel="stylesheet" href="style.css?v=7">
+    <link rel="stylesheet" href="style.css?v=8">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="module" src="data-manager.js"></script>
 </head>
@@ -24,10 +23,7 @@
     <div class="container">
         <div class="page-header">
             <h1>قائمة المشتركين</h1>
-            <div style="display:flex; gap:10px">
-                <button onclick="window.print()" class="btn btn-purple"><i class="fas fa-print"></i> طباعة القائمة</button>
-                <button onclick="addSubscriber()" class="btn btn-primary"><i class="fas fa-plus"></i> مشترك جديد</button>
-            </div>
+            <button onclick="openAddModal()" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة مشترك جديد</button>
         </div>
 
         <input type="text" id="search" class="search-box" placeholder="بحث بالاسم أو الهاتف..." onkeyup="renderPage()">
@@ -40,7 +36,6 @@
                         <th>الهاتف</th>
                         <th>الحالة</th>
                         <th>السعر</th>
-                        <th>النوع</th>
                         <th>تحكم</th>
                     </tr>
                 </thead>
@@ -49,17 +44,36 @@
         </div>
     </div>
 
+    <div id="addSubscriberModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>إضافة مشترك جديد</h3>
+                <button class="close-btn" onclick="closeAddModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>الاسم الكامل</label>
+                <input type="text" id="new-name" placeholder="ادخل الاسم">
+            </div>
+            <div class="form-group">
+                <label>رقم الهاتف</label>
+                <input type="text" id="new-phone" placeholder="07...">
+            </div>
+            <div class="modal-footer">
+                <button onclick="saveNewSubscriber()" class="btn btn-primary" style="width:100%">حفظ</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         window.renderPage = function() {
             if (typeof DataManager === 'undefined') return;
             const q = document.getElementById('search').value;
-            // دالة البحث الآن ترجع الجميع إذا كان الحقل فارغاً
             const subs = DataManager.searchSubscribers(q);
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
 
             if (subs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px;">لا يوجد مشتركين</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">لا يوجد بيانات</td></tr>';
                 return;
             }
 
@@ -71,7 +85,6 @@
                         <td>${s.phone || '-'}</td>
                         <td style="color:${statusColor}; font-weight:bold;">${s.status}</td>
                         <td>${parseInt(s.price).toLocaleString()}</td>
-                        <td>${s.paymentType}</td>
                         <td>
                             <button onclick="editSub('${s.id}')" class="btn btn-primary" style="padding:5px 10px;"><i class="fas fa-edit"></i></button>
                             <button onclick="DataManager.deleteSubscriber('${s.id}')" class="btn btn-danger" style="padding:5px 10px;"><i class="fas fa-trash"></i></button>
@@ -81,16 +94,30 @@
             });
         };
 
-        window.addSubscriber = function() {
-            const name = prompt("الاسم:");
-            if(!name) return;
-            const phone = prompt("الهاتف:");
-            const price = prompt("سعر الاشتراك:", "0");
-            const type = confirm("هل الدفع آجل (دين)؟") ? "أجل" : "نقد";
-            
+        // فتح وإغلاق النافذة
+        window.openAddModal = () => document.getElementById('addSubscriberModal').classList.add('active');
+        window.closeAddModal = () => document.getElementById('addSubscriberModal').classList.remove('active');
+
+        // حفظ المشترك الجديد
+        window.saveNewSubscriber = function() {
+            const name = document.getElementById('new-name').value;
+            const phone = document.getElementById('new-phone').value;
+
+            if(!name) return alert('يجب كتابة الاسم');
+
             DataManager.addSubscriber({
-                name, phone, price, paymentType: type, status: "قيد الانتظار"
+                name: name,
+                phone: phone,
+                price: 0,
+                status: 'قيد الانتظار',
+                paymentType: 'نقد',
+                startDate: new Date().toISOString().split('T')[0]
             });
+
+            closeAddModal();
+            document.getElementById('new-name').value = '';
+            document.getElementById('new-phone').value = '';
+            alert('تمت الإضافة');
         };
 
         window.editSub = function(id) {
@@ -101,13 +128,7 @@
             }
         };
 
-        // تشغيل فوري مع فاصل زمني بسيط للتأكد من تحميل DataManager
-        const checkLoad = setInterval(() => {
-            if (typeof DataManager !== 'undefined') {
-                renderPage();
-                clearInterval(checkLoad);
-            }
-        }, 500);
+        setInterval(() => { if(typeof DataManager !== 'undefined') renderPage(); }, 2000); // تحديث تلقائي للقائمة
     </script>
 </body>
 </html>
