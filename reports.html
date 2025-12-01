@@ -3,133 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>التقارير والأرشيف - OK Computer</title>
-    <link rel="stylesheet" href="style.css">
+    <title>التقارير</title>
+    <link rel="stylesheet" href="style.css?v=7">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="module" src="data-manager.js"></script>
+    <style>
+        @media print {
+            .sidebar, .navbar, .header-actions, .btn { display: none !important; }
+            body { padding: 0; background: white; }
+            .container { margin: 0; max-width: 100%; }
+            table { border: 1px solid #000; }
+            th, td { border: 1px solid #000; }
+        }
+    </style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <nav class="sidebar">
-            <div class="logo">
-                <h2>OK Computer</h2>
-            </div>
-            <ul class="nav-links">
-                <li><a href="index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
-                <li><a href="subscribers.html"><i class="fas fa-users"></i> المشتركين</a></li>
-                <li><a href="debts.html"><i class="fas fa-money-bill-wave"></i> الديون</a></li>
-                <li><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> المبالغ المستلمة</a></li>
-                <li><a href="expenses.html"><i class="fas fa-file-invoice-dollar"></i> الصرفيات</a></li>
-                <li class="active"><a href="reports.html"><i class="fas fa-chart-bar"></i> التقارير</a></li>
-            </ul>
-        </nav>
+    <nav class="navbar">
+        <div class="logo"><i class="fas fa-chart-bar"></i> التقارير</div>
+        <ul class="nav-links">
+            <li><a href="index.html"><i class="fas fa-home"></i> <span>الرئيسية</span></a></li>
+            <li><a href="subscribers.html"><i class="fas fa-users"></i> <span>المشتركين</span></a></li>
+            <li><a href="debts.html"><i class="fas fa-money-bill-wave"></i> <span>الديون</span></a></li>
+            <li><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> <span>المبالغ</span></a></li>
+            <li><a href="expenses.html"><i class="fas fa-file-invoice-dollar"></i> <span>الصرفيات</span></a></li>
+            <li><a href="reports.html" class="active"><i class="fas fa-chart-bar"></i> <span>التقارير</span></a></li>
+        </ul>
+    </nav>
 
-        <div class="main-content">
-            <header>
-                <h1>أرشيف الفواتير المرحلة</h1>
-                <div class="header-actions">
-                    <button onclick="window.print()" class="action-btn secondary">
-                        <i class="fas fa-print"></i> طباعة التقرير
-                    </button>
-                    <button onclick="loadReports()" class="action-btn">
-                        <i class="fas fa-sync"></i> تحديث
-                    </button>
-                </div>
-            </header>
-
-            <div class="stats-cards">
-                <div class="card">
-                    <h3>إجمالي الأرشيف</h3>
-                    <p id="totalReportAmount">0 د.ع</p>
-                </div>
-                <div class="card">
-                    <h3>عدد السجلات</h3>
-                    <p id="totalReportCount">0</p>
-                </div>
+    <div class="container">
+        <div class="page-header">
+            <h1>أرشيف العمليات المرحلة</h1>
+            <div class="header-actions">
+                <button onclick="window.print()" class="btn btn-secondary"><i class="fas fa-print"></i> طباعة التقرير</button>
+                <button onclick="loadReports()" class="btn btn-primary"><i class="fas fa-sync"></i> تحديث</button>
             </div>
+        </div>
 
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>تاريخ الترحيل</th>
-                            <th>تاريخ الوصل</th>
-                            <th>رقم الوصل</th>
-                            <th>المبلغ</th>
-                            <th>النوع</th>
-                            <th>حذف</th> </tr>
-                    </thead>
-                    <tbody id="reportsTableBody">
-                        <tr><td colspan="6" style="text-align:center">جاري تحميل البيانات...</td></tr>
-                    </tbody>
-                </table>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>إجمالي الأرشيف</h3>
+                <div class="value" id="archiveTotal">0 د.ع</div>
             </div>
+            <div class="stat-card">
+                <h3>عدد العمليات</h3>
+                <div class="value" id="archiveCount">0</div>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>تاريخ الترحيل</th>
+                        <th>تاريخ الوصل</th>
+                        <th>المشترك</th> <th>المبلغ</th>
+                        <th>النوع</th>
+                        <th class="no-print">حذف</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
         </div>
     </div>
 
     <script>
-        // دالة تحميل التقارير من الأرشيف
         window.loadReports = async function() {
-            if (typeof DataManager === 'undefined') {
-                setTimeout(loadReports, 500);
-                return;
-            }
+            if (typeof DataManager === 'undefined') { setTimeout(loadReports, 500); return; }
 
-            const tbody = document.getElementById('reportsTableBody');
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">جاري جلب الأرشيف من السيرفر...</td></tr>';
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">جاري جلب البيانات من السيرفر...</td></tr>';
 
-            // استدعاء دالة جلب الأرشيف
-            const reports = await DataManager.getArchivedTransactions();
-
+            const reports = await DataManager.getArchivedData();
             tbody.innerHTML = '';
-            if (!reports || reports.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">سجل الأرشيف فارغ</td></tr>';
-                updateHeaderStats(0, 0);
-                return;
-            }
 
             let total = 0;
-
-            reports.forEach(r => {
-                total += parseInt(r.amount) || 0;
-                
-                // تنسيق تاريخ الترحيل
-                const archiveDate = r.archivedAt ? r.archivedAt.split('T')[0] : 'غير محدد';
-                const originalDate = r.date || '-';
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${archiveDate}</td>
-                    <td>${originalDate}</td>
-                    <td>${r.transactionNumber || '-'}</td>
-                    <td>${parseInt(r.amount).toLocaleString()} د.ع</td>
-                    <td>${r.type || 'تسديد'}</td>
-                    <td>
-                        <button onclick="deleteReport('${r.firebaseId}')" class="action-btn delete-btn" style="background:#f44336; color:white;" title="حذف نهائي">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            updateHeaderStats(total, reports.length);
+            if (reports.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px;">الأرشيف فارغ</td></tr>';
+            } else {
+                reports.forEach(r => {
+                    total += r.amount;
+                    // محاولة جلب اسم المشترك (قد يكون محذوفاً، لذا نعرض ID احتياطاً)
+                    const subName = r.details && r.details.name ? r.details.name : (r.subscriberId ? `مشترك #${r.subscriberId}` : '-');
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${r.archivedAt ? r.archivedAt.split('T')[0] : '-'}</td>
+                            <td>${r.date}</td>
+                            <td>${subName}</td>
+                            <td style="font-weight:bold;">${r.amount.toLocaleString()}</td>
+                            <td>${r.type}</td>
+                            <td class="no-print">
+                                <button onclick="DataManager.deleteArchivedTransaction('${r.firebaseId}')" class="btn btn-danger" style="padding:5px 10px;">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            document.getElementById('archiveTotal').innerText = total.toLocaleString() + ' د.ع';
+            document.getElementById('archiveCount').innerText = reports.length;
         };
 
-        function updateHeaderStats(amount, count) {
-            document.getElementById('totalReportAmount').innerText = amount.toLocaleString() + ' د.ع';
-            document.getElementById('totalReportCount').innerText = count;
-        }
-
-        // دالة الحذف الخاصة بالتقارير
-        window.deleteReport = async function(firebaseId) {
-            await DataManager.deleteArchivedTransaction(firebaseId);
-        };
-
-        // التحميل عند الفتح
-        document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(loadReports, 1000);
-        });
+        document.addEventListener('DOMContentLoaded', () => setTimeout(loadReports, 1000));
     </script>
 </body>
 </html>
