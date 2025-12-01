@@ -2,9 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>المبالغ المستلمة</title>
-    <link rel="stylesheet" href="style.css?v=6">
+    <link rel="stylesheet" href="style.css?v=9">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="module" src="data-manager.js"></script>
 </head>
@@ -23,17 +22,8 @@
 
     <div class="container">
         <div class="page-header">
-            <h1>المقبوضات اليومية</h1>
-            <div class="actions">
-                <button onclick="DataManager.archiveDay()" class="btn btn-purple"><i class="fas fa-file-export"></i> مطابقة وترحيل</button>
-            </div>
-        </div>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>مجموع اليوم</h3>
-                <div class="value" id="todayTotal">0</div>
-            </div>
+            <h1>المقبوضات (الصندوق اليومي)</h1>
+            <button onclick="DataManager.archiveDay()" class="btn btn-purple"><i class="fas fa-file-export"></i> ترحيل للأرشيف</button>
         </div>
 
         <div class="table-wrapper">
@@ -58,15 +48,12 @@
             const trans = DataManager.getAllTransactions();
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
-            let total = 0;
 
             if (trans.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px;">الصندوق فارغ (تم الترحيل)</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px;">لا توجد مقبوضات في الصندوق</td></tr>';
             } else {
-                // ترتيب تنازلي
                 trans.sort((a,b) => b.id - a.id).forEach(t => {
                     const sub = DataManager.getSubscriber(t.subscriberId);
-                    total += t.amount;
                     tbody.innerHTML += `
                         <tr>
                             <td>${sub ? sub.name : 'محذوف'}</td>
@@ -74,7 +61,7 @@
                             <td>${t.type}</td>
                             <td>${t.date}</td>
                             <td>
-                                <button onclick="DataManager.deleteTransaction('${t.id}')" class="btn btn-danger" style="padding:5px 10px;">
+                                <button onclick="DataManager.deleteTransaction('${t.id}')" class="btn btn-danger btn-sm">
                                     <i class="fas fa-undo"></i>
                                 </button>
                             </td>
@@ -82,10 +69,8 @@
                     `;
                 });
             }
-            document.getElementById('todayTotal').innerText = total.toLocaleString() + ' د.ع';
         };
-
-        setTimeout(renderPage, 1000);
+        setInterval(() => { if(typeof DataManager !== 'undefined') renderPage(); }, 1000);
     </script>
 </body>
 </html>
