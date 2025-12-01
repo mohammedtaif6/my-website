@@ -2,27 +2,27 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>الاشتراكات المنتهية</title>
-    <link rel="stylesheet" href="style.css?v=9">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>المنتهية - OK Computer</title>
+    <link rel="stylesheet" href="style.css?v=12.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script type="module" src="data-manager.js"></script>
 </head>
 <body>
     <nav class="navbar">
-        <div class="logo"><i class="fas fa-exclamation-triangle"></i> المنتهية</div>
+        <div class="logo"><i class="fas fa-exclamation-circle"></i> المنتهية</div>
         <ul class="nav-links">
-            <li><a href="index.html"><i class="fas fa-home"></i> <span>الرئيسية</span></a></li>
-            <li><a href="subscribers.html"><i class="fas fa-users"></i> <span>المشتركين</span></a></li>
-            <li><a href="debts.html"><i class="fas fa-money-bill-wave"></i> <span>الديون</span></a></li>
-            <li><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> <span>المبالغ</span></a></li>
-            <li><a href="expenses.html"><i class="fas fa-file-invoice-dollar"></i> <span>الصرفيات</span></a></li>
-            <li><a href="reports.html"><i class="fas fa-chart-bar"></i> <span>التقارير</span></a></li>
+            <li><a href="index.html">الرئيسية</a></li>
+            <li><a href="subscribers.html">المشتركين</a></li>
+            <li><a href="debts.html">الديون</a></li>
+            <li><a href="payments.html">المبالغ</a></li>
+            <li><a href="expenses.html">الصرفيات</a></li>
+            <li><a href="reports.html">التقارير</a></li>
         </ul>
     </nav>
 
     <div class="container">
-        <div class="page-header">
-            <h1>اشتراكات منتهية الصلاحية</h1>
+        <div class="header-card">
+            <h1>اشتراكات منتهية</h1>
         </div>
 
         <div class="table-wrapper">
@@ -30,9 +30,8 @@
                 <thead>
                     <tr>
                         <th>الاسم</th>
-                        <th>الهاتف</th>
                         <th>تاريخ الانتهاء</th>
-                        <th>إجراء</th>
+                        <th>تجديد</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
@@ -40,47 +39,45 @@
         </div>
     </div>
 
-    <script>
-        window.renderPage = function() {
-            if (typeof DataManager === 'undefined') return;
+    <script type="module">
+        import { DataManager } from './data-manager.js';
+        window.DataManager = DataManager;
+
+        window.renderExpired = function() {
             const subs = DataManager.getSubscribers();
             const today = new Date();
-            
-            // فلتر: تاريخ الانتهاء أقل من اليوم
             const expired = subs.filter(s => s.expiryDate && new Date(s.expiryDate) < today);
             
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
 
             if (expired.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px;">لا توجد اشتراكات منتهية</td></tr>';
-                return;
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px;">لا توجد اشتراكات منتهية</td></tr>';
+            } else {
+                expired.forEach(s => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${s.name}</td>
+                            <td style="color:var(--danger);">${s.expiryDate}</td>
+                            <td>
+                                <button onclick="window.renew('${s.id}')" class="btn btn-primary btn-sm">تجديد</button>
+                            </td>
+                        </tr>
+                    `;
+                });
             }
-
-            expired.forEach(s => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${s.name}</td>
-                        <td>${s.phone || '-'}</td>
-                        <td style="color:var(--danger-color); font-weight:bold;">${s.expiryDate}</td>
-                        <td>
-                            <button onclick="editSub('${s.id}')" class="btn btn-primary btn-sm">تجديد</button>
-                        </td>
-                    </tr>
-                `;
-            });
         };
 
-        window.editSub = function(id) {
-            const s = DataManager.getSubscriber(id);
-            // فتح حوار التجديد (يمكن تطويره ليكون modal)
-            const newDate = prompt("تجديد الاشتراك حتى:", new Date().toISOString().split('T')[0]);
+        window.renew = async function(id) {
+            const newDate = prompt("تاريخ الانتهاء الجديد:", new Date().toISOString().split('T')[0]);
             if(newDate) {
-                DataManager.updateSubscriber(id, { expiryDate: newDate, status: 'نشط' });
+                await DataManager.updateSubscriber(id, { expiryDate: newDate, status: 'نشط' });
+                alert('تم التجديد');
             }
         };
 
-        setInterval(() => { if(typeof DataManager !== 'undefined') renderPage(); }, 1000);
+        window.renderPage = window.renderExpired;
+        setTimeout(window.renderExpired, 500);
     </script>
 </body>
 </html>
