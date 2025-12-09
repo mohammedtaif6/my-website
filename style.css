@@ -341,9 +341,11 @@ select:focus {
     align-items: center;
     justify-content: center;
     background: #e0f2fe;
-    color: var(--primary-dark);
+    color: #1e40af;
     font-weight: bold;
-    transition: height 0.2s ease-out;
+    transition: height 0.2s ease-out, background-color 0.3s ease;
+    font-size: 0.9rem;
+    gap: 8px;
 }
 
 /* === Tables === */

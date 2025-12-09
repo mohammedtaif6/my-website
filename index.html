@@ -158,7 +158,7 @@
         <div class="rec-footer">
             <p id="p-date"></p>
             <p>شكراً لاشتراككم معنا</p>
-            <p style="font-size:11px">للاستفسار: 07700000000</p>
+            <p style="font-size:11px">للاستفسار: 07709443145</p>
         </div>
     </div>
 
@@ -228,32 +228,69 @@
     <script type="module">
         import { DataManager } from './data-manager.js';
 
-        // Better PTR Logic
+        // Enhanced Pull-to-Refresh Logic
         let startY = 0;
+        let isPulling = false;
         const ptr = document.getElementById('ptr-indicator');
+        const threshold = 80; // Minimum pull distance to trigger refresh
 
         document.addEventListener('touchstart', (e) => {
-            if (window.scrollY === 0) startY = e.touches[0].pageY;
+            if (window.scrollY === 0) {
+                startY = e.touches[0].clientY;
+                isPulling = true;
+            }
         }, { passive: true });
 
         document.addEventListener('touchmove', (e) => {
-            const y = e.touches[0].pageY;
-            const diff = y - startY;
-            if (window.scrollY === 0 && diff > 0) {
-                if (diff > 70) ptr.style.height = '60px';
-                else ptr.style.height = diff + 'px';
+            if (!isPulling || window.scrollY > 0) return;
+
+            const currentY = e.touches[0].clientY;
+            const pullDistance = currentY - startY;
+
+            if (pullDistance > 0) {
+                // Prevent default scroll behavior when pulling down
+                e.preventDefault();
+
+                // Visual feedback with smooth animation
+                const displayHeight = Math.min(pullDistance * 0.5, 60); // Damping effect
+                ptr.style.height = displayHeight + 'px';
+
+                // Change indicator based on threshold
+                if (pullDistance >= threshold) {
+                    ptr.innerHTML = '<i class="fas fa-arrow-up"></i> اترك للتحديث';
+                    ptr.style.backgroundColor = '#10b981';
+                    ptr.style.color = 'white';
+                } else {
+                    ptr.innerHTML = '<i class="fas fa-arrow-down"></i> اسحب للتحديث';
+                    ptr.style.backgroundColor = '#e0f2fe';
+                    ptr.style.color = '#1e40af';
+                }
             }
-        }, { passive: true });
+        }, { passive: false }); // passive: false to allow preventDefault
 
         document.addEventListener('touchend', (e) => {
-            if (ptr.style.height === '60px') {
+            if (!isPulling) return;
+
+            const endY = e.changedTouches[0].clientY;
+            const pullDistance = endY - startY;
+
+            if (pullDistance >= threshold) {
+                // Trigger refresh
                 ptr.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحديث...';
-                setTimeout(() => location.reload(), 500);
+                ptr.style.height = '50px';
+                setTimeout(() => location.reload(), 400);
             } else {
+                // Reset
                 ptr.style.height = '0';
+                setTimeout(() => {
+                    ptr.style.backgroundColor = '#e0f2fe';
+                    ptr.style.color = '#1e40af';
+                }, 300);
             }
+
+            isPulling = false;
             startY = 0;
-        });
+        }, { passive: true });
 
         // Activation with Fixed Print & WhatsApp
         window.saveActivation = async function (print) {
@@ -310,7 +347,7 @@
                     if (cleanPhone.startsWith('0')) cleanPhone = cleanPhone.substring(1);
                     if (!cleanPhone.startsWith('964')) cleanPhone = '964' + cleanPhone;
 
-                    const msg = `مرحباً ${name}،\n\nتم تفعيل اشتراكك بنجاح ✅\n\n📋 التفاصيل:\nالمبلغ: ${parseInt(price).toLocaleString()} د.ع\nنوع الدفع: ${type}\nتاريخ الانتهاء: ${end}\n\nشكراً لثقتكم بنا 🌟\nOK Computer`;
+                    const msg = `مرحباً ${name}،\n\nتم تفعيل اشتراكك بنجاح ✅\n\n📋 التفاصيل:\nالمبلغ: ${parseInt(price).toLocaleString()} د.ع\nنوع الدفع: ${type}\nتاريخ الانتهاء: ${end}\n\nشكراً لثقتكم بنا 🌟`;
 
                     if (isMobile) {
                         // On mobile, use whatsapp:// protocol

@@ -85,7 +85,8 @@
                 </div>
                 <div class="form-group">
                     <label>رقم الهاتف</label>
-                    <input type="text" id="new-phone" placeholder="07...">
+                    <input type="tel" id="new-phone" placeholder="07..." pattern="[0-9]{11}" maxlength="11"
+                        title="أدخل رقم هاتف عراقي صحيح (11 رقم)">
                 </div>
                 <div class="form-group">
                     <label>الدين السابق (إن وجد)</label>
@@ -118,6 +119,11 @@
                         <span>تعديل بيانات</span>
                     </button>
                 </div>
+                <!-- Call Button -->
+                <button onclick="actionCall()" class="btn btn-success btn-full" id="callBtn"
+                    style="margin-bottom: 15px; display: none;">
+                    <i class="fas fa-phone"></i> اتصال بالمشترك
+                </button>
                 <button onclick="actionDelete()" class="btn btn-outline btn-full"
                     style="color: var(--danger); border-color: var(--danger);">
                     <i class="fas fa-trash"></i> حذف المشترك
@@ -195,10 +201,25 @@
             if (!selectedSubscriber) return;
 
             document.getElementById('actionSubName').innerText = selectedSubscriber.name;
+
+            // Show/hide call button based on phone availability
+            const callBtn = document.getElementById('callBtn');
+            if (selectedSubscriber.phone && selectedSubscriber.phone.trim()) {
+                callBtn.style.display = 'block';
+            } else {
+                callBtn.style.display = 'none';
+            }
+
             document.getElementById('actionModal').classList.add('active');
         };
 
         window.closeActionModal = () => document.getElementById('actionModal').classList.remove('active');
+
+        // Action: Call Subscriber
+        window.actionCall = function () {
+            if (!selectedSubscriber || !selectedSubscriber.phone) return;
+            window.location.href = 'tel:' + selectedSubscriber.phone;
+        };
 
         // Action Handlers
         window.actionActivate = function () {
