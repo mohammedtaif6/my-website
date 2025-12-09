@@ -1,11 +1,8 @@
 /**
- * DataManager v11.0 - Stable Connection
- * تم تفعيل Long Polling لحل مشاكل الاتصال (Error 400)
+ * DataManager v10.0 - القلب النابض
  */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { 
-    getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, initializeFirestore, CACHE_SIZE_UNLIMITED 
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyA-raYlvzPz8T7Mnx8bTWA4O8CyHvp7K_0",
@@ -17,51 +14,28 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-// === التعديل الجذري: إجبار النظام على استخدام Long Polling لضمان الاتصال ===
-const db = initializeFirestore(app, {
-    experimentalForceLongPolling: true, // حل مشكلة 400 Bad Request
-    cacheSizeBytes: CACHE_SIZE_UNLIMITED
-});
-
-let localData = { subscribers: [], transactions: [], expenses: [] };
+let localData = { subscribers: [], transactions: [], expenses: [], archived: [] };
 
 export const DataManager = {
     init() {
-        console.log("🚀 جار الاتصال بفايربيس (وضع الاستقرار)...");
+        console.log("جار الاتصال بفايربيس...");
         this.sync('subscribers');
         this.sync('transactions');
         this.sync('expenses');
+        this.sync('archived');
     },
 
     sync(colName) {
-        // نستخدم try-catch لمنع توقف النظام بالكامل عند حدوث خطأ
-        try {
-            const q = query(collection(db, colName), orderBy("createdAt", "desc"));
-            onSnapshot(q, (snapshot) => {
-                localData[colName] = snapshot.docs.map(d => {
-                    const data = d.data();
-                    // تصحيح الأرقام لضمان عدم ظهور NaN
-                    if (data.price) data.price = Number(data.price) || 0;
-                    if (data.amount) data.amount = Number(data.amount) || 0;
-                    return { ...data, firebaseId: d.id };
-                });
-                
-                // تحديث الواجهة إذا كانت الدالة موجودة
-                if(window.updateDashboard) window.updateDashboard();
-                if(window.renderPage) window.renderPage();
-                
-            }, (error) => {
-                console.error(`خطأ في مزامنة ${colName}:`, error);
-                // محاولة إعادة الاتصال بعد 5 ثواني
-                setTimeout(() => this.sync(colName), 5000);
-            });
-        } catch (e) {
-            console.error("خطأ غير متوقع:", e);
-        }
+        const q = query(collection(db, colName), orderBy("createdAt", "desc"));
+        onSnapshot(q, (snapshot) => {
+            localData[colName] = snapshot.docs.map(d => ({ ...d.data(), firebaseId: d.id }));
+            if(window.updatePageData) window.updatePageData();
+        });
     },
 
-    // --- قراءة البيانات ---
+    // قراءة البيانات
     getSubscribers() { return localData.subscribers; },
     getExpenses() { return localData.expenses; },
     getAllTransactions() { return localData.transactions; },
@@ -71,7 +45,7 @@ export const DataManager = {
         return localData.subscribers.filter(s => s.name.toLowerCase().includes(query.toLowerCase()));
     },
 
-    // --- العمليات ---
+    // العمليات
     async addSubscriber(data) {
         await addDoc(collection(db, "subscribers"), {
             ...data, id: Date.now(), createdAt: new Date().toISOString()
@@ -84,22 +58,9 @@ export const DataManager = {
     },
 
     async deleteSubscriber(id) {
-        if(!confirm("حذف المشترك نهائياً؟")) return;
+        if(!confirm("حذف؟")) return;
         const sub = localData.subscribers.find(s => s.id == id);
-        if(sub) {
-            // حذف الديون المرتبطة
-            const trans = localData.transactions.filter(t => t.subscriberId == id);
-            for (let t of trans) await deleteDoc(doc(db, "transactions", t.firebaseId));
-            await deleteDoc(doc(db, "subscribers", sub.firebaseId));
-        }
-    },
-
-    async recordTransaction(subscriberId, amount, type = 'جزئي') {
-        await addDoc(collection(db, "transactions"), {
-            id: Date.now(), subscriberId, amount: Number(amount), type,
-            date: new Date().toISOString().split('T')[0],
-            createdAt: new Date().toISOString()
-        });
+        if(sub) await deleteDoc(doc(db, "subscribers", sub.firebaseId));
     },
 
     async addExpense(data) {
@@ -108,47 +69,95 @@ export const DataManager = {
         });
     },
 
+    async recordTransaction(subscriberId, amount, description, type = 'نقد') {
+        await addDoc(collection(db, "transactions"), {
+            subscriberId: subscriberId,
+            amount: amount,
+            description: description,
+            type: type,
+            id: Date.now(),
+            createdAt: new Date().toISOString()
+        });
+    },
+
+    getSubscriber(id) {
+        return localData.subscribers.find(s => s.id == id);
+    },
+
+    getDebts() {
+        return localData.subscribers.filter(s => s.paymentType === 'أجل' && s.price > 0);
+    },
+
+    async deleteTransaction(id) {
+        if(!confirm("حذف التسديد؟")) return;
+        const trans = localData.transactions.find(t => t.id == id);
+        if(trans) await deleteDoc(doc(db, "transactions", trans.firebaseId));
+    },
+
     async deleteExpense(id) {
         if(!confirm("حذف الصرفية؟")) return;
         const exp = localData.expenses.find(e => e.id == id);
         if(exp) await deleteDoc(doc(db, "expenses", exp.firebaseId));
     },
 
-    // --- الإحصائيات الدقيقة ---
+    async archiveDay() {
+        if(!confirm("ترحيل المقبوضات اليومية للأرشيف؟")) return;
+        // ترحيل جميع التسديدات الموجبة من اليوم
+        const today = new Date().toISOString().split('T')[0];
+        const todayTransactions = localData.transactions.filter(t => 
+            t.createdAt.split('T')[0] === today && (t.amount || 0) > 0
+        );
+        
+        if(todayTransactions.length === 0) {
+            alert("لا توجد مقبوضات لترحيلها");
+            return;
+        }
+        
+        const archiveData = {
+            date: today,
+            transactions: todayTransactions,
+            total: todayTransactions.reduce((sum, t) => sum + (t.amount || 0), 0),
+            archivedAt: new Date().toISOString()
+        };
+        
+        await addDoc(collection(db, "archived"), archiveData);
+        alert("تم الترحيل بنجاح");
+    },
+
+    async getArchivedData() {
+        // جلب البيانات المؤرشفة
+        if(!localData.archived || localData.archived.length === 0) {
+            return [];
+        }
+        return localData.archived;
+    },
+
+    async deleteArchivedTransaction(firebaseId) {
+        if(!confirm("حذف هذا السجل المؤرشف؟")) return;
+        await deleteDoc(doc(db, "archived", firebaseId));
+    },
+
+    // الإحصائيات
     getStats() {
         const subs = localData.subscribers;
         const trans = localData.transactions;
-        const exps = localData.expenses;
-        const today = new Date();
 
-        // الديون: المشتركين "أجل" ومبلغهم > 0
-        const debts = subs.filter(s => s.paymentType === 'أجل' && s.price > 0)
-                          .reduce((sum, s) => sum + (s.price || 0), 0);
+        // الديون = المشتركين من نوع "أجل" فقط
+        const debts = subs.filter(s => s.paymentType === 'أجل' && s.price > 0).reduce((sum, s) => sum + (s.price || 0), 0);
         
-        // الواردات: (اشتراكات نقد) + (مبالغ واصلة في المعاملات)
-        const cashIncome = subs.filter(s => s.paymentType === 'نقد').reduce((sum, s) => sum + (s.price || 0), 0);
-        const transIncome = trans.reduce((sum, t) => sum + (t.amount || 0), 0);
-        const totalReceived = cashIncome + transIncome;
-
-        const totalExpenses = exps.reduce((sum, e) => sum + (e.amount || 0), 0);
-
-        // المنتهية: تاريخ الانتهاء أصغر من اليوم
-        const expired = subs.filter(s => s.expiryDate && new Date(s.expiryDate) < today).length;
+        // الواردات = فقط المبالغ الموجبة من التسديدات
+        const totalReceived = trans.filter(t => (t.amount || 0) > 0).reduce((sum, t) => sum + (t.amount || 0), 0);
         
-        // قريباً: خلال 3 أيام
-        const expiring = subs.filter(s => {
-            if(!s.expiryDate) return false;
-            const diff = (new Date(s.expiryDate) - today) / (1000*60*60*24);
-            return diff >= 0 && diff <= 3;
-        }).length;
+        // الصرفيات = المبالغ السالبة في transactions فقط (بدون جدول منفصل)
+        const totalExpenses = trans.filter(t => (t.amount || 0) < 0).reduce((sum, t) => sum + Math.abs(t.amount || 0), 0);
 
         return {
             totalSubs: subs.length,
             debts: debts,
             received: totalReceived,
             expenses: totalExpenses,
-            expired: expired,
-            expiring: expiring
+            expired: subs.filter(s => s.expiryDate && new Date(s.expiryDate) < new Date()).length,
+            expiring: 0 // يمكن حسابها لاحقاً
         };
     }
 };

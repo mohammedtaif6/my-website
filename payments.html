@@ -2,28 +2,42 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>المبالغ - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=12.0">
+    <title>المبالغ المستلمة</title>
+    <link rel="stylesheet" href="style.css?v=9">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="module">
+        import { DataManager } from './data-manager.js';
+        window.DataManager = DataManager;
+        DataManager.init();
+    </script>
 </head>
 <body>
     <nav class="navbar">
         <div class="logo"><i class="fas fa-hand-holding-usd"></i> المبالغ</div>
         <ul class="nav-links">
-            <li><a href="index.html">الرئيسية</a></li>
-            <li><a href="subscribers.html">المشتركين</a></li>
-            <li><a href="debts.html">الديون</a></li>
-            <li><a href="payments.html" class="active">المبالغ</a></li>
-            <li><a href="expenses.html">الصرفيات</a></li>
-            <li><a href="reports.html">التقارير</a></li>
+            <li><a href="index.html"><i class="fas fa-home"></i> <span>الرئيسية</span></a></li>
+            <li><a href="subscribers.html"><i class="fas fa-users"></i> <span>المشتركين</span></a></li>
+            <li><a href="debts.html"><i class="fas fa-money-bill-wave"></i> <span>الديون</span></a></li>
+            <li><a href="payments.html" class="active"><i class="fas fa-hand-holding-usd"></i> <span>المبالغ</span></a></li>
+            <li><a href="expenses.html"><i class="fas fa-file-invoice-dollar"></i> <span>الصرفيات</span></a></li>
+            <li><a href="reports.html"><i class="fas fa-chart-bar"></i> <span>التقارير</span></a></li>
         </ul>
     </nav>
 
     <div class="container">
-        <div class="header-card">
-            <h1>الصندوق اليومي</h1>
-            <p id="totalIncome" style="color:var(--success); font-weight:bold;">0 د.ع</p>
+        <div class="page-header">
+            <h1>المقبوضات (الصندوق اليومي)</h1>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="addPaymentManually()" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة مقبوض</button>
+                <button onclick="window.DataManager.archiveDay()" class="btn btn-purple"><i class="fas fa-file-export"></i> ترحيل للأرشيف</button>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+            <div class="card" style="background: linear-gradient(135deg, #27ae60, #229954); color: white; padding: 15px; border-radius: 8px; border: none;">
+                <div style="font-size: 12px; opacity: 0.9;">Balance</div>
+                <div id="actualBalance" style="font-size: 28px; font-weight: bold; margin-top: 8px;">0</div>
+            </div>
         </div>
 
         <div class="table-wrapper">
@@ -32,69 +46,161 @@
                     <tr>
                         <th>المشترك</th>
                         <th>المبلغ</th>
+                        <th>النوع</th>
                         <th>التاريخ</th>
-                        <th>تراجع</th>
+                        <th>الوصف</th>
+                        <th>تحكم</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
             </table>
         </div>
-        
-        <div style="margin-top:20px; text-align:center;">
-            <button onclick="window.archive()" class="btn btn-primary" style="width:100%">ترحيل للأرشيف (تصفير)</button>
+    </div>
+
+    <!-- Modal for adding manual payment -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>إضافة مقبوض يدوي</h3>
+                <button class="close-btn" onclick="closePaymentModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>اختر المشترك</label>
+                <select id="subscriberSelect" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    <option>-- اختر مشترك --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>المبلغ</label>
+                <input type="number" id="paymentAmount" placeholder="المبلغ" style="width: 100%; padding: 8px;">
+            </div>
+            <div class="form-group">
+                <label>نوع التسديد</label>
+                <select id="paymentType" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    <option value="نقد">نقد</option>
+                    <option value="تحويل">تحويل</option>
+                    <option value="شيك">شيك</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>الوصف</label>
+                <textarea id="paymentDescription" placeholder="الوصف" style="width: 100%; padding: 8px;"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button onclick="saveManualPayment()" class="btn btn-primary" style="width: 100%;">حفظ</button>
+            </div>
         </div>
     </div>
 
-    <script type="module">
-        import { DataManager } from './data-manager.js';
-        window.DataManager = DataManager;
-
-        window.renderPayments = function() {
+    <script>
+        window.renderPage = function() {
+            if (typeof DataManager === 'undefined') return;
             const trans = DataManager.getAllTransactions();
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
-            let total = 0;
+            
+            // فصل المقبوضات والصرفيات
+            let totalReceived = 0;
+            let totalExpenses = 0;
 
             if (trans.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">الصندوق فارغ</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px;">لا توجد مقبوضات في الصندوق</td></tr>';
             } else {
-                trans.sort((a,b) => b.id - a.id).forEach(t => {
-                    total += t.amount;
-                    const sub = DataManager.getSubscribers().find(s => s.id == t.subscriberId);
+                trans.sort((a,b) => (b.id || 0) - (a.id || 0)).forEach(t => {
+                    const sub = DataManager.getSubscriber(t.subscriberId);
+                    const amount = t.amount || 0;
+                    
+                    // جمع موجب وسالب بشكل منفصل
+                    if (amount > 0) {
+                        totalReceived += amount;
+                    } else {
+                        totalExpenses += Math.abs(amount); // نأخذ القيمة الموجبة
+                    }
+                    
+                    const date = new Date(t.createdAt || Date.now()).toLocaleDateString('en-US');
+                    const color = amount < 0 ? 'var(--danger-color)' : 'var(--success-color)';
+                    
                     tbody.innerHTML += `
                         <tr>
-                            <td>${sub ? sub.name : 'محذوف'}</td>
-                            <td style="color:var(--success); font-weight:bold;">${t.amount.toLocaleString()}</td>
-                            <td>${t.date}</td>
+                            <td>${sub ? sub.name : (amount < 0 ? 'Expense' : 'Deleted')}</td>
+                            <td style="color:${color}; font-weight:bold;">${amount}</td>
+                            <td>${t.description || '-'}</td>
+                            <td>${date}</td>
+                            <td>${t.type || 'Cash'}</td>
                             <td>
-                                <button onclick="window.deleteTrans('${t.id}')" class="btn btn-danger btn-sm"><i class="fas fa-undo"></i></button>
+                                <button onclick="deletePaymentConfirm('${t.firebaseId || t.id}')" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </td>
                         </tr>
                     `;
                 });
             }
-            document.getElementById('totalIncome').innerText = `المجموع: ${total.toLocaleString()} د.ع`;
+            
+            // الرصيد الفعلي فقط = المقبوضات - الصرفيات
+            const actualBalance = totalReceived - totalExpenses;
+            
+            const balanceEl = document.getElementById('actualBalance');
+            if (balanceEl) balanceEl.innerText = actualBalance.toLocaleString('en-US');
         };
 
-        window.deleteTrans = async function(id) {
-            await DataManager.deleteTransaction(id);
+        window.openPaymentModal = function() {
+            document.getElementById('paymentModal').classList.add('active');
+            populateSubscriberSelect();
         };
 
-        window.archive = async function() {
-            const trans = DataManager.getAllTransactions();
-            if(trans.length === 0) return alert('لا يوجد شيء للترحيل');
-            if(confirm('هل أنت متأكد من ترحيل المبالغ للأرشيف وتصفير الصندوق؟')) {
-                // ترحيل كل المعاملات
-                for(let t of trans) {
-                    await DataManager.addDoc(DataManager.collection(DataManager.db, "archived_transactions"), t);
-                    await DataManager.deleteDoc(DataManager.doc(DataManager.db, "transactions", t.firebaseId));
+        window.closePaymentModal = function() {
+            document.getElementById('paymentModal').classList.remove('active');
+        };
+
+        window.addPaymentManually = openPaymentModal;
+
+        function populateSubscriberSelect() {
+            const select = document.getElementById('subscriberSelect');
+            const subscribers = DataManager.getSubscribers();
+            select.innerHTML = '<option>-- اختر مشترك --</option>';
+            
+            subscribers.forEach(sub => {
+                const option = document.createElement('option');
+                option.value = sub.id;
+                option.textContent = sub.name;
+                select.appendChild(option);
+            });
+        }
+
+        window.saveManualPayment = async function() {
+            const subscriberId = document.getElementById('subscriberSelect').value;
+            const amount = parseInt(document.getElementById('paymentAmount').value);
+            const type = document.getElementById('paymentType').value;
+            const description = document.getElementById('paymentDescription').value;
+
+            if (!subscriberId || !amount || amount <= 0) {
+                alert('الرجاء ملء جميع الحقول بشكل صحيح');
+                return;
+            }
+
+            await DataManager.recordTransaction(subscriberId, amount, description, type);
+            
+            document.getElementById('paymentAmount').value = '';
+            document.getElementById('paymentDescription').value = '';
+            document.getElementById('paymentType').value = 'نقد';
+            document.getElementById('subscriberSelect').value = '';
+            
+            closePaymentModal();
+            alert('تم إضافة المقبوض');
+        };
+
+        window.deletePaymentConfirm = async function(id) {
+            if(confirm('حذف هذا التسديد؟')) {
+                const trans = DataManager.getAllTransactions().find(t => (t.firebaseId || t.id) === id);
+                if(trans) {
+                    await DataManager.deleteTransaction(trans.id);
                 }
-                alert('تم الترحيل');
             }
         };
 
-        window.renderPage = window.renderPayments;
-        setTimeout(window.renderPayments, 500);
+        // تحديث فوري كل 500ms
+        setInterval(() => { if(typeof DataManager !== 'undefined') renderPage(); }, 500);
     </script>
 </body>
 </html>

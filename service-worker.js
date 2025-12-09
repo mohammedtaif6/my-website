@@ -1,18 +1,32 @@
-// service-worker.js - وضع التنظيف (لا تخزين مؤقت)
-self.addEventListener('install', () => {
-    self.skipWaiting();
+// service-worker.js - V10.0 Force Update
+const CACHE_NAME = 'okcomputer-v10.0-FINAL';
+const urlsToCache = [
+  './',
+  './index.html',
+  './style.css',
+  './data-manager.js',
+  './subscribers.html',
+  './debts.html',
+  './payments.html',
+  './expenses.html',
+  './reports.html'
+];
+
+self.addEventListener('install', event => {
+  self.skipWaiting(); // التثبيت الفوري
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache)));
 });
 
-self.addEventListener('activate', (event) => {
-    // حذف أي كاش قديم فوراً
-    event.waitUntil(
-        caches.keys().then((keyList) => {
-            return Promise.all(keyList.map((key) => caches.delete(key)));
-        })
-    );
+self.addEventListener('activate', event => {
+  event.waitUntil(caches.keys().then(keys => Promise.all(
+    keys.map(k => { if (k !== CACHE_NAME) return caches.delete(k); })
+  )));
+  self.clients.claim();
 });
 
-// السماح للشبكة بالعمل بحرية
-self.addEventListener('fetch', (event) => {
-    return;
+self.addEventListener('fetch', event => {
+  // الشبكة أولاً، ثم الكاش (لضمان التحديث دائماً)
+  event.respondWith(
+    fetch(event.request).catch(() => caches.match(event.request))
+  );
 });

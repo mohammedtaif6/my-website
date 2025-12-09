@@ -9,7 +9,11 @@
     <button onclick="testSystem()">اختبر النظام</button>
     <pre id="output"></pre>
 
-    <script type="module" src="data-manager.js"></script>
+    <script type="module">
+        import { DataManager } from './data-manager.js';
+        window.DataManager = DataManager;
+        DataManager.init();
+    </script>
     <script>
         function testSystem() {
             const output = [];

@@ -6,7 +6,11 @@
     <title>التقارير</title>
     <link rel="stylesheet" href="style.css?v=7">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script type="module" src="data-manager.js"></script>
+    <script type="module">
+        import { DataManager } from './data-manager.js';
+        window.DataManager = DataManager;
+        DataManager.init();
+    </script>
     <style>
         @media print {
             .sidebar, .navbar, .header-actions, .btn { display: none !important; }
@@ -68,44 +72,62 @@
 
     <script>
         window.loadReports = async function() {
-            if (typeof DataManager === 'undefined') { setTimeout(loadReports, 500); return; }
+            if (typeof DataManager === 'undefined') { setTimeout(window.loadReports, 500); return; }
 
             const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">جاري جلب البيانات من السيرفر...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">جاري جلب البيانات...</td></tr>';
 
-            const reports = await DataManager.getArchivedData();
-            tbody.innerHTML = '';
+            try {
+                const reports = await DataManager.getArchivedData();
+                tbody.innerHTML = '';
 
-            let total = 0;
-            if (reports.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px;">الأرشيف فارغ</td></tr>';
-            } else {
-                reports.forEach(r => {
-                    total += r.amount;
-                    // محاولة جلب اسم المشترك (قد يكون محذوفاً، لذا نعرض ID احتياطاً)
-                    const subName = r.details && r.details.name ? r.details.name : (r.subscriberId ? `مشترك #${r.subscriberId}` : '-');
-                    
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${r.archivedAt ? r.archivedAt.split('T')[0] : '-'}</td>
-                            <td>${r.date}</td>
-                            <td>${subName}</td>
-                            <td style="font-weight:bold;">${r.amount.toLocaleString()}</td>
-                            <td>${r.type}</td>
-                            <td class="no-print">
-                                <button onclick="DataManager.deleteArchivedTransaction('${r.firebaseId}')" class="btn btn-danger" style="padding:5px 10px;">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
+                let total = 0;
+                if (!reports || reports.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px;">الأرشيف فارغ</td></tr>';
+                } else {
+                    reports.forEach(r => {
+                        if (r.transactions && Array.isArray(r.transactions)) {
+                            r.transactions.forEach(t => {
+                                total += (t.amount || 0);
+                                const sub = DataManager.getSubscriber(t.subscriberId);
+                                const subName = sub ? sub.name : (t.subscriberId ? `مشترك #${t.subscriberId}` : '-');
+                                
+                                tbody.innerHTML += `
+                                    <tr>
+                                        <td>${r.date || '-'}</td>
+                                        <td>${new Date(r.archivedAt || Date.now()).toLocaleDateString('ar-IQ')}</td>
+                                        <td>${subName}</td>
+                                        <td style="font-weight:bold; color:var(--success-color);">${(t.amount || 0).toLocaleString()}</td>
+                                        <td>${t.type || 'نقد'}</td>
+                                        <td class="no-print">
+                                            <button onclick="deleteArchivedRecord('${r.firebaseId}')" class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+                        }
+                    });
+                }
+                document.getElementById('archiveTotal').innerText = total.toLocaleString() + ' د.ع';
+                document.getElementById('archiveCount').innerText = reports.reduce((sum, r) => 
+                    sum + (r.transactions ? r.transactions.length : 0), 0);
+            } catch(err) {
+                console.error('Error loading reports:', err);
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:red;">خطأ في جلب البيانات</td></tr>';
             }
-            document.getElementById('archiveTotal').innerText = total.toLocaleString() + ' د.ع';
-            document.getElementById('archiveCount').innerText = reports.length;
         };
 
-        document.addEventListener('DOMContentLoaded', () => setTimeout(loadReports, 1000));
+        window.deleteArchivedRecord = async function(firebaseId) {
+            await DataManager.deleteArchivedTransaction(firebaseId);
+            window.loadReports();
+        };
+
+        document.addEventListener('DOMContentLoaded', () => setTimeout(window.loadReports, 1000));
+        
+        // تحديث تلقائي
+        setInterval(() => { window.loadReports(); }, 2000);
     </script>
 </body>
 </html>

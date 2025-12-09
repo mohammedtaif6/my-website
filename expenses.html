@@ -2,28 +2,46 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>الصرفيات - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=12.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الصرفيات</title>
+    <link rel="stylesheet" href="style.css?v=8">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="module">
+        import { DataManager } from './data-manager.js';
+        window.DataManager = DataManager;
+        DataManager.init();
+    </script>
 </head>
 <body>
     <nav class="navbar">
         <div class="logo"><i class="fas fa-file-invoice-dollar"></i> الصرفيات</div>
         <ul class="nav-links">
-            <li><a href="index.html">الرئيسية</a></li>
-            <li><a href="subscribers.html">المشتركين</a></li>
-            <li><a href="debts.html">الديون</a></li>
-            <li><a href="payments.html">المبالغ</a></li>
-            <li><a href="expenses.html" class="active">الصرفيات</a></li>
-            <li><a href="reports.html">التقارير</a></li>
+            <li><a href="index.html"><i class="fas fa-home"></i> <span>الرئيسية</span></a></li>
+            <li><a href="subscribers.html"><i class="fas fa-users"></i> <span>المشتركين</span></a></li>
+            <li><a href="debts.html"><i class="fas fa-money-bill-wave"></i> <span>الديون</span></a></li>
+            <li><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> <span>المبالغ</span></a></li>
+            <li><a href="expenses.html" class="active"><i class="fas fa-file-invoice-dollar"></i> <span>الصرفيات</span></a></li>
+            <li><a href="reports.html"><i class="fas fa-chart-bar"></i> <span>التقارير</span></a></li>
         </ul>
     </nav>
 
     <div class="container">
-        <div class="header-card">
-            <h1>المصروفات</h1>
-            <button onclick="window.openExpModal()" class="btn btn-danger">إضافة</button>
+        <div class="page-header">
+            <h1>سجل المصروفات</h1>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="openExpenseModal()" class="btn btn-danger"><i class="fas fa-plus"></i> إضافة صرفية</button>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+            <div class="card" style="background: var(--danger-color); color: white; padding: 15px; border-radius: 8px;">
+                <div style="font-size: 12px;">إجمالي المصروفات</div>
+                <div id="totalExpenses" style="font-size: 24px; font-weight: bold; margin-top: 5px;">0</div>
+            </div>
+            <div class="card" style="background: var(--info-color); color: white; padding: 15px; border-radius: 8px;">
+                <div style="font-size: 12px;">عدد المصروفات</div>
+                <div id="expensesCount" style="font-size: 24px; font-weight: bold; margin-top: 5px;">0</div>
+            </div>
         </div>
 
         <div class="table-wrapper">
@@ -33,7 +51,7 @@
                         <th>البيان</th>
                         <th>المبلغ</th>
                         <th>التاريخ</th>
-                        <th>حذف</th>
+                        <th>تحكم</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
@@ -41,66 +59,116 @@
         </div>
     </div>
 
-    <div id="expModal" class="modal-overlay">
-        <div class="modal-box">
+    <!-- Modal for adding expense -->
+    <div id="expenseModal" class="modal">
+        <div class="modal-content">
             <div class="modal-header">
-                <h3>إضافة صرفية</h3>
-                <button onclick="window.closeExpModal()" class="close-btn">&times;</button>
+                <h3>إضافة صرفية جديدة</h3>
+                <button class="close-btn" onclick="closeExpenseModal()">&times;</button>
             </div>
-            <div class="modal-body">
-                <div class="form-group"><label>البيان</label><input type="text" id="desc"></div>
-                <div class="form-group"><label>المبلغ</label><input type="number" id="amount"></div>
-                <button onclick="window.saveExp()" class="btn btn-full btn-danger">حفظ</button>
+            <div class="form-group">
+                <label>البيان / الوصف</label>
+                <input type="text" id="expenseDesc" placeholder="مثال: راتب الموظف، إيجار..." style="width: 100%; padding: 8px;">
+            </div>
+            <div class="form-group">
+                <label>المبلغ (دينار)</label>
+                <input type="number" id="expenseAmount" placeholder="المبلغ" style="width: 100%; padding: 8px;">
+            </div>
+            <div class="form-group">
+                <label>التاريخ</label>
+                <input type="date" id="expenseDate" style="width: 100%; padding: 8px;">
+            </div>
+            <div class="modal-footer">
+                <button onclick="saveExpense()" class="btn btn-danger" style="width: 100%;">حفظ الصرفية</button>
             </div>
         </div>
     </div>
 
-    <script type="module">
-        import { DataManager } from './data-manager.js';
-        window.DataManager = DataManager;
+    <script>
+        // Set today's date as default
+        window.addEventListener('load', function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('expenseDate').value = today;
+        });
 
-        window.renderExpenses = function() {
+        window.renderPage = function() {
+            if (typeof DataManager === 'undefined') return;
             const exps = DataManager.getExpenses();
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
+            let total = 0;
 
             if (exps.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">لا توجد صرفيات</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px;">لا توجد صرفيات</td></tr>';
             } else {
-                exps.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(e => {
+                exps.sort((a,b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)).forEach(e => {
+                    const amount = e.amount || 0;
+                    total += amount;
+                    const date = new Date(e.createdAt || e.date || Date.now()).toLocaleDateString('ar-IQ');
+                    
                     tbody.innerHTML += `
                         <tr>
-                            <td>${e.description}</td>
-                            <td style="color:var(--danger); font-weight:bold;">${e.amount.toLocaleString()}</td>
-                            <td>${e.date}</td>
+                            <td>${e.description || '-'}</td>
+                            <td style="color:var(--danger-color); font-weight:bold;">${amount.toLocaleString()}</td>
+                            <td>${date}</td>
                             <td>
-                                <button onclick="window.delExp('${e.id}')" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+                                <button onclick="deleteExpenseConfirm('${e.firebaseId || e.id}')" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </td>
                         </tr>
                     `;
                 });
             }
+            
+            document.getElementById('totalExpenses').innerText = total.toLocaleString();
+            document.getElementById('expensesCount').innerText = exps.length;
         };
 
-        window.openExpModal = () => document.getElementById('expModal').classList.add('active');
-        window.closeExpModal = () => document.getElementById('expModal').classList.remove('active');
+        window.openExpenseModal = function() {
+            document.getElementById('expenseModal').classList.add('active');
+        };
 
-        window.saveExp = async function() {
-            const desc = document.getElementById('desc').value;
-            const amount = document.getElementById('amount').value;
-            if(desc && amount) {
-                await DataManager.addExpense({ description: desc, amount: parseInt(amount), date: new Date().toISOString().split('T')[0] });
-                window.closeExpModal();
-                alert('تم الحفظ');
+        window.closeExpenseModal = function() {
+            document.getElementById('expenseModal').classList.remove('active');
+        };
+
+        window.saveExpense = async function() {
+            const description = document.getElementById('expenseDesc').value;
+            const amount = parseInt(document.getElementById('expenseAmount').value);
+            const date = document.getElementById('expenseDate').value;
+
+            if (!description || !amount || amount <= 0) {
+                alert('الرجاء ملء جميع الحقول بشكل صحيح');
+                return;
+            }
+
+            // تسجيل الصرفية كمبلغ سالب فقط (بدون تخزين مزدوج)
+            await DataManager.recordTransaction(null, -amount, `صرفية: ${description}`, 'صرفية');
+            
+            document.getElementById('expenseDesc').value = '';
+            document.getElementById('expenseAmount').value = '';
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('expenseDate').value = today;
+            
+            closeExpenseModal();
+            // بدون alert - تحديث فوري بدلاً منه
+        };
+
+        window.deleteExpenseConfirm = async function(id) {
+            if(confirm('حذف هذه الصرفية؟')) {
+                const exp = DataManager.getExpenses().find(e => (e.firebaseId || e.id) === id);
+                if(exp) {
+                    await DataManager.deleteExpense(exp.id);
+                }
             }
         };
 
-        window.delExp = async function(id) {
-            await DataManager.deleteExpense(id);
-        };
-
-        window.renderPage = window.renderExpenses;
-        setTimeout(window.renderExpenses, 500);
+        // Auto-refresh
+        setInterval(() => { if(typeof DataManager !== 'undefined') renderPage(); }, 500);
+        
+        // Initial render
+        setTimeout(renderPage, 1000);
     </script>
 </body>
 </html>
