@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>الصرفيات - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=11.0"> 
+    <link rel="stylesheet" href="style.css?v=12.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="module">
         import { DataManager } from './data-manager.js';
@@ -12,6 +13,7 @@
         DataManager.init();
     </script>
 </head>
+
 <body>
     <nav class="navbar">
         <div class="logo">
@@ -28,7 +30,7 @@
     </nav>
 
     <div class="container">
-        
+
         <!-- Header Card with Quick Actions -->
         <div class="header-card">
             <div>
@@ -120,51 +122,36 @@
             document.getElementById('expenseDate').value = today;
         });
 
-        window.openExpenseModal = function() {
+        window.openExpenseModal = function () {
             document.getElementById('expenseModal').classList.add('active');
         };
 
-        window.closeExpenseModal = function() {
+        window.closeExpenseModal = function () {
             document.getElementById('expenseModal').classList.remove('active');
         };
 
-        window.renderPage = function() {
+        window.renderPage = function () {
             if (typeof DataManager === 'undefined') return;
-            const exps = DataManager.getExpenses(); // Get transactions with type 'صرفية' or from expenses collection if separated
-            
-            // In Version 10/11 logic, expenses are transactions with negative amount OR separate collection
-            // We should stick to what DataManager provides.
-            // But let's check ALL transactions to be sure we get negative ones too if mixed.
+            // Get all transactions
             const allTrans = DataManager.getAllTransactions();
-            const expenseTrans = allTrans.filter(t => (t.amount || 0) < 0);
-            
-            // If you use separate expenses collection, merge them or prioritize one. Source logic used 'expenses' collection AND 'transactions' with negative
-            // Let's rely on DataManager.getStats() logic which uses negative transactions.
-            // But for LISTING, we might need to look at both or just transactions.
-            // Let's follow DataManager logic: It has separate addExpense (to expenses col) AND recordTransaction (negative).
-            // This is confusing. Let's unify visual: SHOW BOTH if possible or just Transactions.
-            // To simplify: We will show Filtered Negative Transactions as "Expenses".
-            
-            // However, the original code had 'expenses' collection. Let's assume we want to show that.
-            // AND ALSO negative transactions?
-            // To be safe and clean: Let's show "Transactions where amount < 0". This is the source of truth for financial stats.
-            
+            const expenses = allTrans.filter(t => t.type === 'expense' || (t.amount || 0) < 0);
+
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
-            
+
             let total = 0;
-            
-            // Combine logic: Negative Transactions are the real expenses for calculation
-            const expenses = expenseTrans.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
-            
-            if (expenses.length === 0) {
+
+            // Sort expenses (Transactions with negative values or type='expense')
+            const sortedExpenses = expenses.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            if (sortedExpenses.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--secondary);">لا توجد صرفيات مسجلة</td></tr>';
             } else {
-                expenses.forEach(e => {
+                sortedExpenses.forEach(e => {
                     const amount = Math.abs(e.amount || 0);
                     total += amount;
                     const date = new Date(e.createdAt).toLocaleDateString('ar-IQ');
-                    
+
                     tbody.innerHTML += `
                         <tr>
                             <td data-label="الوصف">${e.description || 'بدون وصف'}</td>
@@ -179,19 +166,18 @@
                     `;
                 });
             }
-            
+
             document.getElementById('totalExpenses').innerText = total.toLocaleString();
-            document.getElementById('expensesCount').innerText = expenses.length;
+            document.getElementById('expensesCount').innerText = sortedExpenses.length;
         };
-        
-        // Link update function
+
         window.updatePageData = window.renderPage;
 
-        window.saveExpense = async function() {
+        window.saveExpense = async function () {
             const btn = document.getElementById('saveExpBtn');
             const desc = document.getElementById('expenseDesc').value;
             const amount = parseInt(document.getElementById('expenseAmount').value);
-            
+
             if (!desc || !amount || amount <= 0) {
                 alert('الرجاء إدخال وصف ومبلغ صحيح');
                 return;
@@ -201,9 +187,9 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
 
             try {
-                // We record it as a Negative Transaction to unify the financial logic
-                await DataManager.recordTransaction(null, -amount, `صرفية: ${desc}`, 'صرفية');
-                
+                // Use new V12 function
+                await DataManager.addExpense(amount, desc);
+
                 document.getElementById('expenseDesc').value = '';
                 document.getElementById('expenseAmount').value = '';
                 closeExpenseModal();
@@ -216,14 +202,14 @@
             }
         };
 
-        window.deleteExpenseConfirm = async function(id) {
-            if(confirm('هل أنت متأكد من حذف هذه الصرفية؟ سيتم إرجاع المبلغ للحسابات.')) {
+        window.deleteExpenseConfirm = async function (id) {
+            if (confirm('هل أنت متأكد من حذف هذه الصرفية؟')) {
                 await DataManager.deleteTransaction(id);
             }
         };
-        
-        // Polling fallback
-        setInterval(() => { if(typeof DataManager !== 'undefined') renderPage(); }, 1000);
+
+        setInterval(() => { if (typeof DataManager !== 'undefined') renderPage(); }, 1000);
     </script>
 </body>
+
 </html>

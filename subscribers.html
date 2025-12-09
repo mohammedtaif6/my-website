@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>المشتركين - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=11.0">
+    <link rel="stylesheet" href="style.css?v=12.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="module">
         import { DataManager } from './data-manager.js';
@@ -63,7 +63,7 @@
                             <th>الاسم</th>
                             <th>الهاتف</th>
                             <th>الحالة</th>
-                            <th>السعر</th>
+                            <th>حساب الدين</th>
                             <th>تحكم</th>
                         </tr>
                     </thead>
@@ -89,7 +89,10 @@
                     <label>رقم الهاتف</label>
                     <input type="text" id="new-phone" placeholder="07...">
                 </div>
-                <!-- Default hidden fields or just defaults -->
+                <div class="form-group">
+                    <label>الدين السابق (إن وجد)</label>
+                    <input type="number" id="new-price" value="0">
+                </div>
                 <button onclick="saveNewSubscriber()" class="btn btn-primary btn-full" id="saveSubBtn">
                     <i class="fas fa-save"></i> حفظ البيانات
                 </button>
@@ -118,9 +121,11 @@
                         <td data-label="الاسم" style="font-weight:bold;">${s.name}</td>
                         <td data-label="الهاتف">${s.phone || '-'}</td>
                         <td data-label="الحالة"><span class="${statusClass}">${s.status || 'غير محدد'}</span></td>
-                        <td data-label="السعر" style="font-weight:bold;">${parseInt(s.price || 0).toLocaleString()}</td>
+                        <td data-label="الدين" style="font-weight:bold; color: ${s.price > 0 ? 'var(--danger)' : 'var(--success)'}">
+                            ${parseInt(s.price || 0).toLocaleString()}
+                        </td>
                         <td data-label="تحكم">
-                            <button onclick="editSub('${s.id}')" class="btn btn-outline" style="padding:5px 10px;">
+                            <button onclick="editSub('${s.id}', '${s.name}')" class="btn btn-outline" style="padding:5px 10px;">
                                 <i class="fas fa-edit"></i>
                             </button>
                             <button onclick="DataManager.deleteSubscriber('${s.id}')" class="btn btn-outline" style="padding:5px 10px; color:var(--danger); border-color:var(--danger);">
@@ -139,6 +144,7 @@
             const btn = document.getElementById('saveSubBtn');
             const name = document.getElementById('new-name').value;
             const phone = document.getElementById('new-phone').value;
+            const price = document.getElementById('new-price').value || 0;
 
             if (!name) return alert('يجب كتابة الاسم على الأقل');
 
@@ -146,12 +152,13 @@
             btn.innerHTML = 'جاري الحفظ...';
 
             try {
+                // V12: Add subscriber with initial debt if specified
                 await DataManager.addSubscriber({
                     name: name,
                     phone: phone,
-                    price: 0,
-                    status: 'قيد الانتظار',
-                    paymentType: 'نقد', // Default until activated
+                    initialPrice: parseInt(price), // This will be recorded as Debt Transaction if > 0 and paymentType is 'أجل'
+                    status: 'نشط',
+                    paymentType: parseInt(price) > 0 ? 'أجل' : 'نقد',
                     startDate: new Date().toISOString().split('T')[0]
                 });
 
@@ -166,13 +173,10 @@
             }
         };
 
-        window.editSub = function (id) {
-            // Simplified edit - ideally should be a modal
-            const s = DataManager.getSubscriber(id);
-            const newName = prompt("تعديل الاسم:", s.name);
-            if (newName) {
-                // Could ask for price too or open a full modal. Keeping it simple for now to focus on layout.
-                DataManager.updateSubscriber(id, { name: newName });
+        window.editSub = async function (id, currentName) {
+            const newName = prompt("تعديل الاسم:", currentName);
+            if (newName && newName !== currentName) {
+                await DataManager.updateSubscriber(id, { name: newName });
             }
         };
 

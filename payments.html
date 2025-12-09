@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>المبالغ - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=11.0">
+    <link rel="stylesheet" href="style.css?v=12.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="module">
         import { DataManager } from './data-manager.js';
@@ -114,6 +114,7 @@
     <script>
         window.renderPage = function () {
             if (typeof DataManager === 'undefined') return;
+            // V12: Get Unified Transactions
             const trans = DataManager.getAllTransactions();
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
@@ -126,6 +127,9 @@
             } else {
                 // Sort by ID descending (newest first)
                 trans.sort((a, b) => (b.id || 0) - (a.id || 0)).forEach(t => {
+                    // Skip Debt Records (Non-cash)
+                    if (t.type === 'subscription_debt') return;
+
                     const sub = DataManager.getSubscriber(t.subscriberId);
                     const amount = t.amount || 0;
 
@@ -192,6 +196,7 @@
             btn.innerHTML = 'جاري الحفظ...';
 
             try {
+                // V12: Record Manual Transaction
                 await DataManager.recordTransaction(subId, parseInt(amount), desc, 'نقد');
                 closePaymentModal();
                 document.getElementById('paymentAmount').value = '';

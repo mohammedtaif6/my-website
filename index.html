@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>لوحة التحكم - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=11.0">
+    <link rel="stylesheet" href="style.css?v=12.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
@@ -205,6 +205,7 @@
             document.getElementById('search-results').style.display = 'none';
         }
 
+        // الدالة المحدثة للنظام الموحد V12
         window.saveActivation = async function () {
             const btn = document.getElementById('saveActBtn');
             const name = document.getElementById('act-name').value;
@@ -222,31 +223,23 @@
                 const subs = DataManager.getSubscribers();
                 const existing = subs.find(s => s.name === name);
 
-                const data = {
-                    name,
-                    price: type === 'أجل' ? parseInt(price) : 0,
-                    paymentType: type,
-                    subscribeDate: start,
-                    expiryDate: end,
-                    status: 'نشط'
-                };
-
                 if (existing) {
-                    await DataManager.updateSubscriber(existing.id, data);
+                    // تجديد اشتراك (تحديث + معاملة مالية تلقائية حسب النوع)
+                    await DataManager.renewSubscription(existing.firebaseId, existing.id, {
+                        price: parseInt(price),
+                        type: type, // نقد أو أجل
+                        dateEnd: end
+                    });
                 } else {
-                    await DataManager.addSubscriber(data);
-                }
-
-                // If CASH, record transaction. If DEBT (أجل), we just updated the user debt, NO CASH received yet.
-                // Wait, logic check: 
-                // نقد = We got money NOW. Record Transaction.
-                // أجل = We did NOT get money. We just recorded debt on user. Do NOT record transaction yet?
-                // OR record transaction as "Pending"? 
-                // Usually "Transactions" = Cash Flow. So only record for Cash.
-
-                if (type === 'نقد') {
-                    const subscriber = existing || { id: Date.now(), name: name };
-                    await DataManager.recordTransaction(subscriber.id, parseInt(price), `تفعيل اشتراك: ${name}`, 'نقد');
+                    // إضافة مشترك جديد (مشترك + معاملة مالية تلقائية)
+                    await DataManager.addSubscriber({
+                        name: name,
+                        phone: '',
+                        initialPrice: parseInt(price), // المبلغ أو الدين
+                        status: 'نشط',
+                        paymentType: type,
+                        expiryDate: end
+                    });
                 }
 
                 window.closeActivateModal();
@@ -288,9 +281,9 @@
             const printWindow = window.open('', '', 'width=400,height=600');
             printWindow.document.write(receiptHTML);
             printWindow.document.close();
-            // printWindow.print(); // Optional: Auto print
         }
 
+        // الدالة المحدثة للنظام الموحد V12
         window.saveExpense = async function () {
             const btn = document.getElementById('saveExpBtn');
             const desc = document.getElementById('exp-desc').value;
@@ -302,12 +295,14 @@
             btn.innerHTML = 'جاري الحفظ...';
 
             try {
-                await DataManager.recordTransaction(null, -parseInt(amount), `صرفية: ${desc}`, 'صرفية');
+                // استخدام الدالة الجديدة المبسطة للصرفيات
+                await DataManager.addExpense(parseInt(amount), desc);
                 document.getElementById('exp-desc').value = '';
                 document.getElementById('exp-amount').value = '';
                 window.closeExpenseModal();
             } catch (e) {
-                alert('خطأ');
+                console.error(e);
+                alert('خطأ في الحفظ');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-save"></i> حفظ الصرفية';
