@@ -1,46 +1,36 @@
-/* style.css - Modern & Responsive Design v12.1 (Mobile Fixes) */
+/* style.css - Modern & Responsive Design v13.5 (Toast & Receipt) */
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
 
 :root {
-    /* Color Palette */
     --primary: #3b82f6;
     /* Blue 500 */
     --primary-dark: #2563eb;
     /* Blue 600 */
     --primary-light: #eff6ff;
     /* Blue 50 */
-
     --secondary: #64748b;
     /* Slate 500 */
     --dark: #1e293b;
     /* Slate 800 */
     --light: #f8fafc;
     /* Slate 50 */
-
     --success: #10b981;
     /* Emerald 500 */
     --success-bg: #ecfdf5;
     /* Emerald 50 */
-
     --danger: #ef4444;
     /* Red 500 */
     --danger-bg: #fef2f2;
     /* Red 50 */
-
     --warning: #f59e0b;
     /* Amber 500 */
     --warning-bg: #fffbeb;
     /* Amber 50 */
-
     --white: #ffffff;
     --border-color: #e2e8f0;
-
-    /* Shadows */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-
-    /* Radius */
     --radius-md: 0.5rem;
     --radius-lg: 0.75rem;
     --radius-xl: 1rem;
@@ -86,10 +76,6 @@ body {
     color: var(--primary-dark);
 }
 
-.logo i {
-    font-size: 1.5rem;
-}
-
 .nav-links {
     display: flex;
     gap: 5px;
@@ -120,7 +106,7 @@ body {
     box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
 }
 
-/* === Layout Container === */
+/* === Layout === */
 .container {
     max-width: 1280px;
     margin: 30px auto;
@@ -128,7 +114,6 @@ body {
     animation: fadeIn 0.5s ease-out;
 }
 
-/* === Header Cards === */
 .header-card {
     background: white;
     padding: 25px;
@@ -153,7 +138,7 @@ body {
     font-size: 0.95rem;
 }
 
-/* === Grid System === */
+/* === Grid === */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -171,7 +156,7 @@ body {
     align-items: center;
     gap: 20px;
     text-decoration: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s;
     position: relative;
     overflow: hidden;
 }
@@ -231,7 +216,7 @@ body {
     line-height: 1;
 }
 
-/* === Buttons & Inputs === */
+/* === Components === */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -296,6 +281,69 @@ input:focus,
 select:focus {
     outline: none;
     border-color: var(--primary);
+}
+
+/* === Toast Notification === */
+#toast-container {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    pointer-events: none;
+}
+
+.toast {
+    background: var(--dark);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 50px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+    font-weight: 600;
+    animation: toastUp 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 250px;
+    justify-content: center;
+    pointer-events: auto;
+}
+
+.toast.success {
+    background: var(--success);
+}
+
+.toast.error {
+    background: var(--danger);
+}
+
+@keyframes toastUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* === PTR Indicator === */
+#ptr-indicator {
+    height: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e0f2fe;
+    color: var(--primary-dark);
+    font-weight: bold;
+    transition: height 0.2s ease-out;
 }
 
 /* === Tables === */
@@ -418,7 +466,7 @@ td {
     }
 }
 
-/* === Mobile Responsive === */
+/* === Mobile === */
 @media (max-width: 768px) {
     .navbar {
         padding: 0 15px;
@@ -468,12 +516,6 @@ td {
         gap: 10px;
     }
 
-    .quick-actions .btn {
-        padding: 12px;
-        font-size: 0.9rem;
-    }
-
-    /* Table Mobile - Fixed Overlap */
     table,
     thead,
     tbody,
@@ -498,29 +540,17 @@ td {
 
     td {
         display: flex;
-        /* Use Flexbox */
         justify-content: space-between;
-        /* Space out items */
         align-items: center;
-        /* Vertical Center */
         padding: 12px 10px;
-        /* Reduced side padding */
         border-bottom: 1px solid #f1f5f9;
-        position: static;
-        /* Remove absolute pos context */
         text-align: left;
-        /* Value aligns left */
     }
 
     td:before {
         content: attr(data-label);
         font-weight: 700;
         color: var(--secondary);
-        position: static;
-        /* Standard flow */
         margin-left: 15px;
-        /* Gap between label and val */
-        white-space: nowrap;
-        /* Keep label on one line */
     }
 }

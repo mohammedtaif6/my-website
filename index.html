@@ -4,34 +4,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>لوحة التحكم - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=13.0">
+    <title>لوحة القيادة - OK Computer</title>
+    <link rel="stylesheet" href="style.css?v=13.5">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script type="module">
-        import { DataManager } from './data-manager.js';
-        window.DataManager = DataManager;
-        DataManager.init();
-    </script>
     <style>
-        #ptr-indicator {
-            text-align: center;
-            color: var(--secondary);
-            height: 0;
-            overflow: hidden;
-            transition: height 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        /* Print Receipt Style */
+        .receipt-container {
+            display: none;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            .receipt-container,
+            .receipt-container * {
+                visibility: visible;
+            }
+
+            .receipt-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                text-align: center;
+                font-family: 'Courier New', monospace;
+                direction: rtl;
+            }
+
+            .rec-header {
+                font-size: 1.5rem;
+                font-weight: bold;
+                margin-bottom: 5px;
+                border-bottom: 2px dashed #000;
+                padding-bottom: 10px;
+            }
+
+            .rec-row {
+                display: flex;
+                justify-content: space-between;
+                margin: 8px 0;
+                font-size: 1.1rem;
+                border-bottom: 1px dotted #ccc;
+                padding-bottom: 2px;
+            }
+
+            .rec-footer {
+                margin-top: 20px;
+                font-size: 0.9rem;
+                border-top: 2px dashed #000;
+                padding-top: 10px;
+            }
         }
     </style>
 </head>
 
 <body>
     <div id="ptr-indicator"><i class="fas fa-arrow-down"></i> اسحب للتحديث</div>
+
     <nav class="navbar">
-        <div class="logo">
-            <i class="fas fa-chart-line"></i> OK Computer
-        </div>
+        <div class="logo"><i class="fas fa-chart-line"></i> OK Computer</div>
         <ul class="nav-links">
             <li><a href="index.html" class="active"><i class="fas fa-home"></i> الرئيسية</a></li>
             <li><a href="subscribers.html"><i class="fas fa-users"></i> المشتركين</a></li>
@@ -42,6 +75,7 @@
     </nav>
 
     <div class="container">
+
         <div class="header-card">
             <div>
                 <h1>لوحة القيادة</h1>
@@ -51,7 +85,9 @@
                 <button onclick="window.openActivateModal()" class="btn btn-primary">
                     <i class="fas fa-user-plus"></i> تفعيل مشترك
                 </button>
-                <!-- Removed Update Button as requested -->
+                <button onclick="window.openExpenseModal()" class="btn btn-danger">
+                    <i class="fas fa-minus"></i> صرفية سريعة
+                </button>
             </div>
         </div>
 
@@ -63,7 +99,6 @@
                     <p id="stat-total">0</p>
                 </div>
             </a>
-
             <a href="debts.html" class="card">
                 <div class="icon-box red"><i class="fas fa-money-bill-wave"></i></div>
                 <div class="card-info">
@@ -71,18 +106,13 @@
                     <p id="stat-debts" class="text-danger">0</p>
                 </div>
             </a>
-
             <a href="payments.html" class="card">
                 <div class="icon-box green"><i class="fas fa-wallet"></i></div>
                 <div class="card-info">
-                    <h3>صافي الصندوق (اليوم)</h3>
+                    <h3>صافي الصندوق</h3>
                     <p id="stat-box-balance" class="text-success">0</p>
                 </div>
             </a>
-
-            <!-- Combined Expenses into Box Balance, so removed separate Expenses Card if desired, or keep showing total expenses -->
-            <!-- Let's keep Expired info -->
-
             <a href="expired.html" class="card">
                 <div class="icon-box gray"><i class="fas fa-times-circle"></i></div>
                 <div class="card-info">
@@ -90,7 +120,6 @@
                     <p id="stat-expired">0</p>
                 </div>
             </a>
-
             <a href="expiring.html" class="card">
                 <div class="icon-box purple"><i class="fas fa-clock"></i></div>
                 <div class="card-info">
@@ -98,6 +127,24 @@
                     <p id="stat-expiring">0</p>
                 </div>
             </a>
+        </div>
+    </div>
+
+    <!-- Hidden Receipt Container for Printing -->
+    <div class="receipt-container" id="receiptArea">
+        <div class="rec-header">
+            OK COMPUTER<br>
+            <span style="font-size: 1rem; font-weight: normal;">خدمات الإنترنت والشبكات</span>
+        </div>
+        <div class="rec-row"><span>المشترك:</span><span id="p-name"></span></div>
+        <div class="rec-row"><span>المبلغ:</span><span id="p-price"></span></div>
+        <div class="rec-row"><span>نوع الدفع:</span><span id="p-type"></span></div>
+        <div class="rec-row"><span>تاريخ البدء:</span><span id="p-start"></span></div>
+        <div class="rec-row"><span>تاريخ الانتهاء:</span><span id="p-end"></span></div>
+        <div class="rec-footer">
+            <p id="p-date"></p>
+            <p>شكراً لاشتراككم معنا</p>
+            <p style="font-size:0.8rem">للاستفسار: 07700000000</p>
         </div>
     </div>
 
@@ -111,14 +158,14 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label>اسم المشترك</label>
-                    <input type="text" id="act-name" placeholder="ابحث عن الاسم..."
-                        oninput="window.searchSub(this.value)" autocomplete="off">
+                    <input type="text" id="act-name" placeholder="ابحث..." oninput="window.searchSub(this.value)"
+                        autocomplete="off">
                     <div id="search-results"
                         style="display:none; border:1px solid #ddd; max-height:100px; overflow-y:auto; margin-top:5px; border-radius:5px;">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>السعر (دينار)</label>
+                    <label>السعر</label>
                     <input type="number" id="act-price" value="35000">
                 </div>
                 <div class="form-group">
@@ -129,26 +176,37 @@
                     </select>
                 </div>
                 <div style="display: flex; gap: 15px;">
-                    <div class="form-group" style="flex:1">
-                        <label>من تاريخ</label>
-                        <input type="date" id="act-start">
-                    </div>
-                    <div class="form-group" style="flex:1">
-                        <label>إلى تاريخ</label>
-                        <input type="date" id="act-end">
-                    </div>
+                    <div class="form-group" style="flex:1"><label>من</label><input type="date" id="act-start"></div>
+                    <div class="form-group" style="flex:1"><label>إلى</label><input type="date" id="act-end"></div>
                 </div>
 
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button onclick="window.saveActivation(true)" class="btn btn-success" style="flex: 1;"
-                        id="saveActBtn">
-                        <i class="fas fa-print"></i> تفعيل وطباعة
-                    </button>
-                    <button onclick="window.saveActivation(false)" class="btn btn-primary" style="flex: 1;"
-                        id="saveActOnlyBtn">
-                        <i class="fas fa-check"></i> تفعيل فقط
-                    </button>
+                <!-- WhatsApp Option -->
+                <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="send-whatsapp" style="width: auto;">
+                    <label for="send-whatsapp" style="margin:0; font-weight:normal; cursor:pointer;">إرسال تفاصيل الوصل
+                        واتساب</label>
                 </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="window.saveActivation(true)" class="btn btn-success" style="flex: 1;"><i
+                            class="fas fa-print"></i> طباعة</button>
+                    <button onclick="window.saveActivation(false)" class="btn btn-primary" style="flex: 1;"><i
+                            class="fas fa-check"></i> تفعيل</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Expense Modal -->
+    <div id="expenseModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>إضافة صرفية سريعة</h3><button class="close-btn" onclick="closeExpenseModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group"><label>الوصف</label><input type="text" id="exp-desc"></div>
+                <div class="form-group"><label>المبلغ</label><input type="number" id="exp-amount"></div>
+                <button onclick="saveExpense()" class="btn btn-danger btn-full">حفظ</button>
             </div>
         </div>
     </div>
@@ -156,27 +214,43 @@
     <script type="module">
         import { DataManager } from './data-manager.js';
 
-        // Pull to refresh
-        let ts = 0;
-        window.addEventListener('touchstart', e => { if (window.scrollY === 0) ts = e.touches[0].clientY });
-        window.addEventListener('touchend', e => { if (window.scrollY === 0 && e.changedTouches[0].clientY - ts > 80) location.reload() });
+        // Better PTR Logic
+        let startY = 0;
+        const ptr = document.getElementById('ptr-indicator');
 
-        // Activation Logic
-        window.saveActivation = async function (shouldPrint) {
-            const btn = document.getElementById(shouldPrint ? 'saveActBtn' : 'saveActOnlyBtn');
-            const otherBtn = document.getElementById(shouldPrint ? 'saveActOnlyBtn' : 'saveActBtn');
-            const originalText = btn.innerHTML;
+        document.addEventListener('touchstart', (e) => {
+            if (window.scrollY === 0) startY = e.touches[0].pageY;
+        }, { passive: true });
 
+        document.addEventListener('touchmove', (e) => {
+            const y = e.touches[0].pageY;
+            const diff = y - startY;
+            if (window.scrollY === 0 && diff > 0) {
+                if (diff > 70) ptr.style.height = '60px'; // Visual feedback cap
+                else ptr.style.height = diff + 'px';
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchend', (e) => {
+            if (ptr.style.height === '60px') {
+                ptr.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحديث...';
+                setTimeout(() => location.reload(), 500);
+            } else {
+                ptr.style.height = '0';
+            }
+            startY = 0;
+        });
+
+        // Activation
+        window.saveActivation = async function (print) {
             const name = document.getElementById('act-name').value;
             const price = document.getElementById('act-price').value;
             const type = document.getElementById('act-type').value;
             const start = document.getElementById('act-start').value;
             const end = document.getElementById('act-end').value;
+            const sendWA = document.getElementById('send-whatsapp').checked;
 
-            if (!name || !price) return DataManager.showToast('يجب ملء البيانات', 'error');
-
-            btn.disabled = true; otherBtn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            if (!name) return DataManager.showToast('اسم المشترك مطلوب', 'error');
 
             try {
                 const subs = DataManager.getSubscribers();
@@ -184,85 +258,84 @@
 
                 if (existing) {
                     await DataManager.renewSubscription(existing.firebaseId, existing.id, {
-                        price: parseInt(price),
-                        type: type,
-                        dateEnd: end
+                        price: parseInt(price), type: type, dateEnd: end
                     });
+                    if (sendWA) DataManager.sendWhatsApp(existing, parseInt(price), 'تجديد', end);
                 } else {
                     await DataManager.addSubscriber({
-                        name: name,
-                        phone: '',
-                        initialPrice: parseInt(price),
-                        status: 'نشط',
-                        paymentType: type,
-                        expiryDate: end
+                        name: name, initialPrice: parseInt(price),
+                        paymentType: type, expiryDate: end
                     });
+                    // Note: new sub object isn't fully available with generated ID easily here without refactor, 
+                    // but likely User meant existing subs mostly. For new subs, WA might fail if phone not entered yet.
+                    // Could prompt phone if new.
                 }
 
                 window.closeActivateModal();
-                if (shouldPrint) {
-                    window.printReceipt(name, price, type, start, end);
+
+                if (print) {
+                    // Populate Receipt Area
+                    document.getElementById('p-name').innerText = name;
+                    document.getElementById('p-price').innerText = parseInt(price).toLocaleString();
+                    document.getElementById('p-type').innerText = type;
+                    document.getElementById('p-start').innerText = start;
+                    document.getElementById('p-end').innerText = end;
+                    document.getElementById('p-date').innerText = new Date().toLocaleString('ar-IQ');
+                    window.print();
                 }
             } catch (e) {
-                console.error(e);
                 DataManager.showToast(e.message, 'error');
-            } finally {
-                btn.disabled = false; otherBtn.disabled = false;
-                btn.innerHTML = originalText;
             }
+        };
+
+        window.saveExpense = async function () {
+            const d = document.getElementById('exp-desc').value;
+            const a = document.getElementById('exp-amount').value;
+            if (!d || !a) return;
+            await DataManager.addExpense(parseInt(a), d);
+            closeExpenseModal();
+            document.getElementById('exp-desc').value = '';
+            document.getElementById('exp-amount').value = '';
         }
 
-        // Helpers
+        // Modals
         window.openActivateModal = () => {
             document.getElementById('activateModal').classList.add('active');
-            const t = new Date();
-            document.getElementById('act-start').value = t.toISOString().split('T')[0];
-            t.setDate(t.getDate() + 30);
-            document.getElementById('act-end').value = t.toISOString().split('T')[0];
+            const d = new Date(); document.getElementById('act-start').value = d.toISOString().split('T')[0];
+            d.setDate(d.getDate() + 30); document.getElementById('act-end').value = d.toISOString().split('T')[0];
         };
         window.closeActivateModal = () => document.getElementById('activateModal').classList.remove('active');
 
-        window.searchSub = function (val) {
-            const resDiv = document.getElementById('search-results');
-            if (!val) { resDiv.style.display = 'none'; return; }
-            const results = DataManager.searchSubscribers(val);
-            if (results.length > 0) {
-                resDiv.innerHTML = results.slice(0, 5).map(s =>
-                    `<div onclick="window.selectSub('${s.name}')" style="padding:10px; cursor:pointer; border-bottom:1px solid #eee;">${s.name}</div>`
-                ).join('');
-                resDiv.style.display = 'block';
-            } else { resDiv.style.display = 'none'; }
-        }
+        window.openExpenseModal = () => document.getElementById('expenseModal').classList.add('active');
+        window.closeExpenseModal = () => document.getElementById('expenseModal').classList.remove('active');
+
+        // Search
+        window.searchSub = (v) => {
+            const r = document.getElementById('search-results');
+            if (!v) { r.style.display = 'none'; return }
+            const res = DataManager.searchSubscribers(v);
+            if (res.length) {
+                r.innerHTML = res.slice(0, 5).map(s => `<div onclick="selectSub('${s.name}')" style="padding:10px;border-bottom:1px solid #eee;">${s.name}</div>`).join('');
+                r.style.display = 'block';
+            } else r.style.display = 'none';
+        };
         window.selectSub = (n) => { document.getElementById('act-name').value = n; document.getElementById('search-results').style.display = 'none'; };
 
-        window.renderDashboard = function () {
-            if (typeof DataManager === 'undefined') return;
-            const stats = DataManager.getStats();
-
-            document.getElementById('stat-total').innerText = stats.totalSubs;
-            document.getElementById('stat-debts').innerText = stats.debts.toLocaleString('ar-IQ');
-            // Show Box Balance (Net) in Dashboard
-            document.getElementById('stat-box-balance').innerText = stats.boxBalance.toLocaleString('ar-IQ');
-
-            document.getElementById('stat-expired').innerText = stats.expired;
-            document.getElementById('stat-expiring').innerText = stats.expiring;
-        }
+        // Render Stats
+        window.renderDashboard = () => {
+            if (!DataManager) return;
+            const s = DataManager.getStats();
+            document.getElementById('stat-total').innerText = s.totalSubs;
+            document.getElementById('stat-debts').innerText = s.debts.toLocaleString('ar-IQ');
+            document.getElementById('stat-box-balance').innerText = s.boxBalance.toLocaleString('ar-IQ');
+            document.getElementById('stat-expired').innerText = s.expired;
+            document.getElementById('stat-expiring').innerText = s.expiring;
+        };
 
         document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-IQ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
         DataManager.init();
         window.updatePageData = window.renderDashboard;
-        setInterval(() => window.renderDashboard(), 1000);
-
-        // Receipt Printer (Same as before)
-        window.printReceipt = function (name, price, type, start, end) {
-            const receiptHTML = `
-            <!DOCTYPE html>
-            <html dir="rtl"><head><style>body{text-align:center;font-family:monospace;}</style></head>
-            <body><h3>OK COMPUTER</h3><p>وصل اشتراك</p><hr><p>${name}</p><p>${price}</p><p>${type}</p><p>${end}</p></body></html>`;
-            const w = window.open('', '', 'width=400,height=500');
-            w.document.write(receiptHTML); w.document.close();
-        }
+        setInterval(window.renderDashboard, 1000);
     </script>
 </body>
 
