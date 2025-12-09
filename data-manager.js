@@ -15,6 +15,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
+<<<<<<< HEAD
 // الطريقة الصحيحة: استخدام initializeFirestore مع localCache
 const db = initializeFirestore(app, {
     localCache: persistentLocalCache({
@@ -47,6 +48,9 @@ function showToast(message, type = 'success') {
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
+=======
+let localData = { subscribers: [], transactions: [], expenses: [], archived: [] };
+>>>>>>> 468b659 (Update project files and add server.js)
 
 export const DataManager = {
     init() {
@@ -55,6 +59,7 @@ export const DataManager = {
         console.log("========================================");
         this.sync('subscribers');
         this.sync('transactions');
+<<<<<<< HEAD
         this.monitorConnection();
     },
 
@@ -75,6 +80,10 @@ export const DataManager = {
         if (!navigator.onLine) {
             console.warn('⚠️ لا يوجد اتصال بالإنترنت');
         }
+=======
+        this.sync('expenses');
+        this.sync('archived');
+>>>>>>> 468b659 (Update project files and add server.js)
     },
 
     sync(colName) {
@@ -266,10 +275,94 @@ export const DataManager = {
         return localData.subscribers.filter(s => s.name?.toLowerCase().includes(q.toLowerCase()) || s.phone?.includes(q));
     },
 
+<<<<<<< HEAD
     getStats() {
         const subs = localData.subscribers;
         const totalDebts = subs.reduce((sum, s) => sum + (parseInt(s.price) || 0), 0);
         const today = new Date(); today.setHours(0, 0, 0, 0);
+=======
+    async recordTransaction(subscriberId, amount, description, type = 'نقد') {
+        await addDoc(collection(db, "transactions"), {
+            subscriberId: subscriberId,
+            amount: amount,
+            description: description,
+            type: type,
+            id: Date.now(),
+            createdAt: new Date().toISOString()
+        });
+    },
+
+    getSubscriber(id) {
+        return localData.subscribers.find(s => s.id == id);
+    },
+
+    getDebts() {
+        return localData.subscribers.filter(s => s.paymentType === 'أجل' && s.price > 0);
+    },
+
+    async deleteTransaction(id) {
+        if(!confirm("حذف التسديد؟")) return;
+        const trans = localData.transactions.find(t => t.id == id);
+        if(trans) await deleteDoc(doc(db, "transactions", trans.firebaseId));
+    },
+
+    async deleteExpense(id) {
+        if(!confirm("حذف الصرفية؟")) return;
+        const exp = localData.expenses.find(e => e.id == id);
+        if(exp) await deleteDoc(doc(db, "expenses", exp.firebaseId));
+    },
+
+    async archiveDay() {
+        if(!confirm("ترحيل المقبوضات اليومية للأرشيف؟")) return;
+        // ترحيل جميع التسديدات الموجبة من اليوم
+        const today = new Date().toISOString().split('T')[0];
+        const todayTransactions = localData.transactions.filter(t => 
+            t.createdAt.split('T')[0] === today && (t.amount || 0) > 0
+        );
+        
+        if(todayTransactions.length === 0) {
+            alert("لا توجد مقبوضات لترحيلها");
+            return;
+        }
+        
+        const archiveData = {
+            date: today,
+            transactions: todayTransactions,
+            total: todayTransactions.reduce((sum, t) => sum + (t.amount || 0), 0),
+            archivedAt: new Date().toISOString()
+        };
+        
+        await addDoc(collection(db, "archived"), archiveData);
+        alert("تم الترحيل بنجاح");
+    },
+
+    async getArchivedData() {
+        // جلب البيانات المؤرشفة
+        if(!localData.archived || localData.archived.length === 0) {
+            return [];
+        }
+        return localData.archived;
+    },
+
+    async deleteArchivedTransaction(firebaseId) {
+        if(!confirm("حذف هذا السجل المؤرشف؟")) return;
+        await deleteDoc(doc(db, "archived", firebaseId));
+    },
+
+    // الإحصائيات
+    getStats() {
+        const subs = localData.subscribers;
+        const trans = localData.transactions;
+
+        // الديون = المشتركين من نوع "أجل" فقط
+        const debts = subs.filter(s => s.paymentType === 'أجل' && s.price > 0).reduce((sum, s) => sum + (s.price || 0), 0);
+        
+        // الواردات = فقط المبالغ الموجبة من التسديدات
+        const totalReceived = trans.filter(t => (t.amount || 0) > 0).reduce((sum, t) => sum + (t.amount || 0), 0);
+        
+        // الصرفيات = المبالغ السالبة في transactions فقط (بدون جدول منفصل)
+        const totalExpenses = trans.filter(t => (t.amount || 0) < 0).reduce((sum, t) => sum + Math.abs(t.amount || 0), 0);
+>>>>>>> 468b659 (Update project files and add server.js)
 
         return {
             totalSubs: subs.length,

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
@@ -199,3 +200,138 @@
 </body>
 
 </html>
+=======
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التقارير</title>
+    <link rel="stylesheet" href="style.css?v=7">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="module">
+        import { DataManager } from './data-manager.js';
+        window.DataManager = DataManager;
+        DataManager.init();
+    </script>
+    <style>
+        @media print {
+            .sidebar, .navbar, .header-actions, .btn { display: none !important; }
+            body { padding: 0; background: white; }
+            .container { margin: 0; max-width: 100%; }
+            table { border: 1px solid #000; }
+            th, td { border: 1px solid #000; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo"><i class="fas fa-chart-bar"></i> التقارير</div>
+        <ul class="nav-links">
+            <li><a href="index.html"><i class="fas fa-home"></i> <span>الرئيسية</span></a></li>
+            <li><a href="subscribers.html"><i class="fas fa-users"></i> <span>المشتركين</span></a></li>
+            <li><a href="debts.html"><i class="fas fa-money-bill-wave"></i> <span>الديون</span></a></li>
+            <li><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> <span>المبالغ</span></a></li>
+            <li><a href="expenses.html"><i class="fas fa-file-invoice-dollar"></i> <span>الصرفيات</span></a></li>
+            <li><a href="reports.html" class="active"><i class="fas fa-chart-bar"></i> <span>التقارير</span></a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>أرشيف العمليات المرحلة</h1>
+            <div class="header-actions">
+                <button onclick="window.print()" class="btn btn-secondary"><i class="fas fa-print"></i> طباعة التقرير</button>
+                <button onclick="loadReports()" class="btn btn-primary"><i class="fas fa-sync"></i> تحديث</button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>إجمالي الأرشيف</h3>
+                <div class="value" id="archiveTotal">0 د.ع</div>
+            </div>
+            <div class="stat-card">
+                <h3>عدد العمليات</h3>
+                <div class="value" id="archiveCount">0</div>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>تاريخ الترحيل</th>
+                        <th>تاريخ الوصل</th>
+                        <th>المشترك</th> <th>المبلغ</th>
+                        <th>النوع</th>
+                        <th class="no-print">حذف</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        window.loadReports = async function() {
+            if (typeof DataManager === 'undefined') { setTimeout(window.loadReports, 500); return; }
+
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">جاري جلب البيانات...</td></tr>';
+
+            try {
+                const reports = await DataManager.getArchivedData();
+                tbody.innerHTML = '';
+
+                let total = 0;
+                if (!reports || reports.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px;">الأرشيف فارغ</td></tr>';
+                } else {
+                    reports.forEach(r => {
+                        if (r.transactions && Array.isArray(r.transactions)) {
+                            r.transactions.forEach(t => {
+                                total += (t.amount || 0);
+                                const sub = DataManager.getSubscriber(t.subscriberId);
+                                const subName = sub ? sub.name : (t.subscriberId ? `مشترك #${t.subscriberId}` : '-');
+                                
+                                tbody.innerHTML += `
+                                    <tr>
+                                        <td>${r.date || '-'}</td>
+                                        <td>${new Date(r.archivedAt || Date.now()).toLocaleDateString('ar-IQ')}</td>
+                                        <td>${subName}</td>
+                                        <td style="font-weight:bold; color:var(--success-color);">${(t.amount || 0).toLocaleString()}</td>
+                                        <td>${t.type || 'نقد'}</td>
+                                        <td class="no-print">
+                                            <button onclick="deleteArchivedRecord('${r.firebaseId}')" class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+                        }
+                    });
+                }
+                document.getElementById('archiveTotal').innerText = total.toLocaleString() + ' د.ع';
+                document.getElementById('archiveCount').innerText = reports.reduce((sum, r) => 
+                    sum + (r.transactions ? r.transactions.length : 0), 0);
+            } catch(err) {
+                console.error('Error loading reports:', err);
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:red;">خطأ في جلب البيانات</td></tr>';
+            }
+        };
+
+        window.deleteArchivedRecord = async function(firebaseId) {
+            await DataManager.deleteArchivedTransaction(firebaseId);
+            window.loadReports();
+        };
+
+        document.addEventListener('DOMContentLoaded', () => setTimeout(window.loadReports, 1000));
+        
+        // تحديث تلقائي
+        setInterval(() => { window.loadReports(); }, 2000);
+    </script>
+</body>
+</html>
+>>>>>>> 468b659 (Update project files and add server.js)

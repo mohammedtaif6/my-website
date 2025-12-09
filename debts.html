@@ -152,9 +152,7 @@
             }
         };
 
-        window.updatePageData = window.renderPage;
-
-        setInterval(() => { if (typeof DataManager !== 'undefined') renderPage(); }, 1000);
+        setTimeout(renderPage, 1000);
     </script>
 </body>
 

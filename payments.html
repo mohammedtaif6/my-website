@@ -12,6 +12,7 @@
         window.DataManager = DataManager;
         DataManager.init();
     </script>
+<<<<<<< HEAD
     <style>
         /* Pull to refresh visual indicator */
         #ptr-indicator {
@@ -25,6 +26,8 @@
             justify-content: center;
         }
     </style>
+=======
+>>>>>>> 468b659 (Update project files and add server.js)
 </head>
 
 <body>
@@ -45,6 +48,7 @@
     </nav>
 
     <div class="container">
+<<<<<<< HEAD
 
         <div class="header-card">
             <div>
@@ -227,14 +231,128 @@
                             <td data-label="تحكم">
                                 <button onclick="window.DataManager.deleteTransaction('${t.id}')" class="btn btn-outline" style="padding:5px; color:var(--danger)">
                                     <i class="fas fa-times"></i>
+=======
+        <div class="page-header">
+            <h1>المقبوضات (الصندوق اليومي)</h1>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="addPaymentManually()" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة مقبوض</button>
+                <button onclick="window.DataManager.archiveDay()" class="btn btn-purple"><i class="fas fa-file-export"></i> ترحيل للأرشيف</button>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+            <div class="card" style="background: linear-gradient(135deg, #27ae60, #229954); color: white; padding: 15px; border-radius: 8px; border: none;">
+                <div style="font-size: 12px; opacity: 0.9;">Balance</div>
+                <div id="actualBalance" style="font-size: 28px; font-weight: bold; margin-top: 8px;">0</div>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>المشترك</th>
+                        <th>المبلغ</th>
+                        <th>النوع</th>
+                        <th>التاريخ</th>
+                        <th>الوصف</th>
+                        <th>تحكم</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal for adding manual payment -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>إضافة مقبوض يدوي</h3>
+                <button class="close-btn" onclick="closePaymentModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>اختر المشترك</label>
+                <select id="subscriberSelect" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    <option>-- اختر مشترك --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>المبلغ</label>
+                <input type="number" id="paymentAmount" placeholder="المبلغ" style="width: 100%; padding: 8px;">
+            </div>
+            <div class="form-group">
+                <label>نوع التسديد</label>
+                <select id="paymentType" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    <option value="نقد">نقد</option>
+                    <option value="تحويل">تحويل</option>
+                    <option value="شيك">شيك</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>الوصف</label>
+                <textarea id="paymentDescription" placeholder="الوصف" style="width: 100%; padding: 8px;"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button onclick="saveManualPayment()" class="btn btn-primary" style="width: 100%;">حفظ</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.renderPage = function() {
+            if (typeof DataManager === 'undefined') return;
+            const trans = DataManager.getAllTransactions();
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            // فصل المقبوضات والصرفيات
+            let totalReceived = 0;
+            let totalExpenses = 0;
+
+            if (trans.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px;">لا توجد مقبوضات في الصندوق</td></tr>';
+            } else {
+                trans.sort((a,b) => (b.id || 0) - (a.id || 0)).forEach(t => {
+                    const sub = DataManager.getSubscriber(t.subscriberId);
+                    const amount = t.amount || 0;
+                    
+                    // جمع موجب وسالب بشكل منفصل
+                    if (amount > 0) {
+                        totalReceived += amount;
+                    } else {
+                        totalExpenses += Math.abs(amount); // نأخذ القيمة الموجبة
+                    }
+                    
+                    const date = new Date(t.createdAt || Date.now()).toLocaleDateString('en-US');
+                    const color = amount < 0 ? 'var(--danger-color)' : 'var(--success-color)';
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${sub ? sub.name : (amount < 0 ? 'Expense' : 'Deleted')}</td>
+                            <td style="color:${color}; font-weight:bold;">${amount}</td>
+                            <td>${t.description || '-'}</td>
+                            <td>${date}</td>
+                            <td>${t.type || 'Cash'}</td>
+                            <td>
+                                <button onclick="deletePaymentConfirm('${t.firebaseId || t.id}')" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-trash"></i>
+>>>>>>> 468b659 (Update project files and add server.js)
                                 </button>
                             </td>
                         </tr>
                     `;
                 });
             }
+            
+            // الرصيد الفعلي فقط = المقبوضات - الصرفيات
+            const actualBalance = totalReceived - totalExpenses;
+            
+            const balanceEl = document.getElementById('actualBalance');
+            if (balanceEl) balanceEl.innerText = actualBalance.toLocaleString('en-US');
         };
 
+<<<<<<< HEAD
         // Modal Helpers
         window.openPaymentModal = function () {
             const sel = document.getElementById('subSelect');
@@ -273,6 +391,65 @@
 
         window.updatePageData = window.renderPage;
         setInterval(() => window.renderPage(), 1000);
+=======
+        window.openPaymentModal = function() {
+            document.getElementById('paymentModal').classList.add('active');
+            populateSubscriberSelect();
+        };
+
+        window.closePaymentModal = function() {
+            document.getElementById('paymentModal').classList.remove('active');
+        };
+
+        window.addPaymentManually = openPaymentModal;
+
+        function populateSubscriberSelect() {
+            const select = document.getElementById('subscriberSelect');
+            const subscribers = DataManager.getSubscribers();
+            select.innerHTML = '<option>-- اختر مشترك --</option>';
+            
+            subscribers.forEach(sub => {
+                const option = document.createElement('option');
+                option.value = sub.id;
+                option.textContent = sub.name;
+                select.appendChild(option);
+            });
+        }
+
+        window.saveManualPayment = async function() {
+            const subscriberId = document.getElementById('subscriberSelect').value;
+            const amount = parseInt(document.getElementById('paymentAmount').value);
+            const type = document.getElementById('paymentType').value;
+            const description = document.getElementById('paymentDescription').value;
+
+            if (!subscriberId || !amount || amount <= 0) {
+                alert('الرجاء ملء جميع الحقول بشكل صحيح');
+                return;
+            }
+
+            await DataManager.recordTransaction(subscriberId, amount, description, type);
+            
+            document.getElementById('paymentAmount').value = '';
+            document.getElementById('paymentDescription').value = '';
+            document.getElementById('paymentType').value = 'نقد';
+            document.getElementById('subscriberSelect').value = '';
+            
+            closePaymentModal();
+            alert('تم إضافة المقبوض');
+        };
+
+        window.deletePaymentConfirm = async function(id) {
+            if(confirm('حذف هذا التسديد؟')) {
+                const trans = DataManager.getAllTransactions().find(t => (t.firebaseId || t.id) === id);
+                if(trans) {
+                    await DataManager.deleteTransaction(trans.id);
+                }
+            }
+        };
+
+        // تحديث فوري كل 500ms
+        setInterval(() => { if(typeof DataManager !== 'undefined') renderPage(); }, 500);
+>>>>>>> 468b659 (Update project files and add server.js)
     </script>
 </body>
 
