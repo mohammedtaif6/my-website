@@ -1,133 +1,206 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>التقارير</title>
-    <link rel="stylesheet" href="style.css?v=7">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>التقارير - OK Computer</title>
+    <link rel="stylesheet" href="style.css?v=12.1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="module">
         import { DataManager } from './data-manager.js';
         window.DataManager = DataManager;
         DataManager.init();
     </script>
-    <style>
-        @media print {
-            .sidebar, .navbar, .header-actions, .btn { display: none !important; }
-            body { padding: 0; background: white; }
-            .container { margin: 0; max-width: 100%; }
-            table { border: 1px solid #000; }
-            th, td { border: 1px solid #000; }
-        }
-    </style>
 </head>
+
 <body>
     <nav class="navbar">
-        <div class="logo"><i class="fas fa-chart-bar"></i> التقارير</div>
+        <div class="logo">
+            <i class="fas fa-chart-bar"></i> التقارير
+        </div>
         <ul class="nav-links">
-            <li><a href="index.html"><i class="fas fa-home"></i> <span>الرئيسية</span></a></li>
-            <li><a href="subscribers.html"><i class="fas fa-users"></i> <span>المشتركين</span></a></li>
-            <li><a href="debts.html"><i class="fas fa-money-bill-wave"></i> <span>الديون</span></a></li>
-            <li><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> <span>المبالغ</span></a></li>
-            <li><a href="expenses.html"><i class="fas fa-file-invoice-dollar"></i> <span>الصرفيات</span></a></li>
-            <li><a href="reports.html" class="active"><i class="fas fa-chart-bar"></i> <span>التقارير</span></a></li>
+            <li><a href="index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
+            <li><a href="subscribers.html"><i class="fas fa-users"></i> المشتركين</a></li>
+            <li><a href="debts.html"><i class="fas fa-money-bill-wave"></i> الديون</a></li>
+            <li><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> المبالغ</a></li>
+            <li><a href="expenses.html"><i class="fas fa-file-invoice-dollar"></i> الصرفيات</a></li>
+            <li><a href="reports.html" class="active"><i class="fas fa-chart-bar"></i> التقارير</a></li>
         </ul>
     </nav>
 
     <div class="container">
-        <div class="page-header">
-            <h1>أرشيف العمليات المرحلة</h1>
-            <div class="header-actions">
-                <button onclick="window.print()" class="btn btn-secondary"><i class="fas fa-print"></i> طباعة التقرير</button>
-                <button onclick="loadReports()" class="btn btn-primary"><i class="fas fa-sync"></i> تحديث</button>
+
+        <div class="header-card">
+            <div>
+                <h1>التقارير المالية</h1>
+                <p>ملخص الأداء المالي والفترة الزمنية</p>
+            </div>
+            <div>
+                <button onclick="window.print()" class="btn btn-primary">
+                    <i class="fas fa-print"></i> طباعة التقرير
+                </button>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card" style="margin-bottom: 20px;">
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+                <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                    <label>من تاريخ</label>
+                    <input type="date" id="dateFrom" onchange="generateReport()">
+                </div>
+                <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                    <label>إلى تاريخ</label>
+                    <input type="date" id="dateTo" onchange="generateReport()">
+                </div>
+                <div style="flex: 0 0 auto;">
+                    <button onclick="generateReport()" class="btn btn-success" style="height: 52px; margin-top: 28px;">
+                        <i class="fas fa-filter"></i> عرض
+                    </button>
+                </div>
             </div>
         </div>
 
         <div class="stats-grid">
-            <div class="stat-card">
-                <h3>إجمالي الأرشيف</h3>
-                <div class="value" id="archiveTotal">0 د.ع</div>
+            <div class="card">
+                <div class="icon-box green"><i class="fas fa-hand-holding-usd"></i></div>
+                <div class="card-info">
+                    <h3>إجمالي المقبوضات</h3>
+                    <p id="totalIncome" class="text-success">0</p>
+                </div>
             </div>
-            <div class="stat-card">
-                <h3>عدد العمليات</h3>
-                <div class="value" id="archiveCount">0</div>
+
+            <div class="card">
+                <div class="icon-box red"><i class="fas fa-file-invoice-dollar"></i></div>
+                <div class="card-info">
+                    <h3>إجمالي المصروفات</h3>
+                    <p id="totalExpense" class="text-danger">0</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="icon-box blue"><i class="fas fa-wallet"></i></div>
+                <div class="card-info">
+                    <h3>صافي الأرباح</h3>
+                    <p id="netProfit">0</p>
+                </div>
             </div>
         </div>
 
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>تاريخ الترحيل</th>
-                        <th>تاريخ الوصل</th>
-                        <th>المشترك</th> <th>المبلغ</th>
-                        <th>النوع</th>
-                        <th class="no-print">حذف</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
+        <div class="table-container">
+            <div class="table-header">
+                <h3>تفاصيل الحركة المالية للفترة المحددة</h3>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>عدد الحركات</th>
+                            <th>مقبوضات</th>
+                            <th>مصروفات</th>
+                            <th>صافي اليوم</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportBody"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <script>
-        window.loadReports = async function() {
-            if (typeof DataManager === 'undefined') { setTimeout(window.loadReports, 500); return; }
+        window.generateReport = function () {
+            if (typeof DataManager === 'undefined') return;
 
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">جاري جلب البيانات...</td></tr>';
+            const fromDateVal = document.getElementById('dateFrom').value;
+            const toDateVal = document.getElementById('dateTo').value;
 
-            try {
-                const reports = await DataManager.getArchivedData();
-                tbody.innerHTML = '';
+            // Default to start of current month if not set
+            const now = new Date();
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-                let total = 0;
-                if (!reports || reports.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px;">الأرشيف فارغ</td></tr>';
+            const from = fromDateVal ? new Date(fromDateVal) : startOfMonth;
+            const to = toDateVal ? new Date(toDateVal) : now;
+
+            // Set end date to end of day
+            to.setHours(23, 59, 59, 999);
+            from.setHours(0, 0, 0, 0);
+
+            // Update inputs if they were empty
+            if (!fromDateVal) document.getElementById('dateFrom').value = from.toISOString().split('T')[0];
+            if (!toDateVal) document.getElementById('dateTo').value = to.toISOString().split('T')[0];
+
+            const txs = DataManager.getAllTransactions();
+            const filtered = txs.filter(t => {
+                const d = new Date(t.createdAt);
+                // Filter out Debt-Only records (non-cash)
+                if (t.type === 'subscription_debt') return false;
+                return d >= from && d <= to;
+            });
+
+            // Group by Day
+            const dailyStats = {};
+            let grandIncome = 0;
+            let grandExpense = 0;
+
+            filtered.forEach(t => {
+                const dayKey = new Date(t.createdAt).toLocaleDateString('en-CA'); // YYYY-MM-DD
+                if (!dailyStats[dayKey]) dailyStats[dayKey] = { income: 0, expense: 0, count: 0 };
+
+                const amt = t.amount || 0;
+                if (amt > 0) {
+                    dailyStats[dayKey].income += amt;
+                    grandIncome += amt;
                 } else {
-                    reports.forEach(r => {
-                        if (r.transactions && Array.isArray(r.transactions)) {
-                            r.transactions.forEach(t => {
-                                total += (t.amount || 0);
-                                const sub = DataManager.getSubscriber(t.subscriberId);
-                                const subName = sub ? sub.name : (t.subscriberId ? `مشترك #${t.subscriberId}` : '-');
-                                
-                                tbody.innerHTML += `
-                                    <tr>
-                                        <td>${r.date || '-'}</td>
-                                        <td>${new Date(r.archivedAt || Date.now()).toLocaleDateString('ar-IQ')}</td>
-                                        <td>${subName}</td>
-                                        <td style="font-weight:bold; color:var(--success-color);">${(t.amount || 0).toLocaleString()}</td>
-                                        <td>${t.type || 'نقد'}</td>
-                                        <td class="no-print">
-                                            <button onclick="deleteArchivedRecord('${r.firebaseId}')" class="btn btn-danger btn-sm">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                `;
-                            });
-                        }
-                    });
+                    dailyStats[dayKey].expense += Math.abs(amt);
+                    grandExpense += Math.abs(amt);
                 }
-                document.getElementById('archiveTotal').innerText = total.toLocaleString() + ' د.ع';
-                document.getElementById('archiveCount').innerText = reports.reduce((sum, r) => 
-                    sum + (r.transactions ? r.transactions.length : 0), 0);
-            } catch(err) {
-                console.error('Error loading reports:', err);
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:red;">خطأ في جلب البيانات</td></tr>';
+                dailyStats[dayKey].count++;
+            });
+
+            // Render Totals
+            document.getElementById('totalIncome').innerText = grandIncome.toLocaleString();
+            document.getElementById('totalExpense').innerText = grandExpense.toLocaleString();
+            const net = grandIncome - grandExpense;
+            document.getElementById('netProfit').innerText = net.toLocaleString();
+            document.getElementById('netProfit').style.color = net >= 0 ? 'var(--success)' : 'var(--danger)';
+
+            // Render Table
+            const tbody = document.getElementById('reportBody');
+            tbody.innerHTML = '';
+
+            // Sort days descending
+            const sortedDays = Object.keys(dailyStats).sort((a, b) => new Date(b) - new Date(a));
+
+            if (sortedDays.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px;">لا توجد بيانات لهذه الفترة</td></tr>';
+            } else {
+                sortedDays.forEach(day => {
+                    const s = dailyStats[day];
+                    const dailyNet = s.income - s.expense;
+                    tbody.innerHTML += `
+                        <tr>
+                            <td data-label="التاريخ">${day}</td>
+                            <td data-label="العمليات">${s.count}</td>
+                            <td data-label="مقبوضات" class="text-success">${s.income.toLocaleString()}</td>
+                            <td data-label="مصروفات" class="text-danger">${s.expense.toLocaleString()}</td>
+                            <td data-label="صافي" style="font-weight:bold; color:${dailyNet >= 0 ? 'var(--success)' : 'var(--danger)'}">
+                                ${dailyNet.toLocaleString()}
+                            </td>
+                        </tr>
+                    `;
+                });
             }
         };
 
-        window.deleteArchivedRecord = async function(firebaseId) {
-            await DataManager.deleteArchivedTransaction(firebaseId);
-            window.loadReports();
-        };
+        window.updatePageData = window.generateReport;
 
-        document.addEventListener('DOMContentLoaded', () => setTimeout(window.loadReports, 1000));
-        
-        // تحديث تلقائي
-        setInterval(() => { window.loadReports(); }, 2000);
+        // Initial load
+        setTimeout(() => {
+            if (typeof DataManager !== 'undefined') generateReport();
+        }, 1000);
     </script>
 </body>
+
 </html>

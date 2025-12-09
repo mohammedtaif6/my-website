@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>الديون - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=11.0">
+    <link rel="stylesheet" href="style.css?v=12.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="module">
         import { DataManager } from './data-manager.js';
@@ -61,12 +61,42 @@
         </div>
     </div>
 
+    <!-- Modal: Pay Debt -->
+    <div id="payModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>تسديد دين</h3>
+                <button class="close-btn" onclick="closePayModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="pay-fid">
+                <input type="hidden" id="pay-id">
+                <p id="pay-sub-name" style="margin-bottom: 20px; font-weight: bold;"></p>
+
+                <div class="form-group">
+                    <label>المبلغ المستحق الكلي</label>
+                    <input type="text" id="pay-total-debt" disabled style="background: #f1f5f9;">
+                </div>
+
+                <div class="form-group">
+                    <label>المبلغ المراد تسديده الآن</label>
+                    <input type="number" id="pay-amount">
+                </div>
+
+                <button onclick="savePayment()" class="btn btn-success btn-full">
+                    <i class="fas fa-check"></i> تأكيد التسديد
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         window.renderPage = function () {
             if (typeof DataManager === 'undefined') return;
             const subs = DataManager.getSubscribers();
             // الفلتر: نوع أجل (دين) ويوجد مبلغ أكبر من صفر
-            const debtors = subs.filter(s => s.paymentType === 'أجل' && s.price > 0);
+            // أو حتى لو نوعه نقد لكن عليه مبلغ (للاحتياط)
+            const debtors = subs.filter(s => s.price > 0);
 
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
@@ -76,15 +106,16 @@
                 tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--success);">محفظة نظيفة - لا توجد ديون مستحقة</td></tr>';
             } else {
                 debtors.forEach(s => {
-                    total += parseInt(s.price); // تأكد أنه رقم
+                    const price = parseInt(s.price);
+                    total += price;
                     tbody.innerHTML += `
                         <tr>
                             <td data-label="الاسم" style="font-weight:bold;">${s.name}</td>
                             <td data-label="الهاتف">${s.phone || '-'}</td>
-                            <td data-label="المبلغ" class="text-danger" style="font-weight:bold;">${parseInt(s.price).toLocaleString()}</td>
+                            <td data-label="المبلغ" class="text-danger" style="font-weight:bold;">${price.toLocaleString()}</td>
                             <td data-label="تحكم">
-                                <button onclick="payFull('${s.id}', ${s.price})" class="btn btn-success btn-sm">
-                                    <i class="fas fa-check"></i> تسديد
+                                <button onclick="openPayModal('${s.firebaseId}', '${s.id}', '${s.name}', ${price})" class="btn btn-success btn-sm">
+                                    <i class="fas fa-hand-holding-usd"></i> تسديد
                                 </button>
                             </td>
                         </tr>
@@ -94,17 +125,30 @@
             document.getElementById('totalDebtDisplay').innerText = `الإجمالي: ${total.toLocaleString()} د.ع`;
         };
 
-        window.payFull = async function (id, amount) {
-            if (confirm(`تسديد كامل المبلغ (${amount.toLocaleString()}) للمشترك؟`)) {
-                try {
-                    // تسجيل المعاملة
-                    await DataManager.recordTransaction(id, parseInt(amount), 'تسديد ديون', 'نقد');
-                    // تحديث حالة المشترك (تصفير الدين)
-                    await DataManager.updateSubscriber(id, { price: 0, paymentType: 'نقد' });
-                    // renderPage سيحدث القائمة تلقائياً بسبب المراقبة
-                } catch (e) {
-                    alert('حدث خطأ');
-                }
+        window.openPayModal = function (fid, id, name, debt) {
+            document.getElementById('pay-fid').value = fid;
+            document.getElementById('pay-id').value = id;
+            document.getElementById('pay-sub-name').innerText = `المشترك: ${name}`;
+            document.getElementById('pay-total-debt').value = debt.toLocaleString();
+            document.getElementById('pay-amount').value = debt; // Default to full amount
+            document.getElementById('payModal').classList.add('active');
+        };
+
+        window.closePayModal = () => document.getElementById('payModal').classList.remove('active');
+
+        window.savePayment = async function () {
+            const fid = document.getElementById('pay-fid').value;
+            const id = document.getElementById('pay-id').value;
+            const amount = parseInt(document.getElementById('pay-amount').value);
+
+            if (!amount || amount <= 0) return alert('أدخل مبلغ صحيح');
+
+            try {
+                await DataManager.payDebt(fid, id, amount);
+                closePayModal();
+                alert('تم التسديد بنجاح');
+            } catch (e) {
+                alert('خطأ: ' + e.message);
             }
         };
 

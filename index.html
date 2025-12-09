@@ -131,9 +131,17 @@
                         <input type="date" id="act-end">
                     </div>
                 </div>
-                <button onclick="window.saveActivation()" class="btn btn-success btn-full" id="saveActBtn">
-                    <i class="fas fa-check"></i> تفعيل وطباعة
-                </button>
+                <!-- Buttons Area: Print vs Only Activate -->
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button onclick="window.saveActivation(true)" class="btn btn-success" style="flex: 1;"
+                        id="saveActBtn">
+                        <i class="fas fa-print"></i> تفعيل وطباعة
+                    </button>
+                    <button onclick="window.saveActivation(false)" class="btn btn-primary" style="flex: 1;"
+                        id="saveActOnlyBtn">
+                        <i class="fas fa-check"></i> تفعيل فقط
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -205,9 +213,12 @@
             document.getElementById('search-results').style.display = 'none';
         }
 
-        // الدالة المحدثة للنظام الموحد V12
-        window.saveActivation = async function () {
-            const btn = document.getElementById('saveActBtn');
+        window.saveActivation = async function (shouldPrint) {
+            // Select the button clicked based on arg
+            const btn = document.getElementById(shouldPrint ? 'saveActBtn' : 'saveActOnlyBtn');
+            const otherBtn = document.getElementById(shouldPrint ? 'saveActOnlyBtn' : 'saveActBtn');
+            const originalText = btn.innerHTML;
+
             const name = document.getElementById('act-name').value;
             const price = document.getElementById('act-price').value;
             const type = document.getElementById('act-type').value;
@@ -217,21 +228,20 @@
             if (!name || !price) return alert('يجب ملء جميع البيانات');
 
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري المعالجة...';
+            otherBtn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري...';
 
             try {
                 const subs = DataManager.getSubscribers();
                 const existing = subs.find(s => s.name === name);
 
                 if (existing) {
-                    // تجديد اشتراك (تحديث + معاملة مالية تلقائية حسب النوع)
                     await DataManager.renewSubscription(existing.firebaseId, existing.id, {
                         price: parseInt(price),
                         type: type, // نقد أو أجل
                         dateEnd: end
                     });
                 } else {
-                    // إضافة مشترك جديد (مشترك + معاملة مالية تلقائية)
                     await DataManager.addSubscriber({
                         name: name,
                         phone: '',
@@ -243,13 +253,19 @@
                 }
 
                 window.closeActivateModal();
-                window.printReceipt(name, price, type, start, end);
+                if (shouldPrint) {
+                    window.printReceipt(name, price, type, start, end);
+                } else {
+                    // Show success message briefly
+                    // alert('تم التفعيل بنجاح');
+                }
             } catch (e) {
                 console.error(e);
                 alert('حدث خطأ: ' + e.message);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-check"></i> تفعيل وطباعة';
+                otherBtn.disabled = false;
+                btn.innerHTML = originalText;
             }
         }
 
@@ -283,7 +299,6 @@
             printWindow.document.close();
         }
 
-        // الدالة المحدثة للنظام الموحد V12
         window.saveExpense = async function () {
             const btn = document.getElementById('saveExpBtn');
             const desc = document.getElementById('exp-desc').value;
@@ -295,7 +310,6 @@
             btn.innerHTML = 'جاري الحفظ...';
 
             try {
-                // استخدام الدالة الجديدة المبسطة للصرفيات
                 await DataManager.addExpense(parseInt(amount), desc);
                 document.getElementById('exp-desc').value = '';
                 document.getElementById('exp-amount').value = '';
@@ -318,7 +332,10 @@
             document.getElementById('stat-received').innerText = stats.received.toLocaleString('ar-IQ');
             document.getElementById('stat-expenses').innerText = stats.expenses.toLocaleString('ar-IQ');
             document.getElementById('stat-expired').innerText = stats.expired;
-            document.getElementById('stat-expiring').innerText = stats.expiring;
+
+            // Fix expiring logic if needed, but DataManager should handle it
+            const expiringCount = stats.expiring || 0;
+            document.getElementById('stat-expiring').innerText = expiringCount;
         }
 
         document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-IQ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -331,7 +348,6 @@
         DataManager.init();
         window.updatePageData = window.renderDashboard;
 
-        // Initial render loop
         setInterval(() => window.renderDashboard(), 1000);
     </script>
 </body>

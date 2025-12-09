@@ -30,7 +30,6 @@
     </nav>
 
     <div class="container">
-
         <div class="header-card">
             <div>
                 <h1>إدارة المشتركين</h1>
@@ -63,8 +62,7 @@
                             <th>الاسم</th>
                             <th>الهاتف</th>
                             <th>الحالة</th>
-                            <th>حساب الدين</th>
-                            <th>تحكم</th>
+                            <th>الدين</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -100,7 +98,67 @@
         </div>
     </div>
 
+    <!-- Modal: Subscriber Actions (Professional) -->
+    <div id="actionModal" class="modal-overlay">
+        <div class="modal-box" style="text-align: center;">
+            <div class="modal-header">
+                <h3 id="actionSubName">خيارات المشترك</h3>
+                <button class="close-btn" onclick="closeActionModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <button onclick="actionActivate()" class="btn btn-success"
+                        style="padding: 20px; flex-direction: column; gap: 10px;">
+                        <i class="fas fa-wifi" style="font-size: 2rem;"></i>
+                        <span>تفعيل / تجديد</span>
+                    </button>
+                    <button onclick="actionEdit()" class="btn btn-primary"
+                        style="padding: 20px; flex-direction: column; gap: 10px;">
+                        <i class="fas fa-edit" style="font-size: 2rem;"></i>
+                        <span>تعديل بيانات</span>
+                    </button>
+                </div>
+                <button onclick="actionDelete()" class="btn btn-outline btn-full"
+                    style="color: var(--danger); border-color: var(--danger);">
+                    <i class="fas fa-trash"></i> حذف المشترك
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Quick Activate -->
+    <div id="quickActivateModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>تجديد الاشتراك</h3>
+                <button class="close-btn" onclick="closeQuickActivate()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="qa-id">
+                <input type="hidden" id="qa-fid">
+                <div class="form-group">
+                    <label>المبلغ المطلوب</label>
+                    <input type="number" id="qa-price" value="35000">
+                </div>
+                <div class="form-group">
+                    <label>طريقة الدفع</label>
+                    <select id="qa-type">
+                        <option value="نقد">نقد (واصل)</option>
+                        <option value="أجل">أجل (دين)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>ينتهي في</label>
+                    <input type="date" id="qa-end">
+                </div>
+                <button onclick="saveQuickActivate()" class="btn btn-success btn-full">تجديد الآن</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        let selectedSubscriber = null;
+
         window.renderPage = function () {
             if (typeof DataManager === 'undefined') return;
             const q = document.getElementById('search').value;
@@ -109,32 +167,88 @@
             tbody.innerHTML = '';
 
             if (subs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--secondary);">لا توجد بيانات للعرض</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--secondary);">لا توجد بيانات للعرض</td></tr>';
                 return;
             }
 
             subs.forEach(s => {
                 let statusClass = s.status === 'نشط' ? 'badge badge-success' : 'badge badge-warning';
+                let debtClass = s.price > 0 ? 'text-danger' : 'text-success';
 
+                // Add click event to the row
                 tbody.innerHTML += `
-                    <tr>
+                    <tr onclick="openActionModal('${s.id}')" style="cursor: pointer;">
                         <td data-label="الاسم" style="font-weight:bold;">${s.name}</td>
                         <td data-label="الهاتف">${s.phone || '-'}</td>
                         <td data-label="الحالة"><span class="${statusClass}">${s.status || 'غير محدد'}</span></td>
-                        <td data-label="الدين" style="font-weight:bold; color: ${s.price > 0 ? 'var(--danger)' : 'var(--success)'}">
+                        <td data-label="الدين" class="${debtClass}" style="font-weight:bold;">
                             ${parseInt(s.price || 0).toLocaleString()}
-                        </td>
-                        <td data-label="تحكم">
-                            <button onclick="editSub('${s.id}', '${s.name}')" class="btn btn-outline" style="padding:5px 10px;">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="DataManager.deleteSubscriber('${s.id}')" class="btn btn-outline" style="padding:5px 10px; color:var(--danger); border-color:var(--danger);">
-                                <i class="fas fa-trash"></i>
-                            </button>
                         </td>
                     </tr>
                 `;
             });
+        };
+
+        // Open Action Modal
+        window.openActionModal = function (id) {
+            selectedSubscriber = DataManager.getSubscriber(id);
+            if (!selectedSubscriber) return;
+
+            document.getElementById('actionSubName').innerText = selectedSubscriber.name;
+            document.getElementById('actionModal').classList.add('active');
+        };
+
+        window.closeActionModal = () => document.getElementById('actionModal').classList.remove('active');
+
+        // Action Handlers
+        window.actionActivate = function () {
+            closeActionModal();
+            // Open Quick Activate Modal
+            const today = new Date();
+            const nextMonth = new Date();
+            nextMonth.setDate(today.getDate() + 30);
+
+            document.getElementById('qa-id').value = selectedSubscriber.id;
+            document.getElementById('qa-fid').value = selectedSubscriber.firebaseId;
+            document.getElementById('qa-end').value = nextMonth.toISOString().split('T')[0];
+            document.getElementById('quickActivateModal').classList.add('active');
+        };
+
+        window.closeQuickActivate = () => document.getElementById('quickActivateModal').classList.remove('active');
+
+        window.saveQuickActivate = async function () {
+            const fid = document.getElementById('qa-fid').value;
+            const id = document.getElementById('qa-id').value;
+            const price = document.getElementById('qa-price').value;
+            const type = document.getElementById('qa-type').value;
+            const end = document.getElementById('qa-end').value;
+
+            try {
+                await DataManager.renewSubscription(fid, id, {
+                    price: parseInt(price),
+                    type: type,
+                    dateEnd: end
+                });
+                closeQuickActivate();
+                alert('تم التجديد بنجاح');
+            } catch (e) {
+                alert('خطأ');
+            }
+        };
+
+        window.actionEdit = async function () {
+            closeActionModal();
+            const newName = prompt("تعديل الاسم:", selectedSubscriber.name);
+            const newPhone = prompt("تعديل الهاتف:", selectedSubscriber.phone);
+
+            if (newName && newName !== selectedSubscriber.name || newPhone !== selectedSubscriber.phone) {
+                await DataManager.updateSubscriber(selectedSubscriber.id, { name: newName, phone: newPhone });
+            }
+        };
+
+        window.actionDelete = async function () {
+            closeActionModal();
+            await DataManager.deleteSubscriber(selectedSubscriber.id);
         };
 
         window.openAddModal = () => document.getElementById('addSubscriberModal').classList.add('active');
@@ -152,14 +266,13 @@
             btn.innerHTML = 'جاري الحفظ...';
 
             try {
-                // V12: Add subscriber with initial debt if specified
                 await DataManager.addSubscriber({
                     name: name,
                     phone: phone,
-                    initialPrice: parseInt(price), // This will be recorded as Debt Transaction if > 0 and paymentType is 'أجل'
+                    initialPrice: parseInt(price),
                     status: 'نشط',
                     paymentType: parseInt(price) > 0 ? 'أجل' : 'نقد',
-                    startDate: new Date().toISOString().split('T')[0]
+                    expiryDate: ''
                 });
 
                 closeAddModal();
@@ -170,13 +283,6 @@
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-save"></i> حفظ البيانات';
-            }
-        };
-
-        window.editSub = async function (id, currentName) {
-            const newName = prompt("تعديل الاسم:", currentName);
-            if (newName && newName !== currentName) {
-                await DataManager.updateSubscriber(id, { name: newName });
             }
         };
 
