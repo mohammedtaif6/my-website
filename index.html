@@ -7,6 +7,17 @@
     <title>لوحة القيادة - OK Computer</title>
     <link rel="stylesheet" href="style.css?v=13.5">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- تسجيل Service Worker للعمل بدون إنترنت وتسريع التحميل -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('🚀 Service Worker مفعّل - النظام أسرع الآن!'))
+                    .catch(err => console.log('Service Worker غير مدعوم'));
+            });
+        }
+    </script>
     <style>
         /* Print Receipt Style - 80mm Thermal Printer */
         .receipt-container {

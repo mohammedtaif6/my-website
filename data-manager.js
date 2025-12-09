@@ -16,7 +16,20 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-try { enableIndexedDbPersistence(db).catch(() => { }); } catch (e) { }
+// تحسين الأداء: تفعيل التخزين المحلي مع معالجة أفضل للأخطاء
+enableIndexedDbPersistence(db, {
+    forceOwnership: false // السماح بفتح عدة نوافذ
+}).then(() => {
+    console.log('✅ التخزين المحلي مفعّل - النظام سيعمل بسرعة حتى مع إنترنت بطيء');
+}).catch((err) => {
+    if (err.code === 'failed-precondition') {
+        // نافذة متصفح أخرى مفتوحة
+        console.warn('⚠️ نافذة أخرى مفتوحة، التخزين المحلي غير مفعّل');
+    } else if (err.code === 'unimplemented') {
+        // المتصفح لا يدعم التخزين المحلي
+        console.warn('⚠️ المتصفح لا يدعم التخزين المحلي');
+    }
+});
 
 let localData = { subscribers: [], transactions: [] };
 let isProcessing = false;
@@ -44,17 +57,69 @@ function showToast(message, type = 'success') {
 
 export const DataManager = {
     init() {
-        console.log("System v14.0 Initializing...");
+        console.log("========================================");
+        console.log("🚀 System v14.1 - Multi-User Support");
+        console.log("========================================");
         this.sync('subscribers');
         this.sync('transactions');
+        this.monitorConnection();
+    },
+
+    // مراقبة حالة الاتصال بـ Firebase
+    monitorConnection() {
+        // استماع لأي أخطاء في الاتصال
+        window.addEventListener('online', () => {
+            console.log('✅ الإنترنت متصل - البيانات ستتزامن الآن');
+            showToast('تم الاتصال بالإنترنت', 'success');
+        });
+
+        window.addEventListener('offline', () => {
+            console.log('❌ الإنترنت منقطع - النظام يعمل من التخزين المحلي');
+            showToast('الإنترنت منقطع - تعمل من البيانات المحلية', 'error');
+        });
+
+        // فحص الاتصال الأولي
+        if (!navigator.onLine) {
+            console.warn('⚠️ لا يوجد اتصال بالإنترنت');
+        }
     },
 
     sync(colName) {
         const q = query(collection(db, colName), orderBy("createdAt", "desc"));
-        onSnapshot(q, (snapshot) => {
-            localData[colName] = snapshot.docs.map(d => ({ ...d.data(), firebaseId: d.id }));
-            if (window.updatePageData) window.updatePageData();
-        });
+
+        onSnapshot(q,
+            (snapshot) => {
+                const prevCount = localData[colName].length;
+                localData[colName] = snapshot.docs.map(d => ({ ...d.data(), firebaseId: d.id }));
+                const newCount = localData[colName].length;
+
+                console.log(`📊 ${colName}: ${newCount} سجل (${snapshot.docChanges().length} تغيير)`);
+
+                // عرض رسالة عند استلام بيانات جديدة
+                if (snapshot.docChanges().length > 0 && prevCount > 0) {
+                    const changes = snapshot.docChanges();
+                    changes.forEach(change => {
+                        if (change.type === 'added' && prevCount > 0) {
+                            console.log('✨ سجل جديد تمت إضافته من مستخدم آخر');
+                        }
+                    });
+                }
+
+                if (window.updatePageData) window.updatePageData();
+            },
+            (error) => {
+                console.error(`❌ خطأ في مزامنة ${colName}:`, error);
+                if (error.code === 'permission-denied') {
+                    showToast('خطأ: ليس لديك صلاحية الوصول! تحقق من قواعد Firebase', 'error');
+                    console.error('==================================================');
+                    console.error('⚠️ مشكلة صلاحيات Firebase!');
+                    console.error('الحل: افتح ملف FIREBASE-RULES-FIX.txt');
+                    console.error('==================================================');
+                } else {
+                    showToast('خطأ في الاتصال بقاعدة البيانات', 'error');
+                }
+            }
+        );
     },
 
     async logTransaction(data) {
