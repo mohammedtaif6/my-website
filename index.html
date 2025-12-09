@@ -8,12 +8,20 @@
     <link rel="stylesheet" href="style.css?v=13.5">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Print Receipt Style */
+        /* Print Receipt Style - 80mm Thermal Printer */
         .receipt-container {
-            display: none;
+            display: block;
+            position: fixed;
+            left: -9999px;
+            top: 0;
         }
 
         @media print {
+            @page {
+                size: 80mm auto;
+                margin: 0;
+            }
+
             body * {
                 visibility: hidden;
             }
@@ -27,32 +35,38 @@
                 position: absolute;
                 left: 0;
                 top: 0;
-                width: 100%;
+                width: 80mm;
+                padding: 5mm;
                 text-align: center;
                 font-family: 'Courier New', monospace;
                 direction: rtl;
+                background: white;
             }
 
             .rec-header {
-                font-size: 1.5rem;
+                font-size: 18px;
                 font-weight: bold;
-                margin-bottom: 5px;
+                margin-bottom: 8px;
                 border-bottom: 2px dashed #000;
-                padding-bottom: 10px;
+                padding-bottom: 8px;
             }
 
             .rec-row {
                 display: flex;
                 justify-content: space-between;
-                margin: 8px 0;
-                font-size: 1.1rem;
-                border-bottom: 1px dotted #ccc;
-                padding-bottom: 2px;
+                margin: 6px 0;
+                font-size: 14px;
+                border-bottom: 1px dotted #999;
+                padding: 4px 0;
+            }
+
+            .rec-row span:first-child {
+                font-weight: bold;
             }
 
             .rec-footer {
-                margin-top: 20px;
-                font-size: 0.9rem;
+                margin-top: 15px;
+                font-size: 12px;
                 border-top: 2px dashed #000;
                 padding-top: 10px;
             }
@@ -134,7 +148,7 @@
     <div class="receipt-container" id="receiptArea">
         <div class="rec-header">
             OK COMPUTER<br>
-            <span style="font-size: 1rem; font-weight: normal;">خدمات الإنترنت والشبكات</span>
+            <span style="font-size: 14px; font-weight: normal;">خدمات الإنترنت والشبكات</span>
         </div>
         <div class="rec-row"><span>المشترك:</span><span id="p-name"></span></div>
         <div class="rec-row"><span>المبلغ:</span><span id="p-price"></span></div>
@@ -144,7 +158,7 @@
         <div class="rec-footer">
             <p id="p-date"></p>
             <p>شكراً لاشتراككم معنا</p>
-            <p style="font-size:0.8rem">للاستفسار: 07700000000</p>
+            <p style="font-size:11px">للاستفسار: 07700000000</p>
         </div>
     </div>
 
@@ -226,7 +240,7 @@
             const y = e.touches[0].pageY;
             const diff = y - startY;
             if (window.scrollY === 0 && diff > 0) {
-                if (diff > 70) ptr.style.height = '60px'; // Visual feedback cap
+                if (diff > 70) ptr.style.height = '60px';
                 else ptr.style.height = diff + 'px';
             }
         }, { passive: true });
@@ -241,7 +255,7 @@
             startY = 0;
         });
 
-        // Activation
+        // Activation with Fixed Print & WhatsApp
         window.saveActivation = async function (print) {
             const name = document.getElementById('act-name').value;
             const price = document.getElementById('act-price').value;
@@ -254,34 +268,63 @@
 
             try {
                 const subs = DataManager.getSubscribers();
-                const existing = subs.find(s => s.name === name);
+                let existing = subs.find(s => s.name === name);
+                let subPhone = '';
 
                 if (existing) {
                     await DataManager.renewSubscription(existing.firebaseId, existing.id, {
                         price: parseInt(price), type: type, dateEnd: end
                     });
-                    if (sendWA) DataManager.sendWhatsApp(existing, parseInt(price), 'تجديد', end);
+                    subPhone = existing.phone;
                 } else {
+                    // For new subscriber, prompt for phone if WhatsApp is needed
+                    if (sendWA) {
+                        subPhone = prompt('أدخل رقم هاتف المشترك للواتساب:', '07');
+                    }
+
                     await DataManager.addSubscriber({
-                        name: name, initialPrice: parseInt(price),
-                        paymentType: type, expiryDate: end
+                        name: name,
+                        phone: subPhone || '',
+                        initialPrice: parseInt(price),
+                        paymentType: type,
+                        expiryDate: end
                     });
-                    // Note: new sub object isn't fully available with generated ID easily here without refactor, 
-                    // but likely User meant existing subs mostly. For new subs, WA might fail if phone not entered yet.
-                    // Could prompt phone if new.
                 }
 
                 window.closeActivateModal();
 
+                // Populate Receipt Data (always, for both print and WhatsApp)
+                document.getElementById('p-name').innerText = name;
+                document.getElementById('p-price').innerText = parseInt(price).toLocaleString() + ' د.ع';
+                document.getElementById('p-type').innerText = type;
+                document.getElementById('p-start').innerText = start;
+                document.getElementById('p-end').innerText = end;
+                document.getElementById('p-date').innerText = new Date().toLocaleString('ar-IQ');
+
+                // Handle WhatsApp
+                if (sendWA && subPhone) {
+                    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+                    // Clean phone
+                    let cleanPhone = subPhone.replace(/\D/g, '');
+                    if (cleanPhone.startsWith('0')) cleanPhone = cleanPhone.substring(1);
+                    if (!cleanPhone.startsWith('964')) cleanPhone = '964' + cleanPhone;
+
+                    const msg = `مرحباً ${name}،\n\nتم تفعيل اشتراكك بنجاح ✅\n\n📋 التفاصيل:\nالمبلغ: ${parseInt(price).toLocaleString()} د.ع\nنوع الدفع: ${type}\nتاريخ الانتهاء: ${end}\n\nشكراً لثقتكم بنا 🌟\nOK Computer`;
+
+                    if (isMobile) {
+                        // On mobile, use whatsapp:// protocol
+                        window.location.href = `whatsapp://send?phone=${cleanPhone}&text=${encodeURIComponent(msg)}`;
+                    } else {
+                        // On desktop, use web.whatsapp.com
+                        window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+                    }
+                }
+
+                // Handle Print
                 if (print) {
-                    // Populate Receipt Area
-                    document.getElementById('p-name').innerText = name;
-                    document.getElementById('p-price').innerText = parseInt(price).toLocaleString();
-                    document.getElementById('p-type').innerText = type;
-                    document.getElementById('p-start').innerText = start;
-                    document.getElementById('p-end').innerText = end;
-                    document.getElementById('p-date').innerText = new Date().toLocaleString('ar-IQ');
-                    window.print();
+                    // Small delay to ensure receipt is populated
+                    setTimeout(() => window.print(), 100);
                 }
             } catch (e) {
                 DataManager.showToast(e.message, 'error');
@@ -315,7 +358,7 @@
             if (!v) { r.style.display = 'none'; return }
             const res = DataManager.searchSubscribers(v);
             if (res.length) {
-                r.innerHTML = res.slice(0, 5).map(s => `<div onclick="selectSub('${s.name}')" style="padding:10px;border-bottom:1px solid #eee;">${s.name}</div>`).join('');
+                r.innerHTML = res.slice(0, 5).map(s => `<div onclick="selectSub('${s.name}')" style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;">${s.name}</div>`).join('');
                 r.style.display = 'block';
             } else r.style.display = 'none';
         };
