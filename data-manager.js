@@ -1,8 +1,8 @@
 /**
- * DataManager v14.0 - WhatsApp Integration + Toast Fixes
+ * DataManager v14.2 - Updated Firebase Cache API
  */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, persistentLocalCache, persistentMultipleTabManager } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyA-raYlvzPz8T7Mnx8bTWA4O8CyHvp7K_0",
@@ -14,22 +14,15 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 
-// تحسين الأداء: تفعيل التخزين المحلي مع معالجة أفضل للأخطاء
-enableIndexedDbPersistence(db, {
-    forceOwnership: false // السماح بفتح عدة نوافذ
-}).then(() => {
-    console.log('✅ التخزين المحلي مفعّل - النظام سيعمل بسرعة حتى مع إنترنت بطيء');
-}).catch((err) => {
-    if (err.code === 'failed-precondition') {
-        // نافذة متصفح أخرى مفتوحة
-        console.warn('⚠️ نافذة أخرى مفتوحة، التخزين المحلي غير مفعّل');
-    } else if (err.code === 'unimplemented') {
-        // المتصفح لا يدعم التخزين المحلي
-        console.warn('⚠️ المتصفح لا يدعم التخزين المحلي');
-    }
+// الطريقة الجديدة: استخدام persistentLocalCache (أسرع وأفضل)
+const db = getFirestore(app, {
+    localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager()
+    })
 });
+
+console.log('✅ Firebase مُحدّث بأحدث تقنيات التخزين المحلي');
 
 let localData = { subscribers: [], transactions: [] };
 let isProcessing = false;
