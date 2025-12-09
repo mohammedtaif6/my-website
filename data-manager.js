@@ -1,8 +1,8 @@
 /**
- * DataManager v14.2 - Updated Firebase Cache API
+ * DataManager v14.3 - Fixed Firebase Initialization
  */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, persistentLocalCache, persistentMultipleTabManager } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { initializeFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, persistentLocalCache, persistentMultipleTabManager } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyA-raYlvzPz8T7Mnx8bTWA4O8CyHvp7K_0",
@@ -15,14 +15,14 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// الطريقة الجديدة: استخدام persistentLocalCache (أسرع وأفضل)
-const db = getFirestore(app, {
+// الطريقة الصحيحة: استخدام initializeFirestore مع localCache
+const db = initializeFirestore(app, {
     localCache: persistentLocalCache({
         tabManager: persistentMultipleTabManager()
     })
 });
 
-console.log('✅ Firebase مُحدّث بأحدث تقنيات التخزين المحلي');
+console.log('✅ Firebase مُهيأ بالتخزين المحلي المتقدم - جاهز للعمل!');
 
 let localData = { subscribers: [], transactions: [] };
 let isProcessing = false;
@@ -51,7 +51,7 @@ function showToast(message, type = 'success') {
 export const DataManager = {
     init() {
         console.log("========================================");
-        console.log("🚀 System v14.1 - Multi-User Support");
+        console.log("🚀 System v14.3 - Multi-User Support");
         console.log("========================================");
         this.sync('subscribers');
         this.sync('transactions');
