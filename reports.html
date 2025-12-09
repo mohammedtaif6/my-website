@@ -5,26 +5,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>التقارير - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=12.1">
+    <link rel="stylesheet" href="style.css?v=13.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="module">
         import { DataManager } from './data-manager.js';
         window.DataManager = DataManager;
         DataManager.init();
     </script>
+    <style>
+        #ptr-indicator {
+            text-align: center;
+            color: var(--secondary);
+            height: 0;
+            overflow: hidden;
+            transition: height 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
 </head>
 
 <body>
+    <div id="ptr-indicator"><i class="fas fa-arrow-down"></i> اسحب للتحديث</div>
     <nav class="navbar">
-        <div class="logo">
-            <i class="fas fa-chart-bar"></i> التقارير
-        </div>
+        <div class="logo"><i class="fas fa-chart-bar"></i> التقارير</div>
         <ul class="nav-links">
             <li><a href="index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
             <li><a href="subscribers.html"><i class="fas fa-users"></i> المشتركين</a></li>
             <li><a href="debts.html"><i class="fas fa-money-bill-wave"></i> الديون</a></li>
-            <li><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> المبالغ</a></li>
-            <li><a href="expenses.html"><i class="fas fa-file-invoice-dollar"></i> الصرفيات</a></li>
+            <li><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> الصندوق</a></li>
             <li><a href="reports.html" class="active"><i class="fas fa-chart-bar"></i> التقارير</a></li>
         </ul>
     </nav>
@@ -33,74 +43,42 @@
 
         <div class="header-card">
             <div>
-                <h1>التقارير المالية</h1>
-                <p>ملخص الأداء المالي والفترة الزمنية</p>
+                <h1>السجل المالي الشامل</h1>
+                <p>الأرشيف والتعديلات</p>
             </div>
             <div>
-                <button onclick="window.print()" class="btn btn-primary">
-                    <i class="fas fa-print"></i> طباعة التقرير
+                <button onclick="window.print()" class="btn btn-outline">
+                    <i class="fas fa-print"></i> طباعة
                 </button>
             </div>
         </div>
 
-        <!-- Filters -->
         <div class="card" style="margin-bottom: 20px;">
-            <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
-                <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
-                    <label>من تاريخ</label>
+            <div style="display: flex; gap: 10px; align-items: flex-end;">
+                <div class="form-group" style="flex:1; margin:0;">
+                    <label>من</label>
                     <input type="date" id="dateFrom" onchange="generateReport()">
                 </div>
-                <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
-                    <label>إلى تاريخ</label>
+                <div class="form-group" style="flex:1; margin:0;">
+                    <label>إلى</label>
                     <input type="date" id="dateTo" onchange="generateReport()">
-                </div>
-                <div style="flex: 0 0 auto;">
-                    <button onclick="generateReport()" class="btn btn-success" style="height: 52px; margin-top: 28px;">
-                        <i class="fas fa-filter"></i> عرض
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="stats-grid">
-            <div class="card">
-                <div class="icon-box green"><i class="fas fa-hand-holding-usd"></i></div>
-                <div class="card-info">
-                    <h3>إجمالي المقبوضات</h3>
-                    <p id="totalIncome" class="text-success">0</p>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="icon-box red"><i class="fas fa-file-invoice-dollar"></i></div>
-                <div class="card-info">
-                    <h3>إجمالي المصروفات</h3>
-                    <p id="totalExpense" class="text-danger">0</p>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="icon-box blue"><i class="fas fa-wallet"></i></div>
-                <div class="card-info">
-                    <h3>صافي الأرباح</h3>
-                    <p id="netProfit">0</p>
                 </div>
             </div>
         </div>
 
         <div class="table-container">
             <div class="table-header">
-                <h3>تفاصيل الحركة المالية للفترة المحددة</h3>
+                <h3>سجل العمليات (يمكن التعديل والحذف)</h3>
             </div>
             <div class="table-wrapper">
                 <table>
                     <thead>
                         <tr>
                             <th>التاريخ</th>
-                            <th>عدد الحركات</th>
-                            <th>مقبوضات</th>
-                            <th>مصروفات</th>
-                            <th>صافي اليوم</th>
+                            <th>الوصف</th>
+                            <th>المبلغ</th>
+                            <th>حالة الأرشيف</th>
+                            <th>تحكم</th>
                         </tr>
                     </thead>
                     <tbody id="reportBody"></tbody>
@@ -109,97 +87,114 @@
         </div>
     </div>
 
+    <!-- Edit Transaction Modal -->
+    <div id="editTxModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>تعديل المعاملة</h3>
+                <button class="close-btn" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-id">
+                <div class="form-group">
+                    <label>الوصف</label>
+                    <input type="text" id="edit-desc">
+                </div>
+                <div class="form-group">
+                    <label>المبلغ (سالب للصرفيات)</label>
+                    <input type="number" id="edit-amount">
+                </div>
+                <button onclick="saveTxEdit()" class="btn btn-primary btn-full">حفظ التعديلات</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Pull to refresh (simplified)
+        let ts = 0;
+        window.addEventListener('touchstart', e => { if (window.scrollY === 0) ts = e.touches[0].clientY });
+        window.addEventListener('touchend', e => { if (window.scrollY === 0 && e.changedTouches[0].clientY - ts > 80) location.reload() });
+
         window.generateReport = function () {
             if (typeof DataManager === 'undefined') return;
 
-            const fromDateVal = document.getElementById('dateFrom').value;
-            const toDateVal = document.getElementById('dateTo').value;
+            const fromVal = document.getElementById('dateFrom').value;
+            const toVal = document.getElementById('dateTo').value;
 
-            // Default to start of current month if not set
             const now = new Date();
-            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const from = fromVal ? new Date(fromVal) : new Date(now.getFullYear(), now.getMonth(), 1);
+            const to = toVal ? new Date(toVal) : now;
+            to.setHours(23, 59, 59);
+            from.setHours(0, 0, 0);
 
-            const from = fromDateVal ? new Date(fromDateVal) : startOfMonth;
-            const to = toDateVal ? new Date(toDateVal) : now;
-
-            // Set end date to end of day
-            to.setHours(23, 59, 59, 999);
-            from.setHours(0, 0, 0, 0);
-
-            // Update inputs if they were empty
-            if (!fromDateVal) document.getElementById('dateFrom').value = from.toISOString().split('T')[0];
-            if (!toDateVal) document.getElementById('dateTo').value = to.toISOString().split('T')[0];
+            // Set inputs defaults
+            if (!fromVal) document.getElementById('dateFrom').value = from.toISOString().split('T')[0];
+            if (!toVal) document.getElementById('dateTo').value = to.toISOString().split('T')[0];
 
             const txs = DataManager.getAllTransactions();
+
+            // Show ALL matching date range, regardless of archive status
             const filtered = txs.filter(t => {
                 const d = new Date(t.createdAt);
-                // Filter out Debt-Only records (non-cash)
                 if (t.type === 'subscription_debt') return false;
                 return d >= from && d <= to;
             });
 
-            // Group by Day
-            const dailyStats = {};
-            let grandIncome = 0;
-            let grandExpense = 0;
+            filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-            filtered.forEach(t => {
-                const dayKey = new Date(t.createdAt).toLocaleDateString('en-CA'); // YYYY-MM-DD
-                if (!dailyStats[dayKey]) dailyStats[dayKey] = { income: 0, expense: 0, count: 0 };
-
-                const amt = t.amount || 0;
-                if (amt > 0) {
-                    dailyStats[dayKey].income += amt;
-                    grandIncome += amt;
-                } else {
-                    dailyStats[dayKey].expense += Math.abs(amt);
-                    grandExpense += Math.abs(amt);
-                }
-                dailyStats[dayKey].count++;
-            });
-
-            // Render Totals
-            document.getElementById('totalIncome').innerText = grandIncome.toLocaleString();
-            document.getElementById('totalExpense').innerText = grandExpense.toLocaleString();
-            const net = grandIncome - grandExpense;
-            document.getElementById('netProfit').innerText = net.toLocaleString();
-            document.getElementById('netProfit').style.color = net >= 0 ? 'var(--success)' : 'var(--danger)';
-
-            // Render Table
             const tbody = document.getElementById('reportBody');
             tbody.innerHTML = '';
 
-            // Sort days descending
-            const sortedDays = Object.keys(dailyStats).sort((a, b) => new Date(b) - new Date(a));
-
-            if (sortedDays.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px;">لا توجد بيانات لهذه الفترة</td></tr>';
-            } else {
-                sortedDays.forEach(day => {
-                    const s = dailyStats[day];
-                    const dailyNet = s.income - s.expense;
-                    tbody.innerHTML += `
-                        <tr>
-                            <td data-label="التاريخ">${day}</td>
-                            <td data-label="العمليات">${s.count}</td>
-                            <td data-label="مقبوضات" class="text-success">${s.income.toLocaleString()}</td>
-                            <td data-label="مصروفات" class="text-danger">${s.expense.toLocaleString()}</td>
-                            <td data-label="صافي" style="font-weight:bold; color:${dailyNet >= 0 ? 'var(--success)' : 'var(--danger)'}">
-                                ${dailyNet.toLocaleString()}
-                            </td>
-                        </tr>
-                    `;
-                });
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">لا توجد بيانات</td></tr>';
+                return;
             }
+
+            filtered.forEach(t => {
+                const date = new Date(t.createdAt).toLocaleDateString('ar-IQ') + ' ' + new Date(t.createdAt).toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' });
+                const isExp = t.amount < 0;
+                tbody.innerHTML += `
+                    <tr>
+                        <td data-label="التاريخ" style="font-size:0.85rem;">${date}</td>
+                        <td data-label="الوصف">${t.description || '-'}</td>
+                        <td data-label="المبلغ" style="color:${isExp ? 'red' : 'green'}">${Math.abs(t.amount).toLocaleString()}</td>
+                        <td data-label="الحالة">
+                            ${t.isArchived ? '<span class="badge badge-success">مرحّل</span>' : '<span class="badge badge-warning">نشط</span>'}
+                        </td>
+                        <td data-label="تحكم">
+                            <button onclick="openEditModal('${t.id}')" class="btn btn-outline" style="padding:4px 8px;">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="DataManager.deleteTransaction('${t.id}')" class="btn btn-outline" style="padding:4px 8px; color:red; border-color:red;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
         };
 
-        window.updatePageData = window.generateReport;
+        window.openEditModal = function (id) {
+            const t = DataManager.getAllTransactions().find(tx => tx.id == id);
+            if (!t) return;
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-desc').value = t.description;
+            document.getElementById('edit-amount').value = t.amount;
+            document.getElementById('editTxModal').classList.add('active');
+        }
+        window.closeEditModal = () => document.getElementById('editTxModal').classList.remove('active');
 
-        // Initial load
-        setTimeout(() => {
-            if (typeof DataManager !== 'undefined') generateReport();
-        }, 1000);
+        window.saveTxEdit = async function () {
+            const id = document.getElementById('edit-id').value;
+            const desc = document.getElementById('edit-desc').value;
+            const amount = document.getElementById('edit-amount').value;
+
+            await DataManager.updateTransaction(id, { description: desc, amount: parseInt(amount) });
+            closeEditModal();
+        }
+
+        window.updatePageData = window.generateReport;
+        setTimeout(() => { if (typeof DataManager !== 'undefined') generateReport() }, 1000);
     </script>
 </body>
 

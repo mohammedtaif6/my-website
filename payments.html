@@ -4,27 +4,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>المبالغ - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=12.0">
+    <title>الصندوق المالي - OK Computer</title>
+    <link rel="stylesheet" href="style.css?v=13.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="module">
         import { DataManager } from './data-manager.js';
         window.DataManager = DataManager;
         DataManager.init();
     </script>
+    <style>
+        /* Pull to refresh visual indicator */
+        #ptr-indicator {
+            text-align: center;
+            color: var(--secondary);
+            height: 0;
+            overflow: hidden;
+            transition: height 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
 </head>
 
 <body>
+    <div id="ptr-indicator"><i class="fas fa-arrow-down"></i> اسحب للتحديث</div>
+
     <nav class="navbar">
         <div class="logo">
-            <i class="fas fa-hand-holding-usd"></i> الصندوق
+            <i class="fas fa-cash-register"></i> الصندوق اليومي
         </div>
         <ul class="nav-links">
             <li><a href="index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
             <li><a href="subscribers.html"><i class="fas fa-users"></i> المشتركين</a></li>
             <li><a href="debts.html"><i class="fas fa-money-bill-wave"></i> الديون</a></li>
-            <li><a href="payments.html" class="active"><i class="fas fa-hand-holding-usd"></i> المبالغ</a></li>
-            <li><a href="expenses.html"><i class="fas fa-file-invoice-dollar"></i> الصرفيات</a></li>
+            <li><a href="payments.html" class="active"><i class="fas fa-hand-holding-usd"></i> الصندوق</a></li>
+            <!-- Expenses link removed as requested -->
             <li><a href="reports.html"><i class="fas fa-chart-bar"></i> التقارير</a></li>
         </ul>
     </nav>
@@ -33,29 +48,32 @@
 
         <div class="header-card">
             <div>
-                <h1>حركة الصندوق</h1>
-                <p>سجل المقبوضات والنفقات اليومية</p>
+                <h1>حركة الصندوق اليومية</h1>
+                <p>قائمة العمليات الحالية (غير المرحّلة)</p>
             </div>
-            <div style="display:flex; gap:10px;">
-                <button onclick="addPaymentManually()" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> إضافة مقبوض
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button onclick="openPaymentModal()" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> مقبوض
                 </button>
-                <button onclick="window.DataManager.archiveDay()" class="btn btn-warning" style="color:black;">
-                    <i class="fas fa-archive"></i> ترحيل يومي
+                <button onclick="openExpenseModal()" class="btn btn-danger">
+                    <i class="fas fa-minus"></i> صرفية
+                </button>
+                <button onclick="window.DataManager.archiveAllCurrent()" class="btn btn-warning"
+                    style="color:black; font-weight:bold;">
+                    <i class="fas fa-archive"></i> ترحيل للتقارير
                 </button>
             </div>
         </div>
 
         <div class="stats-grid">
-            <div class="card"
-                style="background: linear-gradient(135deg, #10b981, #059669); color: white; justify-content: space-between;">
+            <div class="card" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">
                 <div style="display: flex; gap: 15px; align-items: center;">
                     <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px;">
                         <i class="fas fa-wallet" style="font-size: 1.5rem;"></i>
                     </div>
                     <div>
-                        <h3 style="color: rgba(255,255,255,0.9); margin-bottom: 5px;">الرصيد الصافي</h3>
-                        <p id="actualBalance" style="color: white; font-size: 2rem;">0</p>
+                        <h3 style="color: rgba(255,255,255,0.9); margin-bottom: 5px;">الرصيد الصافي (الموجود)</h3>
+                        <p id="netBalanceDisplay" style="color: white; font-size: 2rem;">0</p>
                     </div>
                 </div>
             </div>
@@ -63,16 +81,16 @@
 
         <div class="table-container">
             <div class="table-header">
-                <h3>سجل المعاملات</h3>
+                <h3>سجل العمليات (مقبوضات ومصروفات)</h3>
             </div>
             <div class="table-wrapper">
                 <table>
                     <thead>
                         <tr>
-                            <th>الاسم / البيان</th>
+                            <th>البيان / المشترك</th>
                             <th>المبلغ</th>
                             <th>النوع</th>
-                            <th>التاريخ</th>
+                            <th>التوقيت</th>
                             <th>تحكم</th>
                         </tr>
                     </thead>
@@ -86,137 +104,175 @@
     <div id="paymentModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
-                <h3>إضافة مقبوض يدوي</h3>
+                <h3>إضافة مقبوض خارجي</h3>
                 <button class="close-btn" onclick="closePaymentModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label>المشترك</label>
-                    <select id="subscriberSelect">
-                        <option value="">-- اختر مشترك --</option>
+                    <label>المشترك (اختياري)</label>
+                    <select id="subSelect">
+                        <option value="">-- عام --</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>المبلغ</label>
-                    <input type="number" id="paymentAmount" placeholder="0">
+                    <input type="number" id="payAmount">
                 </div>
                 <div class="form-group">
-                    <label>الوصف</label>
-                    <input type="text" id="paymentDescription" placeholder="تسديد اشتراك، دفعة...">
+                    <label>ملاحظة</label>
+                    <input type="text" id="payDesc" placeholder="سبب القبض...">
                 </div>
-                <button onclick="saveManualPayment()" class="btn btn-primary btn-full" id="savePayBtn">
-                    <i class="fas fa-save"></i> حفظ المقبوض
-                </button>
+                <button onclick="savePayment()" class="btn btn-success btn-full">حفظ المقبوض</button>
             </div>
         </div>
     </div>
 
+    <!-- Modal: Expense (Moved here) -->
+    <div id="expenseModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>إضافة صرفية</h3>
+                <button class="close-btn" onclick="closeExpenseModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>وصف الصرفية</label>
+                    <input type="text" id="expDesc" placeholder="كهرباء، غداء، صيانة...">
+                </div>
+                <div class="form-group">
+                    <label>المبلغ</label>
+                    <input type="number" id="expAmount">
+                </div>
+                <button onclick="saveExpense()" class="btn btn-danger btn-full">خصم من الصندوق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script for Pull to Refresh & Logic -->
     <script>
+        // === Pull to Refresh Logic ===
+        let touchStart = 0;
+        let touchEnd = 0;
+        const ptr = document.getElementById('ptr-indicator');
+
+        window.addEventListener('touchstart', e => {
+            if (window.scrollY === 0) touchStart = e.changedTouches[0].screenY;
+        });
+
+        window.addEventListener('touchmove', e => {
+            if (window.scrollY === 0 && touchStart > 0) {
+                const pull = e.changedTouches[0].screenY - touchStart;
+                if (pull > 0) ptr.style.height = Math.min(pull, 60) + 'px';
+            }
+        });
+
+        window.addEventListener('touchend', e => {
+            if (window.scrollY === 0 && (e.changedTouches[0].screenY - touchStart) > 80) {
+                ptr.style.height = '60px';
+                ptr.innerHTML = '<i class="fas fa-spinner fa-spin"></i> تحديث...';
+                setTimeout(() => window.location.reload(), 500);
+            } else {
+                ptr.style.height = '0px';
+            }
+            touchStart = 0;
+        });
+
+        // === Page Logic ===
         window.renderPage = function () {
             if (typeof DataManager === 'undefined') return;
-            // V12: Get Unified Transactions
-            const trans = DataManager.getAllTransactions();
+
+            // Get All Transactions
+            const allTxs = DataManager.getAllTransactions();
             const tbody = document.getElementById('tableBody');
+
+            // Filter: NOT Archived, Not Debt-Only Record
+            const activeTxs = allTxs.filter(t => !t.isArchived && t.type !== 'subscription_debt');
+
+            // Calculate Net Balance
+            const income = activeTxs.filter(t => t.amount > 0).reduce((a, b) => a + b.amount, 0);
+            const expense = activeTxs.filter(t => t.amount < 0).reduce((a, b) => a + Math.abs(b.amount), 0);
+            const net = income - expense;
+
+            document.getElementById('netBalanceDisplay').innerText = net.toLocaleString() + ' د.ع';
+
             tbody.innerHTML = '';
-
-            let totalReceived = 0;
-            let totalExpenses = 0;
-
-            if (trans.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--secondary);">الصندوق فارغ</td></tr>';
+            if (activeTxs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; opacity:0.6;">لا توجد حركات يومية. الكل مرحّل.</td></tr>';
             } else {
-                // Sort by ID descending (newest first)
-                trans.sort((a, b) => (b.id || 0) - (a.id || 0)).forEach(t => {
-                    // Skip Debt Records (Non-cash)
-                    if (t.type === 'subscription_debt') return;
+                // Sort Newest First
+                activeTxs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(t => {
+                    const isExp = t.amount < 0;
+                    const amount = Math.abs(t.amount);
+                    const time = new Date(t.createdAt).toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' });
 
-                    const sub = DataManager.getSubscriber(t.subscriberId);
-                    const amount = t.amount || 0;
-
-                    if (amount > 0) totalReceived += amount;
-                    else totalExpenses += Math.abs(amount);
-
-                    const date = new Date(t.createdAt || Date.now()).toLocaleDateString('ar-IQ');
-                    const isExpense = amount < 0;
+                    let desc = t.description;
+                    if (!desc) {
+                        const sub = DataManager.getSubscriber(t.subscriberId);
+                        desc = sub ? sub.name : (isExp ? 'صرفية' : 'مقبوض');
+                    }
 
                     tbody.innerHTML += `
-                        <tr>
-                            <td data-label="البيان" style="font-weight:600;">
-                                ${sub ? sub.name : (t.description || (isExpense ? 'صرفية' : 'غير معروف'))}
-                            </td>
-                            <td data-label="المبلغ">
-                                <span class="badge ${isExpense ? 'badge-danger' : 'badge-success'}">
-                                    ${Math.abs(amount).toLocaleString()}
+                        <tr style="background: ${isExp ? '#fef2f2' : 'white'}">
+                            <td data-label="البيان">
+                                <span style="font-weight:bold; color: ${isExp ? 'var(--danger)' : 'var(--dark)'}">
+                                    ${isExp ? '<i class="fas fa-arrow-down text-danger"></i>' : '<i class="fas fa-arrow-up text-success"></i>'} 
+                                    ${desc}
                                 </span>
                             </td>
-                            <td data-label="النوع">${t.type || '-'}</td>
-                            <td data-label="التاريخ">${date}</td>
+                            <td data-label="المبلغ" style="font-weight:bold; color:${isExp ? 'var(--danger)' : 'var(--success)'}">
+                                ${amount.toLocaleString()}
+                            </td>
+                            <td data-label="النوع">${isExp ? 'صرف' : 'قبض'}</td>
+                            <td data-label="التوقيت">${time}</td>
                             <td data-label="تحكم">
-                                <button onclick="deletePaymentConfirm('${t.id}')" class="btn btn-outline" style="padding:5px 10px; color:var(--danger); border-color:var(--danger);">
-                                    <i class="fas fa-trash"></i>
+                                <button onclick="window.DataManager.deleteTransaction('${t.id}')" class="btn btn-outline" style="padding:5px; color:var(--danger)">
+                                    <i class="fas fa-times"></i>
                                 </button>
                             </td>
                         </tr>
                     `;
                 });
             }
-
-            const actualBalance = totalReceived - totalExpenses;
-            document.getElementById('actualBalance').innerText = actualBalance.toLocaleString() + ' د.ع';
         };
 
+        // Modal Helpers
         window.openPaymentModal = function () {
-            document.getElementById('paymentModal').classList.add('active');
-            const select = document.getElementById('subscriberSelect');
-            const subscribers = DataManager.getSubscribers();
-            select.innerHTML = '<option value="">-- اختر مشترك --</option>';
-            subscribers.forEach(sub => {
-                const opt = document.createElement('option');
-                opt.value = sub.id;
-                opt.text = sub.name;
-                select.appendChild(opt);
+            const sel = document.getElementById('subSelect');
+            sel.innerHTML = '<option value="">-- عام --</option>';
+            DataManager.getSubscribers().forEach(s => {
+                sel.innerHTML += `<option value="${s.id}">${s.name}</option>`;
             });
+            document.getElementById('paymentModal').classList.add('active');
+        };
+        window.closePaymentModal = () => document.getElementById('paymentModal').classList.remove('active');
+
+        window.openExpenseModal = () => document.getElementById('expenseModal').classList.add('active');
+        window.closeExpenseModal = () => document.getElementById('expenseModal').classList.remove('active');
+
+        window.savePayment = async function () {
+            const subId = document.getElementById('subSelect').value;
+            const amt = document.getElementById('payAmount').value;
+            const desc = document.getElementById('payDesc').value;
+            if (!amt) return;
+
+            await DataManager.recordTransaction(subId || null, parseInt(amt), desc || 'مقبوض يدوي', 'نقد');
+            closePaymentModal();
+            document.getElementById('payAmount').value = '';
         };
 
-        window.closePaymentModal = function () {
-            document.getElementById('paymentModal').classList.remove('active');
-        };
+        window.saveExpense = async function () {
+            const amt = document.getElementById('expAmount').value;
+            const desc = document.getElementById('expDesc').value;
+            if (!amt || !desc) return;
 
-        window.addPaymentManually = window.openPaymentModal;
-
-        window.saveManualPayment = async function () {
-            const btn = document.getElementById('savePayBtn');
-            const subId = document.getElementById('subscriberSelect').value;
-            const amount = document.getElementById('paymentAmount').value;
-            const desc = document.getElementById('paymentDescription').value || 'مقبوض يدوي';
-
-            if (!subId || !amount) return alert('الرجاء اختيار المشترك وتحديد المبلغ');
-
-            btn.disabled = true;
-            btn.innerHTML = 'جاري الحفظ...';
-
-            try {
-                // V12: Record Manual Transaction
-                await DataManager.recordTransaction(subId, parseInt(amount), desc, 'نقد');
-                closePaymentModal();
-                document.getElementById('paymentAmount').value = '';
-                document.getElementById('paymentDescription').value = '';
-            } catch (e) {
-                alert('خطأ');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-save"></i> حفظ المقبوض';
-            }
-        };
-
-        window.deletePaymentConfirm = async function (id) {
-            if (confirm('حذف هذا السجل المالي نهائياً؟')) {
-                await DataManager.deleteTransaction(id);
-            }
+            await DataManager.addExpense(parseInt(amt), desc);
+            closeExpenseModal();
+            document.getElementById('expAmount').value = '';
+            document.getElementById('expDesc').value = '';
         };
 
         window.updatePageData = window.renderPage;
-        setInterval(() => { if (typeof DataManager !== 'undefined') renderPage(); }, 1000);
+        setInterval(() => window.renderPage(), 1000);
     </script>
 </body>
 

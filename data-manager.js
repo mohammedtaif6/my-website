@@ -1,9 +1,10 @@
 /**
- * DataManager v12.0 - Unified Ledger System (النظام المالي الموحد)
+ * DataManager v13.0 - Unified Ledger + Archiving + No Alerts + Smart Validation
  */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, where, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+// === Firebase Configuration (Same as before) ===
 const firebaseConfig = {
     apiKey: "AIzaSyA-raYlvzPz8T7Mnx8bTWA4O8CyHvp7K_0",
     authDomain: "okcomputer-system.firebaseapp.com",
@@ -16,22 +17,52 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Offline Persistence
-try { enableIndexedDbPersistence(db).catch(e => console.log("Persistence warning:", e.code)); } catch (e) { }
+try { enableIndexedDbPersistence(db).catch(() => { }); } catch (e) { }
 
-let localData = { subscribers: [], transactions: [], expenses: [], archived: [] };
+let localData = { subscribers: [], transactions: [] };
 let isProcessing = false;
+
+// === Custom Notification Helper (Toast) ===
+function showToast(message, type = 'success') {
+    // Create toast container if not exists
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.style.cssText = "position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 3000; display: flex; flex-direction: column; gap: 10px;";
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        background: ${type === 'error' ? '#ef4444' : '#10b981'};
+        color: white; padding: 12px 24px; border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-weight: 600;
+        animation: slideUpFade 0.3s ease-out; font-family: 'Cairo', sans-serif;
+    `;
+    toast.innerText = message;
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// Add CSS animation for toast
+const style = document.createElement('style');
+style.innerHTML = `@keyframes slideUpFade { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }`;
+document.head.appendChild(style);
+
 
 export const DataManager = {
     init() {
-        console.log("جار الاتصال بفايربيس (النظام الموحد)...");
+        console.log("System v13.0 Initializing...");
         this.sync('subscribers');
-        this.sync('transactions'); // هذا هو الجدول الأساسي الآن لكل شيء
-        this.sync('archived');
+        this.sync('transactions');
     },
 
     sync(colName) {
-        // ترتيب عكسي للوقت (الأحدث أولاً)
         const q = query(collection(db, colName), orderBy("createdAt", "desc"));
         onSnapshot(q, (snapshot) => {
             localData[colName] = snapshot.docs.map(d => ({ ...d.data(), firebaseId: d.id }));
@@ -39,117 +70,91 @@ export const DataManager = {
         });
     },
 
-    // ==========================================
-    //  Unified Transaction System (نظام المعاملات الموحد)
-    // ==========================================
-
-    // هذه الدالة هي القلب المحرك لكل العمليات المالية
-    // type: 'subscription_cash' | 'subscription_debt' | 'payment' | 'expense' | 'manual_income'
     async logTransaction(data) {
         if (isProcessing) return;
         isProcessing = true;
-
         try {
             const txRecord = {
                 id: Date.now(),
                 createdAt: new Date().toISOString(),
+                isArchived: false, // Default: visible in daily box
                 ...data
-                // data must include: subscriberId (optional), amount, type, description
             };
-
             await addDoc(collection(db, "transactions"), txRecord);
-            console.log("Transaction Logged:", txRecord);
+            // showToast("تم تسجيل العملية بنجاح"); // Optional to reduce noise
         } catch (e) {
             console.error(e);
-            alert("خطأ في تسجيل المعاملة: " + e.message);
+            showToast("حدث خطأ في التسجيل", "error");
         } finally {
             isProcessing = false;
         }
     },
 
-    // ==========================================
-    //  Subscribers Management
-    // ==========================================
+    // === Subscriber Logic ===
 
     async addSubscriber(data) {
-        // إضافة مشترك جديد
-        // data.initialStatus: 'cash' or 'debt'
-        // data.initialPrice: amount
-
         const subData = {
             id: Date.now(),
             createdAt: new Date().toISOString(),
             name: data.name,
             phone: data.phone,
-            price: data.price || 0, // هذا حقل "الديون الحالية" المتراكمة
+            price: data.price || 0,
             status: data.status || 'نشط',
             paymentType: data.paymentType || 'نقد',
             expiryDate: data.expiryDate || '',
             note: ''
         };
 
-        // 1. إنشاء المشترك
         const subRef = await addDoc(collection(db, "subscribers"), subData);
 
-        // 2. تسجيل المعاملة المالية المرتبطة بالإضافة (إذا وجد)
-        // إذا كان الاشتراك نقد -> معاملة قبض (Cash Flow +)
-        // إذا كان الاشتراك أجل -> معاملة دين (Debt Record, No Cash Flow)
-
-        if (subData.paymentType === 'نقد' && subData.price > 0) {
-            // نقد: استلمنا فلوس، والمشترك عليه 0 دين (في البروفايل سعر الاشتراك لا يعتبر دين اذا دفع، لكن هنا سنفترض price هو قيمة الاشتراك)
-            // لحظة، المنطق المعتاد: price في البروفايل = كم يطلب النظام من المشترك.
-            // اذا دفع نقد، الـ price في البروفايل يجب ان يكون 0 (صافي).
-
-            const initialAmount = data.initialPrice || 0;
-            if (initialAmount > 0) {
-                await this.logTransaction({
-                    subscriberId: subData.id,
-                    amount: parseInt(initialAmount), // المبلغ المقبوض
-                    type: 'subscription_cash',
-                    description: `اشتراك جديد (نقد): ${subData.name}`
-                });
-            }
-
-            // تحديث المشترك ليكون دينه 0 لأنه دفع
-            await updateDoc(doc(db, "subscribers", subRef.id), { price: 0 });
-
-        } else if (subData.paymentType === 'أجل') {
-            // أجل: لم نستلم فلوس، والمشترك عليه دين
-            // الـ price في البروفايل يبقى كما هو (مطلوب منه هذا المبلغ)
-
-            const initialAmount = data.initialPrice || 0;
-            if (initialAmount > 0) {
-                await this.logTransaction({
-                    subscriberId: subData.id,
-                    amount: parseInt(initialAmount), // قيمة الدين
-                    type: 'subscription_debt', // نوع خاص للديون
-                    description: `اشتراك جديد (أجل): ${subData.name}`
-                });
-            }
+        // Transaction Logic
+        const initialAmount = data.initialPrice || 0;
+        if (subData.paymentType === 'نقد' && initialAmount > 0) {
+            await this.logTransaction({
+                subscriberId: subData.id,
+                amount: parseInt(initialAmount),
+                type: 'subscription_cash',
+                description: `اشتراك جديد (نقد): ${subData.name}`
+            });
+            await updateDoc(doc(db, "subscribers", subRef.id), { price: 0 }); // Clear debt if cash
+        } else if (subData.paymentType === 'أجل' && initialAmount > 0) {
+            await this.logTransaction({
+                subscriberId: subData.id,
+                amount: parseInt(initialAmount),
+                type: 'subscription_debt',
+                description: `اشتراك جديد (أجل): ${subData.name}`
+            });
         }
+        showToast("تم إضافة المشترك بنجاح");
     },
 
-    // تفعيل / تجديد اشتراك (التعديل الجذري)
     async renewSubscription(subscriberFirebaseId, subscriberDataId, renewalData) {
-        // renewalData: { price: 35000, type: 'نقد'/'أجل', months: 1 ... }
-
+        // Prevent Double Activation
         const sub = localData.subscribers.find(s => s.firebaseId === subscriberFirebaseId);
-        if (!sub) return;
+        if (sub && sub.expiryDate) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const exp = new Date(sub.expiryDate);
+            if (exp >= today) {
+                // If it looks like a mistake, block it. But sometimes users want to extend early.
+                // We will just WARN, but the user asked to "not allow".
+                // Let's be strict:
+                throw new Error(`المشترك فعال بالفعل وينتهي في ${sub.expiryDate}. لا يمكن التفعيل مرتين.`);
+            }
+        }
 
-        let newDebt = parseInt(sub.price || 0); // الدين القديم
+        let newDebt = parseInt(sub.price || 0);
 
         if (renewalData.type === 'أجل') {
-            // إضافة الدين الجديد للقديم
             newDebt += parseInt(renewalData.price);
-
             await this.logTransaction({
                 subscriberId: subscriberDataId,
                 amount: parseInt(renewalData.price),
-                type: 'subscription_debt',
+                type: 'subscription_debt', // Just debt record, not cash
                 description: `تجديد اشتراك (أجل) - ${renewalData.dateEnd}`
             });
         } else {
-            // نقد: الدفع فوري، لا يزيد الدين، ونسجل مقبوضات
+            // Cash payment
             await this.logTransaction({
                 subscriberId: subscriberDataId,
                 amount: parseInt(renewalData.price),
@@ -158,22 +163,23 @@ export const DataManager = {
             });
         }
 
-        // تحديث بيانات المشترك
         await updateDoc(doc(db, "subscribers", subscriberFirebaseId), {
             status: 'نشط',
             expiryDate: renewalData.dateEnd,
             paymentType: renewalData.type,
-            price: newDebt // تحديث إجمالي الديون
+            price: newDebt
         });
+        showToast("تم تجديد الاشتراك");
     },
 
-    // تحديث بيانات عادي
     async updateSubscriber(id, data) {
         const sub = localData.subscribers.find(s => s.id == id);
-        if (sub) await updateDoc(doc(db, "subscribers", sub.firebaseId), data);
+        if (sub) {
+            await updateDoc(doc(db, "subscribers", sub.firebaseId), data);
+            showToast("تم تحديث البيانات");
+        }
     },
 
-    // تسديد دين (دفعة من حساب)
     async payDebt(subscriberFirebaseId, subscriberDataId, amount) {
         const sub = localData.subscribers.find(s => s.firebaseId === subscriberFirebaseId);
         if (!sub) return;
@@ -181,7 +187,6 @@ export const DataManager = {
         const currentDebt = parseInt(sub.price || 0);
         const newDebt = Math.max(0, currentDebt - amount);
 
-        // 1. تسجيل المعاملة (مقبوضات)
         await this.logTransaction({
             subscriberId: subscriberDataId,
             amount: parseInt(amount),
@@ -189,112 +194,124 @@ export const DataManager = {
             description: `تسديد دفعة من الدين: ${sub.name}`
         });
 
-        // 2. تحديث رصيد المشترك
         await updateDoc(doc(db, "subscribers", subscriberFirebaseId), {
             price: newDebt,
-            paymentType: newDebt === 0 ? 'نقد' : 'أجل' // تحويل لنقد اذا صفر الحساب
+            paymentType: newDebt === 0 ? 'نقد' : 'أجل'
         });
+        showToast("تم تسجيل الدفعة");
     },
 
-    // تسجيل معاملة مالية عامة (للتوافق مع الكود القديم)
-    async recordTransaction(subscriberId, amount, description, type = 'نقد') {
-        const isExpense = amount < 0;
-        await this.logTransaction({
-            subscriberId: subscriberId,
-            amount: amount,
-            type: isExpense ? 'expense' : (type || 'payment'),
-            description: description
-        });
-    },
-
-    // إضافة صرفية (خارجية أو مرتبطة)
+    // Expenses are just negative transactions
     async addExpense(amount, description) {
         await this.logTransaction({
-            subscriberId: null, // لا يوجد مشترك محدد
-            amount: -Math.abs(amount), // بالسالب لأنها صرفيات
+            subscriberId: null,
+            amount: -Math.abs(amount), // Ensure negative
             type: 'expense',
             description: description
         });
+        showToast("تم حفظ الصرفية");
     },
 
-    // ==========================================
-    //  Getters & Helpers
-    // ==========================================
-
-    getSubscribers() { return localData.subscribers; },
-
-    // جلب كشف حساب مشترك معين (كل حركاته)
-    getSubscriberHistory(subscriberId) {
-        return localData.transactions.filter(t => t.subscriberId == subscriberId);
+    // Allow manual generic transaction
+    async recordTransaction(subscriberId, amount, description, type) {
+        await this.logTransaction({
+            subscriberId, amount, description, type
+        });
+        showToast("تم الحفظ");
     },
 
-    // جلب الصندوق (حركة الكاش فقط)
-    // نستثني 'subscription_debt' لأنها مجرد قيد دين وليست كاش
-    getCashFlow() {
-        return localData.transactions.filter(t => t.type !== 'subscription_debt');
+    // === Archiving & Management ===
+
+    async archiveAllCurrent() {
+        // Find all unarchived transactions
+        const unarchived = localData.transactions.filter(t => !t.isArchived);
+        if (unarchived.length === 0) return showToast("لا توجد بيانات للترحيل", "error");
+
+        if (!confirm("هل أنت متأكد من ترحيل المبالغ الحالية إلى التقارير؟ سيتم تصفير الصندوق اليومي.")) return;
+
+        const batchPromises = unarchived.map(t =>
+            updateDoc(doc(db, "transactions", t.firebaseId), { isArchived: true })
+        );
+
+        await Promise.all(batchPromises);
+        showToast("تم ترحيل البيانات بنجاح ✅");
+    },
+
+    async deleteTransaction(id) {
+        if (!confirm("حذف السجل نهائياً؟")) return;
+        const t = localData.transactions.find(tx => tx.id == id);
+        if (t) {
+            await deleteDoc(doc(db, "transactions", t.firebaseId));
+            showToast("تم الحذف");
+        }
+    },
+
+    async updateTransaction(id, newData) {
+        const t = localData.transactions.find(tx => tx.id == id);
+        if (t) {
+            await updateDoc(doc(db, "transactions", t.firebaseId), newData);
+            showToast("تم تعديل المعاملة");
+        }
+    },
+
+    async deleteSubscriber(id) {
+        if (!confirm("حذف المشترك نهائياً؟")) return;
+        const sub = localData.subscribers.find(s => s.id == id);
+        if (sub) {
+            await deleteDoc(doc(db, "subscribers", sub.firebaseId));
+            showToast("تم حذف المشترك");
+        }
+    },
+
+    // === Getters ===
+
+    // For Dashboard Card: Net Balance (Income - Expenses)
+    // Should calculate based on ALL TIME or CURRENT DAY? 
+    // Usually "Box" means current cash on hand (Unarchived).
+    getDailyBalance() {
+        const currentTxs = localData.transactions.filter(t => !t.isArchived && t.type !== 'subscription_debt');
+        const income = currentTxs.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
+        const expense = currentTxs.filter(t => t.amount < 0).reduce((sum, t) => sum + Math.abs(t.amount), 0);
+        return income - expense;
     },
 
     getAllTransactions() { return localData.transactions; },
+    getSubscribers() { return localData.subscribers; },
+    getSubscriber(id) { return localData.subscribers.find(s => s.id == id); },
 
     searchSubscribers(queryText) {
         if (!queryText) return localData.subscribers;
         return localData.subscribers.filter(s => s.name && s.name.toLowerCase().includes(queryText.toLowerCase()));
     },
 
-    getSubscriber(id) {
-        return localData.subscribers.find(s => s.id == id);
-    },
-
-    // الإحصائيات (محدثة لتعمل مع النظام الموحد)
     getStats() {
         const subs = localData.subscribers;
-        const txs = localData.transactions;
+        const txs = localData.transactions; // All history
 
-        // 1. إجمالي الديون (من بروفايلات المشتركين لأنها تراكمية)
+        // Total Debts from profiles
         const totalDebts = subs.reduce((sum, s) => sum + (parseInt(s.price) || 0), 0);
 
-        // 2. إجمالي الواردات (الكاش فقط)
-        // أي معاملة موجبة وليست دين
-        const cashIn = txs
-            .filter(t => t.amount > 0 && t.type !== 'subscription_debt')
-            .reduce((sum, t) => sum + t.amount, 0);
+        // Net Balance (Box) - Unarchived only
+        const boxBalance = this.getDailyBalance();
 
-        // 3. إجمالي المصروفات
-        const cashOut = txs
-            .filter(t => t.amount < 0)
-            .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+        // Expired Logic
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
         return {
             totalSubs: subs.length,
             debts: totalDebts,
-            received: cashIn,
-            expenses: cashOut,
-            expired: subs.filter(s => s.expiryDate && new Date(s.expiryDate) < new Date()).length,
+            boxBalance: boxBalance, // This replaces "Received" & "Expenses" separate stats in dashboard usually
+            expired: subs.filter(s => s.expiryDate && new Date(s.expiryDate) < today).length,
             expiring: subs.filter(s => {
                 if (!s.expiryDate) return false;
-                const days = Math.ceil((new Date(s.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
-                return days > 0 && days <= 3;
+                const d = new Date(s.expiryDate);
+                const diffTime = d - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays > 0 && diffDays <= 3;
             }).length
         };
     },
 
-    // للحذف وأدوات الأدمن
-    async deleteSubscriber(id) {
-        if (!confirm("تحذير: حذف المشترك سيؤدي لحذف سجله لكن المعاملات المالية ستبقى للأرشيف. موافق؟")) return;
-        const sub = localData.subscribers.find(s => s.id == id);
-        if (sub) await deleteDoc(doc(db, "subscribers", sub.firebaseId));
-    },
-
-    async deleteTransaction(id) {
-        if (!confirm("حذف هذه المعاملة المالية؟ سيؤثر ذلك على الحسابات!")) return;
-        const t = localData.transactions.find(tx => tx.id == id);
-        if (t) await deleteDoc(doc(db, "transactions", t.firebaseId));
-    },
-
-    async archiveDay() {
-        if (!confirm("ترحيل كل المقبوضات الحالية للأرشيف وتصفير الصندوق الظاهري؟")) return;
-        // في هذا النظام، الترحيل مجرد علامة (Tag) أو نقل لمجموعة أخرى
-        // للتبسيط: سنقوم فقط بتنبيه المستخدم أن البيانات محفوظة
-        alert("البيانات محفوظة تلقائياً في السجل الدائم. يمكنك الفلترة بالتاريخ في التقارير.");
-    }
+    showToast
 };
