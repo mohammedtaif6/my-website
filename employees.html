@@ -92,55 +92,86 @@
         </div>
     </div>
 
+    <!-- Custom CSS for Employees Page -->
     <style>
-        .checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px;
-            background: #f8f9fa;
-            border-radius: 5px;
-            cursor: pointer;
+        .employees-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
         }
 
         .emp-card {
             background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            position: relative;
-        }
-
-        .emp-card h3 {
-            margin: 0 0 10px 0;
-            color: #333;
-        }
-
-        .emp-card p {
-            margin: 5px 0;
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        .perms-tags {
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s;
+            border: 1px solid #f0f0f0;
             display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            margin-top: 10px;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
-        .perm-tag {
-            background: #e3f2fd;
-            color: #1565c0;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.8rem;
+        .emp-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .emp-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .emp-name {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #2c3e50;
+        }
+
+        .emp-detail {
+            font-size: 0.95rem;
+            color: #555;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .emp-salary-badge {
+            background: #e0f2f1;
+            color: #00695c;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: inline-block;
         }
 
         .actions {
-            margin-top: 15px;
+            margin-top: 20px;
             display: flex;
             gap: 10px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .checkbox-label {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            border: 1px solid #eee;
+        }
+
+        .checkbox-label:hover {
+            background: #e3f2fd;
         }
     </style>
 
@@ -155,28 +186,50 @@
             const container = document.getElementById('employees-grid');
 
             if (list.length === 0) {
-                container.innerHTML = '<p>لا يوجد موظفين حالياً</p>';
+                container.innerHTML = '<p style="grid-column: 1/-1; text-align:center;">لا يوجد موظفين حالياً</p>';
                 return;
             }
 
             container.innerHTML = list.map(e => {
                 const perms = e.permissions || {};
+                const balance = DataManager.calculateEmployeeBalance(e.id);
+
                 let tags = '';
                 if (perms.subscribers) tags += `<span class="perm-tag">المشتركين</span>`;
                 if (perms.debts) tags += `<span class="perm-tag">الديون</span>`;
-                if (perms.payments) tags += `<span class="perm-tag">الصندوق</span>`;
                 if (perms.reports) tags += `<span class="perm-tag">التقارير</span>`;
 
                 return `
                 <div class="emp-card">
-                    <h3>${e.name}</h3>
-                    <p><i class="fas fa-phone"></i> ${e.phone}</p>
-                    <p><i class="fas fa-key"></i> ${e.password}</p>
-                    <div class="perms-tags">${tags || '<span class="perm-tag" style="background:#ffebee;color:#c62828">بلا صلاحيات</span>'}</div>
+                    <div>
+                        <div class="emp-header">
+                            <div class="emp-name">${e.name}</div>
+                            <div style="background:#eee; padding:5px 10px; border-radius:20px; font-size:0.8rem;">${e.phone}</div>
+                        </div>
+                        
+                        <div class="emp-detail"><i class="fas fa-key"></i> كلمة المرور: <b>${e.password}</b></div>
+                        
+                        <div class="emp-salary-badge">
+                            <i class="fas fa-money-bill-wave"></i> الراتب اليومي: ${parseInt(e.dailySalary || 0).toLocaleString()} د.ع
+                        </div>
+                        
+                        <div style="margin-top:10px; font-size:0.9rem; color:#666;">
+                            <div>💰 المستحق: <b>${balance.earned.toLocaleString()}</b></div>
+                            <div style="color:red">💸 المسحوب: <b>${balance.advances.toLocaleString()}</b></div>
+                            <div style="color:green; font-weight:bold; border-top:1px dashed #ccc; margin-top:5px; padding-top:5px;">
+                                ✅ الصافي: ${balance.net.toLocaleString()} د.ع
+                            </div>
+                        </div>
+
+                        <div style="margin-top:15px;">
+                            <small style="color:#888;">الصلاحيات:</small>
+                            <div class="perms-tags">${tags || '<span class="perm-tag" style="background:#ffebee;color:#c62828">بلا صلاحيات</span>'}</div>
+                        </div>
+                    </div>
                     
                     <div class="actions">
-                        <button onclick='editEmployee(${JSON.stringify(e)})' class="btn btn-sm btn-primary">تعديل</button>
-                        <button onclick="deleteEmp(${e.id})" class="btn btn-sm btn-danger">حذف</button>
+                        <button onclick='editEmployee(${JSON.stringify(e)})' class="btn btn-sm btn-primary" style="flex:1">تعديل</button>
+                        <button onclick="deleteEmp(${e.id})" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>`;
             }).join('');
@@ -189,6 +242,7 @@
             document.getElementById('emp-name').value = '';
             document.getElementById('emp-phone').value = '';
             document.getElementById('emp-pass').value = '';
+            document.getElementById('emp-daily-salary').value = '10000'; // قيمة افتراضية
             // تصفير الصلاحيات
             document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
             document.getElementById('modalTitle').innerText = 'موظف جديد';
@@ -202,6 +256,7 @@
             document.getElementById('emp-name').value = e.name;
             document.getElementById('emp-phone').value = e.phone;
             document.getElementById('emp-pass').value = e.password;
+            document.getElementById('emp-daily-salary').value = e.dailySalary || 0;
 
             const p = e.permissions || {};
             document.getElementById('perm-subscribers').checked = p.subscribers;
@@ -220,6 +275,7 @@
                 name: document.getElementById('emp-name').value,
                 phone: document.getElementById('emp-phone').value,
                 password: document.getElementById('emp-pass').value,
+                dailySalary: document.getElementById('emp-daily-salary').value,
                 permissions: {
                     subscribers: document.getElementById('perm-subscribers').checked,
                     debts: document.getElementById('perm-debts').checked,

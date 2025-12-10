@@ -298,13 +298,20 @@ export const DataManager = {
         return localData.subscribers.filter(s => s.name?.toLowerCase().includes(q.toLowerCase()) || s.phone?.includes(q));
     },
 
-    // --- إدارة الموظفين ---
+    // --- إدارة الموظفين والرواتب ---
     getEmployees() { return localData.employees || []; },
 
     getEmployee(id) { return (localData.employees || []).find(e => e.id == id); },
 
     async addEmployee(data) {
-        const emp = { id: Date.now(), createdAt: new Date().toISOString(), ...data };
+        // نحدد تاريخ التعيين لليوم بشكل افتراضي لبدء حساب الراتب
+        const emp = {
+            id: Date.now(),
+            createdAt: new Date().toISOString(),
+            startDate: new Date().toISOString().split('T')[0], // تاريخ بدء الحساب
+            advances: 0, // مجموع السلف
+            ...data
+        };
         await addDoc(collection(db, "employees"), emp);
         showToast("تمت إضافة الموظف");
     },
@@ -324,6 +331,47 @@ export const DataManager = {
             await deleteDoc(doc(db, "employees", emp.firebaseId));
             showToast("تم حذف الموظف");
         }
+    },
+
+    // تسجيل سلفة (خصم من الراتب)
+    async addAdvance(empId, amount, note) {
+        const emp = this.getEmployee(empId);
+        if (!emp) return;
+
+        // 1. تسجيلها كصرفية عامة في النظام
+        await this.addExpense(amount, `سلفة موظف: ${emp.name} - ${note}`);
+
+        // 2. تحديث مجموع السلف للموظف
+        const currentAdvances = parseFloat(emp.advances || 0);
+        await updateDoc(doc(db, "employees", emp.firebaseId), {
+            advances: currentAdvances + parseFloat(amount)
+        });
+    },
+
+    // حساب رصيد الموظف الحالي
+    calculateEmployeeBalance(empId) {
+        const emp = this.getEmployee(empId);
+        if (!emp || !emp.dailySalary) return 0;
+
+        const start = new Date(emp.startDate || emp.createdAt);
+        const now = new Date();
+
+        // حساب عدد الأيام (الفرق بالملي ثانية / ملي ثانية اليوم)
+        const diffTime = Math.abs(now - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        // الراتب المستحق = الأيام * الراتب اليومي
+        const totalEarned = diffDays * parseFloat(emp.dailySalary);
+
+        // الراتب الصافي = المستحق - السلف
+        const netBalance = totalEarned - (parseFloat(emp.advances) || 0);
+
+        return {
+            days: diffDays,
+            earned: totalEarned,
+            advances: (parseFloat(emp.advances) || 0),
+            net: netBalance
+        };
     },
 
     getStats() {
