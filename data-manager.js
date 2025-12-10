@@ -25,7 +25,8 @@ const db = initializeFirestore(app, {
 
 console.log('✅ Firebase مُهيأ بالتخزين المحلي المتقدم - جاهز للعمل!');
 
-let localData = { subscribers: [], transactions: [] };
+
+let localData = { subscribers: [], transactions: [], employees: [] };
 let isProcessing = false;
 
 // === Toast Logic ===
@@ -52,10 +53,11 @@ function showToast(message, type = 'success') {
 export const DataManager = {
     init() {
         console.log("========================================");
-        console.log("🚀 System v14.3 - Multi-User Support");
+        console.log("🚀 System v18.0 - Secured Employee Edition");
         console.log("========================================");
         this.sync('subscribers');
         this.sync('transactions');
+        this.sync('employees'); // مزامنة الموظفين
         this.monitorConnection();
     },
 
@@ -294,6 +296,34 @@ export const DataManager = {
     searchSubscribers(q) {
         if (!q) return localData.subscribers;
         return localData.subscribers.filter(s => s.name?.toLowerCase().includes(q.toLowerCase()) || s.phone?.includes(q));
+    },
+
+    // --- إدارة الموظفين ---
+    getEmployees() { return localData.employees || []; },
+
+    getEmployee(id) { return (localData.employees || []).find(e => e.id == id); },
+
+    async addEmployee(data) {
+        const emp = { id: Date.now(), createdAt: new Date().toISOString(), ...data };
+        await addDoc(collection(db, "employees"), emp);
+        showToast("تمت إضافة الموظف");
+    },
+
+    async updateEmployee(id, newData) {
+        const emp = this.getEmployee(id);
+        if (emp) {
+            await updateDoc(doc(db, "employees", emp.firebaseId), newData);
+            showToast("تم تحديث بيانات الموظف");
+        }
+    },
+
+    async deleteEmployee(id) {
+        if (!confirm("هل أنت متأكد من حذف الموظف؟")) return;
+        const emp = this.getEmployee(id);
+        if (emp) {
+            await deleteDoc(doc(db, "employees", emp.firebaseId));
+            showToast("تم حذف الموظف");
+        }
     },
 
     getStats() {

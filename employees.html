@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الموظفين - OK Computer</title>
+    <link rel="stylesheet" href="style.css?v=18.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="auth-system.js"></script>
+    <script type="module">
+        import { DataManager } from './data-manager.js';
+        window.DataManager = DataManager;
+        DataManager.init();
+    </script>
+</head>
+
+<body>
+    <script>
+        // حماية الصفحة فوراً
+        AuthSystem.checkSession();
+    </script>
+
+    <nav class="navbar">
+        <div class="logo"><i class="fas fa-users-cog"></i> إدارة الموظفين</div>
+        <ul class="nav-links">
+            <li><a href="index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
+            <li><a href="#" onclick="AuthSystem.logout()"><i class="fas fa-sign-out-alt"></i> خروج</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="header-card">
+            <h1>إدارة صلاحيات الموظفين</h1>
+            <button onclick="openModal()" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة موظف</button>
+        </div>
+
+        <div id="employees-grid" class="stats-grid"
+            style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+            <!-- سيتم ملء الموظفين هنا -->
+        </div>
+    </div>
+
+    <!-- Modal إضافة/تعديل -->
+    <div id="empModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="modalTitle">موظف جديد</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="emp-id">
+
+                <div class="form-group">
+                    <label>الاسم</label>
+                    <input type="text" id="emp-name" placeholder="اسم الموظف">
+                </div>
+                <div class="form-group">
+                    <label>رقم الهاتف (للدخول)</label>
+                    <input type="tel" id="emp-phone" placeholder="07...">
+                </div>
+                <div class="form-group">
+                    <label>كلمة السر</label>
+                    <input type="text" id="emp-pass" placeholder="كلمة المرور">
+                </div>
+
+                <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">
+                    <h4>الصلاحيات (ماذا يرى الموظف؟)</h4>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="perm-subscribers"> صفحة المشتركين
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="perm-debts"> صفحة الديون
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="perm-payments"> صفحة الصندوق
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="perm-reports"> صفحة التقارير
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="perm-expenses"> صفحة الصرفيات
+                        </label>
+                    </div>
+                </div>
+
+                <button onclick="saveEmployee()" class="btn btn-success btn-full" style="margin-top: 20px;">حفظ</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .emp-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        .emp-card h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .emp-card p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .perms-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .perm-tag {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+        }
+
+        .actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+
+    <script>
+        // تحميل الموظفين
+        setInterval(() => {
+            if (typeof DataManager !== 'undefined') renderEmployees();
+        }, 1000);
+
+        function renderEmployees() {
+            const list = DataManager.getEmployees();
+            const container = document.getElementById('employees-grid');
+
+            if (list.length === 0) {
+                container.innerHTML = '<p>لا يوجد موظفين حالياً</p>';
+                return;
+            }
+
+            container.innerHTML = list.map(e => {
+                const perms = e.permissions || {};
+                let tags = '';
+                if (perms.subscribers) tags += `<span class="perm-tag">المشتركين</span>`;
+                if (perms.debts) tags += `<span class="perm-tag">الديون</span>`;
+                if (perms.payments) tags += `<span class="perm-tag">الصندوق</span>`;
+                if (perms.reports) tags += `<span class="perm-tag">التقارير</span>`;
+
+                return `
+                <div class="emp-card">
+                    <h3>${e.name}</h3>
+                    <p><i class="fas fa-phone"></i> ${e.phone}</p>
+                    <p><i class="fas fa-key"></i> ${e.password}</p>
+                    <div class="perms-tags">${tags || '<span class="perm-tag" style="background:#ffebee;color:#c62828">بلا صلاحيات</span>'}</div>
+                    
+                    <div class="actions">
+                        <button onclick='editEmployee(${JSON.stringify(e)})' class="btn btn-sm btn-primary">تعديل</button>
+                        <button onclick="deleteEmp(${e.id})" class="btn btn-sm btn-danger">حذف</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // --- إدارة المودال ---
+        const modal = document.getElementById('empModal');
+        function openModal() {
+            document.getElementById('emp-id').value = '';
+            document.getElementById('emp-name').value = '';
+            document.getElementById('emp-phone').value = '';
+            document.getElementById('emp-pass').value = '';
+            // تصفير الصلاحيات
+            document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
+            document.getElementById('modalTitle').innerText = 'موظف جديد';
+            modal.classList.add('active');
+        }
+
+        function closeModal() { modal.classList.remove('active'); }
+
+        window.editEmployee = (e) => {
+            document.getElementById('emp-id').value = e.id;
+            document.getElementById('emp-name').value = e.name;
+            document.getElementById('emp-phone').value = e.phone;
+            document.getElementById('emp-pass').value = e.password;
+
+            const p = e.permissions || {};
+            document.getElementById('perm-subscribers').checked = p.subscribers;
+            document.getElementById('perm-debts').checked = p.debts;
+            document.getElementById('perm-payments').checked = p.payments;
+            document.getElementById('perm-reports').checked = p.reports;
+            document.getElementById('perm-expenses').checked = p.expenses;
+
+            document.getElementById('modalTitle').innerText = 'تعديل موظف';
+            modal.classList.add('active');
+        };
+
+        window.saveEmployee = async () => {
+            const id = document.getElementById('emp-id').value;
+            const data = {
+                name: document.getElementById('emp-name').value,
+                phone: document.getElementById('emp-phone').value,
+                password: document.getElementById('emp-pass').value,
+                permissions: {
+                    subscribers: document.getElementById('perm-subscribers').checked,
+                    debts: document.getElementById('perm-debts').checked,
+                    payments: document.getElementById('perm-payments').checked,
+                    reports: document.getElementById('perm-reports').checked,
+                    expenses: document.getElementById('perm-expenses').checked
+                }
+            };
+
+            if (!data.name || !data.phone || !data.password) return alert('أكمل البيانات');
+
+            if (id) {
+                await DataManager.updateEmployee(id, data);
+            } else {
+                await DataManager.addEmployee(data);
+            }
+            closeModal();
+        };
+
+        window.deleteEmp = (id) => DataManager.deleteEmployee(id);
+
+    </script>
+</body>
+
+</html>

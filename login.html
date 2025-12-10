@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - OK Computer</title>
+    <link rel="stylesheet" href="style.css?v=18.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- تحميل DataManager للاستعلام عن الموظفين -->
+    <script type="module">
+        import { DataManager } from './data-manager.js';
+        window.DataManager = DataManager;
+        DataManager.init();
+    </script>
+    <script src="auth-system.js"></script>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .logo-icon {
+            font-size: 3rem;
+            color: #1e3c72;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #666;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus {
+            border-color: #1e3c72;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #1e3c72;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #2a5298;
+        }
+
+        .error {
+            color: red;
+            background: #ffe6e6;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-box">
+        <div class="logo-icon"><i class="fas fa-microchip"></i></div>
+        <h2>مرحباً بك مجدداً</h2>
+
+        <div id="error-msg" class="error">بيانات الدخول غير صحيحة</div>
+
+        <form onsubmit="doLogin(event)">
+            <div class="input-group">
+                <label>رقم الهاتف</label>
+                <input type="tel" id="phone" placeholder="أدخل رقم هاتفك" required>
+            </div>
+            <div class="input-group">
+                <label>كلمة المرور</label>
+                <input type="password" id="password" placeholder="••••••" required>
+            </div>
+            <button type="submit">تسجيل الدخول</button>
+        </form>
+    </div>
+
+    <script>
+        // التحقق من وجود جلسة
+        window.onload = () => {
+            if (localStorage.getItem('ok_session')) {
+                window.location.href = 'index.html';
+            }
+        };
+
+        async function doLogin(e) {
+            e.preventDefault();
+            const phone = document.getElementById('phone').value;
+            const pass = document.getElementById('password').value;
+            const err = document.getElementById('error-msg');
+
+            // الانتظار قليلاً للتأكد من تحميل بيانات الموظفين من Firebase
+            if (DataManager.getEmployees().length === 0) {
+                // محاولة بسيطة للانتظار
+                await new Promise(r => setTimeout(r, 1500));
+            }
+
+            if (AuthSystem.login(phone, pass)) {
+                window.location.href = 'index.html';
+            } else {
+                err.style.display = 'block';
+                err.innerText = 'رقم الهاتف أو كلمة المرور خطأ';
+            }
+        }
+    </script>
+</body>
+
+</html>
