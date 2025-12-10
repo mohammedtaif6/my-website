@@ -33,7 +33,8 @@
     <div class="container">
         <div class="header-card">
             <h1>إدارة صلاحيات الموظفين</h1>
-            <button onclick="openModal()" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة موظف</button>
+            <!-- تم استخدام ID بدلاً من onclick لضمان العمل -->
+            <button id="btn-add-employee" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة موظف</button>
         </div>
 
         <div id="employees-grid" class="stats-grid"
@@ -47,7 +48,7 @@
         <div class="modal-box">
             <div class="modal-header">
                 <h3 id="modalTitle">موظف جديد</h3>
-                <button class="close-btn" onclick="closeModal()">&times;</button>
+                <button class="close-btn" onclick="window.closeModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="emp-id">
@@ -63,6 +64,10 @@
                 <div class="form-group">
                     <label>كلمة السر</label>
                     <input type="text" id="emp-pass" placeholder="كلمة المرور">
+                </div>
+                <div class="form-group">
+                    <label>الراتب اليومي (د.ع)</label>
+                    <input type="number" id="emp-daily-salary" placeholder="مثلاً 10000">
                 </div>
 
                 <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">
@@ -87,7 +92,8 @@
                     </div>
                 </div>
 
-                <button onclick="saveEmployee()" class="btn btn-success btn-full" style="margin-top: 20px;">حفظ</button>
+                <button onclick="window.saveEmployee()" class="btn btn-success btn-full"
+                    style="margin-top: 20px;">حفظ</button>
             </div>
         </div>
     </div>
@@ -173,6 +179,21 @@
         .checkbox-label:hover {
             background: #e3f2fd;
         }
+
+        .perms-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .perm-tag {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+        }
     </style>
 
     <script>
@@ -182,6 +203,9 @@
         }, 1000);
 
         function renderEmployees() {
+            // نأكد من أن DataManager محمل
+            if (typeof DataManager === 'undefined') return;
+
             const list = DataManager.getEmployees();
             const container = document.getElementById('employees-grid');
 
@@ -228,31 +252,30 @@
                     </div>
                     
                     <div class="actions">
-                        <button onclick='editEmployee(${JSON.stringify(e)})' class="btn btn-sm btn-primary" style="flex:1">تعديل</button>
-                        <button onclick="deleteEmp(${e.id})" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                        <button onclick='window.editEmployee(${JSON.stringify(e)})' class="btn btn-sm btn-primary" style="flex:1">تعديل</button>
+                        <button onclick="window.deleteEmp(${e.id})" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>`;
             }).join('');
         }
 
         // --- إدارة المودال ---
-        window.openModal = function () {
-            console.log("Opening Modal..."); // Debugging
+        function openEmployeeModal() {
             const m = document.getElementById('empModal');
             if (m) {
                 document.getElementById('emp-id').value = '';
                 document.getElementById('emp-name').value = '';
                 document.getElementById('emp-phone').value = '';
                 document.getElementById('emp-pass').value = '';
-                document.getElementById('emp-daily-salary').value = '10000';
-
+                document.getElementById('emp-daily-salary').value = '10000'; // قيمة افتراضية
+                // تصفير الصلاحيات
                 document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
                 document.getElementById('modalTitle').innerText = 'موظف جديد';
                 m.classList.add('active');
             } else {
-                console.error("Modal not found!");
+                console.error("Modal not found");
             }
-        };
+        }
 
         window.closeModal = function () {
             const m = document.getElementById('empModal');
@@ -301,10 +324,18 @@
             } else {
                 await DataManager.addEmployee(data);
             }
-            closeModal();
+            window.closeModal();
         };
 
         window.deleteEmp = (id) => DataManager.deleteEmployee(id);
+
+        // ربط زر الإضافة عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('btn-add-employee');
+            if (btn) {
+                btn.addEventListener('click', openEmployeeModal);
+            }
+        });
 
     </script>
 </body>
