@@ -210,21 +210,26 @@
             }
 
             const list = DataManager.getEmployees();
-            console.log('Rendering Employees. Count:', list ? list.length : 'null'); // Debug log
+            console.log('Rendering Employees. Count:', list ? list.length : 'null');
 
             const container = document.getElementById('employees-grid');
-            if (!container) {
-                console.error('Container #employees-grid not found!');
-                return;
-            }
+            if (!container) return;
 
             if (!list || list.length === 0) {
-                container.innerHTML = '<p style="grid-column: 1/-1; text-align:center;">لا يوجد موظفين حالياً (جاري التحميل أو القائمة فارغة)</p>';
+                container.innerHTML = '<p style="grid-column: 1/-1; text-align:center;">لا يوجد موظفين حالياً</p>';
                 return;
             }
 
-            try {
-                container.innerHTML = list.map(e => {
+            // Safe formatting helper
+            const fmt = (n) => {
+                try {
+                    const num = parseInt(n);
+                    return isNaN(num) ? '0' : num.toLocaleString();
+                } catch (e) { return '0'; }
+            };
+
+            container.innerHTML = list.map(e => {
+                try {
                     const perms = e.permissions || {};
                     let balance = { earned: 0, advances: 0, net: 0 };
 
@@ -236,7 +241,7 @@
                             balance.net = calculated.net || 0;
                         }
                     } catch (err) {
-                        console.error('Error calculating balance for emp:', e.name, err);
+                        console.error('Error calculating balance loop:', err);
                     }
 
                     let tags = '';
@@ -244,21 +249,18 @@
                     if (perms.debts) tags += `<span class="perm-tag">الديون</span>`;
                     if (perms.reports) tags += `<span class="perm-tag">التقارير</span>`;
 
-                    // Safe formatting helper
-                    const fmt = (n) => (n || 0).toLocaleString();
-
                     return `
                     <div class="emp-card">
                         <div>
                             <div class="emp-header">
-                                <div class="emp-name">${e.name || 'بدون اسم'}</div>
+                                <div class="emp-name">${e.name || 'مجهول'}</div>
                                 <div style="background:#eee; padding:5px 10px; border-radius:20px; font-size:0.8rem;">${e.phone || '-'}</div>
                             </div>
                             
-                            <div class="emp-detail"><i class="fas fa-key"></i> كلمة المرور: <b>${e.password}</b></div>
+                            <div class="emp-detail"><i class="fas fa-key"></i> كلمة المرور: <b>${e.password || '***'}</b></div>
                             
                             <div class="emp-salary-badge">
-                                <i class="fas fa-money-bill-wave"></i> الراتب اليومي: ${parseInt(e.dailySalary || 0).toLocaleString()} د.ع
+                                <i class="fas fa-money-bill-wave"></i> الراتب اليومي: ${fmt(e.dailySalary)} د.ع
                             </div>
                             
                             <div style="margin-top:10px; font-size:0.9rem; color:#666;">
@@ -280,11 +282,11 @@
                             <button onclick="window.deleteEmp(${e.id})" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>`;
-                }).join('');
-            } catch (renderErr) {
-                console.error('Error rendering HTML:', renderErr);
-                container.innerHTML = '<p style="color:red">حدث خطأ في عرض البيانات</p>';
-            }
+                } catch (itemErr) {
+                    console.error('Skipping corrupt employee record:', itemErr);
+                    return ''; // Skip this item instead of crashing
+                }
+            }).join('');
         }
 
         // --- إدارة المودال ---
