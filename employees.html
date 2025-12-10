@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة الموظفين - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=18.4">
+    <link rel="stylesheet" href="style.css?v=18.5">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="auth-system.js"></script>
@@ -327,6 +327,7 @@
                         
                         <div class="actions">
                             <button onclick="window.openQuickExpense('${e.id}', '${e.name}')" class="btn btn-sm btn-warning" style="min-width: 80px;"><i class="fas fa-hand-holding-usd"></i> سلفة</button>
+                            <button onclick="window.paySalary(${e.id})" class="btn btn-sm btn-success" style="min-width: 90px;" title="صرف الراتب"><i class="fas fa-money-bill-wave"></i> صرف</button>
                             <button onclick='window.editEmployee(${JSON.stringify(e).replace(/'/g, "&#39;")})' class="btn btn-sm btn-primary" style="flex:1">تعديل</button>
                             <button onclick="window.deleteEmp(${e.id})" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
                         </div>
@@ -407,6 +408,11 @@
         };
 
         window.deleteEmp = (id) => DataManager.deleteEmployee(id);
+
+        // صرف راتب الموظف
+        window.paySalary = async (id) => {
+            await DataManager.paySalary(id);
+        };
 
         // --- إدارة مودال الصرفية السريعة ---
         window.openQuickExpense = (id, name) => {

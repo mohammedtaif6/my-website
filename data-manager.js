@@ -349,6 +349,34 @@ export const DataManager = {
         });
     },
 
+    // صرف راتب الموظف (يصفر الرصيد ويسجل صرفية)
+    async paySalary(empId) {
+        const emp = this.getEmployee(empId);
+        if (!emp) return;
+
+        const balance = this.calculateEmployeeBalance(empId);
+
+        if (balance.net <= 0) {
+            showToast('لا يوجد راتب مستحق للصرف', 'error');
+            return;
+        }
+
+        if (!confirm(`هل تريد صرف راتب ${emp.name}؟\nالمبلغ: ${balance.net.toLocaleString()} د.ع`)) {
+            return;
+        }
+
+        // 1. تسجيل الصرفية من الصندوق
+        await this.addExpense(balance.net, `راتب موظف: ${emp.name}`);
+
+        // 2. تصفير الرصيد (نعيد ضبط تاريخ البداية لليوم ونصفر السلف)
+        await updateDoc(doc(db, "employees", emp.firebaseId), {
+            startDate: new Date().toISOString().split('T')[0],
+            advances: 0
+        });
+
+        showToast(`تم صرف راتب ${emp.name} بنجاح`);
+    },
+
     // حساب رصيد الموظف الحالي
     calculateEmployeeBalance(empId) {
         const emp = this.getEmployee(empId);
