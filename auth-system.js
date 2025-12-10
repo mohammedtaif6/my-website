@@ -114,7 +114,7 @@ const AuthSystem = {
                 'debts': ['nav-debts', 'card-debts'],
                 'payments': ['nav-payments', 'card-payments'],
                 'reports': ['nav-reports', 'card-reports'],
-                'expenses': ['nav-expenses', 'btn-quick-expense']
+                'expenses': ['nav-expenses'] // أزلنا btn-quick-expense لأن الموظفين يحتاجونه للسلف
             };
 
             // إخفاء العناصر المحظورة
