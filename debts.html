@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
@@ -156,4 +157,166 @@
     </script>
 </body>
 
+=======
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>الديون - OK Computer</title>
+    <link rel="stylesheet" href="style.css?v=12.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="module">
+        import { DataManager } from './data-manager.js';
+        window.DataManager = DataManager;
+        DataManager.init();
+    </script>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fas fa-money-bill-wave"></i> الديون
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
+            <li><a href="subscribers.html"><i class="fas fa-users"></i> المشتركين</a></li>
+            <li><a href="debts.html" class="active"><i class="fas fa-money-bill-wave"></i> الديون</a></li>
+            <li><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> المبالغ</a></li>
+            <li><a href="expenses.html"><i class="fas fa-file-invoice-dollar"></i> الصرفيات</a></li>
+            <li><a href="reports.html"><i class="fas fa-chart-bar"></i> التقارير</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+
+        <div class="header-card">
+            <div>
+                <h1>الديون المستحقة</h1>
+                <p>متابعة المشتركين بنظام الآجل</p>
+            </div>
+            <div id="totalDebtDisplay" class="text-danger" style="font-size:1.5rem; font-weight:bold;">
+                0 د.ع
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-header">
+                <h3>قائمة المطلوبين</h3>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>الهاتف</th>
+                            <th>المبلغ المطلوب</th>
+                            <th>إجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Pay Debt -->
+    <div id="payModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>تسديد دين</h3>
+                <button class="close-btn" onclick="closePayModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="pay-fid">
+                <input type="hidden" id="pay-id">
+                <p id="pay-sub-name" style="margin-bottom: 20px; font-weight: bold;"></p>
+
+                <div class="form-group">
+                    <label>المبلغ المستحق الكلي</label>
+                    <input type="text" id="pay-total-debt" disabled style="background: #f1f5f9;">
+                </div>
+
+                <div class="form-group">
+                    <label>المبلغ المراد تسديده الآن</label>
+                    <input type="number" id="pay-amount">
+                </div>
+
+                <button onclick="savePayment()" class="btn btn-success btn-full">
+                    <i class="fas fa-check"></i> تأكيد التسديد
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.renderPage = function () {
+            if (typeof DataManager === 'undefined') return;
+            const subs = DataManager.getSubscribers();
+            // الفلتر: نوع أجل (دين) ويوجد مبلغ أكبر من صفر
+            // أو حتى لو نوعه نقد لكن عليه مبلغ (للاحتياط)
+            const debtors = subs.filter(s => s.price > 0);
+
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            let total = 0;
+
+            if (debtors.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--success);">محفظة نظيفة - لا توجد ديون مستحقة</td></tr>';
+            } else {
+                debtors.forEach(s => {
+                    const price = parseInt(s.price);
+                    total += price;
+                    tbody.innerHTML += `
+                        <tr>
+                            <td data-label="الاسم" style="font-weight:bold;">${s.name}</td>
+                            <td data-label="الهاتف">${s.phone || '-'}</td>
+                            <td data-label="المبلغ" class="text-danger" style="font-weight:bold;">${price.toLocaleString()}</td>
+                            <td data-label="تحكم">
+                                <button onclick="openPayModal('${s.firebaseId}', '${s.id}', '${s.name}', ${price})" class="btn btn-success btn-sm">
+                                    <i class="fas fa-hand-holding-usd"></i> تسديد
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            document.getElementById('totalDebtDisplay').innerText = `الإجمالي: ${total.toLocaleString()} د.ع`;
+        };
+
+        window.openPayModal = function (fid, id, name, debt) {
+            document.getElementById('pay-fid').value = fid;
+            document.getElementById('pay-id').value = id;
+            document.getElementById('pay-sub-name').innerText = `المشترك: ${name}`;
+            document.getElementById('pay-total-debt').value = debt.toLocaleString();
+            document.getElementById('pay-amount').value = debt; // Default to full amount
+            document.getElementById('payModal').classList.add('active');
+        };
+
+        window.closePayModal = () => document.getElementById('payModal').classList.remove('active');
+
+        window.savePayment = async function () {
+            const fid = document.getElementById('pay-fid').value;
+            const id = document.getElementById('pay-id').value;
+            const amount = parseInt(document.getElementById('pay-amount').value);
+
+            if (!amount || amount <= 0) return alert('أدخل مبلغ صحيح');
+
+            try {
+                await DataManager.payDebt(fid, id, amount);
+                closePayModal();
+                alert('تم التسديد بنجاح');
+            } catch (e) {
+                alert('خطأ: ' + e.message);
+            }
+        };
+
+        window.updatePageData = window.renderPage;
+
+        setInterval(() => { if (typeof DataManager !== 'undefined') renderPage(); }, 1000);
+    </script>
+</body>
+
+>>>>>>> 0864a6a (Fix Expense button logic and update project files)
 </html>

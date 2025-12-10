@@ -13,6 +13,9 @@
         DataManager.init();
     </script>
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0864a6a (Fix Expense button logic and update project files)
     <style>
         /* Pull to refresh visual indicator */
         #ptr-indicator {
@@ -26,8 +29,11 @@
             justify-content: center;
         }
     </style>
+<<<<<<< HEAD
 =======
 >>>>>>> 468b659 (Update project files and add server.js)
+=======
+>>>>>>> 0864a6a (Fix Expense button logic and update project files)
 </head>
 
 <body>
@@ -127,6 +133,7 @@
                     <input type="text" id="payDesc" placeholder="سبب القبض...">
                 </div>
                 <button onclick="savePayment()" class="btn btn-success btn-full">حفظ المقبوض</button>
+<<<<<<< HEAD
             </div>
         </div>
     </div>
@@ -295,16 +302,86 @@
             </div>
             <div class="modal-footer">
                 <button onclick="saveManualPayment()" class="btn btn-primary" style="width: 100%;">حفظ</button>
+=======
+>>>>>>> 0864a6a (Fix Expense button logic and update project files)
             </div>
         </div>
     </div>
 
+    <!-- Modal: Expense (Moved here) -->
+    <div id="expenseModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>إضافة صرفية</h3>
+                <button class="close-btn" onclick="closeExpenseModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>وصف الصرفية</label>
+                    <input type="text" id="expDesc" placeholder="كهرباء، غداء، صيانة...">
+                </div>
+                <div class="form-group">
+                    <label>المبلغ</label>
+                    <input type="number" id="expAmount">
+                </div>
+                <button onclick="saveExpense()" class="btn btn-danger btn-full">خصم من الصندوق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script for Pull to Refresh & Logic -->
     <script>
+<<<<<<< HEAD
         window.renderPage = function() {
+=======
+        // === Pull to Refresh Logic ===
+        let touchStart = 0;
+        let touchEnd = 0;
+        const ptr = document.getElementById('ptr-indicator');
+
+        window.addEventListener('touchstart', e => {
+            if (window.scrollY === 0) touchStart = e.changedTouches[0].screenY;
+        });
+
+        window.addEventListener('touchmove', e => {
+            if (window.scrollY === 0 && touchStart > 0) {
+                const pull = e.changedTouches[0].screenY - touchStart;
+                if (pull > 0) ptr.style.height = Math.min(pull, 60) + 'px';
+            }
+        });
+
+        window.addEventListener('touchend', e => {
+            if (window.scrollY === 0 && (e.changedTouches[0].screenY - touchStart) > 80) {
+                ptr.style.height = '60px';
+                ptr.innerHTML = '<i class="fas fa-spinner fa-spin"></i> تحديث...';
+                setTimeout(() => window.location.reload(), 500);
+            } else {
+                ptr.style.height = '0px';
+            }
+            touchStart = 0;
+        });
+
+        // === Page Logic ===
+        window.renderPage = function () {
+>>>>>>> 0864a6a (Fix Expense button logic and update project files)
             if (typeof DataManager === 'undefined') return;
-            const trans = DataManager.getAllTransactions();
+
+            // Get All Transactions
+            const allTxs = DataManager.getAllTransactions();
             const tbody = document.getElementById('tableBody');
+
+            // Filter: NOT Archived, Not Debt-Only Record
+            const activeTxs = allTxs.filter(t => !t.isArchived && t.type !== 'subscription_debt');
+
+            // Calculate Net Balance
+            const income = activeTxs.filter(t => t.amount > 0).reduce((a, b) => a + b.amount, 0);
+            const expense = activeTxs.filter(t => t.amount < 0).reduce((a, b) => a + Math.abs(b.amount), 0);
+            const net = income - expense;
+
+            document.getElementById('netBalanceDisplay').innerText = net.toLocaleString() + ' د.ع';
+
             tbody.innerHTML = '';
+<<<<<<< HEAD
             
             // فصل المقبوضات والصرفيات
             let totalReceived = 0;
@@ -338,12 +415,46 @@
                                 <button onclick="deletePaymentConfirm('${t.firebaseId || t.id}')" class="btn btn-danger btn-sm">
                                     <i class="fas fa-trash"></i>
 >>>>>>> 468b659 (Update project files and add server.js)
+=======
+            if (activeTxs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; opacity:0.6;">لا توجد حركات يومية. الكل مرحّل.</td></tr>';
+            } else {
+                // Sort Newest First
+                activeTxs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(t => {
+                    const isExp = t.amount < 0;
+                    const amount = Math.abs(t.amount);
+                    const time = new Date(t.createdAt).toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' });
+
+                    let desc = t.description;
+                    if (!desc) {
+                        const sub = DataManager.getSubscriber(t.subscriberId);
+                        desc = sub ? sub.name : (isExp ? 'صرفية' : 'مقبوض');
+                    }
+
+                    tbody.innerHTML += `
+                        <tr style="background: ${isExp ? '#fef2f2' : 'white'}">
+                            <td data-label="البيان">
+                                <span style="font-weight:bold; color: ${isExp ? 'var(--danger)' : 'var(--dark)'}">
+                                    ${isExp ? '<i class="fas fa-arrow-down text-danger"></i>' : '<i class="fas fa-arrow-up text-success"></i>'} 
+                                    ${desc}
+                                </span>
+                            </td>
+                            <td data-label="المبلغ" style="font-weight:bold; color:${isExp ? 'var(--danger)' : 'var(--success)'}">
+                                ${amount.toLocaleString()}
+                            </td>
+                            <td data-label="النوع">${isExp ? 'صرف' : 'قبض'}</td>
+                            <td data-label="التوقيت">${time}</td>
+                            <td data-label="تحكم">
+                                <button onclick="window.DataManager.deleteTransaction('${t.id}')" class="btn btn-outline" style="padding:5px; color:var(--danger)">
+                                    <i class="fas fa-times"></i>
+>>>>>>> 0864a6a (Fix Expense button logic and update project files)
                                 </button>
                             </td>
                         </tr>
                     `;
                 });
             }
+<<<<<<< HEAD
             
             // الرصيد الفعلي فقط = المقبوضات - الصرفيات
             const actualBalance = totalReceived - totalExpenses;
@@ -353,6 +464,10 @@
         };
 
 <<<<<<< HEAD
+=======
+        };
+
+>>>>>>> 0864a6a (Fix Expense button logic and update project files)
         // Modal Helpers
         window.openPaymentModal = function () {
             const sel = document.getElementById('subSelect');
@@ -391,6 +506,7 @@
 
         window.updatePageData = window.renderPage;
         setInterval(() => window.renderPage(), 1000);
+<<<<<<< HEAD
 =======
         window.openPaymentModal = function() {
             document.getElementById('paymentModal').classList.add('active');
@@ -450,6 +566,8 @@
         // تحديث فوري كل 500ms
         setInterval(() => { if(typeof DataManager !== 'undefined') renderPage(); }, 500);
 >>>>>>> 468b659 (Update project files and add server.js)
+=======
+>>>>>>> 0864a6a (Fix Expense button logic and update project files)
     </script>
 </body>
 

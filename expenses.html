@@ -7,11 +7,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>الصرفيات - OK Computer</title>
     <link rel="stylesheet" href="style.css?v=12.0">
+<<<<<<< HEAD
 =======
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>الصرفيات</title>
     <link rel="stylesheet" href="style.css?v=8">
 >>>>>>> 468b659 (Update project files and add server.js)
+=======
+>>>>>>> 0864a6a (Fix Expense button logic and update project files)
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="module">
         import { DataManager } from './data-manager.js';
@@ -37,6 +40,9 @@
 
     <div class="container">
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0864a6a (Fix Expense button logic and update project files)
 
         <!-- Header Card with Quick Actions -->
         <div class="header-card">
@@ -192,6 +198,9 @@
         });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0864a6a (Fix Expense button logic and update project files)
         window.openExpenseModal = function () {
             document.getElementById('expenseModal').classList.add('active');
         };
@@ -201,9 +210,12 @@
         };
 
         window.renderPage = function () {
+<<<<<<< HEAD
 =======
         window.renderPage = function() {
 >>>>>>> 468b659 (Update project files and add server.js)
+=======
+>>>>>>> 0864a6a (Fix Expense button logic and update project files)
             if (typeof DataManager === 'undefined') return;
             // Get all transactions
             const allTrans = DataManager.getAllTransactions();
@@ -211,11 +223,17 @@
 
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
+<<<<<<< HEAD
             let total = 0;
 
 <<<<<<< HEAD
             let total = 0;
 
+=======
+
+            let total = 0;
+
+>>>>>>> 0864a6a (Fix Expense button logic and update project files)
             // Sort expenses (Transactions with negative values or type='expense')
             const sortedExpenses = expenses.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
@@ -259,6 +277,9 @@
                 });
             }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0864a6a (Fix Expense button logic and update project files)
 
             document.getElementById('totalExpenses').innerText = total.toLocaleString();
             document.getElementById('expensesCount').innerText = sortedExpenses.length;
@@ -302,6 +323,7 @@
         };
 
         setInterval(() => { if (typeof DataManager !== 'undefined') renderPage(); }, 1000);
+<<<<<<< HEAD
 =======
             
             document.getElementById('totalExpenses').innerText = total.toLocaleString();
@@ -353,6 +375,8 @@
         // Initial render
         setTimeout(renderPage, 1000);
 >>>>>>> 468b659 (Update project files and add server.js)
+=======
+>>>>>>> 0864a6a (Fix Expense button logic and update project files)
     </script>
 </body>
 
