@@ -236,22 +236,31 @@
         }
 
         // --- إدارة المودال ---
-        const modal = document.getElementById('empModal');
-        function openModal() {
-            document.getElementById('emp-id').value = '';
-            document.getElementById('emp-name').value = '';
-            document.getElementById('emp-phone').value = '';
-            document.getElementById('emp-pass').value = '';
-            document.getElementById('emp-daily-salary').value = '10000'; // قيمة افتراضية
-            // تصفير الصلاحيات
-            document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
-            document.getElementById('modalTitle').innerText = 'موظف جديد';
-            modal.classList.add('active');
-        }
+        window.openModal = function () {
+            console.log("Opening Modal..."); // Debugging
+            const m = document.getElementById('empModal');
+            if (m) {
+                document.getElementById('emp-id').value = '';
+                document.getElementById('emp-name').value = '';
+                document.getElementById('emp-phone').value = '';
+                document.getElementById('emp-pass').value = '';
+                document.getElementById('emp-daily-salary').value = '10000';
 
-        function closeModal() { modal.classList.remove('active'); }
+                document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
+                document.getElementById('modalTitle').innerText = 'موظف جديد';
+                m.classList.add('active');
+            } else {
+                console.error("Modal not found!");
+            }
+        };
+
+        window.closeModal = function () {
+            const m = document.getElementById('empModal');
+            if (m) m.classList.remove('active');
+        };
 
         window.editEmployee = (e) => {
+            const m = document.getElementById('empModal');
             document.getElementById('emp-id').value = e.id;
             document.getElementById('emp-name').value = e.name;
             document.getElementById('emp-phone').value = e.phone;
@@ -266,7 +275,7 @@
             document.getElementById('perm-expenses').checked = p.expenses;
 
             document.getElementById('modalTitle').innerText = 'تعديل موظف';
-            modal.classList.add('active');
+            if (m) m.classList.add('active');
         };
 
         window.saveEmployee = async () => {
