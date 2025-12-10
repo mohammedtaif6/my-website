@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة الموظفين - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=18.1">
+    <link rel="stylesheet" href="style.css?v=18.2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="auth-system.js"></script>
@@ -53,47 +53,50 @@
             <div class="modal-body">
                 <input type="hidden" id="emp-id">
 
-                <!-- صف يحتوي على الاسم والهاتف -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div class="form-group">
+                <!-- تنسيق شبكي متجاوب -->
+                <div class="form-grid">
+                    <div class="form-group" style="margin:0">
                         <label>الاسم</label>
                         <input type="text" id="emp-name" placeholder="اسم الموظف" class="compact-input">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" style="margin:0">
                         <label>رقم الهاتف</label>
                         <input type="tel" id="emp-phone" placeholder="07..." class="compact-input">
                     </div>
                 </div>
 
-                <!-- صف يحتوي على الراتب وكلمة السر -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
-                    <div class="form-group">
+                <div class="form-grid">
+                    <div class="form-group" style="margin:0">
                         <label>الراتب اليومي</label>
                         <input type="number" id="emp-daily-salary" placeholder="10000" class="compact-input">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" style="margin:0">
                         <label>كلمة السر</label>
                         <input type="text" id="emp-pass" placeholder="***" class="compact-input">
                     </div>
                 </div>
 
-                <div style="margin-top: 15px; background: #f9f9f9; padding: 10px; border-radius: 8px;">
-                    <h4 style="margin: 0 0 10px 0; font-size: 0.9rem; color: #555;">الصلاحيات المسموحة:</h4>
+                <div
+                    style="margin-top: 15px; background: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px solid #e9ecef;">
+                    <h4
+                        style="margin: 0 0 15px 0; font-size: 0.95rem; color: #495057; border-bottom: 2px solid #e9ecef; padding-bottom: 8px;">
+                        الصلاحيات:</h4>
 
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
-                        <label class="checkbox-label" style="font-size: 0.85rem;">
+                    <div
+                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px;">
+                        <label class="checkbox-label" style="font-size: 0.85rem; margin:0; justify-content:flex-start;">
                             <input type="checkbox" id="perm-subscribers"> المشتركين
                         </label>
-                        <label class="checkbox-label" style="font-size: 0.85rem;">
+                        <label class="checkbox-label" style="font-size: 0.85rem; margin:0; justify-content:flex-start;">
                             <input type="checkbox" id="perm-debts"> الديون
                         </label>
-                        <label class="checkbox-label" style="font-size: 0.85rem;">
+                        <label class="checkbox-label" style="font-size: 0.85rem; margin:0; justify-content:flex-start;">
                             <input type="checkbox" id="perm-payments"> الصندوق
                         </label>
-                        <label class="checkbox-label" style="font-size: 0.85rem;">
+                        <label class="checkbox-label" style="font-size: 0.85rem; margin:0; justify-content:flex-start;">
                             <input type="checkbox" id="perm-reports"> التقارير
                         </label>
-                        <label class="checkbox-label" style="font-size: 0.85rem;">
+                        <label class="checkbox-label" style="font-size: 0.85rem; margin:0; justify-content:flex-start;">
                             <input type="checkbox" id="perm-expenses"> المصاريف
                         </label>
                     </div>
@@ -323,7 +326,7 @@
                         </div>
                         
                         <div class="actions">
-                            <button onclick="window.openQuickExpense('${e.id}', '${e.name}')" class="btn btn-sm btn-warning" title="صرفية سريعة"><i class="fas fa-hand-holding-usd"></i></button>
+                            <button onclick="window.openQuickExpense('${e.id}', '${e.name}')" class="btn btn-sm btn-warning" style="min-width: 80px;"><i class="fas fa-hand-holding-usd"></i> سلفة</button>
                             <button onclick='window.editEmployee(${JSON.stringify(e).replace(/'/g, "&#39;")})' class="btn btn-sm btn-primary" style="flex:1">تعديل</button>
                             <button onclick="window.deleteEmp(${e.id})" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
                         </div>

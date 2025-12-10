@@ -446,6 +446,13 @@ td {
     padding: 25px;
 }
 
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
 .form-group {
     margin-bottom: 20px;
 }
