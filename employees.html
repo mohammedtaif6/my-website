@@ -204,59 +204,79 @@
 
         function renderEmployees() {
             // نأكد من أن DataManager محمل
-            if (typeof DataManager === 'undefined') return;
-
-            const list = DataManager.getEmployees();
-            const container = document.getElementById('employees-grid');
-
-            if (list.length === 0) {
-                container.innerHTML = '<p style="grid-column: 1/-1; text-align:center;">لا يوجد موظفين حالياً</p>';
+            if (typeof DataManager === 'undefined') {
+                console.warn('DataManager not loaded yet');
                 return;
             }
 
-            container.innerHTML = list.map(e => {
-                const perms = e.permissions || {};
-                const balance = DataManager.calculateEmployeeBalance(e.id);
+            const list = DataManager.getEmployees();
+            console.log('Rendering Employees. Count:', list ? list.length : 'null'); // Debug log
 
-                let tags = '';
-                if (perms.subscribers) tags += `<span class="perm-tag">المشتركين</span>`;
-                if (perms.debts) tags += `<span class="perm-tag">الديون</span>`;
-                if (perms.reports) tags += `<span class="perm-tag">التقارير</span>`;
+            const container = document.getElementById('employees-grid');
+            if (!container) {
+                console.error('Container #employees-grid not found!');
+                return;
+            }
 
-                return `
-                <div class="emp-card">
-                    <div>
-                        <div class="emp-header">
-                            <div class="emp-name">${e.name}</div>
-                            <div style="background:#eee; padding:5px 10px; border-radius:20px; font-size:0.8rem;">${e.phone}</div>
-                        </div>
-                        
-                        <div class="emp-detail"><i class="fas fa-key"></i> كلمة المرور: <b>${e.password}</b></div>
-                        
-                        <div class="emp-salary-badge">
-                            <i class="fas fa-money-bill-wave"></i> الراتب اليومي: ${parseInt(e.dailySalary || 0).toLocaleString()} د.ع
-                        </div>
-                        
-                        <div style="margin-top:10px; font-size:0.9rem; color:#666;">
-                            <div>💰 المستحق: <b>${balance.earned.toLocaleString()}</b></div>
-                            <div style="color:red">💸 المسحوب: <b>${balance.advances.toLocaleString()}</b></div>
-                            <div style="color:green; font-weight:bold; border-top:1px dashed #ccc; margin-top:5px; padding-top:5px;">
-                                ✅ الصافي: ${balance.net.toLocaleString()} د.ع
+            if (!list || list.length === 0) {
+                container.innerHTML = '<p style="grid-column: 1/-1; text-align:center;">لا يوجد موظفين حالياً (جاري التحميل أو القائمة فارغة)</p>';
+                return;
+            }
+
+            try {
+                container.innerHTML = list.map(e => {
+                    const perms = e.permissions || {};
+                    let balance = { earned: 0, advances: 0, net: 0 };
+
+                    try {
+                        balance = DataManager.calculateEmployeeBalance(e.id);
+                    } catch (err) {
+                        console.error('Error calculating balance for emp:', e.name, err);
+                    }
+
+                    let tags = '';
+                    if (perms.subscribers) tags += `<span class="perm-tag">المشتركين</span>`;
+                    if (perms.debts) tags += `<span class="perm-tag">الديون</span>`;
+                    if (perms.reports) tags += `<span class="perm-tag">التقارير</span>`;
+
+                    return `
+                    <div class="emp-card">
+                        <div>
+                            <div class="emp-header">
+                                <div class="emp-name">${e.name || 'بدون اسم'}</div>
+                                <div style="background:#eee; padding:5px 10px; border-radius:20px; font-size:0.8rem;">${e.phone || '-'}</div>
+                            </div>
+                            
+                            <div class="emp-detail"><i class="fas fa-key"></i> كلمة المرور: <b>${e.password}</b></div>
+                            
+                            <div class="emp-salary-badge">
+                                <i class="fas fa-money-bill-wave"></i> الراتب اليومي: ${parseInt(e.dailySalary || 0).toLocaleString()} د.ع
+                            </div>
+                            
+                            <div style="margin-top:10px; font-size:0.9rem; color:#666;">
+                                <div>💰 المستحق: <b>${balance.earned.toLocaleString()}</b></div>
+                                <div style="color:red">💸 المسحوب: <b>${balance.advances.toLocaleString()}</b></div>
+                                <div style="color:green; font-weight:bold; border-top:1px dashed #ccc; margin-top:5px; padding-top:5px;">
+                                    ✅ الصافي: ${balance.net.toLocaleString()} د.ع
+                                </div>
+                            </div>
+
+                            <div style="margin-top:15px;">
+                                <small style="color:#888;">الصلاحيات:</small>
+                                <div class="perms-tags">${tags || '<span class="perm-tag" style="background:#ffebee;color:#c62828">بلا صلاحيات</span>'}</div>
                             </div>
                         </div>
-
-                        <div style="margin-top:15px;">
-                            <small style="color:#888;">الصلاحيات:</small>
-                            <div class="perms-tags">${tags || '<span class="perm-tag" style="background:#ffebee;color:#c62828">بلا صلاحيات</span>'}</div>
+                        
+                        <div class="actions">
+                            <button onclick='window.editEmployee(${JSON.stringify(e).replace(/'/g, "&#39;")})' class="btn btn-sm btn-primary" style="flex:1">تعديل</button>
+                            <button onclick="window.deleteEmp(${e.id})" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
                         </div>
-                    </div>
-                    
-                    <div class="actions">
-                        <button onclick='window.editEmployee(${JSON.stringify(e)})' class="btn btn-sm btn-primary" style="flex:1">تعديل</button>
-                        <button onclick="window.deleteEmp(${e.id})" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>`;
-            }).join('');
+                    </div>`;
+                }).join('');
+            } catch (renderErr) {
+                console.error('Error rendering HTML:', renderErr);
+                container.innerHTML = '<p style="color:red">حدث خطأ في عرض البيانات</p>';
+            }
         }
 
         // --- إدارة المودال ---
