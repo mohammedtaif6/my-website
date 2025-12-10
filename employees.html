@@ -229,7 +229,12 @@
                     let balance = { earned: 0, advances: 0, net: 0 };
 
                     try {
-                        balance = DataManager.calculateEmployeeBalance(e.id);
+                        const calculated = DataManager.calculateEmployeeBalance(e.id);
+                        if (calculated) {
+                            balance.earned = calculated.earned || 0;
+                            balance.advances = calculated.advances || 0;
+                            balance.net = calculated.net || 0;
+                        }
                     } catch (err) {
                         console.error('Error calculating balance for emp:', e.name, err);
                     }
@@ -238,6 +243,9 @@
                     if (perms.subscribers) tags += `<span class="perm-tag">المشتركين</span>`;
                     if (perms.debts) tags += `<span class="perm-tag">الديون</span>`;
                     if (perms.reports) tags += `<span class="perm-tag">التقارير</span>`;
+
+                    // Safe formatting helper
+                    const fmt = (n) => (n || 0).toLocaleString();
 
                     return `
                     <div class="emp-card">
@@ -254,10 +262,10 @@
                             </div>
                             
                             <div style="margin-top:10px; font-size:0.9rem; color:#666;">
-                                <div>💰 المستحق: <b>${balance.earned.toLocaleString()}</b></div>
-                                <div style="color:red">💸 المسحوب: <b>${balance.advances.toLocaleString()}</b></div>
+                                <div>💰 المستحق: <b>${fmt(balance.earned)}</b></div>
+                                <div style="color:red">💸 المسحوب: <b>${fmt(balance.advances)}</b></div>
                                 <div style="color:green; font-weight:bold; border-top:1px dashed #ccc; margin-top:5px; padding-top:5px;">
-                                    ✅ الصافي: ${balance.net.toLocaleString()} د.ع
+                                    ✅ الصافي: ${fmt(balance.net)} د.ع
                                 </div>
                             </div>
 
