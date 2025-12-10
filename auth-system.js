@@ -97,44 +97,52 @@ const AuthSystem = {
 
     // تحديث الواجهة (إخفاء الأزرار والروابط)
     updateUI(user) {
-        // عرض اسم المستخدم
-        const nameEl = document.getElementById('user-name-display');
-        if (nameEl) nameEl.innerText = user.name;
+        // دالة التنفيذ الفعلي
+        const executeUpdate = () => {
+            // عرض اسم المستخدم
+            const nameEl = document.getElementById('user-name-display');
+            if (nameEl) nameEl.innerText = user.name;
 
-        // إظهار زر الخروج
-        // (يفترض وجود زر بـ ID=logout-btn)
+            if (user.type === 'admin') return; // المدير يشوف كل شي
 
-        if (user.type === 'admin') return; // المدير يشوف كل شي
+            // إخفاء العناصر بناءً على الصلاحيات
+            const perms = user.permissions || {};
 
-        // إخفاء العناصر بناءً على الصلاحيات
-        // النمط: element-ID يجب أن يكون مطابق لاسم الصلاحية
-        // مثال: رابط الديون ID="nav-debts" -> صلاحية 'debts'
+            // قائمة العناصر المرتبطة بكل صلاحية
+            const elementsToHide = {
+                'subscribers': ['nav-subscribers', 'card-subscribers', 'btn-quick-activate'],
+                'debts': ['nav-debts', 'card-debts'],
+                'payments': ['nav-payments', 'card-payments'],
+                'reports': ['nav-reports', 'card-reports'],
+                'expenses': ['nav-expenses', 'btn-quick-expense']
+            };
 
-        const perms = user.permissions || {};
-        const elementsToHide = {
-            'subscribers': ['nav-subscribers', 'card-subscribers', 'btn-quick-activate'],
-            'debts': ['nav-debts', 'card-debts'],
-            'payments': ['nav-payments', 'card-payments'],
-            'reports': ['nav-reports', 'card-reports'],
-            'expenses': ['nav-expenses', 'btn-quick-expense']
+            // إخفاء العناصر المحظورة
+            for (const [perm, ids] of Object.entries(elementsToHide)) {
+                if (!perms[perm]) { // إذا لم يملك الصلاحية
+                    ids.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) {
+                            el.style.display = 'none';
+                            el.setAttribute('hidden', 'true'); // زيادة في التأكيد
+                        }
+                    });
+                }
+            }
+
+            // إخفاء روابط الإدارة دائماً للموظف
+            ['nav-employees', 'nav-telegram'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
         };
 
-        // إخفاء الروابط المحظورة
-        for (const [perm, ids] of Object.entries(elementsToHide)) {
-            if (!perms[perm]) {
-                ids.forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.style.display = 'none';
-                });
-            }
+        // التأكد من أن الصفحة محملة قبل التنفيذ
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', executeUpdate);
+        } else {
+            executeUpdate();
         }
-
-        // إخفاء رابط الموظفين دائماً للموظف
-        const empLink = document.getElementById('nav-employees');
-        if (empLink) empLink.style.display = 'none';
-
-        const tgLink = document.getElementById('nav-telegram');
-        if (tgLink) tgLink.style.display = 'none';
     }
 };
 

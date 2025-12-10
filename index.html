@@ -448,6 +448,11 @@
         DataManager.init();
         window.updatePageData = window.renderDashboard;
         setInterval(window.renderDashboard, 1000);
+
+        // تأكيد أخير على الصلاحيات بعد اكتمال التحميل
+        window.onload = () => {
+            AuthSystem.checkSession();
+        };
     </script>
 </body>
 
