@@ -81,30 +81,60 @@ export const DataManager = {
     },
 
     sync(colName) {
+        // تأكد من وجود المصفوفة
+        if (!localData[colName]) localData[colName] = [];
+
         const q = query(collection(db, colName), orderBy("createdAt", "desc"));
 
         onSnapshot(q,
             (snapshot) => {
                 const prevCount = localData[colName].length;
-                localData[colName] = snapshot.docs.map(d => ({ ...d.data(), firebaseId: d.id }));
+
+                // جلب البيانات من السيرفر
+                const serverData = snapshot.docs.map(d => ({ ...d.data(), firebaseId: d.id }));
+
+                // الحفاظ على العناصر المحلية التي لم تُرفع بعد (Pending)
+                const pendingItems = localData[colName].filter(item => item.isLocal);
+
+                // دمج البيانات: السيرفر + المحلي (مع التأكد من عدم تكرار الـ ID)
+                // نستخدم Map لإزالة التكرار بناءً على الـ id
+                const mergedMap = new Map();
+
+                // الأولوية للسيرفر (الحقيقة المؤكدة)
+                serverData.forEach(item => mergedMap.set(item.id, item));
+
+                // إضافة المحلي إذا لم يكن موجوداً في السيرفر بعد
+                pendingItems.forEach(item => {
+                    if (!mergedMap.has(item.id)) {
+                        mergedMap.set(item.id, item);
+                    }
+                });
+
+                // تحويل الـ Map إلى Array وترتيبها
+                localData[colName] = Array.from(mergedMap.values()).sort((a, b) =>
+                    new Date(b.createdAt) - new Date(a.createdAt)
+                );
+
                 const newCount = localData[colName].length;
 
-                console.log(`📊 ${colName}: ${newCount} سجل (${snapshot.docChanges().length} تغيير)`);
+                console.log(`📊 ${colName}: ${newCount} سجل (Sync merged with pending)`);
 
-                // عرض رسالة عند استلام بيانات جديدة
+                // عرض رسالة عند استلام بيانات جديدة من السيرفر (تجاهل التحديث الأولي)
                 if (snapshot.docChanges().length > 0 && prevCount > 0) {
                     const changes = snapshot.docChanges();
                     changes.forEach(change => {
-                        if (change.type === 'added' && prevCount > 0) {
-                            console.log('✨ سجل جديد تمت إضافته من مستخدم آخر');
+                        // نتجاهل الإضافات التي قمنا بها نحن (لأننا عرضناها محلياً)
+                        // ولكن كيف نعرف؟ الـ DataManager لا يعرف المستخدم الحالي هنا بسهولة
+                        // لذلك نكتفي بالتحقق من النوع
+                        if (change.type === 'added' && !change.doc.metadata.hasPendingWrites) {
+                            console.log('✨ تحديث قادم من السيرفر');
                         }
                     });
                 }
-
-                if (window.updatePageData) window.updatePageData();
             },
             (error) => {
-                console.error(`❌ خطأ في مزامنة ${colName}:`, error);
+                console.error(`Error syncing ${colName}:`, error);
+                showToast(`خطأ في مزامنة ${colName}`, 'error');
                 if (error.code === 'permission-denied') {
                     showToast('خطأ: ليس لديك صلاحية الوصول! تحقق من قواعد Firebase', 'error');
                     console.error('==================================================');
@@ -310,15 +340,27 @@ export const DataManager = {
             createdAt: new Date().toISOString(),
             startDate: new Date().toISOString().split('T')[0], // تاريخ بدء الحساب
             advances: 0, // مجموع السلف
+            isLocal: true, // علامة للتعرف عليه محلياً قبل المزامنة
             ...data
         };
 
-        // تحديث محلي فوري
+        // تحديث محلي فوري (في البداية)
         if (!localData.employees) localData.employees = [];
-        localData.employees.push(emp);
+        localData.employees.unshift(emp);
 
-        await addDoc(collection(db, "employees"), emp);
-        showToast("تمت إضافة الموظف");
+        try {
+            // ملاحظة: remove isLocal قبل الإرسال لـ Firebase ليس ضرورياً لأنه NoSQL لكن يفضل للنظافة
+            const empToSend = { ...emp };
+            delete empToSend.isLocal;
+
+            await addDoc(collection(db, "employees"), empToSend);
+            showToast("تمت إضافة الموظف");
+        } catch (e) {
+            console.error("Error adding employee:", e);
+            showToast("حدث خطأ أثناء الإضافة: " + e.message, "error");
+            // تراجع عن الإضافة المحلية في حال الفشل
+            localData.employees = localData.employees.filter(e => e.id !== emp.id);
+        }
     },
 
     async updateEmployee(id, newData) {
