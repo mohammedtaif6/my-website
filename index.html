@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>لوحة القيادة - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=18.0">
+    <link rel="stylesheet" href="style.css?v=18.3">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- نظام الصلاحيات الجديد -->
@@ -93,12 +93,29 @@
     <div id="ptr-indicator"><i class="fas fa-arrow-down"></i> اسحب للتحديث</div>
 
 
-    <nav class="navbar">
-        <div class="logo">
+    <!-- Mobile Header & Toggle -->
+    <div class="mobile-header">
+        <div class="logo-mobile">
+            <i class="fas fa-chart-line"></i> OK Computer
+        </div>
+        <button class="menu-toggle" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <!-- Sidebar / Drawer Navigation -->
+    <nav class="navbar" id="main-nav">
+        <div class="nav-header-mobile">
+            <h3>القائمة الرئيسية</h3>
+            <button class="close-menu" onclick="toggleMenu()">&times;</button>
+        </div>
+
+        <div class="logo desktop-only">
             <i class="fas fa-chart-line"></i> OK Computer
             <span id="user-name-display"
                 style="font-size:0.8rem; margin-right:10px;opacity:0.8;font-weight:normal;"></span>
         </div>
+
         <ul class="nav-links">
             <li><a href="index.html" class="active"><i class="fas fa-home"></i> الرئيسية</a></li>
             <li id="nav-subscribers"><a href="subscribers.html"><i class="fas fa-users"></i> المشتركين</a></li>
@@ -109,6 +126,8 @@
             <li id="nav-telegram"><a href="telegram-settings.html"><i class="fab fa-telegram"></i> Telegram</a></li>
             <li><a href="#" onclick="AuthSystem.logout()"><i class="fas fa-sign-out-alt"></i> خروج</a></li>
         </ul>
+
+        <div class="nav-overlay" onclick="toggleMenu()"></div>
     </nav>
 
 
@@ -242,6 +261,8 @@
         </div>
     </div>
 
+    </div>
+
     <!-- Quick Expense Modal -->
     <div id="expenseModal" class="modal-overlay">
         <div class="modal-box">
@@ -250,8 +271,9 @@
                     onclick="window.closeExpenseModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="form-group"><label>الوصف</label><input type="text" id="exp-desc"></div>
-                <div class="form-group"><label>المبلغ</label><input type="number" id="exp-amount"></div>
+                <div class="form-group"><label>الوصف</label><input type="text" id="exp-desc"
+                        placeholder="سبب الصرفية..."></div>
+                <div class="form-group"><label>المبلغ</label><input type="number" id="exp-amount" placeholder="0"></div>
 
                 <!-- خيار خصم من الراتب (يظهر للموظفين فقط) -->
                 <div class="form-group" id="salary-deduct-option"
@@ -267,6 +289,20 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Menu Toggle Logic
+        window.toggleMenu = function () {
+            const nav = document.getElementById('main-nav');
+            const overlay = document.querySelector('.nav-overlay');
+            nav.classList.toggle('active');
+            if (nav.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+    </script>
 
     <script type="module">
         import { DataManager } from './data-manager.js';
