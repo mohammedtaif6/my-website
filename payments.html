@@ -12,10 +12,6 @@
         window.DataManager = DataManager;
         DataManager.init();
     </script>
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 0864a6a (Fix Expense button logic and update project files)
     <style>
         /* Pull to refresh visual indicator */
         #ptr-indicator {
@@ -29,11 +25,6 @@
             justify-content: center;
         }
     </style>
-<<<<<<< HEAD
-=======
->>>>>>> 468b659 (Update project files and add server.js)
-=======
->>>>>>> 0864a6a (Fix Expense button logic and update project files)
 </head>
 
 <body>
@@ -54,7 +45,6 @@
     </nav>
 
     <div class="container">
-<<<<<<< HEAD
 
         <div class="header-card">
             <div>
@@ -133,7 +123,6 @@
                     <input type="text" id="payDesc" placeholder="سبب القبض...">
                 </div>
                 <button onclick="savePayment()" class="btn btn-success btn-full">حفظ المقبوض</button>
-<<<<<<< HEAD
             </div>
         </div>
     </div>
@@ -238,236 +227,14 @@
                             <td data-label="تحكم">
                                 <button onclick="window.DataManager.deleteTransaction('${t.id}')" class="btn btn-outline" style="padding:5px; color:var(--danger)">
                                     <i class="fas fa-times"></i>
-=======
-        <div class="page-header">
-            <h1>المقبوضات (الصندوق اليومي)</h1>
-            <div style="display: flex; gap: 10px;">
-                <button onclick="addPaymentManually()" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة مقبوض</button>
-                <button onclick="window.DataManager.archiveDay()" class="btn btn-purple"><i class="fas fa-file-export"></i> ترحيل للأرشيف</button>
-            </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
-            <div class="card" style="background: linear-gradient(135deg, #27ae60, #229954); color: white; padding: 15px; border-radius: 8px; border: none;">
-                <div style="font-size: 12px; opacity: 0.9;">Balance</div>
-                <div id="actualBalance" style="font-size: 28px; font-weight: bold; margin-top: 8px;">0</div>
-            </div>
-        </div>
-
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>المشترك</th>
-                        <th>المبلغ</th>
-                        <th>النوع</th>
-                        <th>التاريخ</th>
-                        <th>الوصف</th>
-                        <th>تحكم</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Modal for adding manual payment -->
-    <div id="paymentModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>إضافة مقبوض يدوي</h3>
-                <button class="close-btn" onclick="closePaymentModal()">&times;</button>
-            </div>
-            <div class="form-group">
-                <label>اختر المشترك</label>
-                <select id="subscriberSelect" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                    <option>-- اختر مشترك --</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>المبلغ</label>
-                <input type="number" id="paymentAmount" placeholder="المبلغ" style="width: 100%; padding: 8px;">
-            </div>
-            <div class="form-group">
-                <label>نوع التسديد</label>
-                <select id="paymentType" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                    <option value="نقد">نقد</option>
-                    <option value="تحويل">تحويل</option>
-                    <option value="شيك">شيك</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>الوصف</label>
-                <textarea id="paymentDescription" placeholder="الوصف" style="width: 100%; padding: 8px;"></textarea>
-            </div>
-            <div class="modal-footer">
-                <button onclick="saveManualPayment()" class="btn btn-primary" style="width: 100%;">حفظ</button>
-=======
->>>>>>> 0864a6a (Fix Expense button logic and update project files)
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal: Expense (Moved here) -->
-    <div id="expenseModal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3>إضافة صرفية</h3>
-                <button class="close-btn" onclick="closeExpenseModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>وصف الصرفية</label>
-                    <input type="text" id="expDesc" placeholder="كهرباء، غداء، صيانة...">
-                </div>
-                <div class="form-group">
-                    <label>المبلغ</label>
-                    <input type="number" id="expAmount">
-                </div>
-                <button onclick="saveExpense()" class="btn btn-danger btn-full">خصم من الصندوق</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Script for Pull to Refresh & Logic -->
-    <script>
-<<<<<<< HEAD
-        window.renderPage = function() {
-=======
-        // === Pull to Refresh Logic ===
-        let touchStart = 0;
-        let touchEnd = 0;
-        const ptr = document.getElementById('ptr-indicator');
-
-        window.addEventListener('touchstart', e => {
-            if (window.scrollY === 0) touchStart = e.changedTouches[0].screenY;
-        });
-
-        window.addEventListener('touchmove', e => {
-            if (window.scrollY === 0 && touchStart > 0) {
-                const pull = e.changedTouches[0].screenY - touchStart;
-                if (pull > 0) ptr.style.height = Math.min(pull, 60) + 'px';
-            }
-        });
-
-        window.addEventListener('touchend', e => {
-            if (window.scrollY === 0 && (e.changedTouches[0].screenY - touchStart) > 80) {
-                ptr.style.height = '60px';
-                ptr.innerHTML = '<i class="fas fa-spinner fa-spin"></i> تحديث...';
-                setTimeout(() => window.location.reload(), 500);
-            } else {
-                ptr.style.height = '0px';
-            }
-            touchStart = 0;
-        });
-
-        // === Page Logic ===
-        window.renderPage = function () {
->>>>>>> 0864a6a (Fix Expense button logic and update project files)
-            if (typeof DataManager === 'undefined') return;
-
-            // Get All Transactions
-            const allTxs = DataManager.getAllTransactions();
-            const tbody = document.getElementById('tableBody');
-
-            // Filter: NOT Archived, Not Debt-Only Record
-            const activeTxs = allTxs.filter(t => !t.isArchived && t.type !== 'subscription_debt');
-
-            // Calculate Net Balance
-            const income = activeTxs.filter(t => t.amount > 0).reduce((a, b) => a + b.amount, 0);
-            const expense = activeTxs.filter(t => t.amount < 0).reduce((a, b) => a + Math.abs(b.amount), 0);
-            const net = income - expense;
-
-            document.getElementById('netBalanceDisplay').innerText = net.toLocaleString() + ' د.ع';
-
-            tbody.innerHTML = '';
-<<<<<<< HEAD
-            
-            // فصل المقبوضات والصرفيات
-            let totalReceived = 0;
-            let totalExpenses = 0;
-
-            if (trans.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px;">لا توجد مقبوضات في الصندوق</td></tr>';
-            } else {
-                trans.sort((a,b) => (b.id || 0) - (a.id || 0)).forEach(t => {
-                    const sub = DataManager.getSubscriber(t.subscriberId);
-                    const amount = t.amount || 0;
-                    
-                    // جمع موجب وسالب بشكل منفصل
-                    if (amount > 0) {
-                        totalReceived += amount;
-                    } else {
-                        totalExpenses += Math.abs(amount); // نأخذ القيمة الموجبة
-                    }
-                    
-                    const date = new Date(t.createdAt || Date.now()).toLocaleDateString('en-US');
-                    const color = amount < 0 ? 'var(--danger-color)' : 'var(--success-color)';
-                    
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${sub ? sub.name : (amount < 0 ? 'Expense' : 'Deleted')}</td>
-                            <td style="color:${color}; font-weight:bold;">${amount}</td>
-                            <td>${t.description || '-'}</td>
-                            <td>${date}</td>
-                            <td>${t.type || 'Cash'}</td>
-                            <td>
-                                <button onclick="deletePaymentConfirm('${t.firebaseId || t.id}')" class="btn btn-danger btn-sm">
-                                    <i class="fas fa-trash"></i>
->>>>>>> 468b659 (Update project files and add server.js)
-=======
-            if (activeTxs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; opacity:0.6;">لا توجد حركات يومية. الكل مرحّل.</td></tr>';
-            } else {
-                // Sort Newest First
-                activeTxs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(t => {
-                    const isExp = t.amount < 0;
-                    const amount = Math.abs(t.amount);
-                    const time = new Date(t.createdAt).toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' });
-
-                    let desc = t.description;
-                    if (!desc) {
-                        const sub = DataManager.getSubscriber(t.subscriberId);
-                        desc = sub ? sub.name : (isExp ? 'صرفية' : 'مقبوض');
-                    }
-
-                    tbody.innerHTML += `
-                        <tr style="background: ${isExp ? '#fef2f2' : 'white'}">
-                            <td data-label="البيان">
-                                <span style="font-weight:bold; color: ${isExp ? 'var(--danger)' : 'var(--dark)'}">
-                                    ${isExp ? '<i class="fas fa-arrow-down text-danger"></i>' : '<i class="fas fa-arrow-up text-success"></i>'} 
-                                    ${desc}
-                                </span>
-                            </td>
-                            <td data-label="المبلغ" style="font-weight:bold; color:${isExp ? 'var(--danger)' : 'var(--success)'}">
-                                ${amount.toLocaleString()}
-                            </td>
-                            <td data-label="النوع">${isExp ? 'صرف' : 'قبض'}</td>
-                            <td data-label="التوقيت">${time}</td>
-                            <td data-label="تحكم">
-                                <button onclick="window.DataManager.deleteTransaction('${t.id}')" class="btn btn-outline" style="padding:5px; color:var(--danger)">
-                                    <i class="fas fa-times"></i>
->>>>>>> 0864a6a (Fix Expense button logic and update project files)
                                 </button>
                             </td>
                         </tr>
                     `;
                 });
             }
-<<<<<<< HEAD
-            
-            // الرصيد الفعلي فقط = المقبوضات - الصرفيات
-            const actualBalance = totalReceived - totalExpenses;
-            
-            const balanceEl = document.getElementById('actualBalance');
-            if (balanceEl) balanceEl.innerText = actualBalance.toLocaleString('en-US');
         };
 
-<<<<<<< HEAD
-=======
-        };
-
->>>>>>> 0864a6a (Fix Expense button logic and update project files)
         // Modal Helpers
         window.openPaymentModal = function () {
             const sel = document.getElementById('subSelect');
@@ -506,68 +273,6 @@
 
         window.updatePageData = window.renderPage;
         setInterval(() => window.renderPage(), 1000);
-<<<<<<< HEAD
-=======
-        window.openPaymentModal = function() {
-            document.getElementById('paymentModal').classList.add('active');
-            populateSubscriberSelect();
-        };
-
-        window.closePaymentModal = function() {
-            document.getElementById('paymentModal').classList.remove('active');
-        };
-
-        window.addPaymentManually = openPaymentModal;
-
-        function populateSubscriberSelect() {
-            const select = document.getElementById('subscriberSelect');
-            const subscribers = DataManager.getSubscribers();
-            select.innerHTML = '<option>-- اختر مشترك --</option>';
-            
-            subscribers.forEach(sub => {
-                const option = document.createElement('option');
-                option.value = sub.id;
-                option.textContent = sub.name;
-                select.appendChild(option);
-            });
-        }
-
-        window.saveManualPayment = async function() {
-            const subscriberId = document.getElementById('subscriberSelect').value;
-            const amount = parseInt(document.getElementById('paymentAmount').value);
-            const type = document.getElementById('paymentType').value;
-            const description = document.getElementById('paymentDescription').value;
-
-            if (!subscriberId || !amount || amount <= 0) {
-                alert('الرجاء ملء جميع الحقول بشكل صحيح');
-                return;
-            }
-
-            await DataManager.recordTransaction(subscriberId, amount, description, type);
-            
-            document.getElementById('paymentAmount').value = '';
-            document.getElementById('paymentDescription').value = '';
-            document.getElementById('paymentType').value = 'نقد';
-            document.getElementById('subscriberSelect').value = '';
-            
-            closePaymentModal();
-            alert('تم إضافة المقبوض');
-        };
-
-        window.deletePaymentConfirm = async function(id) {
-            if(confirm('حذف هذا التسديد؟')) {
-                const trans = DataManager.getAllTransactions().find(t => (t.firebaseId || t.id) === id);
-                if(trans) {
-                    await DataManager.deleteTransaction(trans.id);
-                }
-            }
-        };
-
-        // تحديث فوري كل 500ms
-        setInterval(() => { if(typeof DataManager !== 'undefined') renderPage(); }, 500);
->>>>>>> 468b659 (Update project files and add server.js)
-=======
->>>>>>> 0864a6a (Fix Expense button logic and update project files)
     </script>
 </body>
 

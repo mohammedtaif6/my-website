@@ -15,10 +15,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 0864a6a (Fix Expense button logic and update project files)
 // الطريقة الصحيحة: استخدام initializeFirestore مع localCache
 const db = initializeFirestore(app, {
     localCache: persistentLocalCache({
@@ -51,12 +47,6 @@ function showToast(message, type = 'success') {
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
-<<<<<<< HEAD
-=======
-let localData = { subscribers: [], transactions: [], expenses: [], archived: [] };
->>>>>>> 468b659 (Update project files and add server.js)
-=======
->>>>>>> 0864a6a (Fix Expense button logic and update project files)
 
 export const DataManager = {
     init() {
@@ -65,10 +55,6 @@ export const DataManager = {
         console.log("========================================");
         this.sync('subscribers');
         this.sync('transactions');
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 0864a6a (Fix Expense button logic and update project files)
         this.monitorConnection();
     },
 
@@ -89,13 +75,6 @@ export const DataManager = {
         if (!navigator.onLine) {
             console.warn('⚠️ لا يوجد اتصال بالإنترنت');
         }
-<<<<<<< HEAD
-=======
-        this.sync('expenses');
-        this.sync('archived');
->>>>>>> 468b659 (Update project files and add server.js)
-=======
->>>>>>> 0864a6a (Fix Expense button logic and update project files)
     },
 
     sync(colName) {
@@ -217,7 +196,6 @@ export const DataManager = {
     },
 
     async updateSubscriber(id, data) {
-<<<<<<< HEAD
         const sub = localData.subscribers.find(s => s.id == id);
         if (sub) { await updateDoc(doc(db, "subscribers", sub.firebaseId), data); showToast("تم الحفظ"); }
     },
@@ -288,157 +266,10 @@ export const DataManager = {
         return localData.subscribers.filter(s => s.name?.toLowerCase().includes(q.toLowerCase()) || s.phone?.includes(q));
     },
 
-<<<<<<< HEAD
     getStats() {
         const subs = localData.subscribers;
         const totalDebts = subs.reduce((sum, s) => sum + (parseInt(s.price) || 0), 0);
         const today = new Date(); today.setHours(0, 0, 0, 0);
-=======
-    async recordTransaction(subscriberId, amount, description, type = 'نقد') {
-        await addDoc(collection(db, "transactions"), {
-            subscriberId: subscriberId,
-            amount: amount,
-            description: description,
-            type: type,
-            id: Date.now(),
-            createdAt: new Date().toISOString()
-        });
-=======
-        const sub = localData.subscribers.find(s => s.id == id);
-        if (sub) { await updateDoc(doc(db, "subscribers", sub.firebaseId), data); showToast("تم الحفظ"); }
-    },
-
-    async payDebt(fid, did, amount) {
-        const sub = localData.subscribers.find(s => s.firebaseId === fid);
-        const newDebt = Math.max(0, (parseInt(sub.price) || 0) - amount);
-
-        await this.logTransaction({
-            subscriberId: did, amount: parseInt(amount), type: 'debt_payment',
-            description: `تسديد دين من ${sub.name}`
-        });
-
-        await updateDoc(doc(db, "subscribers", fid), { price: newDebt, paymentType: newDebt === 0 ? 'نقد' : 'أجل' });
-        showToast("تم التسديد");
-    },
-
-    async addExpense(amount, description) {
-        await this.logTransaction({ subscriberId: null, amount: -Math.abs(amount), type: 'expense', description });
-        showToast("تم حفظ الصرفية");
->>>>>>> 0864a6a (Fix Expense button logic and update project files)
-    },
-
-    async recordTransaction(sid, amt, desc, type) {
-        await this.logTransaction({ subscriberId: sid, amount: amt, description: desc, type });
-        showToast("تم الحفظ");
-    },
-
-    async archiveAllCurrent() {
-        const unarchived = localData.transactions.filter(t => !t.isArchived);
-        if (unarchived.length === 0) return showToast("لا يوجد شيء لترحيله", "error");
-
-        if (!confirm("ترحيل كل السجلات لليوم؟")) return;
-
-        const batch = unarchived.map(t => updateDoc(doc(db, "transactions", t.firebaseId), { isArchived: true }));
-        await Promise.all(batch);
-        showToast("تم الترحيل بنجاح");
-    },
-
-    async deleteTransaction(id) {
-<<<<<<< HEAD
-        if(!confirm("حذف التسديد؟")) return;
-        const trans = localData.transactions.find(t => t.id == id);
-        if(trans) await deleteDoc(doc(db, "transactions", trans.firebaseId));
-=======
-        if (!confirm("حذف؟")) return;
-        const t = localData.transactions.find(tx => tx.id == id);
-        if (t) { await deleteDoc(doc(db, "transactions", t.firebaseId)); showToast("تم الحذف"); }
->>>>>>> 0864a6a (Fix Expense button logic and update project files)
-    },
-
-    async updateTransaction(id, newData) {
-        const t = localData.transactions.find(tx => tx.id == id);
-        if (t) { await updateDoc(doc(db, "transactions", t.firebaseId), newData); showToast("تم التعديل"); }
-    },
-
-    async deleteSubscriber(id) {
-        if (!confirm("حذف المشترك نهائياً؟")) return;
-        const sub = localData.subscribers.find(s => s.id == id);
-        if (sub) { await deleteDoc(doc(db, "subscribers", sub.firebaseId)); showToast("تم الحذف"); }
-    },
-
-    getDailyBalance() {
-        const txs = localData.transactions.filter(t => !t.isArchived && t.type !== 'subscription_debt');
-        const inc = txs.filter(t => t.amount > 0).reduce((a, b) => a + b.amount, 0);
-        const exp = txs.filter(t => t.amount < 0).reduce((a, b) => a + Math.abs(b.amount), 0);
-        return inc - exp;
-    },
-
-    getAllTransactions() { return localData.transactions; },
-    getSubscribers() { return localData.subscribers; },
-    getSubscriber(id) { return localData.subscribers.find(s => s.id == id); },
-    searchSubscribers(q) {
-        if (!q) return localData.subscribers;
-        return localData.subscribers.filter(s => s.name?.toLowerCase().includes(q.toLowerCase()) || s.phone?.includes(q));
-    },
-
-<<<<<<< HEAD
-    async archiveDay() {
-        if(!confirm("ترحيل المقبوضات اليومية للأرشيف؟")) return;
-        // ترحيل جميع التسديدات الموجبة من اليوم
-        const today = new Date().toISOString().split('T')[0];
-        const todayTransactions = localData.transactions.filter(t => 
-            t.createdAt.split('T')[0] === today && (t.amount || 0) > 0
-        );
-        
-        if(todayTransactions.length === 0) {
-            alert("لا توجد مقبوضات لترحيلها");
-            return;
-        }
-        
-        const archiveData = {
-            date: today,
-            transactions: todayTransactions,
-            total: todayTransactions.reduce((sum, t) => sum + (t.amount || 0), 0),
-            archivedAt: new Date().toISOString()
-        };
-        
-        await addDoc(collection(db, "archived"), archiveData);
-        alert("تم الترحيل بنجاح");
-    },
-
-    async getArchivedData() {
-        // جلب البيانات المؤرشفة
-        if(!localData.archived || localData.archived.length === 0) {
-            return [];
-        }
-        return localData.archived;
-    },
-
-    async deleteArchivedTransaction(firebaseId) {
-        if(!confirm("حذف هذا السجل المؤرشف؟")) return;
-        await deleteDoc(doc(db, "archived", firebaseId));
-    },
-
-    // الإحصائيات
-    getStats() {
-        const subs = localData.subscribers;
-        const trans = localData.transactions;
-
-        // الديون = المشتركين من نوع "أجل" فقط
-        const debts = subs.filter(s => s.paymentType === 'أجل' && s.price > 0).reduce((sum, s) => sum + (s.price || 0), 0);
-        
-        // الواردات = فقط المبالغ الموجبة من التسديدات
-        const totalReceived = trans.filter(t => (t.amount || 0) > 0).reduce((sum, t) => sum + (t.amount || 0), 0);
-        
-        // الصرفيات = المبالغ السالبة في transactions فقط (بدون جدول منفصل)
-        const totalExpenses = trans.filter(t => (t.amount || 0) < 0).reduce((sum, t) => sum + Math.abs(t.amount || 0), 0);
->>>>>>> 468b659 (Update project files and add server.js)
-=======
-    getStats() {
-        const subs = localData.subscribers;
-        const totalDebts = subs.reduce((sum, s) => sum + (parseInt(s.price) || 0), 0);
-        const today = new Date(); today.setHours(0, 0, 0, 0);
->>>>>>> 0864a6a (Fix Expense button logic and update project files)
 
         return {
             totalSubs: subs.length,

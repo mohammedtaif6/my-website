@@ -3,18 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
-<<<<<<< HEAD
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>الصرفيات - OK Computer</title>
     <link rel="stylesheet" href="style.css?v=12.0">
-<<<<<<< HEAD
-=======
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الصرفيات</title>
-    <link rel="stylesheet" href="style.css?v=8">
->>>>>>> 468b659 (Update project files and add server.js)
-=======
->>>>>>> 0864a6a (Fix Expense button logic and update project files)
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="module">
         import { DataManager } from './data-manager.js';
@@ -39,10 +30,6 @@
     </nav>
 
     <div class="container">
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 0864a6a (Fix Expense button logic and update project files)
 
         <!-- Header Card with Quick Actions -->
         <div class="header-card">
@@ -125,82 +112,16 @@
                     <i class="fas fa-save"></i> حفظ الصرفية
                 </button>
             </div>
-=======
-        <div class="page-header">
-            <h1>سجل المصروفات</h1>
-            <div style="display: flex; gap: 10px;">
-                <button onclick="openExpenseModal()" class="btn btn-danger"><i class="fas fa-plus"></i> إضافة صرفية</button>
-            </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
-            <div class="card" style="background: var(--danger-color); color: white; padding: 15px; border-radius: 8px;">
-                <div style="font-size: 12px;">إجمالي المصروفات</div>
-                <div id="totalExpenses" style="font-size: 24px; font-weight: bold; margin-top: 5px;">0</div>
-            </div>
-            <div class="card" style="background: var(--info-color); color: white; padding: 15px; border-radius: 8px;">
-                <div style="font-size: 12px;">عدد المصروفات</div>
-                <div id="expensesCount" style="font-size: 24px; font-weight: bold; margin-top: 5px;">0</div>
-            </div>
-        </div>
-
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>البيان</th>
-                        <th>المبلغ</th>
-                        <th>التاريخ</th>
-                        <th>تحكم</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
->>>>>>> 468b659 (Update project files and add server.js)
-        </div>
-    </div>
-
-    <!-- Modal for adding expense -->
-    <div id="expenseModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>إضافة صرفية جديدة</h3>
-                <button class="close-btn" onclick="closeExpenseModal()">&times;</button>
-            </div>
-            <div class="form-group">
-                <label>البيان / الوصف</label>
-                <input type="text" id="expenseDesc" placeholder="مثال: راتب الموظف، إيجار..." style="width: 100%; padding: 8px;">
-            </div>
-            <div class="form-group">
-                <label>المبلغ (دينار)</label>
-                <input type="number" id="expenseAmount" placeholder="المبلغ" style="width: 100%; padding: 8px;">
-            </div>
-            <div class="form-group">
-                <label>التاريخ</label>
-                <input type="date" id="expenseDate" style="width: 100%; padding: 8px;">
-            </div>
-            <div class="modal-footer">
-                <button onclick="saveExpense()" class="btn btn-danger" style="width: 100%;">حفظ الصرفية</button>
-            </div>
         </div>
     </div>
 
     <script>
-<<<<<<< HEAD
         // Set default date
         window.addEventListener('load', () => {
-=======
-        // Set today's date as default
-        window.addEventListener('load', function() {
->>>>>>> 468b659 (Update project files and add server.js)
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('expenseDate').value = today;
         });
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 0864a6a (Fix Expense button logic and update project files)
         window.openExpenseModal = function () {
             document.getElementById('expenseModal').classList.add('active');
         };
@@ -210,12 +131,6 @@
         };
 
         window.renderPage = function () {
-<<<<<<< HEAD
-=======
-        window.renderPage = function() {
->>>>>>> 468b659 (Update project files and add server.js)
-=======
->>>>>>> 0864a6a (Fix Expense button logic and update project files)
             if (typeof DataManager === 'undefined') return;
             // Get all transactions
             const allTrans = DataManager.getAllTransactions();
@@ -223,17 +138,9 @@
 
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
-<<<<<<< HEAD
-            let total = 0;
-
-<<<<<<< HEAD
-            let total = 0;
-
-=======
 
             let total = 0;
 
->>>>>>> 0864a6a (Fix Expense button logic and update project files)
             // Sort expenses (Transactions with negative values or type='expense')
             const sortedExpenses = expenses.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
@@ -252,23 +159,6 @@
                             <td data-label="التاريخ">${date}</td>
                             <td data-label="تحكم">
                                 <button onclick="deleteExpenseConfirm('${e.id}')" class="btn btn-outline" style="padding:5px 10px; color:var(--danger); border-color:var(--danger);">
-=======
-            if (exps.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px;">لا توجد صرفيات</td></tr>';
-            } else {
-                exps.sort((a,b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)).forEach(e => {
-                    const amount = e.amount || 0;
-                    total += amount;
-                    const date = new Date(e.createdAt || e.date || Date.now()).toLocaleDateString('ar-IQ');
-                    
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${e.description || '-'}</td>
-                            <td style="color:var(--danger-color); font-weight:bold;">${amount.toLocaleString()}</td>
-                            <td>${date}</td>
-                            <td>
-                                <button onclick="deleteExpenseConfirm('${e.firebaseId || e.id}')" class="btn btn-danger btn-sm">
->>>>>>> 468b659 (Update project files and add server.js)
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
@@ -276,10 +166,6 @@
                     `;
                 });
             }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 0864a6a (Fix Expense button logic and update project files)
 
             document.getElementById('totalExpenses').innerText = total.toLocaleString();
             document.getElementById('expensesCount').innerText = sortedExpenses.length;
@@ -323,60 +209,6 @@
         };
 
         setInterval(() => { if (typeof DataManager !== 'undefined') renderPage(); }, 1000);
-<<<<<<< HEAD
-=======
-            
-            document.getElementById('totalExpenses').innerText = total.toLocaleString();
-            document.getElementById('expensesCount').innerText = exps.length;
-        };
-
-        window.openExpenseModal = function() {
-            document.getElementById('expenseModal').classList.add('active');
-        };
-
-        window.closeExpenseModal = function() {
-            document.getElementById('expenseModal').classList.remove('active');
-        };
-
-        window.saveExpense = async function() {
-            const description = document.getElementById('expenseDesc').value;
-            const amount = parseInt(document.getElementById('expenseAmount').value);
-            const date = document.getElementById('expenseDate').value;
-
-            if (!description || !amount || amount <= 0) {
-                alert('الرجاء ملء جميع الحقول بشكل صحيح');
-                return;
-            }
-
-            // تسجيل الصرفية كمبلغ سالب فقط (بدون تخزين مزدوج)
-            await DataManager.recordTransaction(null, -amount, `صرفية: ${description}`, 'صرفية');
-            
-            document.getElementById('expenseDesc').value = '';
-            document.getElementById('expenseAmount').value = '';
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('expenseDate').value = today;
-            
-            closeExpenseModal();
-            // بدون alert - تحديث فوري بدلاً منه
-        };
-
-        window.deleteExpenseConfirm = async function(id) {
-            if(confirm('حذف هذه الصرفية؟')) {
-                const exp = DataManager.getExpenses().find(e => (e.firebaseId || e.id) === id);
-                if(exp) {
-                    await DataManager.deleteExpense(exp.id);
-                }
-            }
-        };
-
-        // Auto-refresh
-        setInterval(() => { if(typeof DataManager !== 'undefined') renderPage(); }, 500);
-        
-        // Initial render
-        setTimeout(renderPage, 1000);
->>>>>>> 468b659 (Update project files and add server.js)
-=======
->>>>>>> 0864a6a (Fix Expense button logic and update project files)
     </script>
 </body>
 
