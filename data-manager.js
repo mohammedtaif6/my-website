@@ -80,67 +80,31 @@ export const DataManager = {
         }
     },
 
+    // === المزامنة مع الفايربيس ===
     sync(colName) {
-        // تأكد من وجود المصفوفة
+        // تهيئة المصفوفة لضمان عدم حدوث خطأ عند القراءة
         if (!localData[colName]) localData[colName] = [];
 
         const q = query(collection(db, colName), orderBy("createdAt", "desc"));
 
         onSnapshot(q,
             (snapshot) => {
-                const prevCount = localData[colName].length;
+                // استبدال البيانات المحلية بالبيانات "الحقيقية" من السيرفر
+                localData[colName] = snapshot.docs.map(d => ({ ...d.data(), firebaseId: d.id }));
 
-                // جلب البيانات من السيرفر
-                const serverData = snapshot.docs.map(d => ({ ...d.data(), firebaseId: d.id }));
+                console.log(`📊 Firebase Sync [${colName}]: ${localData[colName].length} records loaded.`);
 
-                // الحفاظ على العناصر المحلية التي لم تُرفع بعد (Pending)
-                const pendingItems = localData[colName].filter(item => item.isLocal);
-
-                // دمج البيانات: السيرفر + المحلي (مع التأكد من عدم تكرار الـ ID)
-                // نستخدم Map لإزالة التكرار بناءً على الـ id
-                const mergedMap = new Map();
-
-                // الأولوية للسيرفر (الحقيقة المؤكدة)
-                serverData.forEach(item => mergedMap.set(item.id, item));
-
-                // إضافة المحلي إذا لم يكن موجوداً في السيرفر بعد
-                pendingItems.forEach(item => {
-                    if (!mergedMap.has(item.id)) {
-                        mergedMap.set(item.id, item);
-                    }
-                });
-
-                // تحويل الـ Map إلى Array وترتيبها
-                localData[colName] = Array.from(mergedMap.values()).sort((a, b) =>
-                    new Date(b.createdAt) - new Date(a.createdAt)
-                );
-
-                const newCount = localData[colName].length;
-
-                console.log(`📊 ${colName}: ${newCount} سجل (Sync merged with pending)`);
-
-                // عرض رسالة عند استلام بيانات جديدة من السيرفر (تجاهل التحديث الأولي)
-                if (snapshot.docChanges().length > 0 && prevCount > 0) {
-                    const changes = snapshot.docChanges();
-                    changes.forEach(change => {
-                        // نتجاهل الإضافات التي قمنا بها نحن (لأننا عرضناها محلياً)
-                        // ولكن كيف نعرف؟ الـ DataManager لا يعرف المستخدم الحالي هنا بسهولة
-                        // لذلك نكتفي بالتحقق من النوع
-                        if (change.type === 'added' && !change.doc.metadata.hasPendingWrites) {
-                            console.log('✨ تحديث قادم من السيرفر');
-                        }
-                    });
+                // إذا كانت البيانات خاصة بالموظفين، نقوم بإشعار الصفحة للتحديث
+                if (colName === 'employees') {
+                    // محاولة تحديث واجهة الموظفين إذا كانت مفتوحة
+                    if (window.renderEmployees) window.renderEmployees();
                 }
             },
             (error) => {
-                console.error(`Error syncing ${colName}:`, error);
-                showToast(`خطأ في مزامنة ${colName}`, 'error');
+                console.error(`❌ Firebase Error (${colName}):`, error);
+
                 if (error.code === 'permission-denied') {
-                    showToast('خطأ: ليس لديك صلاحية الوصول! تحقق من قواعد Firebase', 'error');
-                    console.error('==================================================');
-                    console.error('⚠️ مشكلة صلاحيات Firebase!');
-                    console.error('الحل: افتح ملف FIREBASE-RULES-FIX.txt');
-                    console.error('==================================================');
+                    showToast(`عذراً، ليس لديك صلاحية للوصول لبيانات: ${colName}`, 'error');
                 } else {
                     showToast('خطأ في الاتصال بقاعدة البيانات', 'error');
                 }
@@ -340,26 +304,16 @@ export const DataManager = {
             createdAt: new Date().toISOString(),
             startDate: new Date().toISOString().split('T')[0], // تاريخ بدء الحساب
             advances: 0, // مجموع السلف
-            isLocal: true, // علامة للتعرف عليه محلياً قبل المزامنة
             ...data
         };
 
-        // تحديث محلي فوري (في البداية)
-        if (!localData.employees) localData.employees = [];
-        localData.employees.unshift(emp);
-
         try {
-            // ملاحظة: remove isLocal قبل الإرسال لـ Firebase ليس ضرورياً لأنه NoSQL لكن يفضل للنظافة
-            const empToSend = { ...emp };
-            delete empToSend.isLocal;
-
-            await addDoc(collection(db, "employees"), empToSend);
-            showToast("تمت إضافة الموظف");
+            // نرسل البيانات للسيرفر فقط، وننتظر عودتها عبر الـ Sync
+            await addDoc(collection(db, "employees"), emp);
+            showToast("تم إرسال بيانات الموظف للسيرفر...");
         } catch (e) {
             console.error("Error adding employee:", e);
-            showToast("حدث خطأ أثناء الإضافة: " + e.message, "error");
-            // تراجع عن الإضافة المحلية في حال الفشل
-            localData.employees = localData.employees.filter(e => e.id !== emp.id);
+            showToast("فشل الحفظ في قاعدة البيانات: " + e.message, "error");
         }
     },
 
