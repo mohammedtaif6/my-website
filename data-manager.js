@@ -312,6 +312,11 @@ export const DataManager = {
             advances: 0, // مجموع السلف
             ...data
         };
+
+        // تحديث محلي فوري
+        if (!localData.employees) localData.employees = [];
+        localData.employees.push(emp);
+
         await addDoc(collection(db, "employees"), emp);
         showToast("تمت إضافة الموظف");
     },
