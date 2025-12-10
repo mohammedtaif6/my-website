@@ -136,18 +136,45 @@
             const phone = document.getElementById('phone').value;
             const pass = document.getElementById('password').value;
             const err = document.getElementById('error-msg');
+            const btn = document.querySelector('button[type="submit"]');
 
-            // الانتظار قليلاً للتأكد من تحميل بيانات الموظفين من Firebase
-            if (DataManager.getEmployees().length === 0) {
-                // محاولة بسيطة للانتظار
-                await new Promise(r => setTimeout(r, 1500));
-            }
+            // إخفاء الخطأ وتشغيل التحميل
+            err.style.display = 'none';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
+            btn.disabled = true;
 
-            if (AuthSystem.login(phone, pass)) {
-                window.location.href = 'index.html';
-            } else {
+            try {
+                // 1. محاولة دخول المدير فوراً (بدون انتظار انترنت)
+                if (AuthSystem.login(phone, pass)) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                // 2. إذا لم يكن مديراً، ننتظر تحميل البيانات (للموظفين)
+                if (typeof DataManager === 'undefined') {
+                    throw new Error("جاري تحميل النظام... حاول مرة أخرى بعد ثواني");
+                }
+
+                // انتظار بسيط إذا كانت البيانات فارغة (محاولة مزامنة)
+                if (DataManager.getEmployees().length === 0) {
+                    await new Promise(r => setTimeout(r, 2000));
+                }
+
+                // محاولة الدخول مرة أخرى بعد الانتظار (للموظفين)
+                if (AuthSystem.login(phone, pass)) {
+                    window.location.href = 'index.html';
+                } else {
+                    throw new Error('رقم الهاتف أو كلمة المرور خطأ'); // هذا سيذهب لل catch
+                }
+
+            } catch (error) {
+                console.error(error);
                 err.style.display = 'block';
-                err.innerText = 'رقم الهاتف أو كلمة المرور خطأ';
+                err.innerText = error.message || 'حدث خطأ غير متوقع';
+
+                // إعادة الزر لوضعه الطبيعي
+                btn.innerHTML = 'تسجيل الدخول';
+                btn.disabled = false;
             }
         }
     </script>
