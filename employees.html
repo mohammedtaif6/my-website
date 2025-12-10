@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة الموظفين - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=18.0">
+    <link rel="stylesheet" href="style.css?v=18.1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="auth-system.js"></script>
@@ -53,47 +53,92 @@
             <div class="modal-body">
                 <input type="hidden" id="emp-id">
 
-                <div class="form-group">
-                    <label>الاسم</label>
-                    <input type="text" id="emp-name" placeholder="اسم الموظف">
-                </div>
-                <div class="form-group">
-                    <label>رقم الهاتف (للدخول)</label>
-                    <input type="tel" id="emp-phone" placeholder="07...">
-                </div>
-                <div class="form-group">
-                    <label>كلمة السر</label>
-                    <input type="text" id="emp-pass" placeholder="كلمة المرور">
-                </div>
-                <div class="form-group">
-                    <label>الراتب اليومي (د.ع)</label>
-                    <input type="number" id="emp-daily-salary" placeholder="مثلاً 10000">
+                <!-- صف يحتوي على الاسم والهاتف -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>الاسم</label>
+                        <input type="text" id="emp-name" placeholder="اسم الموظف" class="compact-input">
+                    </div>
+                    <div class="form-group">
+                        <label>رقم الهاتف</label>
+                        <input type="tel" id="emp-phone" placeholder="07..." class="compact-input">
+                    </div>
                 </div>
 
-                <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">
-                    <h4>الصلاحيات (ماذا يرى الموظف؟)</h4>
+                <!-- صف يحتوي على الراتب وكلمة السر -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+                    <div class="form-group">
+                        <label>الراتب اليومي</label>
+                        <input type="number" id="emp-daily-salary" placeholder="10000" class="compact-input">
+                    </div>
+                    <div class="form-group">
+                        <label>كلمة السر</label>
+                        <input type="text" id="emp-pass" placeholder="***" class="compact-input">
+                    </div>
+                </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="perm-subscribers"> صفحة المشتركين
+                <div style="margin-top: 15px; background: #f9f9f9; padding: 10px; border-radius: 8px;">
+                    <h4 style="margin: 0 0 10px 0; font-size: 0.9rem; color: #555;">الصلاحيات المسموحة:</h4>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                        <label class="checkbox-label" style="font-size: 0.85rem;">
+                            <input type="checkbox" id="perm-subscribers"> المشتركين
                         </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="perm-debts"> صفحة الديون
+                        <label class="checkbox-label" style="font-size: 0.85rem;">
+                            <input type="checkbox" id="perm-debts"> الديون
                         </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="perm-payments"> صفحة الصندوق
+                        <label class="checkbox-label" style="font-size: 0.85rem;">
+                            <input type="checkbox" id="perm-payments"> الصندوق
                         </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="perm-reports"> صفحة التقارير
+                        <label class="checkbox-label" style="font-size: 0.85rem;">
+                            <input type="checkbox" id="perm-reports"> التقارير
                         </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="perm-expenses"> صفحة الصرفيات
+                        <label class="checkbox-label" style="font-size: 0.85rem;">
+                            <input type="checkbox" id="perm-expenses"> المصاريف
                         </label>
                     </div>
                 </div>
 
                 <button onclick="window.saveEmployee()" class="btn btn-success btn-full"
-                    style="margin-top: 20px;">حفظ</button>
+                    style="width: 100%; margin-top: 20px;">حفظ البيانات</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal صرفية سريعة -->
+    <div id="quickExpenseModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3 id="expenseModalTitle">صرفية سريعة</h3>
+                <button class="close-btn" onclick="window.closeQuickExpense()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="qe-emp-id">
+                <input type="hidden" id="qe-emp-name">
+
+                <div class="form-group">
+                    <label>المبلغ</label>
+                    <input type="number" id="qe-amount" placeholder="0" class="compact-input"
+                        style="font-size: 1.2rem; font-weight: bold;">
+                </div>
+
+                <div class="form-group">
+                    <label>التفاصيل (السبب)</label>
+                    <input type="text" id="qe-desc" placeholder="مثلاً: وجبة غداء" class="compact-input">
+                </div>
+
+                <div class="form-group"
+                    style="background: #fff3e0; padding: 15px; border-radius: 10px; border: 1px solid #ffe0b2;">
+                    <label class="checkbox-label" style="margin:0; font-weight: bold; color: #e65100;">
+                        <input type="checkbox" id="qe-deduct"> خصم من الراتب (سلفة)
+                    </label>
+                    <p style="font-size: 0.8rem; color: #ef6c00; margin-top: 5px;">عند التفعيل، سيتم خصم المبلغ من راتب
+                        الموظف.</p>
+                </div>
+
+                <button onclick="window.saveQuickExpense()" class="btn btn-warning btn-full" style="margin-top: 10px;">
+                    <i class="fas fa-save"></i> حفظ الصرفية
+                </button>
             </div>
         </div>
     </div>
@@ -278,6 +323,7 @@
                         </div>
                         
                         <div class="actions">
+                            <button onclick="window.openQuickExpense('${e.id}', '${e.name}')" class="btn btn-sm btn-warning" title="صرفية سريعة"><i class="fas fa-hand-holding-usd"></i></button>
                             <button onclick='window.editEmployee(${JSON.stringify(e).replace(/'/g, "&#39;")})' class="btn btn-sm btn-primary" style="flex:1">تعديل</button>
                             <button onclick="window.deleteEmp(${e.id})" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
                         </div>
@@ -358,6 +404,44 @@
         };
 
         window.deleteEmp = (id) => DataManager.deleteEmployee(id);
+
+        // --- إدارة مودال الصرفية السريعة ---
+        window.openQuickExpense = (id, name) => {
+            const m = document.getElementById('quickExpenseModal');
+            if (m) {
+                document.getElementById('qe-emp-id').value = id;
+                document.getElementById('qe-emp-name').value = name;
+                document.getElementById('qe-amount').value = '';
+                document.getElementById('qe-desc').value = '';
+                document.getElementById('qe-deduct').checked = false; // افتراضياً غير مخصوم
+                document.getElementById('expenseModalTitle').innerText = `صرفية لـ: ${name}`;
+                m.classList.add('active');
+                setTimeout(() => document.getElementById('qe-amount').focus(), 100);
+            }
+        };
+
+        window.closeQuickExpense = () => {
+            document.getElementById('quickExpenseModal').classList.remove('active');
+        };
+
+        window.saveQuickExpense = async () => {
+            const id = document.getElementById('qe-emp-id').value;
+            const name = document.getElementById('qe-emp-name').value;
+            const amount = document.getElementById('qe-amount').value;
+            const desc = document.getElementById('qe-desc').value || 'صرفية سريعة';
+            const deduct = document.getElementById('qe-deduct').checked;
+
+            if (!amount) return alert('أدخل المبلغ');
+
+            if (deduct) {
+                // سلفة (خصم من الراتب)
+                await DataManager.addAdvance(id, amount, desc);
+            } else {
+                // صرفية عامة (على المحل)
+                await DataManager.addExpense(amount, `${desc} (بواسطة: ${name})`);
+            }
+            window.closeQuickExpense();
+        };
 
         // ربط زر الإضافة عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', () => {
