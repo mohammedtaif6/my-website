@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إعدادات Telegram - OK Computer</title>
+    <link rel="stylesheet" href="style.css?v=15.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo"><i class="fas fa-cog"></i> الإعدادات</div>
+        <ul class="nav-links">
+            <li><a href="index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
+            <li><a href="subscribers.html"><i class="fas fa-users"></i> المشتركين</a></li>
+            <li><a href="debts.html"><i class="fas fa-money-bill-wave"></i> الديون</a></li>
+            <li><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> الصندوق</a></li>
+            <li><a href="telegram-settings.html" class="active"><i class="fab fa-telegram"></i> Telegram</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="header-card">
+            <div>
+                <h1>⚙️ إعدادات Telegram Bot</h1>
+                <p>قم بإعداد البوت لاستقبال إشعارات تلقائية</p>
+            </div>
+        </div>
+
+        <!-- خطوات الإعداد -->
+        <div class="table-container" style="margin-bottom: 30px;">
+            <div class="table-header">
+                <h3>📚 خطوات إنشاء البوت</h3>
+            </div>
+            <div style="padding: 20px; background: white;">
+                <ol style="line-height: 2; padding-right: 20px;">
+                    <li>افتح تطبيق Telegram وابحث عن <code>@BotFather</code></li>
+                    <li>أرسل الأمر <code>/newbot</code> لإنشاء بوت جديد</li>
+                    <li>اختر اسم للبوت (مثال: OK Computer Bot)</li>
+                    <li>اختر username للبوت (يجب أن ينتهي بـ bot)</li>
+                    <li>ستحصل على <strong>Bot Token</strong> - انسخه وضعه أدناه</li>
+                    <li>ابحث عن <code>@userinfobot</code> في Telegram</li>
+                    <li>أرسل أي رسالة وستحصل على <strong>Chat ID</strong> - انسخه وضعه أدناه</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- نموذج الإعدادات -->
+        <div class="table-container">
+            <div class="table-header">
+                <h3>🔧 إعدادات البوت</h3>
+            </div>
+            <div style="padding: 25px; background: white;">
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-robot"></i> Bot Token
+                        <small style="color: var(--secondary); font-weight: normal;">(من @BotFather)</small>
+                    </label>
+                    <input type="text" id="bot-token" placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-user"></i> Chat ID
+                        <small style="color: var(--secondary); font-weight: normal;">(من @userinfobot)</small>
+                    </label>
+                    <input type="text" id="chat-id" placeholder="123456789">
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="telegram-enabled" style="width: auto;">
+                        <span><i class="fas fa-bell"></i> تفعيل إشعارات Telegram</span>
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="saveSettings()" class="btn btn-success" style="flex: 1;">
+                        <i class="fas fa-save"></i> حفظ الإعدادات
+                    </button>
+                    <button onclick="testConnection()" class="btn btn-primary" style="flex: 1;">
+                        <i class="fas fa-paper-plane"></i> اختبار الاتصال
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- إعدادات الإشعارات -->
+        <div class="table-container">
+            <div class="table-header">
+                <h3>🔔 أنواع الإشعارات</h3>
+            </div>
+            <div style="padding: 25px; background: white;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="notify-activation" checked style="width: auto;">
+                        <span>🎉 تفعيل جديد</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="notify-renewal" checked style="width: auto;">
+                        <span>🔄 تجديد اشتراك</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="notify-expiring" checked style="width: auto;">
+                        <span>⚠️ على وشك الانتهاء</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="notify-expired" checked style="width: auto;">
+                        <span>❌ منتهي</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="notify-debt-added" checked style="width: auto;">
+                        <span>📝 دين جديد</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="notify-debt-paid" checked style="width: auto;">
+                        <span>✅ تسديد دين</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="notify-expense" checked style="width: auto;">
+                        <span>💸 صرفية جديدة</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="notify-daily" checked style="width: auto;">
+                        <span>📊 ملخص يومي</span>
+                    </label>
+                </div>
+
+                <button onclick="saveNotificationSettings()" class="btn btn-primary btn-full" style="margin-top: 20px;">
+                    <i class="fas fa-save"></i> حفظ إعدادات الإشعارات
+                </button>
+            </div>
+        </div>
+
+        <!-- حالة الاتصال -->
+        <div id="status-card" class="table-container" style="display: none;">
+            <div class="table-header">
+                <h3>📡 حالة الاتصال</h3>
+            </div>
+            <div id="status-content" style="padding: 20px; background: white; text-align: center;">
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { telegramBot } from './telegram-bot.js';
+
+        // تحميل الإعدادات الحالية
+        window.addEventListener('load', () => {
+            const config = telegramBot.config;
+
+            document.getElementById('bot-token').value = config.botToken || '';
+            document.getElementById('chat-id').value = config.chatId || '';
+            document.getElementById('telegram-enabled').checked = config.enabled || false;
+
+            // تحميل إعدادات الإشعارات
+            document.getElementById('notify-activation').checked = config.notifications.newActivation;
+            document.getElementById('notify-renewal').checked = config.notifications.renewal;
+            document.getElementById('notify-expiring').checked = config.notifications.expiringSoon;
+            document.getElementById('notify-expired').checked = config.notifications.expired;
+            document.getElementById('notify-debt-added').checked = config.notifications.debtAdded;
+            document.getElementById('notify-debt-paid').checked = config.notifications.debtPaid;
+            document.getElementById('notify-expense').checked = config.notifications.expense;
+            document.getElementById('notify-daily').checked = config.notifications.dailySummary;
+        });
+
+        // حفظ الإعدادات
+        window.saveSettings = function () {
+            const botToken = document.getElementById('bot-token').value.trim();
+            const chatId = document.getElementById('chat-id').value.trim();
+            const enabled = document.getElementById('telegram-enabled').checked;
+
+            if (enabled && (!botToken || !chatId)) {
+                showStatus('⚠️ يجب إدخال Bot Token و Chat ID', 'error');
+                return;
+            }
+
+            telegramBot.saveConfig({
+                botToken: botToken,
+                chatId: chatId,
+                enabled: enabled
+            });
+
+            showStatus('✅ تم حفظ الإعدادات بنجاح', 'success');
+        };
+
+        // حفظ إعدادات الإشعارات
+        window.saveNotificationSettings = function () {
+            telegramBot.saveConfig({
+                notifications: {
+                    newActivation: document.getElementById('notify-activation').checked,
+                    renewal: document.getElementById('notify-renewal').checked,
+                    expiringSoon: document.getElementById('notify-expiring').checked,
+                    expired: document.getElementById('notify-expired').checked,
+                    debtAdded: document.getElementById('notify-debt-added').checked,
+                    debtPaid: document.getElementById('notify-debt-paid').checked,
+                    expense: document.getElementById('notify-expense').checked,
+                    dailySummary: document.getElementById('notify-daily').checked
+                }
+            });
+
+            showStatus('✅ تم حفظ إعدادات الإشعارات', 'success');
+        };
+
+        // اختبار الاتصال
+        window.testConnection = async function () {
+            showStatus('⏳ جاري الاختبار...', 'info');
+
+            const success = await telegramBot.testConnection();
+
+            if (success) {
+                showStatus('✅ تم الاتصال بنجاح! تحقق من Telegram', 'success');
+            } else {
+                showStatus('❌ فشل الاتصال. تحقق من الإعدادات', 'error');
+            }
+        };
+
+        // عرض حالة
+        function showStatus(message, type) {
+            const statusCard = document.getElementById('status-card');
+            const statusContent = document.getElementById('status-content');
+
+            const colors = {
+                success: 'var(--success)',
+                error: 'var(--danger)',
+                info: 'var(--primary)'
+            };
+
+            statusContent.innerHTML = `
+                <div style="padding: 20px; font-size: 1.2rem; color: ${colors[type]};">
+                    ${message}
+                </div>
+            `;
+
+            statusCard.style.display = 'block';
+
+            setTimeout(() => {
+                statusCard.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+
+</html>

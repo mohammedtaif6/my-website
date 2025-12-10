@@ -1,8 +1,9 @@
 /**
- * DataManager v14.3 - Fixed Firebase Initialization
+ * DataManager v15.0 - مع دعم Telegram Bot
  */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { initializeFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, persistentLocalCache, persistentMultipleTabManager } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { telegramBot } from './telegram-bot.js';
 
 const firebaseConfig = {
     apiKey: "AIzaSyA-raYlvzPz8T7Mnx8bTWA4O8CyHvp7K_0",
@@ -165,6 +166,14 @@ export const DataManager = {
                 description: `اشتراك جديد (${data.paymentType}): ${subData.name}`
             });
             if (data.paymentType === 'نقد') await updateDoc(doc(db, "subscribers", subRef.id), { price: 0 });
+
+            // إشعار Telegram
+            telegramBot.notifyNewActivation(
+                subData.name,
+                parseInt(initialAmount),
+                data.paymentType,
+                data.expiryDate || 'غير محدد'
+            );
         }
         showToast("تمت الإضافة بنجاح");
     },
@@ -192,6 +201,15 @@ export const DataManager = {
         await updateDoc(doc(db, "subscribers", subscriberFirebaseId), {
             status: 'نشط', expiryDate: renewalData.dateEnd, paymentType: renewalData.type, price: newDebt
         });
+
+        // إشعار Telegram
+        telegramBot.notifyRenewal(
+            sub.name,
+            parseInt(renewalData.price),
+            renewalData.type,
+            renewalData.dateEnd
+        );
+
         showToast("تم التجديد بنجاح");
     },
 
@@ -210,11 +228,23 @@ export const DataManager = {
         });
 
         await updateDoc(doc(db, "subscribers", fid), { price: newDebt, paymentType: newDebt === 0 ? 'نقد' : 'أجل' });
+
+        // إشعار Telegram
+        telegramBot.notifyDebtPaid(
+            sub.name,
+            parseInt(amount),
+            newDebt
+        );
+
         showToast("تم التسديد");
     },
 
     async addExpense(amount, description) {
         await this.logTransaction({ subscriberId: null, amount: -Math.abs(amount), type: 'expense', description });
+
+        // إشعار Telegram
+        telegramBot.notifyExpense(description, Math.abs(amount));
+
         showToast("تم حفظ الصرفية");
     },
 
