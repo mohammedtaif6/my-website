@@ -1,98 +1,54 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>اختبار Firebase Connection</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>فحص اتصال Firebase</title>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .status-badge { display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 600; }
-        .status-online { background: #dcfce7; color: #166534; }
-        .status-offline { background: #fee2e2; color: #991b1b; }
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+
+        .status {
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 400px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .loading {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
     </style>
 </head>
-<body class="bg-gray-50">
-    <nav class="bg-blue-700 text-white p-4">
-        <div class="max-w-6xl mx-auto flex items-center justify-between">
-            <h1 class="text-2xl font-bold">🧪 اختبار الاتصال</h1>
-            <div class="flex items-center gap-4">
-                <span id="connectionStatus" class="status-badge status-offline">
-                    <i class="fas fa-wifi-slash ml-2"></i>غير متصل
-                </span>
-            </div>
-        </div>
-    </nav>
 
-    <main class="max-w-6xl mx-auto p-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- Firebase Connection -->
-            <div class="bg-white p-6 rounded-lg shadow">
-                <div class="flex items-center gap-3 mb-4">
-                    <i class="fas fa-database text-2xl text-blue-600"></i>
-                    <h2 class="text-lg font-bold">Firebase</h2>
-                </div>
-                <p id="firebaseStatus" class="text-gray-600 mb-4">جاري الفحص...</p>
-                <button onclick="testFirebase()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
-                    فحص الآن
-                </button>
-            </div>
-
-            <!-- Local Storage -->
-            <div class="bg-white p-6 rounded-lg shadow">
-                <div class="flex items-center gap-3 mb-4">
-                    <i class="fas fa-hdd text-2xl text-green-600"></i>
-                    <h2 class="text-lg font-bold">LocalStorage</h2>
-                </div>
-                <p id="storageStatus" class="text-gray-600 mb-4">جاري الفحص...</p>
-                <button onclick="testStorage()" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
-                    فحص الآن
-                </button>
-            </div>
-
-            <!-- Network -->
-            <div class="bg-white p-6 rounded-lg shadow">
-                <div class="flex items-center gap-3 mb-4">
-                    <i class="fas fa-wifi text-2xl text-orange-600"></i>
-                    <h2 class="text-lg font-bold">الشبكة</h2>
-                </div>
-                <p id="networkStatus" class="text-gray-600 mb-4">جاري الفحص...</p>
-                <button onclick="testNetwork()" class="w-full bg-orange-600 text-white py-2 rounded hover:bg-orange-700">
-                    فحص الآن
-                </button>
-            </div>
-        </div>
-
-        <!-- Detailed Logs -->
-        <div class="bg-white p-6 rounded-lg shadow">
-            <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
-                <i class="fas fa-list"></i> سجل الفحوصات
-            </h2>
-            <div id="logContainer" class="bg-gray-900 text-green-400 p-4 rounded font-mono text-sm h-96 overflow-y-auto">
-                <p>🔄 جاري تحميل البيانات...</p>
-            </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="mt-6 flex gap-4">
-            <button onclick="clearLogs()" class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700">
-                مسح السجل
-            </button>
-            <button onclick="refreshAll()" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-                إعادة فحص الكل
-            </button>
-            <button onclick="downloadLogs()" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
-                تحميل التقرير
-            </button>
-        </div>
-    </main>
+<body>
+    <h1>فحص اتصال قاعدة البيانات</h1>
+    <div id="status" class="status loading">جاري الاتصال...</div>
+    <div id="details"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        // إعداداتك الحالية
         const firebaseConfig = {
             apiKey: "AIzaSyA-raYlvzPz8T7Mnx8bTWA4O8CyHvp7K_0",
             authDomain: "okcomputer-system.firebaseapp.com",
@@ -102,129 +58,31 @@
             appId: "1:17748146044:web:e4a2063ac34c6ee27016f9"
         };
 
-        let logs = [];
+        const statusDiv = document.getElementById('status');
+        const detailsDiv = document.getElementById('details');
 
-        function addLog(message, type = 'info') {
-            const timestamp = new Date().toLocaleTimeString('ar-IQ');
-            const icon = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️';
-            const logEntry = `${icon} [${timestamp}] ${message}`;
-            logs.push(logEntry);
-            
-            const logContainer = document.getElementById('logContainer');
-            logContainer.innerHTML += logEntry + '\n';
-            logContainer.scrollTop = logContainer.scrollHeight;
+        try {
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+
+            // محاولة قراءة البيانات (اختبار القراءة)
+            getDocs(collection(db, "subscribers")).then(snapshot => {
+                statusDiv.className = 'status success';
+                statusDiv.innerHTML = '✅ الاتصال ناجح!';
+                detailsDiv.innerHTML = `تم العثور على ${snapshot.size} مشترك في قاعدة البيانات.`;
+            }).catch(error => {
+                console.error(error);
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = '❌ فشل الاتصال!';
+                detailsDiv.innerHTML = 'تأكد من اتصال الإنترنت أو قواعد الأمان في Firebase.<br>' + error.message;
+            });
+
+        } catch (e) {
+            statusDiv.className = 'status error';
+            statusDiv.innerHTML = '❌ خطأ في التهيئة!';
+            detailsDiv.innerHTML = e.message;
         }
-
-        window.clearLogs = () => {
-            logs = [];
-            document.getElementById('logContainer').innerHTML = '';
-            addLog('تم مسح السجل');
-        };
-
-        window.downloadLogs = () => {
-            const content = logs.join('\n');
-            const link = document.createElement('a');
-            link.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(content);
-            link.download = `firebase-test-${new Date().toISOString().slice(0,10)}.txt`;
-            link.click();
-        };
-
-        window.testFirebase = async () => {
-            addLog('🔄 جاري اختبار Firebase...', 'info');
-            try {
-                const app = initializeApp(firebaseConfig);
-                const db = getFirestore(app);
-                const snapshot = await getDocs(collection(db, "subscribers"));
-                const count = snapshot.size;
-                
-                addLog(`✅ Firebase متصل - ${count} مشترك في النظام`, 'success');
-                document.getElementById('firebaseStatus').innerHTML = `
-                    <span class="text-green-600 font-bold">✓ متصل</span>
-                    <p class="text-sm text-gray-500 mt-2">${count} مشترك</p>
-                `;
-            } catch (error) {
-                addLog(`❌ خطأ Firebase: ${error.message}`, 'error');
-                document.getElementById('firebaseStatus').innerHTML = `
-                    <span class="text-red-600 font-bold">✗ خطأ</span>
-                    <p class="text-xs text-gray-500 mt-2">${error.message}</p>
-                `;
-            }
-        };
-
-        window.testStorage = () => {
-            addLog('🔄 جاري اختبار LocalStorage...', 'info');
-            try {
-                const testKey = 'test_' + Date.now();
-                localStorage.setItem(testKey, JSON.stringify({ test: true }));
-                const retrieved = localStorage.getItem(testKey);
-                localStorage.removeItem(testKey);
-                
-                if (retrieved) {
-                    addLog('✅ LocalStorage يعمل بشكل طبيعي', 'success');
-                    document.getElementById('storageStatus').innerHTML = `<span class="text-green-600 font-bold">✓ يعمل</span>`;
-                } else {
-                    throw new Error('فشل الاسترجاع');
-                }
-            } catch (error) {
-                addLog(`❌ خطأ LocalStorage: ${error.message}`, 'error');
-                document.getElementById('storageStatus').innerHTML = `<span class="text-red-600 font-bold">✗ خطأ</span>`;
-            }
-        };
-
-        window.testNetwork = async () => {
-            addLog('🔄 جاري اختبار الاتصال بالشبكة...', 'info');
-            if (navigator.onLine) {
-                try {
-                    const response = await fetch('https://www.google.com/search?q=test', { mode: 'no-cors' });
-                    addLog('✅ الاتصال بالإنترنت سليم', 'success');
-                    document.getElementById('networkStatus').innerHTML = `<span class="text-green-600 font-bold">✓ متصل</span>`;
-                    updateConnectionBadge(true);
-                } catch (error) {
-                    addLog('⚠️ الاتصال بطيء أو متقطع', 'warning');
-                    document.getElementById('networkStatus').innerHTML = `<span class="text-orange-600 font-bold">⚠ بطيء</span>`;
-                }
-            } else {
-                addLog('⚠️ لا يوجد اتصال بالإنترنت (العمل بالبيانات المحلية)', 'warning');
-                document.getElementById('networkStatus').innerHTML = `<span class="text-red-600 font-bold">✗ غير متصل</span>`;
-                updateConnectionBadge(false);
-            }
-        };
-
-        function updateConnectionBadge(isOnline) {
-            const badge = document.getElementById('connectionStatus');
-            if (isOnline) {
-                badge.className = 'status-badge status-online';
-                badge.innerHTML = '<i class="fas fa-wifi ml-2"></i>متصل';
-            } else {
-                badge.className = 'status-badge status-offline';
-                badge.innerHTML = '<i class="fas fa-wifi-slash ml-2"></i>غير متصل';
-            }
-        }
-
-        window.refreshAll = () => {
-            clearLogs();
-            addLog('🔄 جاري فحص شامل...', 'info');
-            testFirebase();
-            testStorage();
-            testNetwork();
-        };
-
-        // Initial Tests
-        window.addEventListener('load', () => {
-            addLog('🚀 جاري تحميل الاختبارات...', 'info');
-            setTimeout(() => refreshAll(), 500);
-        });
-
-        // Monitor Network
-        window.addEventListener('online', () => {
-            addLog('📡 استعاد الاتصال بالإنترنت', 'success');
-            updateConnectionBadge(true);
-        });
-
-        window.addEventListener('offline', () => {
-            addLog('📴 انقطع الاتصال بالإنترنت', 'warning');
-            updateConnectionBadge(false);
-        });
     </script>
 </body>
+
 </html>
