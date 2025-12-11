@@ -160,7 +160,7 @@
 
         window.renderDebts = function () {
             if (typeof DataManager === 'undefined') return;
-            const list = DataManager.getSubscribers().filter(s => s.type === 'أجل' && parseInt(s.price) > 0);
+            const list = DataManager.getSubscribers().filter(s => parseInt(s.price || 0) > 0);
             const tbody = document.getElementById('debtsTableBody');
 
             // Calculate Total Debt

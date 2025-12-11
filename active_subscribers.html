@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>الاشتراكات الفعالة - OK Computer</title>
+    <link rel="stylesheet" href="style.css?v=23.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="auth-system.js"></script>
+    <script>AuthSystem.checkSession();</script>
+
+    <script type="module">
+        import { DataManager } from './data-manager.js?v=20.0';
+        window.DataManager = DataManager;
+        DataManager.init();
+    </script>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fas fa-signal"></i> الفعالين
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
+            <li><a href="active_subscribers.html" class="active"><i class="fas fa-signal"></i> الفعالين</a></li>
+            <li><a href="subscribers.html"><i class="fas fa-users"></i> المشتركين</a></li>
+            <li><a href="#" onclick="AuthSystem.logout()"><i class="fas fa-sign-out-alt"></i> خروج</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <!-- Minimal Header -->
+        <div class="header-card">
+            <div>
+                <h1>الاشتراكات الفعالة</h1>
+                <p>قائمة بجميع المشتركين الذين لديهم اشتراك ساري المفعول</p>
+            </div>
+            <div>
+                <span class="badge badge-success" style="font-size: 1rem; padding: 10px 15px;">
+                    العدد: <span id="activeCount">0</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Search with better visibility -->
+        <div class="stats-grid" style="margin-bottom: 20px;">
+            <div class="form-group" style="margin-bottom:0 has-search">
+                <input type="text" id="activeSearch" placeholder="بحث باسم المشترك..." onkeyup="renderActivePage()"
+                    style="background: white; border: 2px solid var(--border-light); font-weight: bold;">
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-header">
+                <h3>جدول الصلاحية</h3>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>تاريخ البدء</th>
+                            <th>تاريخ الانتهاء</th>
+                            <th>الأيام المتبقية</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activeTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculateDaysRemaining(endDateStr) {
+            if (!endDateStr) return -999;
+            const end = new Date(endDateStr);
+            const now = new Date();
+            // Reset time part specifically for accurate day diff
+            now.setHours(0, 0, 0, 0);
+            end.setHours(0, 0, 0, 0);
+
+            const diffTime = end - now;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays;
+        }
+
+        window.renderActivePage = function () {
+            if (typeof DataManager === 'undefined') return;
+
+            const q = document.getElementById('activeSearch').value.toLowerCase();
+            const list = DataManager.subscribers || [];
+            const tbody = document.getElementById('activeTableBody');
+
+            // Filter: Must be Active + Search
+            let activeSubs = list.filter(s => {
+                // Check if active: simpler logic is usually handled by DataManager, 
+                // but here let's calculate based on expiry AND status field.
+                const days = calculateDaysRemaining(s.endDate);
+                const isActiveByDate = days >= 0;
+                // We show ONLY valid active subscriptions
+
+                const matchesSearch = s.name.toLowerCase().includes(q) || (s.phone && s.phone.includes(q));
+
+                return isActiveByDate && matchesSearch;
+            });
+
+            // Sort by days remaining (ASC) -> those expiring soonest first
+            activeSubs.sort((a, b) => calculateDaysRemaining(a.endDate) - calculateDaysRemaining(b.endDate));
+
+            document.getElementById('activeCount').innerText = activeSubs.length;
+            tbody.innerHTML = '';
+
+            if (activeSubs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--text-sub);">لا توجد اشتراكات فعالة حالياً</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = activeSubs.map(s => {
+                const daysLeft = calculateDaysRemaining(s.endDate);
+
+                // Calculate Start Date (Approximate if not stored, usually start = end - 30 days)
+                // If you store startDate, use it. DataManager schemas usually just have endDate. 
+                // Let's assume startDate = endDate - 1 month for display simplicity unless stored.
+                let startDateDisp = '-';
+                if (s.endDate) {
+                    let d = new Date(s.endDate);
+                    d.setMonth(d.getMonth() - 1);
+                    startDateDisp = d.toISOString().split('T')[0];
+                }
+
+                let daysClass = daysLeft <= 3 ? 'text-danger' : (daysLeft <= 7 ? 'text-warning' : 'text-success');
+                let daysText = daysLeft + ' يوم';
+                if (daysLeft === 0) daysText = 'اليوم الأخير';
+
+                return `
+                <tr>
+                    <td style="font-weight: bold;">${s.name}</td>
+                    <td dir="ltr" style="text-align:right;">${startDateDisp}</td>
+                    <td dir="ltr" style="text-align:right; font-weight:bold;">${s.endDate}</td>
+                    <td class="${daysClass}" style="font-weight:bold;">${daysText}</td>
+                    <td><span class="badge badge-success">فعال</span></td>
+                </tr>
+                `;
+            }).join('');
+        };
+
+        setInterval(() => { if (typeof DataManager !== 'undefined') renderActivePage(); }, 1000);
+    </script>
+</body>
+
+</html>

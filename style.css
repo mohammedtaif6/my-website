@@ -647,6 +647,21 @@ input:focus {
     background: #374151;
 }
 
+/* --- High Visibility Inputs --- */
+input[type="text"],
+input[type="search"],
+.form-group input {
+    background: #ffffff !important;
+    border: 1px solid #ced4da !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+input[type="text"]:focus,
+input[type="search"]:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+}
+
 /* --- Responsive --- */
 @media (min-width: 700px) {
     .main-menu-grid {
