@@ -94,25 +94,20 @@
 
 
     <!-- Mobile Header & Toggle -->
-    <div class="mobile-header">
-        <div class="logo-mobile">
-            <i class="fas fa-chart-line"></i> OK Computer
-        </div>
-        <button class="menu-toggle" onclick="toggleMenu()">
-            <i class="fas fa-bars"></i>
-        </button>
-    </div>
+    <!-- Modern Menu Button -->
+    <button class="menu-btn" onclick="toggleMenu()">
+        <i class="fas fa-bars"></i>
+    </button>
 
     <!-- Sidebar / Drawer Navigation -->
     <nav class="navbar" id="main-nav">
-        <div class="nav-header-mobile">
-            <h3>القائمة الرئيسية</h3>
-            <button class="close-menu" onclick="toggleMenu()">&times;</button>
-        </div>
-
-        <div class="logo desktop-only">
-            <i class="fas fa-chart-line"></i> OK Computer
-            <span id="user-name-display" style="font-size:0.9rem; font-weight:bold; color:var(--primary);"></span>
+        <div class="header-card"
+            style="margin: 0; background: none; box-shadow: none; border: none; padding: 0 0 20px 0;">
+            <div class="logo" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 0;">
+                <i class="fas fa-chart-line"></i> OK Computer
+            </div>
+            <button class="close-menu" onclick="toggleMenu()"
+                style="position: absolute; left: 0; top: 0; background: transparent; color: var(--text-sub);">&times;</button>
         </div>
 
         <ul class="nav-links">
@@ -135,18 +130,14 @@
 
     <div class="container">
 
+        <!-- Glass Header Card -->
         <div class="header-card">
             <div>
-                <h1>لوحة القيادة</h1>
-                <p id="currentDate">جاري التحميل...</p>
-            </div>
-            <div class="quick-actions">
-                <button id="btn-quick-activate" onclick="window.openActivateModal()" class="btn btn-primary">
-                    <i class="fas fa-user-plus"></i> تفعيل مشترك
-                </button>
-                <button id="btn-quick-expense" onclick="window.openExpenseModal()" class="btn btn-danger">
-                    <i class="fas fa-minus"></i> صرفية سريعة
-                </button>
+                <h1 style="color:white; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">مرحباً 👋</h1>
+                <p id="currentDate"
+                    style="color: rgba(255,255,255,0.9); font-size: 0.95rem; font-weight: normal; margin-top:5px;"></p>
+                <div id="user-name-display-header"
+                    style="color: white; font-weight: bold; margin-top: 5px; opacity: 0.9;"></div>
             </div>
         </div>
 

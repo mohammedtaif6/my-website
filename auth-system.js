@@ -114,6 +114,8 @@ const AuthSystem = {
             // عرض اسم المستخدم
             const nameEl = document.getElementById('user-name-display');
             if (nameEl) nameEl.innerText = user.name;
+            const headerNameEl = document.getElementById('user-name-display-header');
+            if (headerNameEl) headerNameEl.innerText = user.name;
 
             if (user.type === 'admin') return; // المدير يشوف كل شي
 
