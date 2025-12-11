@@ -359,14 +359,12 @@
                                 </div>
                             </div>
 
-                            <!-- كارت المكافآت -->
-                            ${(e.rewards && parseFloat(e.rewards) > 0) ? `
-                            <div style="margin-top:10px; background:#fff3e0; padding:10px; border-radius:8px; border:1px solid #ffe0b2;">
-                                <div style="color:#e65100; font-weight:bold; font-size:0.9rem;">
-                                    🎁 إجمالي المكافآت: ${fmt(e.rewards)} د.ع
+                            <!-- كارت المكافآت - دائماً مرئي -->
+                            <div style="margin-top:10px; background:${(e.rewards && parseFloat(e.rewards) > 0) ? '#fff3e0' : '#f5f5f5'}; padding:10px; border-radius:8px; border:1px solid ${(e.rewards && parseFloat(e.rewards) > 0) ? '#ffe0b2' : '#e0e0e0'};">
+                                <div style="color:${(e.rewards && parseFloat(e.rewards) > 0) ? '#e65100' : '#666'}; font-weight:bold; font-size:0.9rem;">
+                                    🎁 إجمالي المكافآت: ${fmt(e.rewards || 0)} د.ع
                                 </div>
                             </div>
-                            ` : ''}
 
                             <div style="margin-top:15px;">
                                 <small style="color:#888;">الصلاحيات:</small>
