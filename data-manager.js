@@ -506,14 +506,19 @@ OK Computer`;
         const maint = localData.maintenances.find(m => m.id == maintenanceId);
         if (!maint || maint.rewardPaid) return;
 
-        // تسجيل المكافأة كإضافة لراتب الموظف
         const emp = this.getEmployee(maint.employeeId);
         if (!emp) return;
 
-        // إضافة المكافأة كـ "مستحق إضافي"
+        // 1. إضافة المكافأة لحساب الموظف
+        const currentRewards = parseFloat(emp.rewards || 0);
+        await updateDoc(doc(db, "employees", emp.firebaseId), {
+            rewards: currentRewards + parseFloat(amount)
+        });
+
+        // 2. تسجيل الصرفية من الصندوق
         await this.addExpense(amount, `مكافأة صيانة: ${emp.name} - ${maint.subscriberName}`);
 
-        // تحديث حالة الصيانة
+        // 3. تحديث حالة الصيانة
         const maintDoc = localData.maintenances.find(m => m.id == maintenanceId);
         if (maintDoc) {
             await updateDoc(doc(db, "maintenances", maintDoc.firebaseId), {
@@ -524,6 +529,26 @@ OK Computer`;
         }
 
         showToast(`تم صرف مكافأة ${amount.toLocaleString()} د.ع لـ ${emp.name}`);
+    },
+
+    // إعطاء مكافأة مباشرة للموظف
+    async giveBonus(empId, amount, reason = 'مكافأة') {
+        const emp = this.getEmployee(empId);
+        if (!emp) return;
+
+        const bonusAmount = parseFloat(amount);
+        if (bonusAmount <= 0) return;
+
+        // 1. إضافة المكافأة لسجل الموظف
+        const currentRewards = parseFloat(emp.rewards || 0);
+        await updateDoc(doc(db, "employees", emp.firebaseId), {
+            rewards: currentRewards + bonusAmount
+        });
+
+        // 2. تسجيل الصرفية من الصندوق
+        await this.addExpense(bonusAmount, `مكافأة: ${emp.name} - ${reason}`);
+
+        showToast(`🎁 تم صرف مكافأة ${bonusAmount.toLocaleString()} د.ع لـ ${emp.name}`);
     },
 
     showToast
