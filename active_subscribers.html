@@ -77,7 +77,9 @@
     <script>
         function calculateDaysRemaining(endDateStr) {
             if (!endDateStr) return -999;
-            const end = new Date(endDateStr);
+            const end = new Date(endDateStr); // This works for ISO. For DD/MM/YYYY it might fail in some browsers or default to Invalid.
+            // But we handled conversion in render loop.
+            // Let's rely on parsed ISO for this calculation if passed correctly.
             const now = new Date();
             // Reset time part specifically for accurate day diff
             now.setHours(0, 0, 0, 0);
@@ -95,25 +97,45 @@
             const list = DataManager.subscribers || [];
             const tbody = document.getElementById('activeTableBody');
 
-            // تاريخ مقارنة قوي كنص
+            // Helper to parse dates robustly (Handles YYYY-MM-DD or DD/MM/YYYY)
+            function parseDateToISO(dStr) {
+                if (!dStr) return null;
+                // If already ISO YYYY-MM-DD (approx check)
+                if (dStr.indexOf('-') === 4) return dStr;
+                // If DD/MM/YYYY
+                if (dStr.indexOf('/') > 0) {
+                    const parts = dStr.split('/');
+                    if (parts.length === 3) {
+                        // parts[0]=DD, parts[1]=MM, parts[2]=YYYY -> YYYY-MM-DD
+                        return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                    }
+                }
+                return dStr;
+            }
+
+            // ISO Today string for comparison
             const todayStr = new Date().toISOString().split('T')[0];
 
             // Filter: Must be Active + Search
             let activeSubs = list.filter(s => {
-                // الفحص الشامل: إذا انتهى التاريخ اليوم أو في المستقبل فهو فعال
-                const expiry = s.expiryDate || s.endDate;
-                if (!expiry) return false;
+                const rawDate = s.expiryDate || s.endDate;
+                const isoDate = parseDateToISO(rawDate);
 
-                const isActiveByDate = expiry >= todayStr;
+                if (!isoDate) return false;
+
+                // String comparison works perfectly for ISO dates
+                const isActiveByDate = isoDate >= todayStr;
+
                 const matchesSearch = s.name.toLowerCase().includes(q) || (s.phone && s.phone.includes(q));
 
+                // Only return if active AND matches search
                 return isActiveByDate && matchesSearch;
             });
 
-            // Sort by Date (ASC)
+            // Sort by Date (ASC) -> Expiring soonest first
             activeSubs.sort((a, b) => {
-                const dA = a.expiryDate || a.endDate || '9999-99-99';
-                const dB = b.expiryDate || b.endDate || '9999-99-99';
+                const dA = parseDateToISO(a.expiryDate || a.endDate) || '9999-99-99';
+                const dB = parseDateToISO(b.expiryDate || b.endDate) || '9999-99-99';
                 return dA.localeCompare(dB);
             });
 
@@ -121,24 +143,26 @@
             tbody.innerHTML = '';
 
             if (activeSubs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--text-sub);">لا توجد اشتراكات فعالة حالياً</td></tr>';
+                // Helpful message based on total list size
+                if (list.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--text-sub);">جاري تحميل البيانات...</td></tr>';
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--text-sub);">لا توجد اشتراكات فعالة حالياً</td></tr>';
+                }
                 return;
             }
 
             tbody.innerHTML = activeSubs.map(s => {
-                const finalDate = s.expiryDate || s.endDate;
+                const rawDate = s.expiryDate || s.endDate;
+                const isoDate = parseDateToISO(rawDate);
 
-                // حساب الأيام المتبقية للعرض فقط
-                const end = new Date(finalDate);
-                const now = new Date();
-                now.setHours(0, 0, 0, 0);
-                const diffTime = end - now;
-                const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                // Re-calculate days using the CLEAN ISO date
+                const daysLeft = calculateDaysRemaining(isoDate);
 
-                // تاريخ البدء (تقريبي)
+                // Calculate Start Date (Approximate)
                 let startDateDisp = '-';
-                if (finalDate) {
-                    let d = new Date(finalDate);
+                if (isoDate) {
+                    let d = new Date(isoDate);
                     d.setMonth(d.getMonth() - 1);
                     startDateDisp = d.toISOString().split('T')[0];
                 }
@@ -146,13 +170,13 @@
                 let daysClass = daysLeft <= 3 ? 'text-danger' : (daysLeft <= 7 ? 'text-warning' : 'text-success');
                 let daysText = daysLeft + ' يوم';
                 if (daysLeft === 0) daysText = 'اليوم الأخير';
-                if (daysLeft < 0) { daysText = 'اليوم الأخير'; } // حماية إضافية
+                if (daysLeft < 0) daysText = 'اليوم الأخير'; // Should not be less than 0 due to filter
 
                 return `
                 <tr>
                     <td style="font-weight: bold;">${s.name}</td>
                     <td dir="ltr" style="text-align:right;">${startDateDisp}</td>
-                    <td dir="ltr" style="text-align:right; font-weight:bold;">${finalDate}</td>
+                    <td dir="ltr" style="text-align:right; font-weight:bold;">${rawDate}</td>
                     <td class="${daysClass}" style="font-weight:bold;">${daysText}</td>
                     <td><span class="badge badge-success">فعال</span></td>
                 </tr>
@@ -160,6 +184,7 @@
             }).join('');
         };
 
+        // Run regularly to catch DataManager update
         setInterval(() => { if (typeof DataManager !== 'undefined') renderActivePage(); }, 1000);
     </script>
 </body>

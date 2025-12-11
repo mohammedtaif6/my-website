@@ -223,10 +223,8 @@
                     } else {
                         statusHtml = `<span class="badge badge-success">باقي ${daysLeft} يوم</span>`;
                     }
-                } else if (s.status === 'نشط') {
-                    // Fallback for messy data
-                    statusHtml = '<span class="badge badge-success">نشط</span>';
                 }
+
 
                 let debtClass = (s.price && parseInt(s.price) > 0) ? 'text-danger' : 'text-success';
                 let debtText = (s.price && parseInt(s.price) > 0) ? parseInt(s.price).toLocaleString() : 'واصل';
