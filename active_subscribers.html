@@ -97,11 +97,9 @@
 
             // Filter: Must be Active + Search
             let activeSubs = list.filter(s => {
-                // Check if active: simpler logic is usually handled by DataManager, 
-                // but here let's calculate based on expiry AND status field.
-                const days = calculateDaysRemaining(s.endDate);
+                // Correct usage: expiryDate
+                const days = calculateDaysRemaining(s.expiryDate);
                 const isActiveByDate = days >= 0;
-                // We show ONLY valid active subscriptions
 
                 const matchesSearch = s.name.toLowerCase().includes(q) || (s.phone && s.phone.includes(q));
 
@@ -109,7 +107,7 @@
             });
 
             // Sort by days remaining (ASC) -> those expiring soonest first
-            activeSubs.sort((a, b) => calculateDaysRemaining(a.endDate) - calculateDaysRemaining(b.endDate));
+            activeSubs.sort((a, b) => calculateDaysRemaining(a.expiryDate) - calculateDaysRemaining(b.expiryDate));
 
             document.getElementById('activeCount').innerText = activeSubs.length;
             tbody.innerHTML = '';
@@ -120,14 +118,12 @@
             }
 
             tbody.innerHTML = activeSubs.map(s => {
-                const daysLeft = calculateDaysRemaining(s.endDate);
+                const daysLeft = calculateDaysRemaining(s.expiryDate);
 
-                // Calculate Start Date (Approximate if not stored, usually start = end - 30 days)
-                // If you store startDate, use it. DataManager schemas usually just have endDate. 
-                // Let's assume startDate = endDate - 1 month for display simplicity unless stored.
+                // Calculate Start Date (Approximate)
                 let startDateDisp = '-';
-                if (s.endDate) {
-                    let d = new Date(s.endDate);
+                if (s.expiryDate) {
+                    let d = new Date(s.expiryDate);
                     d.setMonth(d.getMonth() - 1);
                     startDateDisp = d.toISOString().split('T')[0];
                 }
@@ -140,7 +136,7 @@
                 <tr>
                     <td style="font-weight: bold;">${s.name}</td>
                     <td dir="ltr" style="text-align:right;">${startDateDisp}</td>
-                    <td dir="ltr" style="text-align:right; font-weight:bold;">${s.endDate}</td>
+                    <td dir="ltr" style="text-align:right; font-weight:bold;">${s.expiryDate}</td>
                     <td class="${daysClass}" style="font-weight:bold;">${daysText}</td>
                     <td><span class="badge badge-success">فعال</span></td>
                 </tr>

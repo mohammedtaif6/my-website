@@ -624,8 +624,8 @@
             // --- حساب الفعالين (جديد) ---
             const subs = DataManager.subscribers || [];
             const activeCount = subs.filter(sub => {
-                if (!sub.endDate) return false;
-                const end = new Date(sub.endDate);
+                if (!sub.expiryDate) return false;
+                const end = new Date(sub.expiryDate);
                 const now = new Date();
                 now.setHours(0, 0, 0, 0);
                 return end >= now;
