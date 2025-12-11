@@ -95,19 +95,27 @@
             const list = DataManager.subscribers || [];
             const tbody = document.getElementById('activeTableBody');
 
+            // تاريخ مقارنة قوي كنص
+            const todayStr = new Date().toISOString().split('T')[0];
+
             // Filter: Must be Active + Search
             let activeSubs = list.filter(s => {
-                // Correct usage: expiryDate
-                const days = calculateDaysRemaining(s.expiryDate);
-                const isActiveByDate = days >= 0;
+                // الفحص الشامل: إذا انتهى التاريخ اليوم أو في المستقبل فهو فعال
+                const expiry = s.expiryDate || s.endDate;
+                if (!expiry) return false;
 
+                const isActiveByDate = expiry >= todayStr;
                 const matchesSearch = s.name.toLowerCase().includes(q) || (s.phone && s.phone.includes(q));
 
                 return isActiveByDate && matchesSearch;
             });
 
-            // Sort by days remaining (ASC) -> those expiring soonest first
-            activeSubs.sort((a, b) => calculateDaysRemaining(a.expiryDate) - calculateDaysRemaining(b.expiryDate));
+            // Sort by Date (ASC)
+            activeSubs.sort((a, b) => {
+                const dA = a.expiryDate || a.endDate || '9999-99-99';
+                const dB = b.expiryDate || b.endDate || '9999-99-99';
+                return dA.localeCompare(dB);
+            });
 
             document.getElementById('activeCount').innerText = activeSubs.length;
             tbody.innerHTML = '';
@@ -118,12 +126,19 @@
             }
 
             tbody.innerHTML = activeSubs.map(s => {
-                const daysLeft = calculateDaysRemaining(s.expiryDate);
+                const finalDate = s.expiryDate || s.endDate;
 
-                // Calculate Start Date (Approximate)
+                // حساب الأيام المتبقية للعرض فقط
+                const end = new Date(finalDate);
+                const now = new Date();
+                now.setHours(0, 0, 0, 0);
+                const diffTime = end - now;
+                const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                // تاريخ البدء (تقريبي)
                 let startDateDisp = '-';
-                if (s.expiryDate) {
-                    let d = new Date(s.expiryDate);
+                if (finalDate) {
+                    let d = new Date(finalDate);
                     d.setMonth(d.getMonth() - 1);
                     startDateDisp = d.toISOString().split('T')[0];
                 }
@@ -131,12 +146,13 @@
                 let daysClass = daysLeft <= 3 ? 'text-danger' : (daysLeft <= 7 ? 'text-warning' : 'text-success');
                 let daysText = daysLeft + ' يوم';
                 if (daysLeft === 0) daysText = 'اليوم الأخير';
+                if (daysLeft < 0) { daysText = 'اليوم الأخير'; } // حماية إضافية
 
                 return `
                 <tr>
                     <td style="font-weight: bold;">${s.name}</td>
                     <td dir="ltr" style="text-align:right;">${startDateDisp}</td>
-                    <td dir="ltr" style="text-align:right; font-weight:bold;">${s.expiryDate}</td>
+                    <td dir="ltr" style="text-align:right; font-weight:bold;">${finalDate}</td>
                     <td class="${daysClass}" style="font-weight:bold;">${daysText}</td>
                     <td><span class="badge badge-success">فعال</span></td>
                 </tr>

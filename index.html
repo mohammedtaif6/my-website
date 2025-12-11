@@ -621,14 +621,13 @@
             document.getElementById('stat-expired').innerText = s.expired;
             document.getElementById('stat-expiring').innerText = s.expiring;
 
-            // --- حساب الفعالين (جديد) ---
+            // --- حساب الفعالين (Robust Logic) ---
             const subs = DataManager.subscribers || [];
+            const todayStr = new Date().toISOString().split('T')[0];
             const activeCount = subs.filter(sub => {
-                if (!sub.expiryDate) return false;
-                const end = new Date(sub.expiryDate);
-                const now = new Date();
-                now.setHours(0, 0, 0, 0);
-                return end >= now;
+                const expiry = sub.expiryDate || sub.endDate;
+                if (!expiry) return false;
+                return expiry >= todayStr;
             }).length;
             const activeEl = document.getElementById('stat-active');
             if (activeEl) activeEl.innerText = activeCount;
