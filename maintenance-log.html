@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سجل الصيانات - OK Computer</title>
+    <link rel="stylesheet" href="style.css?v=19.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="auth-system.js"></script>
+    <script>AuthSystem.checkSession();</script>
+    <script type="module">
+        import { DataManager } from './data-manager.js';
+        window.DataManager = DataManager;
+        DataManager.init();
+    </script>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo"><i class="fas fa-clipboard-list"></i> سجل الصيانات</div>
+        <ul class="nav-links">
+            <li><a href="index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
+            <li><a href="#" onclick="AuthSystem.logout()"><i class="fas fa-sign-out-alt"></i> خروج</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="header-card">
+            <div>
+                <h1>سجل الصيانات</h1>
+                <p>متابعة وإدارة جميع الصيانات</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <select id="filter-employee" onchange="renderMaintenances()" style="padding: 10px 15px;">
+                    <option value="">كل الموظفين</option>
+                </select>
+                <select id="filter-status" onchange="renderMaintenances()" style="padding: 10px 15px;">
+                    <option value="">كل الحالات</option>
+                    <option value="pending">معلقة</option>
+                    <option value="rewarded">تم صرف المكافأة</option>
+                    <option value="not-rewarded">لم تُصرف المكافأة</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- الإحصائيات -->
+        <div class="stats-grid" style="margin-bottom: 30px;">
+            <div class="card">
+                <div class="icon-box purple"><i class="fas fa-wrench"></i></div>
+                <div class="card-info">
+                    <h3>إجمالي الصيانات</h3>
+                    <p id="stat-total">0</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="icon-box green"><i class="fas fa-money-bill-wave"></i></div>
+                <div class="card-info">
+                    <h3>إجمالي الإيرادات</h3>
+                    <p id="stat-revenue">0</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="icon-box orange"><i class="fas fa-gift"></i></div>
+                <div class="card-info">
+                    <h3>مكافآت معلقة</h3>
+                    <p id="stat-pending">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- جدول الصيانات -->
+        <div class="table-container">
+            <div class="table-header">
+                <h3><i class="fas fa-list"></i> جميع الصيانات</h3>
+            </div>
+            <div style="overflow-x: auto;">
+                <table id="maintenances-table">
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>الموظف</th>
+                            <th>المشترك</th>
+                            <th>نوع الصيانة</th>
+                            <th>القطع</th>
+                            <th>التكلفة</th>
+                            <th>المكافأة</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="maintenances-body">
+                        <tr>
+                            <td colspan="8" style="text-align:center; padding:40px;">جاري التحميل...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal المكافأة -->
+    <div id="rewardModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>صرف مكافأة</h3>
+                <button class="close-btn" onclick="closeRewardModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="reward-maint-id">
+
+                <div class="form-group">
+                    <label>الموظف</label>
+                    <input type="text" id="reward-emp-name" disabled style="background:#f5f5f5;">
+                </div>
+
+                <div class="form-group">
+                    <label>المشترك</label>
+                    <input type="text" id="reward-sub-name" disabled style="background:#f5f5f5;">
+                </div>
+
+                <div class="form-group">
+                    <label>مبلغ المكافأة</label>
+                    <input type="number" id="reward-amount" placeholder="0" min="0">
+                </div>
+
+                <div
+                    style="background: #fff3e0; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; color: #e65100;">
+                    <i class="fas fa-info-circle"></i> سيتم خصم المكافأة من الصندوق
+                </div>
+
+                <button onclick="confirmReward()" class="btn btn-success btn-full">
+                    <i class="fas fa-check"></i> صرف المكافأة
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allMaintenances = [];
+
+        // تحميل الموظفين في الفلتر
+        function loadEmployeeFilter() {
+            const employees = DataManager.getEmployees();
+            const filter = document.getElementById('filter-employee');
+            filter.innerHTML = '<option value="">كل الموظفين</option>' +
+                employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+        }
+
+        // عرض الصيانات
+        function renderMaintenances() {
+            allMaintenances = DataManager.getMaintenances();
+
+            // الفلاتر
+            const empFilter = document.getElementById('filter-employee').value;
+            const statusFilter = document.getElementById('filter-status').value;
+
+            let filtered = allMaintenances;
+
+            if (empFilter) {
+                filtered = filtered.filter(m => m.employeeId == empFilter);
+            }
+
+            if (statusFilter === 'rewarded') {
+                filtered = filtered.filter(m => m.rewardPaid);
+            } else if (statusFilter === 'not-rewarded') {
+                filtered = filtered.filter(m => !m.rewardPaid);
+            }
+
+            // حساب الإحصائيات
+            document.getElementById('stat-total').innerText = allMaintenances.length;
+            document.getElementById('stat-revenue').innerText =
+                allMaintenances.reduce((sum, m) => sum + (m.cost || 0), 0).toLocaleString();
+            document.getElementById('stat-pending').innerText =
+                allMaintenances.filter(m => !m.rewardPaid).length;
+
+            // عرض الجدول
+            const tbody = document.getElementById('maintenances-body');
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:40px; color:#888;">لا توجد صيانات</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(m => `
+                <tr>
+                    <td data-label="التاريخ">${new Date(m.createdAt).toLocaleDateString('ar-IQ')}</td>
+                    <td data-label="الموظف"><strong>${m.employeeName}</strong></td>
+                    <td data-label="المشترك">${m.subscriberName}</td>
+                    <td data-label="النوع">${m.type}</td>
+                    <td data-label="القطع">${m.parts || '-'}</td>
+                    <td data-label="التكلفة">
+                        ${m.cost > 0 ?
+                    `<span style="color:green; font-weight:bold;">${m.cost.toLocaleString()} د.ع</span>` :
+                    '<span style="color:#888;">مجاني</span>'}
+                    </td>
+                    <td data-label="المكافأة">
+                        ${m.rewardPaid ?
+                    `<span class="badge badge-success">✅ ${(m.rewardAmount || 0).toLocaleString()} د.ع</span>` :
+                    '<span class="badge badge-warning">⏳ معلقة</span>'}
+                    </td>
+                    <td data-label="إجراءات">
+                        ${!m.rewardPaid ?
+                    `<button onclick="openRewardModal(${m.id}, '${m.employeeName}', '${m.subscriberName}')" 
+                                     class="btn btn-sm btn-success">
+                                <i class="fas fa-gift"></i> مكافأة
+                             </button>` :
+                    '<span style="color:#888; font-size:0.85rem;">تم الصرف</span>'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // فتح مودال المكافأة
+        window.openRewardModal = (id, empName, subName) => {
+            document.getElementById('reward-maint-id').value = id;
+            document.getElementById('reward-emp-name').value = empName;
+            document.getElementById('reward-sub-name').value = subName;
+            document.getElementById('reward-amount').value = '2000'; // قيمة افتراضية
+            document.getElementById('rewardModal').classList.add('active');
+        };
+
+        window.closeRewardModal = () => {
+            document.getElementById('rewardModal').classList.remove('active');
+        };
+
+        window.confirmReward = async () => {
+            const id = document.getElementById('reward-maint-id').value;
+            const amount = parseInt(document.getElementById('reward-amount').value);
+
+            if (!amount || amount <= 0) {
+                return alert('الرجاء إدخال مبلغ صحيح');
+            }
+
+            await DataManager.payMaintenanceReward(id, amount);
+            closeRewardModal();
+            renderMaintenances();
+        };
+
+        // تحديث دوري
+        setInterval(() => {
+            if (typeof DataManager !== 'undefined') {
+                renderMaintenances();
+                loadEmployeeFilter();
+            }
+        }, 2000);
+    </script>
+</body>
+
+</html>

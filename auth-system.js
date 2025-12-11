@@ -76,13 +76,25 @@ const AuthSystem = {
             'reports.html': 'reports',
             'expenses.html': 'expenses',
             'employees.html': 'admin_only', // صفحة الموظفين للمدير فقط
-            'telegram-settings.html': 'admin_only'
+            'telegram-settings.html': 'admin_only',
+            'maintenance-log.html': 'admin_only', // سجل الصيانات للمدير فقط
+            'maintenance.html': 'employee_only' // تسجيل الصيانة للموظفين فقط
         };
 
         const required = protections[page];
         if (!required) return; // صفحة عامة
 
         // فحص الصلاحية
+        if (required === 'employee_only') {
+            if (user.type === 'admin') {
+                alert('🚫 هذه الصفحة للموظفين فقط!');
+                window.location.href = 'index.html';
+                return;
+            }
+            // الموظفون مسموح لهم
+            return;
+        }
+
         if (required === 'admin_only') {
             alert('🚫 هذه الصفحة للمدير فقط!');
             window.location.href = 'index.html';
@@ -130,11 +142,18 @@ const AuthSystem = {
                 }
             }
 
-            // إخفاء روابط الإدارة دائماً للموظف
-            ['nav-employees', 'nav-telegram'].forEach(id => {
+
+            // إخفاء روابط الإدارة دائماً للموظف (المدير فقط)
+            ['nav-employees', 'nav-telegram', 'nav-maintenance-log'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.style.display = 'none';
             });
+
+            // إظهار رابط تسجيل الصيانة للموظفين فقط
+            const maintLink = document.getElementById('nav-maintenance');
+            if (maintLink) {
+                maintLink.style.display = 'list-item';
+            }
         };
 
         // التأكد من أن الصفحة محملة قبل التنفيذ
