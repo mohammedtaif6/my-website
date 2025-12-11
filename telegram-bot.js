@@ -290,7 +290,7 @@ ${costText}
         `.trim();
 
         return await this.sendMessage(message);
-    },
+    }
 
     // اختبار الاتصال
     async testConnection() {
