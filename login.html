@@ -131,6 +131,32 @@
             }
         };
 
+        // دالة مسح الكاش وإعادة التحميل
+        async function clearCacheAndReload() {
+            try {
+                // 1. مسح كاش Service Worker إذا كان موجوداً
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(cacheNames.map(name => caches.delete(name)));
+                    console.log('✅ تم مسح كاش Service Worker');
+                }
+
+                // 2. إلغاء تسجيل Service Worker
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    await Promise.all(registrations.map(reg => reg.unregister()));
+                    console.log('✅ تم إلغاء تسجيل Service Worker');
+                }
+
+                // 3. إعادة التحميل مع تجاوز الكاش
+                window.location.href = 'index.html?t=' + Date.now();
+            } catch (e) {
+                console.warn('⚠️ خطأ في مسح الكاش:', e);
+                // في حالة الفشل، إعادة التحميل العادية
+                window.location.href = 'index.html';
+            }
+        }
+
         async function doLogin(e) {
             e.preventDefault();
             const phone = document.getElementById('phone').value;
@@ -146,7 +172,8 @@
             try {
                 // 1. محاولة دخول المدير فوراً (بدون انتظار انترنت)
                 if (AuthSystem.login(phone, pass)) {
-                    window.location.href = 'index.html';
+                    // مسح الكاش وإعادة التحميل
+                    await clearCacheAndReload();
                     return;
                 }
 
@@ -162,7 +189,8 @@
 
                 // محاولة الدخول مرة أخرى بعد الانتظار (للموظفين)
                 if (AuthSystem.login(phone, pass)) {
-                    window.location.href = 'index.html';
+                    // مسح الكاش وإعادة التحميل
+                    await clearCacheAndReload();
                 } else {
                     throw new Error('رقم الهاتف أو كلمة المرور خطأ'); // هذا سيذهب لل catch
                 }

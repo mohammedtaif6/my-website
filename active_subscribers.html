@@ -11,6 +11,9 @@
     <script src="auth-system.js"></script>
     <script>AuthSystem.checkSession();</script>
 
+    <!-- نظام التحديث التلقائي -->
+    <script src="auto-refresh.js"></script>
+
     <script type="module">
         import { DataManager } from './data-manager.js?v=20.0';
         window.DataManager = DataManager;
@@ -185,7 +188,12 @@
         };
 
         // Run regularly to catch DataManager update
-        setInterval(() => { if (typeof DataManager !== 'undefined') renderActivePage(); }, 1000);
+        setInterval(() => {
+            // تحقق من وجود DataManager وأن subscribers تم تهيئته (حتى لو كان فارغًا)
+            if (typeof DataManager !== 'undefined' && DataManager.subscribers !== undefined) {
+                renderActivePage();
+            }
+        }, 1000);
     </script>
 </body>
 

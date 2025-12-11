@@ -302,6 +302,7 @@ export const DataManager = {
 
     getAllTransactions() { return localData.transactions; },
     getSubscribers() { return localData.subscribers; },
+    get subscribers() { return localData.subscribers; }, // إضافة getter للوصول المباشر
     getSubscriber(id) { return localData.subscribers.find(s => s.id == id); },
     searchSubscribers(q) {
         if (!q) return localData.subscribers;

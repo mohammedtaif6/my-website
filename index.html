@@ -12,6 +12,9 @@
     <script src="auth-system.js"></script>
     <script>AuthSystem.checkSession();</script>
 
+    <!-- نظام التحديث التلقائي -->
+    <script src="auto-refresh.js"></script>
+
     <!-- تسجيل Service Worker للعمل بدون إنترنت وتسريع التحميل -->
     <script>
         if ('serviceWorker' in navigator) {
@@ -278,6 +281,17 @@
             <div class="card-arrow"><i class="fas fa-chevron-left"></i></div>
         </a>
 
+        <!-- 10.5 تسجيل قبض (للموظفين) -->
+        <a href="#" onclick="openPaymentModal(); return false;" class="dash-card card-green" id="card-record-payment"
+            style="display:none;">
+            <div class="card-icon"><i class="fas fa-hand-holding-usd"></i></div>
+            <div class="card-content">
+                <h3>تسجيل قبض</h3>
+                <small>قبض دين من مشترك</small>
+            </div>
+            <div class="card-arrow"><i class="fas fa-chevron-left"></i></div>
+        </a>
+
         <!-- 11. إعدادات Telegram -->
         <a href="telegram-settings.html" class="dash-card card-dark" id="nav-card-telegram">
             <div class="card-icon"><i class="fab fa-telegram-plane"></i></div>
@@ -399,6 +413,63 @@
                 </div>
 
                 <button onclick="window.saveExpense()" class="btn btn-danger btn-full">حفظ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Collection Modal (تسجيل قبض) -->
+    <div id="paymentModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>💰 تسجيل قبض من مشترك</h3>
+                <button class="close-btn" onclick="window.closePaymentModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>اسم المشترك</label>
+                    <input type="text" id="payment-search" placeholder="ابحث عن المشترك..."
+                        oninput="window.searchDebtors(this.value)" autocomplete="off">
+                    <div id="debtors-results"
+                        style="display:none; border:1px solid #ddd; max-height:150px; overflow-y:auto; margin-top:5px; border-radius:5px; background:white;">
+                    </div>
+                </div>
+
+                <input type="hidden" id="payment-subscriber-id">
+                <input type="hidden" id="payment-subscriber-firebase-id">
+
+                <!-- عرض معلومات المشترك المختار -->
+                <div id="selected-subscriber-info"
+                    style="display:none; background:#e3f2fd; padding:15px; border-radius:10px; margin-bottom:15px; border:1px solid #90caf9;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <strong style="font-size:1.1rem; color:#1565c0;" id="payment-sub-name">-</strong>
+                        <button onclick="window.clearSelectedSubscriber()"
+                            style="background:#ef5350; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:0.8rem;">
+                            <i class="fas fa-times"></i> إلغاء
+                        </button>
+                    </div>
+                    <div style="background:white; padding:10px; border-radius:8px; border:1px solid #bbdefb;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                            <span style="color:#666;">الدين الحالي:</span>
+                            <strong style="color:#d32f2f; font-size:1.2rem;" id="payment-current-debt">0</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>المبلغ المدفوع</label>
+                    <input type="number" id="payment-amount" placeholder="0"
+                        style="font-size:1.2rem; font-weight:bold; text-align:center;">
+                </div>
+
+                <div
+                    style="background:#e8f5e9; padding:12px; border-radius:8px; margin-bottom:15px; font-size:0.9rem; color:#2e7d32;">
+                    <i class="fas fa-info-circle"></i> سيتم تسجيل المبلغ كقبض وخصمه من دين المشترك
+                </div>
+
+                <button onclick="window.savePaymentCollection()" class="btn btn-success btn-full"
+                    style="margin-top:10px;">
+                    <i class="fas fa-check-circle"></i> تسجيل القبض
+                </button>
             </div>
         </div>
     </div>
@@ -617,7 +688,7 @@
             const s = DataManager.getStats();
             document.getElementById('stat-total').innerText = s.totalSubs;
             document.getElementById('stat-debts').innerText = s.debts.toLocaleString('ar-IQ');
-            document.getElementById('stat-box-balance').innerText = s.boxBalance.toLocaleString('ar-IQ');
+            document.getElementById('stat-revenue').innerText = s.boxBalance.toLocaleString('ar-IQ');
             document.getElementById('stat-expired').innerText = s.expired;
             document.getElementById('stat-expiring').innerText = s.expiring;
 
@@ -678,6 +749,106 @@
         DataManager.init();
         window.updatePageData = window.renderDashboard;
         setInterval(window.renderDashboard, 1000);
+
+        // === Payment Collection Modal Functions ===
+        window.openPaymentModal = () => {
+            document.getElementById('paymentModal').classList.add('active');
+            document.getElementById('payment-search').value = '';
+            document.getElementById('payment-amount').value = '';
+            document.getElementById('debtors-results').style.display = 'none';
+            document.getElementById('selected-subscriber-info').style.display = 'none';
+            document.getElementById('payment-subscriber-id').value = '';
+            document.getElementById('payment-subscriber-firebase-id').value = '';
+        };
+
+        window.closePaymentModal = () => {
+            document.getElementById('paymentModal').classList.remove('active');
+        };
+
+        window.searchDebtors = (query) => {
+            const resultsDiv = document.getElementById('debtors-results');
+
+            if (!query || query.length < 2) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+
+            // البحث عن المشتركين الذين لديهم ديون
+            const subs = DataManager.getSubscribers();
+            const debtors = subs.filter(s => {
+                const hasDebt = s.price && parseInt(s.price) > 0;
+                const matchesQuery = s.name.toLowerCase().includes(query.toLowerCase()) ||
+                    (s.phone && s.phone.includes(query));
+                return hasDebt && matchesQuery;
+            });
+
+            if (debtors.length === 0) {
+                resultsDiv.innerHTML = '<div style="padding:10px; text-align:center; color:#999;">لا توجد نتائج</div>';
+                resultsDiv.style.display = 'block';
+                return;
+            }
+
+            resultsDiv.innerHTML = debtors.slice(0, 5).map(s => `
+                <div onclick="window.selectDebtor(${s.id}, '${s.firebaseId}', '${s.name}', ${s.price || 0})" 
+                     style="padding:10px; cursor:pointer; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <strong>${s.name}</strong>
+                        <div style="font-size:0.85rem; color:#666;">${s.phone || '-'}</div>
+                    </div>
+                    <div style="color:#d32f2f; font-weight:bold;">${parseInt(s.price || 0).toLocaleString()} د.ع</div>
+                </div>
+            `).join('');
+            resultsDiv.style.display = 'block';
+        };
+
+        window.selectDebtor = (id, firebaseId, name, debt) => {
+            document.getElementById('payment-subscriber-id').value = id;
+            document.getElementById('payment-subscriber-firebase-id').value = firebaseId;
+            document.getElementById('payment-sub-name').innerText = name;
+            document.getElementById('payment-current-debt').innerText = parseInt(debt).toLocaleString() + ' د.ع';
+            document.getElementById('selected-subscriber-info').style.display = 'block';
+            document.getElementById('debtors-results').style.display = 'none';
+            document.getElementById('payment-search').value = name;
+
+            // تركيز على حقل المبلغ
+            setTimeout(() => document.getElementById('payment-amount').focus(), 100);
+        };
+
+        window.clearSelectedSubscriber = () => {
+            document.getElementById('payment-subscriber-id').value = '';
+            document.getElementById('payment-subscriber-firebase-id').value = '';
+            document.getElementById('selected-subscriber-info').style.display = 'none';
+            document.getElementById('payment-search').value = '';
+            document.getElementById('payment-amount').value = '';
+        };
+
+        window.savePaymentCollection = async () => {
+            const subscriberId = document.getElementById('payment-subscriber-id').value;
+            const subscriberFirebaseId = document.getElementById('payment-subscriber-firebase-id').value;
+            const amount = document.getElementById('payment-amount').value;
+
+            if (!subscriberId || !subscriberFirebaseId) {
+                return DataManager.showToast('اختر مشترك أولاً', 'error');
+            }
+
+            if (!amount || amount <= 0) {
+                return DataManager.showToast('أدخل مبلغ القبض', 'error');
+            }
+
+            try {
+                await DataManager.payDebt(subscriberFirebaseId, subscriberId, parseInt(amount));
+                window.closePaymentModal();
+                DataManager.showToast('تم تسجيل القبض بنجاح ✅', 'success');
+            } catch (e) {
+                DataManager.showToast('حدث خطأ: ' + e.message, 'error');
+            }
+        };
+
+        // إظهار كارت تسجيل القبض للموظفين فقط
+        if (AuthSystem.currentUser && AuthSystem.currentUser.type === 'employee') {
+            const paymentCard = document.getElementById('card-record-payment');
+            if (paymentCard) paymentCard.style.display = 'block';
+        }
 
         // تأكيد أخير على الصلاحيات بعد اكتمال التحميل
         window.onload = () => {
