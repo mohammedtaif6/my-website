@@ -204,42 +204,83 @@
             }
         }
 
-        // حفظ الإعدادات
-        window.saveSettings = function () {
+        // حفظ الإعدادات (نسخة قوية ومؤكدة)
+        window.saveSettings = async function () {
+            const btn = event.target.closest('button'); // الزر الذي تم ضغطه
+            const originalText = btn.innerHTML;
+
             const botToken = document.getElementById('bot-token').value.trim();
             const chatId = document.getElementById('chat-id').value.trim();
             const enabled = document.getElementById('telegram-enabled').checked;
 
+            // التحقق من المدخلات
             if (enabled && (!botToken || !chatId)) {
-                showStatus('⚠️ يجب إدخال Bot Token و Chat ID', 'error');
+                showStatus('⚠️ يجب إدخال Bot Token و Chat ID قبل التفعيل', 'error');
                 return;
             }
 
-            telegramBot.saveConfig({
-                botToken: botToken,
-                chatId: chatId,
-                enabled: enabled
-            });
+            // بدء عملية الحفظ
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+            btn.disabled = true;
 
-            showStatus('✅ تم حفظ الإعدادات بنجاح', 'success');
+            try {
+                // محاولة أخيرة لربط قاعدة البيانات إذا كانت مفقودة
+                if (!telegramBot.db && DataManager.db) {
+                    telegramBot.db = DataManager.db;
+                }
+
+                if (!telegramBot.db) {
+                    throw new Error("لا يوجد اتصال بقاعدة البيانات (DB Missing)");
+                }
+
+                // استدعاء دالة الحفظ وانتظار اكتمالها
+                await telegramBot.saveConfig({
+                    botToken: botToken,
+                    chatId: chatId,
+                    enabled: enabled
+                });
+
+                showStatus('✅ تم حفظ الإعدادات في السيرفر بنجاح!', 'success');
+
+            } catch (error) {
+                console.error("Save failed:", error);
+                showStatus('❌ فشل الحفظ: ' + error.message, 'error');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         };
 
-        // حفظ إعدادات الإشعارات
-        window.saveNotificationSettings = function () {
-            telegramBot.saveConfig({
-                notifications: {
-                    newActivation: document.getElementById('notify-activation').checked,
-                    renewal: document.getElementById('notify-renewal').checked,
-                    expiringSoon: document.getElementById('notify-expiring').checked,
-                    expired: document.getElementById('notify-expired').checked,
-                    debtAdded: document.getElementById('notify-debt-added').checked,
-                    debtPaid: document.getElementById('notify-debt-paid').checked,
-                    expense: document.getElementById('notify-expense').checked,
-                    dailySummary: document.getElementById('notify-daily').checked
-                }
-            });
+        // حفظ إعدادات الإشعارات (نسخة قوية)
+        window.saveNotificationSettings = async function () {
+            const btn = event.target.closest('button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+            btn.disabled = true;
 
-            showStatus('✅ تم حفظ إعدادات الإشعارات', 'success');
+            try {
+                if (!telegramBot.db && DataManager.db) telegramBot.db = DataManager.db;
+
+                await telegramBot.saveConfig({
+                    notifications: {
+                        newActivation: document.getElementById('notify-activation').checked,
+                        renewal: document.getElementById('notify-renewal').checked,
+                        expiringSoon: document.getElementById('notify-expiring').checked,
+                        expired: document.getElementById('notify-expired').checked,
+                        debtAdded: document.getElementById('notify-debt-added').checked,
+                        debtPaid: document.getElementById('notify-debt-paid').checked,
+                        expense: document.getElementById('notify-expense').checked,
+                        dailySummary: document.getElementById('notify-daily').checked
+                    }
+                });
+
+                showStatus('✅ تم حفظ تفضيلات الإشعارات', 'success');
+            } catch (error) {
+                showStatus('❌ فشل حفظ الإشعارات', 'error');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         };
 
         // اختبار الاتصال
