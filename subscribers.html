@@ -203,17 +203,42 @@
             }
 
             subs.forEach(s => {
-                let statusClass = s.status === 'نشط' ? 'badge badge-success' : 'badge badge-warning';
-                let debtClass = s.price > 0 ? 'text-danger' : 'text-success';
+                // 1. Calculate Status Dynamically
+                let statusHtml = '<span class="badge" style="background:#f3f4f6; color:#6b7280">جديد</span>';
+                const expiry = s.expiryDate || s.endDate;
+
+                if (expiry) {
+                    const end = new Date(expiry);
+                    const now = new Date();
+                    now.setHours(0, 0, 0, 0);
+                    end.setHours(0, 0, 0, 0);
+
+                    const diffTime = end - now;
+                    const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (daysLeft < 0) {
+                        statusHtml = `<span class="badge badge-danger">منتهي</span>`;
+                    } else if (daysLeft <= 3) {
+                        statusHtml = `<span class="badge badge-warning">باقي ${daysLeft} يوم</span>`;
+                    } else {
+                        statusHtml = `<span class="badge badge-success">باقي ${daysLeft} يوم</span>`;
+                    }
+                } else if (s.status === 'نشط') {
+                    // Fallback for messy data
+                    statusHtml = '<span class="badge badge-success">نشط</span>';
+                }
+
+                let debtClass = (s.price && parseInt(s.price) > 0) ? 'text-danger' : 'text-success';
+                let debtText = (s.price && parseInt(s.price) > 0) ? parseInt(s.price).toLocaleString() : 'واصل';
 
                 // Add click event to the row
                 tbody.innerHTML += `
                     <tr onclick="openActionModal('${s.id}')" style="cursor: pointer;">
                         <td data-label="الاسم" style="font-weight:bold;">${s.name}</td>
                         <td data-label="الهاتف">${s.phone || '-'}</td>
-                        <td data-label="الحالة"><span class="${statusClass}">${s.status || 'غير محدد'}</span></td>
+                        <td data-label="الحالة">${statusHtml}</td>
                         <td data-label="الدين" class="${debtClass}" style="font-weight:bold;">
-                            ${parseInt(s.price || 0).toLocaleString()}
+                            ${debtText}
                         </td>
                     </tr>
                 `;
