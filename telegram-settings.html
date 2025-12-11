@@ -150,44 +150,39 @@
 
         // تحميل الإعدادات الحالية عند فتح الصفحة
         window.addEventListener('load', async () => {
-            // التحقق من تهيئة Firebase
-            if (!DataManager.db) {
-                // محاولة الانتظار قليلاً أو الاعتماد على تهيئة DataManager الداخلية
-                console.log('Waiting for DataManager to initialize DB...');
-                // يمكننا استدعاء دالة تهيئة إذا كانت متوفرة، أو الانتظار
-                // في الغالب DataManager يهيئ نفسه عند الاستيراد، لكن ال db property قد تأخذ وقتاً
+            console.log('🔄 Loading Telegram Settings...');
+
+            // 1. انتظار توفر قاعدة البيانات من DataManager (حتى 5 ثواني)
+            let retries = 0;
+            while (!DataManager.db && retries < 20) {
+                await new Promise(r => setTimeout(r, 250));
+                retries++;
             }
 
-            // التأكد من تهيئة البوت مع قاعدة البيانات
-            // DataManager يملك ال db instance
-            try {
-                // نحتاج الوصول لل db. في DataManager عادة هي private أو متاحة
-                // سأفترض أن DataManager يهيئ ال db ويجعله متاحاً أو يمكننا استخدام طريقة أخرى
-                // في الكود الحالي ل DataManager (سابقاً) لم يكن يصدر ال db public مباشرة
-                // لذا سأقوم بحيلة: تهيئة البوت عبر DataManager إذا كان لديه دالة لذلك، 
-                // أو سأربط telegramBot إذا كان DataManager يفعله.
+            if (!DataManager.db) {
+                showStatus('❌ فشل الاتصال بقاعدة البيانات (Firebase DB Missing)', 'error');
+                return;
+            }
 
-                // الحل الأفضل: DataManager يهيئ telegramBot تلقائياً.
-                // لذا سننتظر قليلاً ثم نطلب الكونفيق.
-
-                await new Promise(r => setTimeout(r, 1000)); // انتظار بسيط
-
-                // إذا لم يتم تهيئته، نحاول تهيئته يدوياً إذا استطعنا الوصول لل db
-                // لكن DataManager هو المسؤول.
-
-                const config = telegramBot.config || telegramBot.getDefaultConfig();
-
-                if (telegramBot.configLoaded) {
-                    fillFields(telegramBot.config);
-                } else {
-                    // محاولة قراءة الاعدادات عبر DataManager إذا كان يدعمها
-                    // في هذه الحالة، سنعتمد على أن DataManager قام بتهيئته
-                    console.warn('TelegramBot config not loaded yet, using defaults or local cache if any');
-                    fillFields(config);
+            // 2. محاولة تهيئة البوت إذا لم يتم تهيئته تلقائياً
+            if (!telegramBot.configLoaded) {
+                console.log('⚡ Initializing TelegramBot manually from Settings Page...');
+                try {
+                    await telegramBot.initFirebase(DataManager.db);
+                } catch (e) {
+                    console.error('❌ Bot init error:', e);
                 }
+            }
 
-            } catch (e) {
-                console.error("Error loading settings:", e);
+            // 3. التحقق من النتيجة وتعبئة الحقول
+            const config = telegramBot.config || telegramBot.getDefaultConfig();
+            fillFields(config);
+
+            if (telegramBot.configLoaded) {
+                console.log('✅ Settings loaded successfully from Firebase');
+            } else {
+                console.warn('⚠️ Using default settings (Remote Config Load Failed)');
+                showStatus('⚠️ لم يتم استرجاع الإعدادات من السيرفر', 'error');
             }
         });
 

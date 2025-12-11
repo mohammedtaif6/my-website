@@ -52,9 +52,10 @@ function showToast(message, type = 'success') {
 }
 
 export const DataManager = {
+    db: db, // تصدير قاعدة البيانات للاستخدام الخارجي (مثل صفحة الإعدادات)
     init() {
         console.log("========================================");
-        console.log("🚀 System v19.0 - Maintenance System Edition");
+        console.log("🚀 System v20.0 - Telegram Fix Edition");
         console.log("========================================");
         this.sync('subscribers');
         this.sync('transactions');
