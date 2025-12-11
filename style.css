@@ -1,39 +1,41 @@
 /* 
-   OK Computer System - Premium App Design v21.0 
-   Style: Modern, Clean, Vibrant
+   OK Computer System - "Quiet Modern" Minimalist Design v22.0
+   Style: Clean, Soft, Professional (Apple-inspired)
 */
 
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
 
 :root {
-    /* Premium Palette */
-    --primary: #4f46e5;
-    /* Indigo - لون رئيسي فخم */
-    --primary-dark: #3730a3;
-    --primary-gradient: linear-gradient(135deg, #4f46e5, #818cf8);
-
-    --secondary: #f59e0b;
-    /* Amber - للتمييز */
-    --secondary-gradient: linear-gradient(135deg, #f59e0b, #fbbf24);
-
+    /* Calm Palette - No Neo-Gradients */
+    --bg-app: #f9fafb;
+    /* رمادي فاتح جداً جداً للخلفية */
     --surface: #ffffff;
-    --bg-app: #f3f4f6;
+    /* أبيض نقي للكروت */
+
+    --primary: #111827;
+    /* أسود فحمي - للأزرار الرئيسية والنصوص */
+    --accent: #6366f1;
+    /* لون تمييز هادئ (Indigo) للأيقونات */
 
     --text-main: #111827;
+    /* أسود */
     --text-sub: #6b7280;
+    /* رمادي متوسط */
+    --text-muted: #9ca3af;
+    /* رمادي فاتح */
 
-    --success: #10b981;
-    --danger: #ef4444;
+    --border-light: #f3f4f6;
+    /* حدود خفيفة جداً */
 
-    /* Modern Spacing */
+    /* Spacing & Radius */
     --radius-xl: 24px;
     --radius-lg: 16px;
     --radius-md: 12px;
-    --radius-full: 9999px;
 
-    /* Deep Shadows for 3D Feel */
-    --shadow-card: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
-    --shadow-float: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    /* Subtle Shadows (The "Quiet" part) */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.03);
+    --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+    --shadow-float: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.01);
 }
 
 * {
@@ -48,24 +50,13 @@ body {
     margin: 0;
     padding: 0;
     direction: rtl;
-    line-height: 1.5;
+    line-height: 1.6;
     min-height: 100vh;
 }
 
-/* --- Hero Section Background --- */
-/* خلفية جمالية في أعلى التطبيق */
+/* --- No Header blob anymore (Clean) --- */
 body::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 160px;
-    /* تصغير الارتفاع */
-    background: var(--primary-gradient);
-    border-radius: 0 0 30px 30px;
-    z-index: -1;
-    box-shadow: 0 4px 20px rgba(79, 70, 229, 0.3);
+    display: none;
 }
 
 /* --- Layout Container --- */
@@ -73,87 +64,50 @@ body::before {
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
-    padding-top: 50px;
-    /* تقليل المسافة العلوية */
+    padding-top: 80px;
+    /* مسافة للهيدر الثابت إذا وجد، الآن بسيط */
 }
 
-/* --- Navbar (Drawer) --- */
+/* --- Minimal Navbar Button --- */
 .menu-btn {
     position: fixed;
-    top: 15px;
-    left: 15px;
+    top: 20px;
+    left: 20px;
     z-index: 1000;
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: white;
-    width: 40px;
-    /* تصغير الزر */
-    height: 40px;
-    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text-main);
+    border: 1px solid var(--border-light);
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    /* دائري بالكامل */
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.1rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s;
 }
 
-/* --- FAB (Floating Button) --- */
-.fab-btn {
-    position: fixed;
-    bottom: 25px;
-    left: 25px;
-    width: 60px;
-    height: 60px;
-    border-radius: 18px;
-    background: var(--primary-gradient);
-    color: white;
-    border: none;
-    font-size: 1.6rem;
-    box-shadow: 0 10px 25px rgba(79, 70, 229, 0.5);
-    z-index: 900;
-    cursor: pointer;
-    transition: all 0.3s;
+.menu-btn:hover {
+    background: #f3f4f6;
 }
 
-.fab-mini {
-    position: fixed;
-    bottom: 95px;
-    /* فوق الزر الرئيسي */
-    left: 30px;
-    width: 50px;
-    height: 50px;
-    border-radius: 14px;
-    background: white;
-    color: var(--danger);
-    border: none;
-    font-size: 1.2rem;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-    z-index: 900;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.fab-mini:active,
-.fab-btn:active {
-    transform: scale(0.9);
-}
-
+/* --- Sidebar (Clean White) --- */
 .navbar {
     position: fixed;
     top: 0;
-    right: -300px;
+    right: -320px;
     width: 300px;
     height: 100%;
     background: var(--surface);
-    transition: cubic-bezier(0.4, 0, 0.2, 1) 0.4s;
+    transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 1100;
     padding: 30px;
-    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
+    box-shadow: -5px 0 20px rgba(0, 0, 0, 0.02);
+    /* ظل خفيف جداً */
+    border-left: 1px solid var(--border-light);
 }
 
 .navbar.active {
@@ -161,7 +115,7 @@ body::before {
 }
 
 .navbar .logo {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     font-weight: 800;
     color: var(--primary);
     margin-bottom: 40px;
@@ -173,449 +127,352 @@ body::before {
 .nav-links a {
     display: flex;
     align-items: center;
-    padding: 16px;
-    margin-bottom: 12px;
+    padding: 14px;
+    margin-bottom: 8px;
     color: var(--text-sub);
     text-decoration: none;
-    font-weight: 600;
-    border-radius: var(--radius-lg);
-    transition: all 0.3s;
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    transition: all 0.2s;
 }
 
 .nav-links a:hover,
 .nav-links a.active {
-    background: #eef2ff;
+    background: #f3f4f6;
     color: var(--primary);
-    transform: translateX(-5px);
 }
 
 .nav-links a i {
     margin-left: 15px;
-    font-size: 1.2rem;
-    min-width: 25px;
-}
-
-/* --- Cards --- */
-.card,
-.header-card {
-    background: var(--surface);
-    border-radius: var(--radius-xl);
-    padding: 25px;
-    margin-bottom: 20px;
-    position: relative;
-    box-shadow: var(--shadow-card);
-    border: 1px solid rgba(0, 0, 0, 0.02);
-    transition: transform 0.3s, box-shadow 0.3s;
-    text-decoration: none;
-    color: inherit;
-    display: block;
-}
-
-.card:active {
-    transform: scale(0.97);
-}
-
-/* Header Card Specifics */
-.header-card {
-    background: rgba(255, 255, 255, 0.1);
-    /* شفاف */
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
-    box-shadow: none;
-    margin-top: -10px;
-}
-
-.header-card h1 {
-    font-size: 1.8rem;
-    margin-bottom: 5px;
-    color: white;
-}
-
-.header-card p {
-    opacity: 0.9;
-    font-weight: 500;
-    color: #e0e7ff;
-}
-
-/* --- Typography --- */
-h3 {
     font-size: 1.1rem;
-    margin-bottom: 5px;
-    color: var(--text-sub);
-    font-weight: 600;
+    min-width: 24px;
+    color: var(--text-muted);
 }
 
-p {
-    font-size: 1.5rem;
-    font-weight: 800;
-    margin: 0;
-    color: var(--text-main);
+.nav-links a:hover i,
+.nav-links a.active i {
+    color: var(--primary);
 }
 
-small {
-    font-size: 0.85rem;
-    color: var(--text-sub);
-}
-
-/* --- Stats Grid (The Dashboard) --- */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-}
-
-.stats-grid .card {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
-    /* محاذاة لليمين */
-    padding: 20px;
-    min-height: 140px;
-}
-
-.icon-box {
-    width: 50px;
-    height: 50px;
-    border-radius: var(--radius-full);
-    /* دائري */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.4rem;
-    margin-bottom: 15px;
-    background: var(--bg-app);
-}
-
-/* Colored Icons */
-.blue .icon-box {
-    background: #e0f2fe;
-    color: #0284c7;
-}
-
-.green .icon-box {
-    background: #dcfce7;
-    color: #16a34a;
-}
-
-.red .icon-box {
-    background: #fee2e2;
-    color: #dc2626;
-}
-
-.orange .icon-box {
-    background: #ffedd5;
-    color: #ea580c;
-}
-
-.purple .icon-box {
-    background: #f3e8ff;
-    color: #9333ea;
-}
-
-/* --- Inputs --- */
-input,
-select,
-textarea {
-    width: 100%;
-    padding: 16px 20px;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: var(--radius-lg);
-    font-family: inherit;
-    font-size: 1rem;
-    color: var(--text-main);
-    transition: all 0.3s;
-    margin-bottom: 15px;
-}
-
-input:focus {
-    background: white;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
-    outline: none;
-}
-
-/* --- Buttons --- */
-.btn {
-    border: none;
-    padding: 16px;
-    border-radius: var(--radius-lg);
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.btn-primary {
-    background: var(--primary-gradient);
-    color: white;
-    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
-}
-
-.btn-warning {
-    background: var(--secondary-gradient);
-    color: white;
-    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
-}
-
-.btn-success {
-    background: linear-gradient(135deg, #10b981, #34d399);
-    color: white;
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-}
-
-.btn-danger {
-    background: linear-gradient(135deg, #ef4444, #f87171);
-    color: white;
-    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-}
-
-.btn:active {
-    transform: scale(0.95);
-}
-
-.btn-full {
-    width: 100%;
-}
-
-
-
-/* --- Modals (Modern Bottom Sheet) --- */
-.modal-overlay {
+.nav-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    /* تعتيم أقوى */
-    backdrop-filter: blur(8px);
-    z-index: 2000;
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s;
+    background: rgba(0, 0, 0, 0.05);
+    /* تعتيم خفيف جداً */
+    backdrop-filter: blur(2px);
+    z-index: 1050;
+    display: none;
 }
 
-.modal-overlay.active {
-    opacity: 1;
-    visibility: visible;
-}
-
-.modal-box {
-    background: white;
-    width: 100%;
-    max-width: 600px;
-    border-radius: 30px 30px 0 0;
-    padding: 30px;
-    transform: translateY(100%);
-    transition: cubic-bezier(0.32, 0.72, 0, 1) 0.4s;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.modal-overlay.active .modal-box {
-    transform: translateY(0);
-}
-
-.modal-header h3 {
-    color: var(--text-main);
-    font-size: 1.3rem;
-    margin: 0;
-}
-
-.close-btn {
-    background: #f3f4f6;
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    font-size: 1.5rem;
-}
-
-/* --- Employee Summary (Dashboard) --- */
-#employee-dashboard-stats .card-inner {
-    background: white;
-    border-radius: var(--radius-xl);
-    padding: 20px;
-}
-
-/* --- Mobile Tables (Card View) --- */
-@media (max-width: 600px) {
-    table {
-        border-collapse: separate;
-        border-spacing: 0 15px;
-    }
-
-    tr {
-        background: white;
-        box-shadow: var(--shadow-card);
-        border-radius: var(--radius-lg);
-        margin-bottom: 20px;
-        display: block;
-        padding: 15px;
-        border: 1px solid transparent;
-        /* إزالة الحدود القديمة */
-    }
-
-    td {
-        border-bottom: 1px solid #f3f4f6;
-        padding: 12px 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    td:last-child {
-        border-bottom: none;
-    }
-
-    td::before {
-        content: attr(data-label);
-        font-weight: 600;
-        color: var(--text-sub);
-        position: static;
-    }
-}
-
-/* --- New Dashboard Grid (Menu) --- */
-.main-menu-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.dash-card {
-    border-radius: 20px;
-    padding: 20px;
-    color: white;
-    /* نص أبيض */
-    text-decoration: none;
-    position: relative;
-    overflow: hidden;
-    min-height: 140px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s, box-shadow 0.2s;
-    border: none;
-}
-
-.dash-card:active {
-    transform: scale(0.96);
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-}
-
-.dash-card h3 {
-    color: white;
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-    opacity: 0.95;
-}
-
-.dash-card p {
-    color: white;
-    font-size: 1.8rem;
-    font-weight: 800;
-    margin: 5px 0 0 0;
-    line-height: 1.1;
-}
-
-.dash-card small {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 0.85rem;
-    margin-top: 5px;
+.nav-overlay.active {
     display: block;
 }
 
+
+/* --- Minimal Header --- */
+.header-card {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin-bottom: 30px;
+    text-align: right;
+}
+
+.header-card h1 {
+    color: var(--text-main);
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    /* Modern typography trend */
+    margin-bottom: 5px;
+    text-shadow: none;
+}
+
+.header-card p {
+    color: var(--text-sub);
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+#user-name-display-header {
+    color: var(--text-sub) !important;
+    font-weight: normal !important;
+    margin-top: 0 !important;
+}
+
+
+/* --- Dashboard Grid (Bento Box Style) --- */
+.main-menu-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+}
+
+.dash-card {
+    background: var(--surface);
+    border-radius: var(--radius-xl);
+    padding: 24px;
+    text-decoration: none;
+    position: relative;
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--border-light);
+    /* حدود ناعمة */
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    color: var(--text-main);
+}
+
+.dash-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    border-color: #e5e7eb;
+}
+
+.dash-card:active {
+    transform: scale(0.98);
+}
+
+/* Typography inside cards */
+.dash-card h3 {
+    font-size: 1rem;
+    color: var(--text-sub);
+    font-weight: 500;
+    margin: 0;
+}
+
+.dash-card p {
+    font-size: 2.2rem;
+    color: var(--text-main);
+    font-weight: 800;
+    margin: 10px 0 0 0;
+    letter-spacing: -1px;
+}
+
+.dash-card small {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+/* Icons inside cards - Minimal & Unified */
 .dash-card .card-icon {
     position: absolute;
-    top: 15px;
-    left: 15px;
-    font-size: 2rem;
-    opacity: 0.25;
-    transform: rotate(-10deg);
+    top: 24px;
+    left: 24px;
+    font-size: 1.5rem;
+    color: var(--text-main);
+    /* لون موحد (أسود) للأيقونات - قمة الأناقة */
+    opacity: 1;
+    background: #f3f4f6;
+    /* خلفية رمادية فاتحة للأيقونة */
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: none;
+    /* إلغاء التدوير */
 }
 
 .dash-card .card-arrow {
-    position: absolute;
-    bottom: 15px;
-    left: 15px;
-    font-size: 1rem;
-    opacity: 0.6;
-    background: rgba(255, 255, 255, 0.2);
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
+    display: none;
+}
+
+/* لا حاجة للأسهم في التصميم المينيمال */
+
+/* استبدال الألوان الصارخة بستايل واحد نظيف */
+/* لكن سنبقي بعض التمييز البسيط جداً عبر لون الأيقونة فقط */
+
+/* We override the .card-blue etc to fit the white theme */
+.dash-card.card-blue .card-icon {
+    color: #2563eb;
+    background: #eff6ff;
+}
+
+.dash-card.card-red .card-icon {
+    color: #dc2626;
+    background: #fef2f2;
+}
+
+.dash-card.card-green .card-icon {
+    color: #059669;
+    background: #ecfdf5;
+}
+
+.dash-card.card-purple .card-icon {
+    color: #7c3aed;
+    background: #f5f3ff;
+}
+
+.dash-card.card-orange .card-icon {
+    color: #ea580c;
+    background: #fff7ed;
+}
+
+.dash-card.card-teal .card-icon {
+    color: #0d9488;
+    background: #f0fdfa;
+}
+
+.dash-card.card-dark .card-icon {
+    color: #1f2937;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+}
+
+.dash-card.card-red-outline {
+    border: 1px solid #fee2e2;
+}
+
+.dash-card.card-red-outline .card-icon {
+    color: #ef4444;
+    background: #fef2f2;
+}
+
+/* Override gradients from HTML classes */
+.card-blue,
+.card-red,
+.card-green,
+.card-purple,
+.card-orange,
+.card-dark,
+.card-teal,
+.card-indigo,
+.card-gray {
+    background: var(--surface) !important;
+}
+
+
+/* --- FAB (Floating Button) - Clean Black --- */
+.fab-btn {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    width: 60px;
+    height: 60px;
+    border-radius: 20px;
+    background: var(--primary);
+    /* أسود فخم */
+    color: white;
+    border: none;
+    font-size: 1.5rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+    /* ظل ناعم */
+    z-index: 900;
+    cursor: pointer;
+    transition: all 0.3s;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* Card Colors - Vibrant & Solid */
-.card-blue {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
+.fab-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.3);
 }
 
-.card-red {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
+.fab-mini {
+    position: fixed;
+    bottom: 105px;
+    left: 35px;
+    width: 50px;
+    height: 50px;
+    border-radius: 16px;
+    background: var(--surface);
+    color: var(--text-main);
+    border: 1px solid var(--border-light);
+    font-size: 1.1rem;
+    box-shadow: var(--shadow-card);
+    z-index: 900;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
 }
 
-.card-green {
-    background: linear-gradient(135deg, #10b981, #059669);
+/* --- Modals (Cleanest Sheet) --- */
+.modal-overlay {
+    background: rgba(0, 0, 0, 0.2);
+    /* تعتيم خفيف جداً ليعطي انطباع النظافة */
+    backdrop-filter: blur(5px);
 }
 
-.card-purple {
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+.modal-box {
+    border-radius: 35px 35px 0 0;
+    padding: 40px 30px;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.05);
 }
 
-.card-orange {
-    background: linear-gradient(135deg, #f97316, #ea580c);
+.modal-header {
+    border-bottom: none;
+    margin-bottom: 30px;
 }
 
-.card-dark {
-    background: linear-gradient(135deg, #374151, #1f2937);
+.modal-header h3 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
 }
 
-.card-teal {
-    background: linear-gradient(135deg, #14b8a6, #0d9488);
+.close-btn {
+    background: #f9fafb;
+    color: var(--text-main);
 }
 
-.card-indigo {
-    background: linear-gradient(135deg, #6366f1, #4f46e5);
+/* --- Inputs & Buttons (Minimal) --- */
+input,
+select,
+textarea {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    font-size: 1rem;
+    color: var(--text-main);
 }
 
-.card-gray {
-    background: linear-gradient(135deg, #6b7280, #4b5563);
-}
-
-.card-red-outline {
+input:focus {
     background: white;
-    border: 2px solid #fee2e2;
+    border-color: var(--primary);
+    box-shadow: none;
+    /* No glow, just crisp border */
 }
 
-.card-red-outline h3 {
-    color: #ef4444;
+.btn {
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    text-transform: none;
+    letter-spacing: 0;
+    box-shadow: none !important;
+    /* إلغاء الظلال الملونة */
 }
 
-.card-red-outline .card-icon {
-    color: #ef4444;
-    opacity: 0.1;
+.btn-primary {
+    background: var(--primary);
+    color: white;
 }
 
-/* Responsive Grid for Tablets/Desktop */
-@media (min-width: 600px) {
+/* أسود */
+.btn-primary:hover {
+    background: #374151;
+}
+
+/* --- Responsive --- */
+@media (min-width: 700px) {
     .main-menu-grid {
         grid-template-columns: repeat(3, 1fr);
+    }
+
+    .container {
+        max-width: 900px;
     }
 }
