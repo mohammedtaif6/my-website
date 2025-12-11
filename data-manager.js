@@ -62,11 +62,17 @@ export const DataManager = {
         this.sync('maintenances'); // مزامنة الصيانات
         this.monitorConnection();
 
-        // تهيئة Telegram Bot مع Firebase
-        if (typeof telegramBot !== 'undefined') {
-            telegramBot.initFirebase(db).then(() => {
-                console.log('✅ Telegram Bot initialized with Firebase');
-            });
+        // تهيئة Telegram Bot مع Firebase (إذا كان موجوداً)
+        try {
+            if (typeof telegramBot !== 'undefined' && telegramBot) {
+                telegramBot.initFirebase(db).then(() => {
+                    console.log('✅ Telegram Bot initialized with Firebase');
+                }).catch(err => {
+                    console.warn('⚠️ Telegram Bot init failed (non-critical):', err);
+                });
+            }
+        } catch (err) {
+            console.warn('⚠️ Telegram Bot not available (non-critical):', err);
         }
     },
 
@@ -452,9 +458,14 @@ export const DataManager = {
                 this.sendMaintenanceWhatsApp(data);
             }
 
+
             // إشعار Telegram
-            if (typeof telegramBot !== 'undefined') {
-                telegramBot.notifyMaintenance(data);
+            try {
+                if (typeof telegramBot !== 'undefined' && telegramBot) {
+                    telegramBot.notifyMaintenance(data);
+                }
+            } catch (err) {
+                console.warn('Telegram notification failed:', err);
             }
 
             showToast(`تم تسجيل الصيانة لـ ${data.subscriberName}`);
