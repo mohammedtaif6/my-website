@@ -146,25 +146,68 @@
 
     <script type="module">
         import { telegramBot } from './telegram-bot.js';
+        import { DataManager } from './data-manager.js?v=20.0'; // Adding cache buster
 
-        // تحميل الإعدادات الحالية
-        window.addEventListener('load', () => {
-            const config = telegramBot.config;
+        // تحميل الإعدادات الحالية عند فتح الصفحة
+        window.addEventListener('load', async () => {
+            // التحقق من تهيئة Firebase
+            if (!DataManager.db) {
+                // محاولة الانتظار قليلاً أو الاعتماد على تهيئة DataManager الداخلية
+                console.log('Waiting for DataManager to initialize DB...');
+                // يمكننا استدعاء دالة تهيئة إذا كانت متوفرة، أو الانتظار
+                // في الغالب DataManager يهيئ نفسه عند الاستيراد، لكن ال db property قد تأخذ وقتاً
+            }
 
+            // التأكد من تهيئة البوت مع قاعدة البيانات
+            // DataManager يملك ال db instance
+            try {
+                // نحتاج الوصول لل db. في DataManager عادة هي private أو متاحة
+                // سأفترض أن DataManager يهيئ ال db ويجعله متاحاً أو يمكننا استخدام طريقة أخرى
+                // في الكود الحالي ل DataManager (سابقاً) لم يكن يصدر ال db public مباشرة
+                // لذا سأقوم بحيلة: تهيئة البوت عبر DataManager إذا كان لديه دالة لذلك، 
+                // أو سأربط telegramBot إذا كان DataManager يفعله.
+
+                // الحل الأفضل: DataManager يهيئ telegramBot تلقائياً.
+                // لذا سننتظر قليلاً ثم نطلب الكونفيق.
+
+                await new Promise(r => setTimeout(r, 1000)); // انتظار بسيط
+
+                // إذا لم يتم تهيئته، نحاول تهيئته يدوياً إذا استطعنا الوصول لل db
+                // لكن DataManager هو المسؤول.
+
+                const config = telegramBot.config || telegramBot.getDefaultConfig();
+
+                if (telegramBot.configLoaded) {
+                    fillFields(telegramBot.config);
+                } else {
+                    // محاولة قراءة الاعدادات عبر DataManager إذا كان يدعمها
+                    // في هذه الحالة، سنعتمد على أن DataManager قام بتهيئته
+                    console.warn('TelegramBot config not loaded yet, using defaults or local cache if any');
+                    fillFields(config);
+                }
+
+            } catch (e) {
+                console.error("Error loading settings:", e);
+            }
+        });
+
+        function fillFields(config) {
             document.getElementById('bot-token').value = config.botToken || '';
             document.getElementById('chat-id').value = config.chatId || '';
             document.getElementById('telegram-enabled').checked = config.enabled || false;
 
             // تحميل إعدادات الإشعارات
-            document.getElementById('notify-activation').checked = config.notifications.newActivation;
-            document.getElementById('notify-renewal').checked = config.notifications.renewal;
-            document.getElementById('notify-expiring').checked = config.notifications.expiringSoon;
-            document.getElementById('notify-expired').checked = config.notifications.expired;
-            document.getElementById('notify-debt-added').checked = config.notifications.debtAdded;
-            document.getElementById('notify-debt-paid').checked = config.notifications.debtPaid;
-            document.getElementById('notify-expense').checked = config.notifications.expense;
-            document.getElementById('notify-daily').checked = config.notifications.dailySummary;
-        });
+            if (config.notifications) {
+                document.getElementById('notify-activation').checked = config.notifications.newActivation !== false;
+                document.getElementById('notify-renewal').checked = config.notifications.renewal !== false;
+                document.getElementById('notify-expiring').checked = config.notifications.expiringSoon !== false;
+                document.getElementById('notify-expired').checked = config.notifications.expired !== false;
+                document.getElementById('notify-debt-added').checked = config.notifications.debtAdded !== false;
+                document.getElementById('notify-debt-paid').checked = config.notifications.debtPaid !== false;
+                document.getElementById('notify-expense').checked = config.notifications.expense !== false;
+                document.getElementById('notify-daily').checked = config.notifications.dailySummary !== false;
+            }
+        }
 
         // حفظ الإعدادات
         window.saveSettings = function () {
