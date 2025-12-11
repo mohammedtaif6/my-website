@@ -26,7 +26,8 @@ const db = initializeFirestore(app, {
 console.log('✅ Firebase مُهيأ بالتخزين المحلي المتقدم - جاهز للعمل!');
 
 
-let localData = { subscribers: [], transactions: [], employees: [] };
+
+let localData = { subscribers: [], transactions: [], employees: [], maintenances: [] };
 let isProcessing = false;
 
 // === Toast Logic ===
@@ -53,12 +54,20 @@ function showToast(message, type = 'success') {
 export const DataManager = {
     init() {
         console.log("========================================");
-        console.log("🚀 System v18.0 - Secured Employee Edition");
+        console.log("🚀 System v19.0 - Maintenance System Edition");
         console.log("========================================");
         this.sync('subscribers');
         this.sync('transactions');
         this.sync('employees'); // مزامنة الموظفين
+        this.sync('maintenances'); // مزامنة الصيانات
         this.monitorConnection();
+
+        // تهيئة Telegram Bot مع Firebase
+        if (typeof telegramBot !== 'undefined') {
+            telegramBot.initFirebase(db).then(() => {
+                console.log('✅ Telegram Bot initialized with Firebase');
+            });
+        }
     },
 
     // مراقبة حالة الاتصال بـ Firebase
@@ -421,6 +430,89 @@ export const DataManager = {
                 return days > 0 && days <= 3;
             }).length
         };
+    },
+
+    // === إدارة الصيانات ===
+    getMaintenances() { return localData.maintenances || []; },
+
+    async addMaintenance(data) {
+        const maintenance = {
+            id: Date.now(),
+            createdAt: new Date().toISOString(),
+            status: 'completed',
+            rewardPaid: false,
+            ...data
+        };
+
+        try {
+            await addDoc(collection(db, "maintenances"), maintenance);
+
+            // إرسال واتساب للمشترك
+            if (data.sendWhatsApp && data.subscriberPhone) {
+                this.sendMaintenanceWhatsApp(data);
+            }
+
+            // إشعار Telegram
+            if (typeof telegramBot !== 'undefined') {
+                telegramBot.notifyMaintenance(data);
+            }
+
+            showToast(`تم تسجيل الصيانة لـ ${data.subscriberName}`);
+        } catch (e) {
+            console.error(e);
+            showToast("خطأ في حفظ الصيانة", "error");
+        }
+    },
+
+    sendMaintenanceWhatsApp(data) {
+        if (!data.subscriberPhone) return;
+
+        let phone = data.subscriberPhone.replace(/\D/g, '');
+        if (phone.startsWith('0')) phone = phone.substring(1);
+        if (!phone.startsWith('964')) phone = '964' + phone;
+
+        const costText = data.cost > 0 ?
+            `• التكلفة: ${data.cost.toLocaleString()} د.ع ${data.paymentType === 'مدفوع نقداً' ? '✅ (مدفوع)' : ''}` :
+            `• مجاني ✅`;
+
+        const msg = `مرحباً ${data.subscriberName} 👋
+
+تم إجراء صيانة لخدمتك بواسطة: ${data.employeeName}
+
+📋 التفاصيل:
+• نوع الصيانة: ${data.type}
+${data.parts ? `• القطع المستبدلة: ${data.parts}` : ''}
+${costText}
+
+شكراً لثقتكم بنا 💙
+OK Computer`;
+
+        const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+        window.open(url, '_blank');
+    },
+
+    async payMaintenanceReward(maintenanceId, amount) {
+        const maint = localData.maintenances.find(m => m.id == maintenanceId);
+        if (!maint || maint.rewardPaid) return;
+
+        // تسجيل المكافأة كإضافة لراتب الموظف
+        const emp = this.getEmployee(maint.employeeId);
+        if (!emp) return;
+
+        // إضافة المكافأة كـ "مستحق إضافي"
+        await this.addExpense(amount, `مكافأة صيانة: ${emp.name} - ${maint.subscriberName}`);
+
+        // تحديث حالة الصيانة
+        const maintDoc = localData.maintenances.find(m => m.id == maintenanceId);
+        if (maintDoc) {
+            await updateDoc(doc(db, "maintenances", maintDoc.firebaseId), {
+                rewardPaid: true,
+                rewardAmount: amount,
+                rewardDate: new Date().toISOString()
+            });
+        }
+
+        showToast(`تم صرف مكافأة ${amount.toLocaleString()} د.ع لـ ${emp.name}`);
     },
 
     showToast

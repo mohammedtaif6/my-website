@@ -5,15 +5,48 @@
 
 class TelegramBot {
     constructor() {
-        // إعدادات البوت - يجب تعديلها من الإعدادات
-        this.config = this.loadConfig();
+        // إعدادات البوت - محفوظة في Firebase
+        this.config = null;
+        this.db = null;
+        this.configLoaded = false;
     }
 
-    loadConfig() {
-        const saved = localStorage.getItem('telegram_config');
-        if (saved) {
-            return JSON.parse(saved);
+    // تهيئة الاتصال بـ Firebase
+    async initFirebase(db) {
+        this.db = db;
+        await this.loadConfig();
+    }
+
+    async loadConfig() {
+        if (!this.db) {
+            console.warn('Firebase not initialized yet');
+            return this.getDefaultConfig();
         }
+
+        try {
+            // محاولة تحميل الإعدادات من Firebase
+            const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+            const configDoc = await getDoc(doc(this.db, "settings", "telegram"));
+
+            if (configDoc.exists()) {
+                this.config = configDoc.data();
+                this.configLoaded = true;
+                console.log('✅ تم تحميل إعدادات Telegram من Firebase');
+                return this.config;
+            } else {
+                // إذا لم تكن موجودة، نستخدم القيم الافتراضية
+                this.config = this.getDefaultConfig();
+                await this.saveConfig(this.config);
+                return this.config;
+            }
+        } catch (error) {
+            console.error('خطأ في تحميل إعدادات Telegram:', error);
+            this.config = this.getDefaultConfig();
+            return this.config;
+        }
+    }
+
+    getDefaultConfig() {
         return {
             botToken: '', // سيتم إدخاله من الإعدادات
             chatId: '',   // سيتم إدخاله من الإعدادات
@@ -26,14 +59,26 @@ class TelegramBot {
                 debtAdded: true,          // دين جديد
                 debtPaid: true,           // تسديد دين
                 expense: true,            // صرفية جديدة
-                dailySummary: true        // ملخص يومي
+                dailySummary: true,       // ملخص يومي
+                maintenance: true         // صيانة جديدة
             }
         };
     }
 
-    saveConfig(config) {
-        this.config = { ...this.config, ...config };
-        localStorage.setItem('telegram_config', JSON.stringify(this.config));
+    async saveConfig(config) {
+        if (!this.db) {
+            console.error('Cannot save config: Firebase not initialized');
+            return;
+        }
+
+        try {
+            const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+            this.config = { ...this.config, ...config };
+            await setDoc(doc(this.db, "settings", "telegram"), this.config);
+            console.log('✅ تم حفظ إعدادات Telegram في Firebase');
+        } catch (error) {
+            console.error('خطأ في حفظ إعدادات Telegram:', error);
+        }
     }
 
     async sendMessage(message, options = {}) {
@@ -223,6 +268,29 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         return diffDays;
     }
+
+    // إشعار صيانة جديدة
+    async notifyMaintenance(data) {
+        if (!this.config.notifications.maintenance) return;
+
+        const costText = data.cost > 0 ?
+            `💰 التكلفة: <b>${data.cost.toLocaleString()} د.ع</b> (${data.paymentType})` :
+            `🎁 مجاني`;
+
+        const message = `
+🔧 <b>صيانة جديدة</b>
+
+👤 المشترك: <b>${data.subscriberName}</b>
+👨‍🔧 الموظف: <b>${data.employeeName}</b>
+🛠 نوع الصيانة: <b>${data.type}</b>
+${data.parts ? `📦 القطع: <b>${data.parts}</b>` : ''}
+${costText}
+
+⏰ ${new Date().toLocaleString('ar-IQ')}
+        `.trim();
+
+        return await this.sendMessage(message);
+    },
 
     // اختبار الاتصال
     async testConnection() {
