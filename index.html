@@ -151,50 +151,90 @@
             </div>
         </div>
 
-        <div class="stats-grid">
-            <a href="subscribers.html" class="card" id="card-subscribers">
-                <div class="icon-box blue"><i class="fas fa-users"></i></div>
-                <div class="card-info">
-                    <h3>المشتركين</h3>
-                    <p id="stat-total">0</p>
+    </div>
+
+    <!-- ملخص الموظف (يظهر للموظفين فقط) -->
+    <div id="employee-dashboard-stats" style="display:none; margin-bottom: 20px;">
+        <div
+            style="background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e0e0e0;">
+            <h3
+                style="margin-bottom: 15px; color: var(--primary-dark); font-size: 1.1rem; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                <i class="fas fa-wallet"></i> ملخص حسابي
+            </h3>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
+                <div style="background: #f8f9fa; padding: 10px; border-radius: 8px; text-align: center;">
+                    <small style="color: #666;">الراتب المستحق</small>
+                    <div id="emp-qs-earned" style="font-weight: bold; font-size: 1.1rem;">0</div>
                 </div>
-            </a>
-            <a href="debts.html" class="card" id="card-debts">
-                <div class="icon-box red"><i class="fas fa-money-bill-wave"></i></div>
-                <div class="card-info">
-                    <h3>الديون (أجل)</h3>
-                    <p id="stat-debts" class="text-danger">0</p>
+
+                <div style="background: #ffebee; padding: 10px; border-radius: 8px; text-align: center;">
+                    <small style="color: #c62828;">السلف المسحوبة</small>
+                    <div id="emp-qs-advances" style="font-weight: bold; font-size: 1.1rem; color: #c62828;">0</div>
                 </div>
-            </a>
-            <a href="payments.html" class="card" id="card-payments">
-                <div class="icon-box green"><i class="fas fa-wallet"></i></div>
-                <div class="card-info">
-                    <h3>صافي الصندوق</h3>
-                    <p id="stat-box-balance" class="text-success">0</p>
+            </div>
+
+            <!-- كارت المكافآت -->
+            <div id="emp-qs-rewards-card"
+                style="margin-top: 10px; background: #fff3e0; padding: 10px; border-radius: 8px; border: 1px solid #ffe0b2; display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <strong style="color: #e65100; font-size: 0.95rem;">🎁 إجمالي المكافآت:</strong>
+                    <span id="emp-qs-rewards" style="font-weight: bold; font-size: 1.1rem; color: #e65100;">0</span>
                 </div>
-            </a>
-            <a href="expired.html" class="card">
-                <div class="icon-box gray"><i class="fas fa-times-circle"></i></div>
-                <div class="card-info">
-                    <h3>المنتهية</h3>
-                    <p id="stat-expired">0</p>
-                </div>
-            </a>
-            <a href="expiring.html" class="card">
-                <div class="icon-box purple"><i class="fas fa-clock"></i></div>
-                <div class="card-info">
-                    <h3>تنتهي قريباً</h3>
-                    <p id="stat-expiring">0</p>
-                </div>
-            </a>
-            <a href="reports.html" class="card" id="card-reports">
-                <div class="icon-box orange"><i class="fas fa-chart-line"></i></div>
-                <div class="card-info">
-                    <h3>تقارير الشهر</h3>
-                    <p style="font-size:0.9rem">عرض التفاصيل</p>
-                </div>
-            </a>
+            </div>
+
+            <div
+                style="margin-top: 15px; padding-top: 10px; border-top: 2px dashed #eee; display: flex; justify-content: space-between; align-items: center;">
+                <strong>الصافي للدفع:</strong>
+                <span id="emp-qs-net" style="font-weight: bold; font-size: 1.3rem; color: #2e7d32;">0</span>
+            </div>
         </div>
+    </div>
+
+    <div class="stats-grid">
+        <a href="subscribers.html" class="card" id="card-subscribers">
+            <div class="icon-box blue"><i class="fas fa-users"></i></div>
+            <div class="card-info">
+                <h3>المشتركين</h3>
+                <p id="stat-total">0</p>
+            </div>
+        </a>
+        <a href="debts.html" class="card" id="card-debts">
+            <div class="icon-box red"><i class="fas fa-money-bill-wave"></i></div>
+            <div class="card-info">
+                <h3>الديون (أجل)</h3>
+                <p id="stat-debts" class="text-danger">0</p>
+            </div>
+        </a>
+        <a href="payments.html" class="card" id="card-payments">
+            <div class="icon-box green"><i class="fas fa-wallet"></i></div>
+            <div class="card-info">
+                <h3>صافي الصندوق</h3>
+                <p id="stat-box-balance" class="text-success">0</p>
+            </div>
+        </a>
+        <a href="expired.html" class="card">
+            <div class="icon-box gray"><i class="fas fa-times-circle"></i></div>
+            <div class="card-info">
+                <h3>المنتهية</h3>
+                <p id="stat-expired">0</p>
+            </div>
+        </a>
+        <a href="expiring.html" class="card">
+            <div class="icon-box purple"><i class="fas fa-clock"></i></div>
+            <div class="card-info">
+                <h3>تنتهي قريباً</h3>
+                <p id="stat-expiring">0</p>
+            </div>
+        </a>
+        <a href="reports.html" class="card" id="card-reports">
+            <div class="icon-box orange"><i class="fas fa-chart-line"></i></div>
+            <div class="card-info">
+                <h3>تقارير الشهر</h3>
+                <p style="font-size:0.9rem">عرض التفاصيل</p>
+            </div>
+        </a>
+    </div>
     </div>
 
     <!-- Hidden Receipt Container for Printing -->
@@ -511,32 +551,44 @@
             document.getElementById('stat-expired').innerText = s.expired;
             document.getElementById('stat-expiring').innerText = s.expiring;
 
-            // --- بطاقة الراتب للموظف ---
+            // --- ملخص حساب الموظف ---
             if (AuthSystem.currentUser && AuthSystem.currentUser.type === 'employee') {
-                const bal = DataManager.calculateEmployeeBalance(AuthSystem.currentUser.id);
-                // نبحث عن البطاقة أو ننشئها
-                let salaryCard = document.getElementById('card-salary');
-                if (!salaryCard) {
-                    const grid = document.querySelector('.stats-grid');
-                    salaryCard = document.createElement('a');
-                    salaryCard.href = '#';
-                    salaryCard.className = 'card';
-                    salaryCard.id = 'card-salary';
-                    salaryCard.style.border = '2px solid #009688';
-                    salaryCard.innerHTML = `
-                        <div class="icon-box" style="background:#e0f2f1;color:#009688"><i class="fas fa-wallet"></i></div>
-                        <div class="card-info">
-                            <h3>رصيد راتبي</h3>
-                            <p id="stat-salary" style="color:#00796b">0</p>
-                            <small id="stat-salary-detail" style="font-size:0.7rem;color:#666">يتم الحساب...</small>
-                        </div>
-                    `;
-                    // نضعها في البداية
-                    grid.insertBefore(salaryCard, grid.firstChild);
+                const empStatsDiv = document.getElementById('employee-dashboard-stats');
+
+                if (empStatsDiv) {
+                    empStatsDiv.style.display = 'block';
+
+                    const bal = DataManager.calculateEmployeeBalance(AuthSystem.currentUser.id);
+                    const emp = DataManager.getEmployee(AuthSystem.currentUser.id);
+
+                    if (bal) {
+                        document.getElementById('emp-qs-earned').innerText = (bal.earned || 0).toLocaleString();
+                        document.getElementById('emp-qs-advances').innerText = (bal.advances || 0).toLocaleString();
+                        document.getElementById('emp-qs-net').innerText = (bal.net || 0).toLocaleString() + ' د.ع';
+                    }
+
+                    // المكافآت from employee object
+                    const rewards = emp ? (parseFloat(emp.rewards) || 0) : 0;
+
+                    const rewardsCard = document.getElementById('emp-qs-rewards-card');
+                    if (rewardsCard) {
+                        rewardsCard.style.display = 'block'; // تظهر دائماً
+                        document.getElementById('emp-qs-rewards').innerText = rewards.toLocaleString() + ' د.ع';
+
+                        // تلوين الكارت إذا يوجد مكافأة
+                        if (rewards > 0) {
+                            rewardsCard.style.background = '#fff3e0';
+                            rewardsCard.style.borderColor = '#ffe0b2';
+                        } else {
+                            rewardsCard.style.background = '#f5f5f5';
+                            rewardsCard.style.borderColor = '#e0e0e0';
+                        }
+                    }
                 }
 
-                document.getElementById('stat-salary').innerText = bal.net.toLocaleString('ar-IQ');
-                document.getElementById('stat-salary-detail').innerText = `المستحق: ${bal.earned.toLocaleString()} | مسحوب: ${bal.advances.toLocaleString()}`;
+                // إخفاء الكارت القديم إذا كان موجوداً
+                const oldCard = document.getElementById('card-salary');
+                if (oldCard) oldCard.style.display = 'none';
             }
         };
 
