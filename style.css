@@ -484,3 +484,138 @@ input:focus {
         position: static;
     }
 }
+
+/* --- New Dashboard Grid (Menu) --- */
+.main-menu-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.dash-card {
+    border-radius: 20px;
+    padding: 20px;
+    color: white;
+    /* نص أبيض */
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: none;
+}
+
+.dash-card:active {
+    transform: scale(0.96);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+}
+
+.dash-card h3 {
+    color: white;
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    opacity: 0.95;
+}
+
+.dash-card p {
+    color: white;
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin: 5px 0 0 0;
+    line-height: 1.1;
+}
+
+.dash-card small {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.85rem;
+    margin-top: 5px;
+    display: block;
+}
+
+.dash-card .card-icon {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    font-size: 2rem;
+    opacity: 0.25;
+    transform: rotate(-10deg);
+}
+
+.dash-card .card-arrow {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    font-size: 1rem;
+    opacity: 0.6;
+    background: rgba(255, 255, 255, 0.2);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Card Colors - Vibrant & Solid */
+.card-blue {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.card-red {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.card-green {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.card-purple {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.card-orange {
+    background: linear-gradient(135deg, #f97316, #ea580c);
+}
+
+.card-dark {
+    background: linear-gradient(135deg, #374151, #1f2937);
+}
+
+.card-teal {
+    background: linear-gradient(135deg, #14b8a6, #0d9488);
+}
+
+.card-indigo {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+}
+
+.card-gray {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+}
+
+.card-red-outline {
+    background: white;
+    border: 2px solid #fee2e2;
+}
+
+.card-red-outline h3 {
+    color: #ef4444;
+}
+
+.card-red-outline .card-icon {
+    color: #ef4444;
+    opacity: 0.1;
+}
+
+/* Responsive Grid for Tablets/Desktop */
+@media (min-width: 600px) {
+    .main-menu-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}

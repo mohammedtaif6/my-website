@@ -144,6 +144,15 @@ const AuthSystem = {
                 }
             }
 
+            // إخفاء الكروت الخاصة بالمدير فقط في لوحة التحكم الجديدة
+            if (user.type !== 'admin') {
+                const restricted = ['nav-card-employees', 'nav-card-maintenance', 'nav-card-telegram'];
+                restricted.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'none';
+                });
+            }
+
 
             // إخفاء روابط الإدارة دائماً للموظف (المدير فقط)
             ['nav-employees', 'nav-telegram', 'nav-maintenance-log'].forEach(id => {
