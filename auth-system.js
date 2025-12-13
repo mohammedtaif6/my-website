@@ -178,46 +178,103 @@ const AuthSystem = {
 
 window.AuthSystem = AuthSystem;
 
-// === Swipe Back Gesture Logic (Native App Feel) ===
+// === Swipe Back Gesture Logic (Native App Feel + Visual Indicator) ===
 (function () {
     let touchStartX = 0;
     let touchStartY = 0;
+    let isEdgeSwipe = false;
+    let indicator = null;
+    let icon = null;
+
+    // Create Indicator Element
+    function createIndicator() {
+        if (document.getElementById('swipe-back-indicator')) return;
+        indicator = document.createElement('div');
+        indicator.id = 'swipe-back-indicator';
+        indicator.innerHTML = '<i class="fas fa-arrow-right"></i>'; // سهم يشير لليمين (اتجاه العودة للصفحة السابقة)
+        document.body.appendChild(indicator);
+        icon = indicator.querySelector('i');
+    }
 
     document.addEventListener('touchstart', e => {
+        createIndicator(); // Ensure it exists
         touchStartX = e.changedTouches[0].screenX;
         touchStartY = e.changedTouches[0].screenY;
+
+        // المنطقة الآمنة للسحب (آخر 40px من اليمين)
+        isEdgeSwipe = touchStartX > (window.innerWidth - 40);
+
+        // لا تعمل في الصفحات الرئيسية
+        const currentPath = window.location.pathname;
+        if (currentPath.includes('index.html') || currentPath.endsWith('/') || currentPath.includes('login.html')) {
+            isEdgeSwipe = false;
+        }
+    }, { passive: true });
+
+    document.addEventListener('touchmove', e => {
+        if (!isEdgeSwipe) return;
+
+        const touchCurrentX = e.changedTouches[0].screenX;
+        const touchCurrentY = e.changedTouches[0].screenY;
+
+        const diffX = touchStartX - touchCurrentX; // موجب عند السحب لليسار
+        const diffY = Math.abs(touchCurrentY - touchStartY);
+
+        // إذا كان السحب عمودياً أكثر، نلغي العملية (Scroll)
+        if (diffY > diffX && diffY > 10) {
+            isEdgeSwipe = false;
+            indicator.style.right = '-50px';
+            indicator.style.opacity = '0';
+            return;
+        }
+
+        // تحريك المؤشر مع الإصبع
+        // الحد الأقصى للسحب المرئي 100px
+        const pullDistance = Math.min(Math.max(diffX, 0), 120);
+
+        if (pullDistance > 10) {
+            indicator.style.opacity = '1';
+            // نحركه من -50 (مخفي) إلى 0 أو أكثر
+            // معادلة بسيطة: كلما سحبت، يخرج المؤشر
+            const rightVal = -50 + (pullDistance * 0.8);
+            indicator.style.right = `${rightVal}px`;
+
+            // تدوير السهم وتكبيره عند الوصول للحد
+            if (pullDistance > 80) {
+                indicator.style.background = 'rgba(16, 185, 129, 0.9)'; // أخضر عند الجاهزية
+                icon.style.transform = 'scale(1.2)';
+            } else {
+                indicator.style.background = 'rgba(0, 0, 0, 0.6)';
+                icon.style.transform = 'scale(1)';
+            }
+        }
+
     }, { passive: true });
 
     document.addEventListener('touchend', e => {
+        if (!isEdgeSwipe) return;
+
         const touchEndX = e.changedTouches[0].screenX;
-        const touchEndY = e.changedTouches[0].screenY;
+        const diffX = touchStartX - touchEndX;
 
-        const diffX = touchEndX - touchStartX; // الفرق الأفقي
-        const diffY = touchEndY - touchStartY; // الفرق العمودي
+        // إخفاء المؤشر
+        indicator.style.right = '-50px';
+        indicator.style.opacity = '0';
+        indicator.style.background = 'rgba(0, 0, 0, 0.6)'; // reset color
 
-        // شروط الرجوع (Swipe Right to Left - RTL Back):
-        // 1. السحب يجب أن يكون أفقياً بشكل أساسي (X > Y * 2)
-        // 2. المسافة يجب أن تكون كافية (> 80px)
-        // 3. الاتجاه: من اليمين لليسار (diffX < 0) في العربية
-        // 4. يجب أن يبدأ السحب من الحافة اليمنى للشاشة (للتأكد أنه قصد الرجوع وليس Scroll)
-        // عرض الشاشة
-        const screenWidth = window.innerWidth;
-
-        // المنطقة الآمنة للسحب (مثلاً آخر 50px من اليمين)
-        const isEdgeSwipe = touchStartX > (screenWidth - 50);
-
-        if (Math.abs(diffX) > Math.abs(diffY) * 2 && Math.abs(diffX) > 80 && isEdgeSwipe) {
-            // تحقق من الصفحة الحالية (لا نريد الرجوع من الرئيسية أو تسجيل الدخول)
-            const currentPath = window.location.pathname;
-            if (currentPath.includes('index.html') || currentPath.endsWith('/') || currentPath.includes('login.html')) {
-                return;
-            }
-
+        if (diffX > 80) { // مسافة كافية للرجوع
             // تنفيذ الرجوع بأنيميشن
             document.body.classList.add('sliding-back');
+
+            // Visual Pop effect
+            indicator.classList.add('release');
+            setTimeout(() => indicator.classList.remove('release'), 300);
+
             setTimeout(() => {
                 window.history.back();
-            }, 200); // تأخير بسيط ليظهر الأنيميشن
+            }, 100);
         }
+
+        isEdgeSwipe = false;
     }, { passive: true });
 })();

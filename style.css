@@ -690,6 +690,48 @@ body {
     animation: pageFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* --- Swipe Back Visual Indicator (The Droplet/Arrow) --- */
+#swipe-back-indicator {
+    position: fixed;
+    top: 50%;
+    right: -50px;
+    /* مخفي في البداية */
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    background: rgba(0, 0, 0, 0.7);
+    /* لون داكن نصف شفاف */
+    backdrop-filter: blur(5px);
+    border-radius: 50% 0 0 50%;
+    /* شكل نصف دائرة/قطرة من اليمين */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    z-index: 9999;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transition: right 0.1s ease-out, opacity 0.1s;
+    /* حركة سريعة جداً للمزامنة مع الاصبع */
+    pointer-events: none;
+}
+
+#swipe-back-indicator i {
+    font-size: 1.2rem;
+    margin-right: -5px;
+    transition: transform 0.2s;
+}
+
+#swipe-back-indicator.active {
+    opacity: 1;
+}
+
+#swipe-back-indicator.release {
+    transition: transform 0.3s ease-in, opacity 0.3s;
+    transform: translateY(-50%) scale(1.5);
+    opacity: 0;
+}
+
 /* حركة الخروج عند السحب للرجوع */
 body.sliding-back {
     transition: transform 0.25s ease-in, opacity 0.25s;
