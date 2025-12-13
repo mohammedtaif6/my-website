@@ -3,134 +3,258 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#ffffff">
     <title>سجل الصيانات - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=19.0">
+    <link rel="stylesheet" href="style.css?v=22.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="auth-system.js"></script>
-    <script>AuthSystem.checkSession();</script>
+    <script force-reload>AuthSystem.checkSession();</script> <!-- Ensure session check runs -->
     <script type="module">
         import { DataManager } from './data-manager.js';
         window.DataManager = DataManager;
         DataManager.init();
     </script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .log-container {
+            padding-bottom: 80px;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* فلتر */
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .filter-select {
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+            background: white;
+            font-size: 0.9rem;
+            min-width: 120px;
+        }
+
+        /* كارت الصيانة */
+        .maint-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+            border: 1px solid #eee;
+            position: relative;
+            transition: transform 0.2s;
+        }
+
+        .maint-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.07);
+        }
+
+        .maint-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .maint-type-icon {
+            width: 45px;
+            height: 45px;
+            background: #fff3e0;
+            color: #ef6c00;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .maint-info h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        .maint-info p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .maint-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f0;
+            margin-top: 10px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: #777;
+        }
+
+        .meta-item i {
+            color: #bdbdbd;
+        }
+
+        .action-btn {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            width: 100%;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .badge-done {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+        }
+
+        .badge-pending {
+            background: #fff8e1;
+            color: #f57f17;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+        }
+
+        /* Stats */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-num {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #888;
+        }
+    </style>
 </head>
 
 <body>
     <nav class="navbar">
-        <div class="logo"><i class="fas fa-clipboard-list"></i> سجل الصيانات</div>
+        <div class="logo"><i class="fas fa-history"></i> سجل الصيانات</div>
         <ul class="nav-links">
             <li><a href="index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
-            <li><a href="#" onclick="AuthSystem.logout()"><i class="fas fa-sign-out-alt"></i> خروج</a></li>
+            <li><a href="maintenance.html"><i class="fas fa-plus-circle"></i> صيانة جديدة</a></li>
         </ul>
     </nav>
 
-    <div class="container">
-        <div class="header-card">
-            <div>
-                <h1>سجل الصيانات</h1>
-                <p>متابعة وإدارة جميع الصيانات</p>
+    <div class="log-container">
+
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-box">
+                <div class="stat-num" id="stat-total">0</div>
+                <div class="stat-label">صيانة</div>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <select id="filter-employee" onchange="renderMaintenances()" style="padding: 10px 15px;">
-                    <option value="">كل الموظفين</option>
-                </select>
-                <select id="filter-status" onchange="renderMaintenances()" style="padding: 10px 15px;">
-                    <option value="">كل الحالات</option>
-                    <option value="pending">معلقة</option>
-                    <option value="rewarded">تم صرف المكافأة</option>
-                    <option value="not-rewarded">لم تُصرف المكافأة</option>
-                </select>
+            <div class="stat-box">
+                <div class="stat-num" id="stat-revenue" style="color: #4caf50;">0</div>
+                <div class="stat-label">المقبوضات</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-num" id="stat-pending" style="color: #ff9800;">0</div>
+                <div class="stat-label">مكافآت معلقة</div>
             </div>
         </div>
 
-        <!-- الإحصائيات -->
-        <div class="stats-grid" style="margin-bottom: 30px;">
-            <div class="card">
-                <div class="icon-box purple"><i class="fas fa-wrench"></i></div>
-                <div class="card-info">
-                    <h3>إجمالي الصيانات</h3>
-                    <p id="stat-total">0</p>
-                </div>
-            </div>
-            <div class="card">
-                <div class="icon-box green"><i class="fas fa-money-bill-wave"></i></div>
-                <div class="card-info">
-                    <h3>إجمالي الإيرادات</h3>
-                    <p id="stat-revenue">0</p>
-                </div>
-            </div>
-            <div class="card">
-                <div class="icon-box orange"><i class="fas fa-gift"></i></div>
-                <div class="card-info">
-                    <h3>مكافآت معلقة</h3>
-                    <p id="stat-pending">0</p>
-                </div>
+        <!-- Filters -->
+        <div class="filter-bar">
+            <select id="filter-employee" class="filter-select" onchange="renderMaintenances()">
+                <option value="">👤 كل الموظفين</option>
+            </select>
+            <select id="filter-status" class="filter-select" onchange="renderMaintenances()">
+                <option value="">📌 كل الحالات</option>
+                <option value="pending">⏳ مكافأة معلقة</option>
+                <option value="rewarded">✅ تم الصرف</option>
+            </select>
+        </div>
+
+        <!-- List -->
+        <div id="maintenances-list">
+            <div style="text-align:center; padding:40px; color:#999;">
+                <i class="fas fa-circle-notch fa-spin fa-2x"></i>
             </div>
         </div>
 
-        <!-- جدول الصيانات -->
-        <div class="table-container">
-            <div class="table-header">
-                <h3><i class="fas fa-list"></i> جميع الصيانات</h3>
-            </div>
-            <div style="overflow-x: auto;">
-                <table id="maintenances-table">
-                    <thead>
-                        <tr>
-                            <th>التاريخ</th>
-                            <th>الموظف</th>
-                            <th>المشترك</th>
-                            <th>نوع الصيانة</th>
-                            <th>القطع</th>
-                            <th>التكلفة</th>
-                            <th>المكافأة</th>
-                            <th>إجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="maintenances-body">
-                        <tr>
-                            <td colspan="8" style="text-align:center; padding:40px;">جاري التحميل...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
     </div>
 
     <!-- Modal المكافأة -->
     <div id="rewardModal" class="modal-overlay">
-        <div class="modal-box" style="max-width: 400px;">
+        <div class="modal-box" style="max-width: 400px; border-radius: 20px;">
             <div class="modal-header">
-                <h3>صرف مكافأة</h3>
+                <h3>💰 صرف مكافأة</h3>
                 <button class="close-btn" onclick="closeRewardModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="reward-maint-id">
 
-                <div class="form-group">
-                    <label>الموظف</label>
-                    <input type="text" id="reward-emp-name" disabled style="background:#f5f5f5;">
+                <div style="background: #f5f5f5; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                    <div style="color: #666; font-size: 0.9rem;">الموظف المستحق:</div>
+                    <div id="reward-emp-name" style="font-weight: bold; color: #333; font-size: 1.1rem;">-</div>
                 </div>
 
                 <div class="form-group">
-                    <label>المشترك</label>
-                    <input type="text" id="reward-sub-name" disabled style="background:#f5f5f5;">
+                    <label style="font-weight: bold; color: #444;">مبلغ المكافأة</label>
+                    <div style="position: relative;">
+                        <input type="number" id="reward-amount" value="2000"
+                            style="width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #eee; font-size: 1.2rem; font-weight: bold; color: #2e7d32;">
+                        <span
+                            style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-weight: bold; color: #aaa;">د.ع</span>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label>مبلغ المكافأة</label>
-                    <input type="number" id="reward-amount" placeholder="0" min="0">
-                </div>
-
-                <div
-                    style="background: #fff3e0; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; color: #e65100;">
-                    <i class="fas fa-info-circle"></i> سيتم خصم المكافأة من الصندوق
-                </div>
-
-                <button onclick="confirmReward()" class="btn btn-success btn-full">
-                    <i class="fas fa-check"></i> صرف المكافأة
+                <button onclick="confirmReward()" class="btn btn-success btn-full"
+                    style="background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%); padding: 15px; border-radius: 12px; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);">
+                    تأكيد وصرف المكافأة
                 </button>
             </div>
         </div>
@@ -139,15 +263,15 @@
     <script>
         let allMaintenances = [];
 
-        // تحميل الموظفين في الفلتر
         function loadEmployeeFilter() {
             const employees = DataManager.getEmployees();
             const filter = document.getElementById('filter-employee');
-            filter.innerHTML = '<option value="">كل الموظفين</option>' +
+            let current = filter.value;
+            filter.innerHTML = '<option value="">👤 كل الموظفين</option>' +
                 employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+            filter.value = current;
         }
 
-        // عرض الصيانات
         function renderMaintenances() {
             allMaintenances = DataManager.getMaintenances();
 
@@ -157,93 +281,114 @@
 
             let filtered = allMaintenances;
 
-            if (empFilter) {
-                filtered = filtered.filter(m => m.employeeId == empFilter);
-            }
+            if (empFilter) filtered = filtered.filter(m => m.employeeId == empFilter);
+            if (statusFilter === 'rewarded') filtered = filtered.filter(m => m.rewardPaid);
+            else if (statusFilter === 'pending') filtered = filtered.filter(m => !m.rewardPaid);
 
-            if (statusFilter === 'rewarded') {
-                filtered = filtered.filter(m => m.rewardPaid);
-            } else if (statusFilter === 'not-rewarded') {
-                filtered = filtered.filter(m => !m.rewardPaid);
-            }
-
-            // حساب الإحصائيات
+            // إحصائيات سريعة
             document.getElementById('stat-total').innerText = allMaintenances.length;
-            document.getElementById('stat-revenue').innerText =
-                allMaintenances.reduce((sum, m) => sum + (m.cost || 0), 0).toLocaleString();
-            document.getElementById('stat-pending').innerText =
-                allMaintenances.filter(m => !m.rewardPaid).length;
+            document.getElementById('stat-revenue').innerText = allMaintenances.reduce((a, b) => a + (b.cost || 0), 0).toLocaleString();
+            document.getElementById('stat-pending').innerText = allMaintenances.filter(m => !m.rewardPaid).length;
 
-            // عرض الجدول
-            const tbody = document.getElementById('maintenances-body');
+            const list = document.getElementById('maintenances-list');
 
             if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:40px; color:#888;">لا توجد صيانات</td></tr>';
+                list.innerHTML = `
+                    <div style="text-align:center; padding: 60px 20px; color:#aaa;">
+                        <i class="fas fa-clipboard-check" style="font-size: 4rem; margin-bottom: 20px; opacity: 0.3;"></i>
+                        <p>لا توجد سجلات صيانة مطابقة</p>
+                    </div>
+                `;
                 return;
             }
 
-            tbody.innerHTML = filtered.map(m => `
-                <tr>
-                    <td data-label="التاريخ">${new Date(m.createdAt).toLocaleDateString('ar-IQ')}</td>
-                    <td data-label="الموظف"><strong>${m.employeeName}</strong></td>
-                    <td data-label="المشترك">${m.subscriberName}</td>
-                    <td data-label="النوع">${m.type}</td>
-                    <td data-label="القطع">${m.parts || '-'}</td>
-                    <td data-label="التكلفة">
-                        ${m.cost > 0 ?
-                    `<span style="color:green; font-weight:bold;">${m.cost.toLocaleString()} د.ع</span>` :
-                    '<span style="color:#888;">مجاني</span>'}
-                    </td>
-                    <td data-label="المكافأة">
-                        ${m.rewardPaid ?
-                    `<span class="badge badge-success">✅ ${(m.rewardAmount || 0).toLocaleString()} د.ع</span>` :
-                    '<span class="badge badge-warning">⏳ معلقة</span>'}
-                    </td>
-                    <td data-label="إجراءات">
-                        ${!m.rewardPaid ?
-                    `<button onclick="openRewardModal(${m.id}, '${m.employeeName}', '${m.subscriberName}')" 
-                                     class="btn btn-sm btn-success">
-                                <i class="fas fa-gift"></i> مكافأة
-                             </button>` :
-                    '<span style="color:#888; font-size:0.85rem;">تم الصرف</span>'}
-                    </td>
-                </tr>
-            `).join('');
+            list.innerHTML = filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map(m => {
+                // تحديد الأيقونة حسب النوع
+                let icon = 'fa-tools';
+                if (m.type.includes('راوتر')) icon = 'fa-wifi';
+                else if (m.type.includes('كيبل')) icon = 'fa-network-wired';
+                else if (m.type.includes('برمجة') || m.type.includes('إعدادات')) icon = 'fa-cogs';
+
+                return `
+                <div class="maint-card">
+                    <div class="maint-header">
+                        <div style="display:flex; gap:15px; align-items:center;">
+                            <div class="maint-type-icon">
+                                <i class="fas ${icon}"></i>
+                            </div>
+                            <div class="maint-info">
+                                <h3>${m.subscriberName}</h3>
+                                <p><i class="fas fa-User-tie" style="font-size:0.8rem; color:#aaa;"></i> ${m.employeeName}</p>
+                            </div>
+                        </div>
+                        <div>
+                            ${m.rewardPaid
+                        ? '<span class="badge-done"><i class="fas fa-check"></i> تم الصرف</span>'
+                        : '<span class="badge-pending"><i class="fas fa-clock"></i> بانتظار المكافأة</span>'}
+                        </div>
+                    </div>
+                    
+                    <div style="margin-left: 60px; margin-top: -10px;">
+                        <span style="font-weight:bold; color:#333;">${m.type}</span>
+                        ${m.parts ? `<span style="color:#888; font-size:0.9rem;"> - ${m.parts}</span>` : ''}
+                    </div>
+
+                    <div class="maint-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            ${new Date(m.createdAt).toLocaleDateString('ar-IQ')}
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-money-bill-wave"></i>
+                            تكلفة: ${m.cost ? m.cost.toLocaleString() + ' د.ع' : 'مجاني'}
+                        </div>
+                    </div>
+
+                    ${!m.rewardPaid ? `
+                        <button onclick="openRewardModal(${m.id}, '${m.employeeName}')" class="action-btn">
+                            <i class="fas fa-gift"></i> صرف مكافأة للموظف
+                        </button>
+                    ` : `
+                        <div style="text-align: center; margin-top: 15px; color: #2e7d32; font-size: 0.85rem; background: #e8f5e9; padding: 8px; border-radius: 8px;">
+                             🎁 تم صرف مكافأة: ${parseInt(m.rewardAmount || 0).toLocaleString()} د.ع
+                        </div>
+                    `}
+                </div>
+            `}).join('');
         }
 
-        // فتح مودال المكافأة
-        window.openRewardModal = (id, empName, subName) => {
+        window.openRewardModal = (id, empName) => {
             document.getElementById('reward-maint-id').value = id;
-            document.getElementById('reward-emp-name').value = empName;
-            document.getElementById('reward-sub-name').value = subName;
-            document.getElementById('reward-amount').value = '2000'; // قيمة افتراضية
+            document.getElementById('reward-emp-name').innerText = empName;
             document.getElementById('rewardModal').classList.add('active');
         };
 
-        window.closeRewardModal = () => {
-            document.getElementById('rewardModal').classList.remove('active');
-        };
+        window.closeRewardModal = () => document.getElementById('rewardModal').classList.remove('active');
 
         window.confirmReward = async () => {
             const id = document.getElementById('reward-maint-id').value;
             const amount = parseInt(document.getElementById('reward-amount').value);
-
-            if (!amount || amount <= 0) {
-                return alert('الرجاء إدخال مبلغ صحيح');
-            }
+            if (!amount || amount <= 0) return alert('أدخل مبلغاً صحيحاً');
 
             await DataManager.payMaintenanceReward(id, amount);
             closeRewardModal();
             renderMaintenances();
         };
 
-        // تحديث دوري
         setInterval(() => {
             if (typeof DataManager !== 'undefined') {
                 renderMaintenances();
                 loadEmployeeFilter();
             }
-        }, 2000);
+        }, 3000);
+
+        // Initial check
+        setTimeout(() => {
+            if (typeof DataManager !== 'undefined') {
+                renderMaintenances();
+                loadEmployeeFilter();
+            }
+        }, 1000);
     </script>
 </body>
 
