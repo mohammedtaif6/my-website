@@ -178,7 +178,7 @@ const AuthSystem = {
 
 window.AuthSystem = AuthSystem;
 
-// === Swipe Back Gesture Logic (Native App Feel + Visual Indicator) ===
+// === Premium Liquid Swipe Gesture (iOS Style) ===
 (function () {
     let touchStartX = 0;
     let touchStartY = 0;
@@ -186,28 +186,35 @@ window.AuthSystem = AuthSystem;
     let indicator = null;
     let icon = null;
 
-    // Create Indicator Element
     function createIndicator() {
         if (document.getElementById('swipe-back-indicator')) return;
         indicator = document.createElement('div');
         indicator.id = 'swipe-back-indicator';
-        indicator.innerHTML = '<i class="fas fa-arrow-right"></i>'; // سهم يشير لليمين (اتجاه العودة للصفحة السابقة)
+        indicator.innerHTML = '<i class="fas fa-arrow-right"></i>';
         document.body.appendChild(indicator);
         icon = indicator.querySelector('i');
     }
 
     document.addEventListener('touchstart', e => {
-        createIndicator(); // Ensure it exists
+        createIndicator();
         touchStartX = e.changedTouches[0].screenX;
         touchStartY = e.changedTouches[0].screenY;
 
-        // المنطقة الآمنة للسحب (آخر 40px من اليمين)
+        // المنطقة الآمنة (آخر 40px)
         isEdgeSwipe = touchStartX > (window.innerWidth - 40);
 
-        // لا تعمل في الصفحات الرئيسية
+        // استثناء الصفحات الرئيسية
         const currentPath = window.location.pathname;
         if (currentPath.includes('index.html') || currentPath.endsWith('/') || currentPath.includes('login.html')) {
             isEdgeSwipe = false;
+        }
+
+        if (isEdgeSwipe) {
+            // تحضير المؤشر في موقع الاصبع
+            indicator.style.transition = 'none'; // إلغاء الأنيميشن للتحرك الفوري
+            indicator.style.top = (e.changedTouches[0].clientY - 30) + 'px'; // -30 لنصف الارتفاع
+            indicator.classList.remove('active', 'ready');
+            indicator.style.right = '-80px';
         }
     }, { passive: true });
 
@@ -217,35 +224,23 @@ window.AuthSystem = AuthSystem;
         const touchCurrentX = e.changedTouches[0].screenX;
         const touchCurrentY = e.changedTouches[0].screenY;
 
-        const diffX = touchStartX - touchCurrentX; // موجب عند السحب لليسار
-        const diffY = Math.abs(touchCurrentY - touchStartY);
+        const diffX = touchStartX - touchCurrentX;
 
-        // إذا كان السحب عمودياً أكثر، نلغي العملية (Scroll)
-        if (diffY > diffX && diffY > 10) {
-            isEdgeSwipe = false;
-            indicator.style.right = '-50px';
-            indicator.style.opacity = '0';
-            return;
-        }
+        // إذا كان السحب لليسار
+        if (diffX > 0) {
+            // معادلة المقاومة (كلما سحبت أكثر تصبح الحركة أصعب)
+            const drag = Math.min(diffX, 150);
+            const resistance = drag * 0.6;
 
-        // تحريك المؤشر مع الإصبع
-        // الحد الأقصى للسحب المرئي 100px
-        const pullDistance = Math.min(Math.max(diffX, 0), 120);
+            indicator.style.right = (-60 + resistance) + 'px'; // يخرج من اليمين
+            indicator.style.top = (touchCurrentY - 30) + 'px'; // يتبع الاصبع عمودياً
 
-        if (pullDistance > 10) {
-            indicator.style.opacity = '1';
-            // نحركه من -50 (مخفي) إلى 0 أو أكثر
-            // معادلة بسيطة: كلما سحبت، يخرج المؤشر
-            const rightVal = -50 + (pullDistance * 0.8);
-            indicator.style.right = `${rightVal}px`;
+            indicator.classList.add('active'); // إظهار
 
-            // تدوير السهم وتكبيره عند الوصول للحد
-            if (pullDistance > 80) {
-                indicator.style.background = 'rgba(16, 185, 129, 0.9)'; // أخضر عند الجاهزية
-                icon.style.transform = 'scale(1.2)';
+            if (diffX > 100) {
+                indicator.classList.add('ready'); // جاهز للإنطلاق
             } else {
-                indicator.style.background = 'rgba(0, 0, 0, 0.6)';
-                icon.style.transform = 'scale(1)';
+                indicator.classList.remove('ready');
             }
         }
 
@@ -257,22 +252,15 @@ window.AuthSystem = AuthSystem;
         const touchEndX = e.changedTouches[0].screenX;
         const diffX = touchStartX - touchEndX;
 
-        // إخفاء المؤشر
-        indicator.style.right = '-50px';
-        indicator.style.opacity = '0';
-        indicator.style.background = 'rgba(0, 0, 0, 0.6)'; // reset color
+        // إرجاع المؤشر
+        indicator.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        indicator.style.right = '-80px';
+        indicator.classList.remove('active', 'ready');
 
-        if (diffX > 80) { // مسافة كافية للرجوع
-            // تنفيذ الرجوع بأنيميشن
+        if (diffX > 100) {
+            // تنفيذ الرجوع
             document.body.classList.add('sliding-back');
-
-            // Visual Pop effect
-            indicator.classList.add('release');
-            setTimeout(() => indicator.classList.remove('release'), 300);
-
-            setTimeout(() => {
-                window.history.back();
-            }, 100);
+            setTimeout(() => window.history.back(), 150);
         }
 
         isEdgeSwipe = false;
