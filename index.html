@@ -937,19 +937,25 @@
 
             const empId = AuthSystem.currentUser.id;
 
-            // جلب جميع المعاملات الخاصة بالموظف (السلف) بما في ذلك المرحلة
+            // جلب جميع المعاملات
             const allTxs = DataManager.getAllTransactions();
             const empName = AuthSystem.currentUser.name;
 
+            // البحث عن المعاملات التي تشير للموظف في الوصف
+            // حيث أن النظام يسجل السلف كـ 'expense' مع وصف "سلفة موظف: [الاسم]"
             const empAdvances = allTxs.filter(t => {
-                // البحث باستخدام ID
-                if (t.employeeId == empId && t.type === 'employee_advance') return true;
+                const desc = t.description || '';
 
-                // البحث باستخدام الاسم في الوصف (للحالات القديمة)
-                if (t.type === 'employee_advance' && t.description && t.description.includes(empName)) return true;
+                // 1. تطابق صريح إذا كان هناك معرف
+                if (t.employeeId == empId) return true;
 
-                // البحث في حالة ترحيل الراتب (قد يكون مسجلاً بنوع مختلف)
-                if (t.type === 'salary_payment' && t.employeeId == empId) return true;
+                // 2. البحث في الوصف (للسلف المسجلة كصرفيات)
+                // نتأكد أن الوصف يحتوي على اسم الموظف وكلمة "سلفة" أو "راتب"
+                if (desc.includes(empName)) {
+                    if (desc.includes('سلفة') || desc.includes('راتب') || desc.includes('مكافأة')) {
+                        return true;
+                    }
+                }
 
                 return false;
             }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
