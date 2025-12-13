@@ -11,6 +11,7 @@
     <!-- إضافة AuthSystem -->
     <script src="auth-system.js"></script>
     <script>AuthSystem.checkSession();</script>
+    <script src="auto-refresh.js"></script>
 
     <script type="module">
         import { DataManager } from './data-manager.js';
@@ -48,6 +49,17 @@
             </div>
             <div id="totalDebtDisplay" class="text-danger" style="font-size:1.5rem; font-weight:bold;">
                 0 د.ع
+            </div>
+        </div>
+
+        <!-- خانة البحث -->
+        <div class="stats-grid" style="margin-bottom: 20px;">
+            <div class="card">
+                <input type="text" id="debtSearch" placeholder="🔍 بحث بالاسم أو رقم الهاتف..." class="form-group"
+                    style="width:100%; margin:0; border:none; box-shadow:none; padding:12px; font-size:1.1rem; outline:none;"
+                    oninput="renderDebts()">
+                <i class="fas fa-search"
+                    style="color:var(--secondary); position:absolute; left:15px; top:50%; transform:translateY(-50%);"></i>
             </div>
         </div>
 
@@ -160,7 +172,21 @@
 
         window.renderDebts = function () {
             if (typeof DataManager === 'undefined') return;
-            const list = DataManager.getSubscribers().filter(s => parseInt(s.price || 0) > 0);
+
+            // الحصول على قيمة البحث
+            const searchQuery = document.getElementById('debtSearch')?.value.toLowerCase() || '';
+
+            // فلترة المشتركين الذين لديهم ديون
+            let list = DataManager.getSubscribers().filter(s => parseInt(s.price || 0) > 0);
+
+            // تطبيق البحث
+            if (searchQuery) {
+                list = list.filter(s =>
+                    s.name.toLowerCase().includes(searchQuery) ||
+                    (s.phone && s.phone.includes(searchQuery))
+                );
+            }
+
             const tbody = document.getElementById('debtsTableBody');
 
             // Calculate Total Debt

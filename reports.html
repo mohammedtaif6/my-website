@@ -7,6 +7,11 @@
     <title>التقارير - OK Computer</title>
     <link rel="stylesheet" href="style.css?v=13.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="auth-system.js"></script>
+    <script>AuthSystem.checkSession();</script>
+    <script src="auto-refresh.js"></script>
+
     <script type="module">
         import { DataManager } from './data-manager.js';
         window.DataManager = DataManager;
@@ -70,6 +75,62 @@
                 <div class="form-group" style="flex:1; margin:0;">
                     <label>إلى</label>
                     <input type="date" id="dateTo" onchange="generateReport()">
+                </div>
+            </div>
+        </div>
+
+        <!-- إحصائيات مالية جميلة -->
+        <div class="stats-grid"
+            style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 20px;">
+            <!-- إجمالي المقبوضات -->
+            <div class="card" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px;">
+                        <i class="fas fa-arrow-up" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div>
+                        <small style="opacity: 0.9;">إجمالي المقبوضات</small>
+                        <h2 id="stat-income" style="margin: 5px 0; font-size: 1.8rem;">0</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- إجمالي المصروفات -->
+            <div class="card" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white;">
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px;">
+                        <i class="fas fa-arrow-down" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div>
+                        <small style="opacity: 0.9;">إجمالي المصروفات</small>
+                        <h2 id="stat-expense" style="margin: 5px 0; font-size: 1.8rem;">0</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- الصافي -->
+            <div class="card" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white;">
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px;">
+                        <i class="fas fa-wallet" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div>
+                        <small style="opacity: 0.9;">الصافي</small>
+                        <h2 id="stat-net" style="margin: 5px 0; font-size: 1.8rem;">0</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- عدد المعاملات -->
+            <div class="card" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white;">
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px;">
+                        <i class="fas fa-receipt" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div>
+                        <small style="opacity: 0.9;">عدد المعاملات</small>
+                        <h2 id="stat-count" style="margin: 5px 0; font-size: 1.8rem;">0</h2>
+                    </div>
                 </div>
             </div>
         </div>
@@ -180,6 +241,17 @@
                     </tr>
                 `;
             });
+
+            // حساب الإحصائيات
+            const income = filtered.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
+            const expense = filtered.filter(t => t.amount < 0).reduce((sum, t) => sum + Math.abs(t.amount), 0);
+            const net = income - expense;
+
+            // عرض الإحصائيات
+            document.getElementById('stat-income').innerText = income.toLocaleString() + ' د.ع';
+            document.getElementById('stat-expense').innerText = expense.toLocaleString() + ' د.ع';
+            document.getElementById('stat-net').innerText = net.toLocaleString() + ' د.ع';
+            document.getElementById('stat-count').innerText = filtered.length.toLocaleString();
         };
 
         window.openEditModal = function (id) {
