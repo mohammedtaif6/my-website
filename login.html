@@ -487,9 +487,9 @@
                     const registrations = await navigator.serviceWorker.getRegistrations();
                     await Promise.all(registrations.map(reg => reg.unregister()));
                 }
-                window.location.href = 'index.html?t=' + Date.now();
+                window.location.replace('index.html?t=' + Date.now());
             } catch (e) {
-                window.location.href = 'index.html';
+                window.location.replace('index.html');
             }
         }
 
