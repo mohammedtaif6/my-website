@@ -177,3 +177,47 @@ const AuthSystem = {
 };
 
 window.AuthSystem = AuthSystem;
+
+// === Swipe Back Gesture Logic (Native App Feel) ===
+(function () {
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    document.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    document.addEventListener('touchend', e => {
+        const touchEndX = e.changedTouches[0].screenX;
+        const touchEndY = e.changedTouches[0].screenY;
+
+        const diffX = touchEndX - touchStartX; // الفرق الأفقي
+        const diffY = touchEndY - touchStartY; // الفرق العمودي
+
+        // شروط الرجوع (Swipe Right to Left - RTL Back):
+        // 1. السحب يجب أن يكون أفقياً بشكل أساسي (X > Y * 2)
+        // 2. المسافة يجب أن تكون كافية (> 80px)
+        // 3. الاتجاه: من اليمين لليسار (diffX < 0) في العربية
+        // 4. يجب أن يبدأ السحب من الحافة اليمنى للشاشة (للتأكد أنه قصد الرجوع وليس Scroll)
+        // عرض الشاشة
+        const screenWidth = window.innerWidth;
+
+        // المنطقة الآمنة للسحب (مثلاً آخر 50px من اليمين)
+        const isEdgeSwipe = touchStartX > (screenWidth - 50);
+
+        if (Math.abs(diffX) > Math.abs(diffY) * 2 && Math.abs(diffX) > 80 && isEdgeSwipe) {
+            // تحقق من الصفحة الحالية (لا نريد الرجوع من الرئيسية أو تسجيل الدخول)
+            const currentPath = window.location.pathname;
+            if (currentPath.includes('index.html') || currentPath.endsWith('/') || currentPath.includes('login.html')) {
+                return;
+            }
+
+            // تنفيذ الرجوع بأنيميشن
+            document.body.classList.add('sliding-back');
+            setTimeout(() => {
+                window.history.back();
+            }, 200); // تأخير بسيط ليظهر الأنيميشن
+        }
+    }, { passive: true });
+})();
