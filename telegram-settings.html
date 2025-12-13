@@ -29,23 +29,56 @@
             </div>
         </div>
 
-        <!-- خطوات الإعداد -->
+        <!-- QR Code للدخول السريع -->
         <div class="table-container" style="margin-bottom: 30px;">
             <div class="table-header">
-                <h3>📚 خطوات إنشاء البوت</h3>
+                <h3>📱 دخول سريع للنظام</h3>
             </div>
-            <div style="padding: 20px; background: white;">
-                <ol style="line-height: 2; padding-right: 20px;">
-                    <li>افتح تطبيق Telegram وابحث عن <code>@BotFather</code></li>
-                    <li>أرسل الأمر <code>/newbot</code> لإنشاء بوت جديد</li>
-                    <li>اختر اسم للبوت (مثال: OK Computer Bot)</li>
-                    <li>اختر username للبوت (يجب أن ينتهي بـ bot)</li>
-                    <li>ستحصل على <strong>Bot Token</strong> - انسخه وضعه أدناه</li>
-                    <li>ابحث عن <code>@userinfobot</code> في Telegram</li>
-                    <li>أرسل أي رسالة وستحصل على <strong>Chat ID</strong> - انسخه وضعه أدناه</li>
-                </ol>
+            <div
+                style="padding: 30px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); text-align: center;">
+                <div
+                    style="background: white; display: inline-block; padding: 25px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
+                    <div id="qr-code-container"
+                        style="width: 280px; height: 280px; margin: 0 auto; position: relative;">
+                        <!-- سيتم إنشاء QR Code هنا -->
+                    </div>
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 2px dashed #e0e0e0;">
+                        <h4 style="margin: 0 0 10px 0; color: #333; font-size: 1.1rem;">
+                            <i class="fas fa-qrcode" style="color: #667eea;"></i> امسح للدخول السريع
+                        </h4>
+                        <p style="margin: 0; color: #666; font-size: 0.9rem;">استخدم كاميرا هاتفك لمسح الكود والدخول
+                            مباشرة</p>
+                    </div>
+                </div>
+
+                <div
+                    style="margin-top: 25px; background: rgba(255,255,255,0.9); padding: 15px; border-radius: 12px; max-width: 400px; margin: 25px auto 0;">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; color: #555;">
+                        <i class="fas fa-link" style="color: #667eea;"></i>
+                        <span style="font-size: 0.9rem; word-break: break-all;" id="system-url">جاري التحميل...</span>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+        <script>
+            // إنشاء QR Code
+            window.addEventListener('load', () => {
+                const systemUrl = window.location.origin + '/index.html';
+                document.getElementById('system-url').textContent = systemUrl;
+
+                // إنشاء QR Code
+                new QRCode(document.getElementById('qr-code-container'), {
+                    text: systemUrl,
+                    width: 280,
+                    height: 280,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            });
+        </script>
 
         <!-- نموذج الإعدادات -->
         <div class="table-container">
