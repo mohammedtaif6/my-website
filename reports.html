@@ -32,7 +32,7 @@
 </head>
 
 <body>
-    <div id="ptr-indicator"><i class="fas fa-arrow-down"></i> اسحب للتحديث</div>
+
     <nav class="navbar">
         <div class="logo">
             <i class="fas fa-chart-line"></i> OK Computer
@@ -226,10 +226,19 @@
             filtered.forEach(t => {
                 const date = new Date(t.createdAt).toLocaleDateString('ar-IQ') + ' ' + new Date(t.createdAt).toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' });
                 const isExp = t.amount < 0;
+
+                // تحديد نوع المعاملة
+                let typeBadge = '';
+                if (t.type === 'employee_advance') {
+                    typeBadge = '<span class="badge" style="background: #ff9800; color: white; font-size: 0.75rem;">💸 سلفة موظف</span> ';
+                } else if (t.type === 'employee_reward') {
+                    typeBadge = '<span class="badge" style="background: #4caf50; color: white; font-size: 0.75rem;">🎁 مكافأة</span> ';
+                }
+
                 tbody.innerHTML += `
                     <tr>
                         <td data-label="التاريخ" style="font-size:0.85rem;">${date}</td>
-                        <td data-label="الوصف">${t.description || '-'}</td>
+                        <td data-label="الوصف">${typeBadge}${t.description || '-'}</td>
                         <td data-label="المبلغ" style="color:${isExp ? 'red' : 'green'}">${Math.abs(t.amount).toLocaleString()}</td>
                         <td data-label="الحالة">
                             ${t.isArchived ? '<span class="badge badge-success">مرحّل</span>' : '<span class="badge badge-warning">نشط</span>'}

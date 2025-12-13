@@ -2,7 +2,7 @@
   "name": "SAS - نظام إدارة الاشتراكات",
   "short_name": "SAS",
   "description": "نظام إدارة شامل للاشتراكات والصيانات والمدفوعات",
-  "start_url": "/index.html",
+  "start_url": "/my-website/index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#667eea",
