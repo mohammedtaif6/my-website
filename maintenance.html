@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تسجيل صيانة - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=19.0">
+    <link rel="stylesheet" href="style.css?v=21.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="auth-system.js"></script>
@@ -14,130 +14,567 @@
         window.DataManager = DataManager;
         DataManager.init();
     </script>
+    <style>
+        :root {
+            --maint-primary: #ff9800;
+            --maint-secondary: #f57c00;
+            --maint-bg: #fffbf0;
+        }
+
+        body {
+            background-color: #fcefe3;
+            /* خلفية برتقالية فاتحة جداً */
+        }
+
+        .maint-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding-bottom: 80px;
+        }
+
+        /* كروت الأقسام */
+        .section-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+
+        .section-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            color: #444;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .section-title i {
+            color: var(--maint-primary);
+            background: var(--maint-bg);
+            width: 35px;
+            height: 35px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        /* بحث المشترك */
+        .search-wrapper {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: 2px solid #eee;
+            border-radius: 15px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background: #fafafa;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--maint-primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(255, 152, 0, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+            font-size: 1.2rem;
+        }
+
+        /* كارت المشترك المختار */
+        .selected-subscriber-card {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            border-radius: 15px;
+            padding: 15px;
+            display: none;
+            /* مخفي افتراضياً */
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid #ffcc80;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .sub-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .sub-avatar {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--maint-primary);
+            font-size: 1.5rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .remove-btn {
+            background: white;
+            color: #ef5350;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .remove-btn:hover {
+            transform: scale(1.1);
+            background: #ffebee;
+        }
+
+        /* خيارات نوع الصيانة (Chips) */
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+        }
+
+        .problem-option {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .problem-option input {
+            display: none;
+        }
+
+        .problem-card {
+            background: #f8f9fa;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.2s;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .problem-card i {
+            font-size: 1.5rem;
+            color: #888;
+            transition: all 0.2s;
+        }
+
+        .problem-card span {
+            font-weight: 600;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .problem-option input:checked+.problem-card {
+            border-color: var(--maint-primary);
+            background: #fff3e0;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.2);
+        }
+
+        .problem-option input:checked+.problem-card i,
+        .problem-option input:checked+.problem-card span {
+            color: #e65100;
+        }
+
+        /* مفتاح التبديل (Switch) */
+        .switch-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #4caf50;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(22px);
+        }
+
+        /* زر الإرسال */
+        .submit-btn {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 18px;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(245, 124, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245, 124, 0, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Timeline للصيانات السابقة */
+        .timeline-item {
+            position: relative;
+            padding-right: 30px;
+            margin-bottom: 25px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            background: var(--maint-primary);
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px #ffe0b2;
+            z-index: 2;
+        }
+
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            right: 5px;
+            top: 17px;
+            bottom: -30px;
+            width: 2px;
+            background: #ffe0b2;
+            z-index: 1;
+        }
+
+        .timeline-item:last-child::after {
+            display: none;
+        }
+
+        .timeline-content {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border-right: 4px solid var(--maint-primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .maint-container {
+                padding: 10px;
+                padding-bottom: 80px;
+            }
+
+            .problem-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <script>
-        AuthSystem.checkSession();
-    </script>
+    <script>AuthSystem.checkSession();</script>
 
     <nav class="navbar">
-        <div class="logo"><i class="fas fa-wrench"></i> تسجيل صيانة</div>
+        <div class="logo"><i class="fas fa-wrench"></i> إدارة الصيانة</div>
         <ul class="nav-links">
             <li><a href="index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
             <li><a href="#" onclick="AuthSystem.logout()"><i class="fas fa-sign-out-alt"></i> خروج</a></li>
         </ul>
     </nav>
 
-    <div class="container">
-        <div class="header-card"
-            style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white; border: none;">
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <div
-                    style="background: rgba(255,255,255,0.2); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
-                    <i class="fas fa-wrench" style="font-size: 1.5rem;"></i>
-                </div>
-                <div style="flex: 1;">
-                    <h1 style="font-size: 1.3rem; margin: 0 0 3px 0;">تسجيل صيانة جديدة</h1>
-                    <p id="employee-name" style="margin: 0; font-size: 0.9rem; opacity: 0.95;">جاري التحميل...</p>
-                </div>
-            </div>
+    <div class="container maint-container">
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 30px; padding: 20px 0;">
+            <h1 style="color: #333; margin-bottom: 5px; font-size: 1.8rem;">تسجيل صيانة جديدة</h1>
+            <p style="color: #666; font-size: 0.95rem;">
+                <i class="fas fa-user-circle" style="color: var(--maint-primary);"></i>
+                <span id="employee-name">جاري التحميل...</span>
+            </p>
         </div>
 
-        <div class="modal-box" style="position: static; max-width: 600px; margin: 0 auto; animation: none;">
-            <div class="modal-body">
-                <form id="maintenanceForm" onsubmit="window.submitMaintenance(event)">
-                    <!-- المشترك -->
-                    <div class="form-group">
-                        <label><i class="fas fa-user"></i> اسم المشترك</label>
-                        <input type="text" id="sub-name" placeholder="ابحث عن المشترك..."
-                            oninput="window.searchSubscriber(this.value)" autocomplete="off" required>
-                        <div id="search-results"
-                            style="display:none; border:1px solid #ddd; max-height:150px; overflow-y:auto; margin-top:5px; border-radius:8px;">
+        <form id="maintenanceForm" onsubmit="window.submitMaintenance(event)">
+
+            <!-- 1. المشترك -->
+            <div class="section-card">
+                <div class="section-title">
+                    <i class="fas fa-user"></i>
+                    بيانات المشترك
+                </div>
+
+                <!-- البحث -->
+                <div class="search-wrapper" id="search-box">
+                    <input type="text" class="search-input" id="sub-name" placeholder="ابحث بالاسم أو الرقم..."
+                        oninput="window.searchSubscriber(this.value)" autocomplete="off">
+                    <i class="fas fa-search search-icon"></i>
+
+                    <!-- نتائج البحث -->
+                    <div id="search-results"
+                        style="display:none; position: absolute; top: 100%; left: 0; right: 0; background: white; border-radius: 15px; padding: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 100; margin-top: 5px;">
+                    </div>
+                </div>
+
+                <!-- المشترك المختار -->
+                <div id="selected-subscriber" class="selected-subscriber-card">
+                    <div class="sub-info">
+                        <div class="sub-avatar">
+                            <i class="fas fa-user"></i>
                         </div>
-                        <input type="hidden" id="sub-id">
-                        <input type="hidden" id="sub-phone">
+                        <div>
+                            <h3 id="sel-sub-name" style="margin: 0; color: #333;">-</h3>
+                            <p id="sel-sub-phone" style="margin: 5px 0 0 0; color: #666; font-size: 0.9rem;">-</p>
+                        </div>
+                    </div>
+                    <button type="button" class="remove-btn" onclick="window.clearSubscriberSelection()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <input type="hidden" id="sub-id">
+                    <input type="hidden" id="sub-phone-hidden">
+                </div>
+            </div>
+
+            <!-- 2. تفاصيل الصيانة -->
+            <div class="section-card">
+                <div class="section-title">
+                    <i class="fas fa-tools"></i>
+                    نوع العطل والصيانة
+                </div>
+
+                <div class="problem-grid">
+                    <label class="problem-option">
+                        <input type="radio" name="maint-type" value="استبدال كيبل" required>
+                        <div class="problem-card">
+                            <i class="fas fa-network-wired"></i>
+                            <span>استبدال كيبل</span>
+                        </div>
+                    </label>
+
+                    <label class="problem-option">
+                        <input type="radio" name="maint-type" value="استبدال راوتر">
+                        <div class="problem-card">
+                            <i class="fas fa-wifi"></i>
+                            <span>استبدال راوتر</span>
+                        </div>
+                    </label>
+
+                    <label class="problem-option">
+                        <input type="radio" name="maint-type" value="إعدادات وتهيئة">
+                        <div class="problem-card">
+                            <i class="fas fa-cogs"></i>
+                            <span>إعدادات / برمجة</span>
+                        </div>
+                    </label>
+
+                    <label class="problem-option">
+                        <input type="radio" name="maint-type" value="إصلاح خط">
+                        <div class="problem-card">
+                            <i class="fas fa-cut"></i>
+                            <span>إصلاح قطع/خط</span>
+                        </div>
+                    </label>
+
+                    <label class="problem-option">
+                        <input type="radio" name="maint-type" value="فحص وتشخيص">
+                        <div class="problem-card">
+                            <i class="fas fa-stethoscope"></i>
+                            <span>فحص وتشخيص</span>
+                        </div>
+                    </label>
+
+                    <label class="problem-option">
+                        <input type="radio" name="maint-type" value="أخرى">
+                        <div class="problem-card">
+                            <i class="fas fa-question-circle"></i>
+                            <span>أخرى</span>
+                        </div>
+                    </label>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">القطع المستخدمة
+                        (اختياري)</label>
+                    <input type="text" id="maint-parts" placeholder="مثال: راوتر TPLink, كيبل 20 متر..."
+                        style="width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; background: #fafafa;">
+                </div>
+            </div>
+
+            <!-- 3. التكلفة والدفع -->
+            <div class="section-card">
+                <div class="section-title">
+                    <i class="fas fa-money-bill-wave"></i>
+                    التكلفة والدفع
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">المبلغ
+                            المطلوب</label>
+                        <div style="position: relative;">
+                            <input type="number" id="maint-cost" placeholder="0" min="0"
+                                style="width: 100%; padding: 12px 12px 12px 40px; border: 2px solid #eee; border-radius: 10px; font-weight: bold; font-size: 1.1rem;">
+                            <span
+                                style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888; font-weight: bold;">د.ع</span>
+                        </div>
                     </div>
 
-                    <!-- نوع الصيانة -->
-                    <div class="form-group">
-                        <label><i class="fas fa-tools"></i> نوع الصيانة</label>
-                        <select id="maint-type" required>
-
-                            <option value="">-- اختر --</option>
-                            <option value="استبدال كيبل">استبدال كيبل</option>
-                            <option value="استبدال راوتر">استبدال راوتر</option>
-                            <option value="إعدادات وتهيئة">إعدادات وتهيئة</option>
-                            <option value="إصلاح خط">إصلاح خط</option>
-                            <option value="فحص وتشخيص">فحص وتشخيص</option>
-                            <option value="أخرى">أخرى</option>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">حالة
+                            الدفع</label>
+                        <select id="maint-paid"
+                            style="width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; background: white;">
+                            <option value="مدفوع نقداً">مدفوع نقداً 💵</option>
+                            <option value="مدفوع على الاشتراك">سجل كدين 📒</option>
+                            <option value="مجاني">مجاني 🎁</option>
                         </select>
                     </div>
-
-                    <!-- القطع المستبدلة -->
-                    <div class="form-group">
-                        <label><i class="fas fa-box"></i> القطع المستبدلة (اختياري)</label>
-                        <input type="text" id="maint-parts" placeholder="مثال: كيبل 20 متر، راوتر TP-Link">
-                    </div>
-
-                    <!-- التكلفة -->
-                    <div class="form-grid">
-                        <div class="form-group" style="margin:0">
-                            <label><i class="fas fa-money-bill"></i> التكلفة</label>
-                            <input type="number" id="maint-cost" placeholder="0" value="0" min="0">
-                        </div>
-                        <div class="form-group" style="margin:0">
-                            <label><i class="fas fa-credit-card"></i> الدفع</label>
-                            <select id="maint-paid">
-                                <option value="مجاني">مجاني</option>
-                                <option value="مدفوع نقداً">مدفوع نقداً</option>
-                                <option value="مدفوع على الاشتراك">مدفوع على الاشتراك</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- ملاحظات -->
-                    <div class="form-group">
-                        <label><i class="fas fa-sticky-note"></i> ملاحظات (اختياري)</label>
-                        <textarea id="maint-notes" rows="3" placeholder="أي ملاحظات إضافية..."
-                            style="width:100%; padding:14px; border:2px solid var(--border-color); border-radius:var(--radius-md); font-family:inherit;"></textarea>
-                    </div>
-
-                    <!-- إرسال واتساب -->
-                    <div class="form-group"
-                        style="background:#e8f5e9; padding:15px; border-radius:10px; border:1px solid #81c784;">
-                        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; margin:0;">
-                            <input type="checkbox" id="send-whatsapp" checked style="width:20px; height:20px;">
-                            <span style="font-weight:bold; color:#2e7d32;"><i class="fab fa-whatsapp"></i> إرسال تفاصيل
-                                الصيانة للمشترك</span>
-                        </label>
-                    </div>
-
-                    <button type="submit" class="btn btn-success btn-full" style="margin-top:20px;">
-                        <i class="fas fa-check-circle"></i> تسجيل الصيانة
-                    </button>
-                </form>
+                </div>
             </div>
-        </div>
+
+            <!-- 4. الملاحظات والواتساب -->
+            <div class="section-card">
+                <div class="section-title">
+                    <i class="fas fa-tasks"></i>
+                    إجراءات إضافية
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <textarea id="maint-notes" rows="3" placeholder="ملاحظات فنية إضافية..."
+                        style="width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; resize: none;"></textarea>
+                </div>
+
+                <div class="switch-container">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div
+                            style="width: 35px; height: 35px; background: #e8f5e9; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #4caf50;">
+                            <i class="fab fa-whatsapp"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: bold; color: #333;">إرسال تفاصيل للمشترك</div>
+                            <div style="font-size: 0.8rem; color: #888;">سيتم إرسال رسالة واتساب تلقائياً</div>
+                        </div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="send-whatsapp" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                <i class="fas fa-check-circle"></i>
+                حفظ وإرسال الصيانة
+            </button>
+        </form>
 
         <!-- سجل الصيانات -->
-        <div class="table-container" style="margin-top:30px;">
-            <div class="table-header">
-                <h3><i class="fas fa-history"></i> آخر الصيانات</h3>
-            </div>
-            <div id="recent-maintenances" style="padding:20px;">
-                <p style="text-align:center; color:#888;">جاري التحميل...</p>
+        <div style="margin-top: 40px; border-top: 2px dashed #ddd; padding-top: 30px;">
+            <h3 style="margin-bottom: 25px; color: #444; text-align: center;">📜 آخر الصيانات التي قمت بها</h3>
+            <div id="recent-maintenances">
+                <!-- Data will be loaded here -->
             </div>
         </div>
     </div>
 
+    <!-- Scripts -->
     <script>
         // عرض اسم الموظف
         if (AuthSystem.currentUser) {
-            document.getElementById('employee-name').innerText = `الموظف: ${AuthSystem.currentUser.name}`;
+            document.getElementById('employee-name').innerText = AuthSystem.currentUser.name;
         }
 
-        // البحث عن مشترك
+        // 1. منطق البحث المحسن
         window.searchSubscriber = (query) => {
             const results = document.getElementById('search-results');
             if (!query || query.length < 2) {
@@ -149,100 +586,158 @@
             if (subs.length > 0) {
                 results.innerHTML = subs.slice(0, 5).map(s => `
                     <div onclick="window.selectSubscriber(${s.id}, '${s.name}', '${s.phone || ''}')" 
-                         style="padding:12px; cursor:pointer; border-bottom:1px solid #eee; transition:background 0.2s;"
-                         onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'">
-                        <strong>${s.name}</strong>
-                        ${s.phone ? `<br><small style="color:#666;"><i class="fas fa-phone"></i> ${s.phone}</small>` : ''}
+                         style="padding: 12px; cursor: pointer; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: bold; color: #333;">${s.name}</div>
+                            <div style="font-size: 0.85rem; color: #888;">${s.phone || 'بدون رقم'}</div>
+                        </div>
+                        <i class="fas fa-chevron-left" style="color: #ddd; font-size: 0.8rem;"></i>
                     </div>
                 `).join('');
                 results.style.display = 'block';
             } else {
-                results.innerHTML = '<div style="padding:12px; color:#888;">لا توجد نتائج</div>';
+                results.innerHTML = '<div style="padding:15px; text-align:center; color:#999;">لا توجد نتائج</div>';
                 results.style.display = 'block';
             }
         };
 
+        // 2. اختيار المشترك (Visual Update)
         window.selectSubscriber = (id, name, phone) => {
-            document.getElementById('sub-name').value = name;
+            // ملء البيانات المخفية
             document.getElementById('sub-id').value = id;
-            document.getElementById('sub-phone').value = phone;
+            document.getElementById('sub-phone-hidden').value = phone;
+
+            // تحديث واجهة الكارت
+            document.getElementById('sel-sub-name').innerText = name;
+            document.getElementById('sel-sub-phone').innerText = phone || 'لا يوجد رقم';
+
+            // إخفاء البحث وإظهار الكارت
+            document.getElementById('search-box').style.display = 'none';
             document.getElementById('search-results').style.display = 'none';
+            document.getElementById('selected-subscriber').style.display = 'flex';
         };
 
-        // إرسال الصيانة
+        // 3. إلغاء الاختيار
+        window.clearSubscriberSelection = () => {
+            document.getElementById('sub-id').value = '';
+            document.getElementById('sub-phone-hidden').value = '';
+            document.getElementById('sub-name').value = ''; // Clear search input
+
+            document.getElementById('selected-subscriber').style.display = 'none';
+            document.getElementById('search-box').style.display = 'block';
+            document.getElementById('sub-name').focus();
+        };
+
+        // 4. إرسال الصيانة
         window.submitMaintenance = async (e) => {
             e.preventDefault();
 
+            // الحصول على نوع الصيانة المختار (Radio)
+            const typeInput = document.querySelector('input[name="maint-type"]:checked');
+
             const data = {
                 subscriberId: document.getElementById('sub-id').value,
-                subscriberName: document.getElementById('sub-name').value,
-                subscriberPhone: document.getElementById('sub-phone').value,
-                type: document.getElementById('maint-type').value,
+                subscriberName: document.getElementById('sel-sub-name').innerText,
+                subscriberPhone: document.getElementById('sub-phone-hidden').value,
+                type: typeInput ? typeInput.value : '',
                 parts: document.getElementById('maint-parts').value,
                 cost: parseInt(document.getElementById('maint-cost').value) || 0,
                 paymentType: document.getElementById('maint-paid').value,
                 notes: document.getElementById('maint-notes').value,
                 sendWhatsApp: document.getElementById('send-whatsapp').checked,
-                employeeId: AuthSystem.currentUser.id,
+                employeeId: AuthSystem.currentUser.id, // Important
                 employeeName: AuthSystem.currentUser.name
             };
 
             if (!data.subscriberId) {
-                return alert('الرجاء اختيار المشترك من القائمة');
+                DataManager.showToast('⚠️ يرجى اختيار مشترك أولاً', 'error');
+                return;
+            }
+            if (!data.type) {
+                DataManager.showToast('⚠️ يرجى تحديد نوع العطل', 'error');
+                return;
             }
 
-            await DataManager.addMaintenance(data);
+            try {
+                // حفظ البيانات
+                await DataManager.addMaintenance(data);
 
-            // مسح النموذج
-            document.getElementById('maintenanceForm').reset();
-            document.getElementById('sub-id').value = '';
-            document.getElementById('sub-phone').value = '';
+                // إعادة تعيين النموذج
+                document.getElementById('maintenanceForm').reset();
+                window.clearSubscriberSelection();
 
-            loadRecentMaintenances();
+                loadRecentMaintenances();
+                DataManager.showToast('✅ تم تسجيل الصيانة بنجاح', 'success');
+
+            } catch (error) {
+                DataManager.showToast('❌ حدث خطأ: ' + error.message, 'error');
+            }
         };
 
-        // تحميل آخر الصيانات
+        // 5. تحميل السجل (Timeline Style)
         async function loadRecentMaintenances() {
             const maintenances = DataManager.getMaintenances();
             const container = document.getElementById('recent-maintenances');
 
             if (!maintenances || maintenances.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#888;">لا توجد صيانات مسجلة</p>';
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 30px; color: #999;">
+                        <i class="fas fa-clipboard-list" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.3;"></i>
+                        <p>لا توجد سجلات صيانة حالياً</p>
+                    </div>
+                `;
                 return;
             }
 
-            // عرض آخر 5 صيانات للموظف الحالي
+            // تصفية وعرض آخر 5 صيانات للموظف
             const myMaintenances = maintenances
                 .filter(m => m.employeeId == AuthSystem.currentUser.id)
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
                 .slice(0, 5);
 
             if (myMaintenances.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#888;">لم تسجل أي صيانات بعد</p>';
+                container.innerHTML = '<p style="text-align:center; color:#888;">لم تقم بأي صيانات بعد</p>';
                 return;
             }
 
-            container.innerHTML = myMaintenances.map(m => `
-                <div style="background:#f9f9f9; padding:15px; margin-bottom:10px; border-radius:10px; border-right:4px solid var(--primary);">
-                    <div style="font-weight:bold; margin-bottom:8px;">
-                        <i class="fas fa-user"></i> ${m.subscriberName}
-                    </div>
-                    <div style="color:#666; font-size:0.9rem;">
-                        <i class="fas fa-tools"></i> ${m.type} 
-                        ${m.cost > 0 ? `• <i class="fas fa-money-bill"></i> ${m.cost.toLocaleString()} د.ع` : '• مجاني'}
-                    </div>
-                    <div style="color:#888; font-size:0.8rem; margin-top:5px;">
-                        <i class="fas fa-clock"></i> ${new Date(m.createdAt).toLocaleString('ar-IQ')}
+            container.innerHTML = myMaintenances.map(m => {
+                const date = new Date(m.createdAt);
+
+                return `
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                            <strong style="font-size: 1.05rem; color: #333;">${m.subscriberName}</strong>
+                            <span class="badge" style="background:#fff3e0; color:#e65100;">${m.type}</span>
+                        </div>
+                        
+                        <div style="color: #666; font-size: 0.9rem; margin-bottom: 5px;">
+                            <i class="fas fa-money-bill-wave" style="color: #aaa; width: 20px;"></i>
+                            ${m.cost > 0 ? m.cost.toLocaleString() + ' د.ع (' + m.paymentType + ')' : 'مجاني'}
+                        </div>
+                        
+                        <div style="color: #999; font-size: 0.8rem; display: flex; justify-content: space-between;">
+                            <span>
+                                <i class="far fa-clock"></i> 
+                                ${date.toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' })}
+                                - ${date.toLocaleDateString('ar-IQ')}
+                            </span>
+                        </div>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
-        // تحميل الصيانات عند بدء الصفحة
+        // تشغيل التحميل
         setInterval(() => {
-            if (typeof DataManager !== 'undefined') {
-                loadRecentMaintenances();
-            }
-        }, 2000);
+            if (typeof DataManager !== 'undefined') loadRecentMaintenances();
+        }, 3000);
+
+        // Initial load check
+        setTimeout(() => {
+            if (typeof DataManager !== 'undefined') loadRecentMaintenances();
+        }, 1000);
+
     </script>
 </body>
 
