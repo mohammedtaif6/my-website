@@ -1,34 +1,67 @@
 {
-  "name": "OKComputer - لوحة التحكم",
-  "short_name": "OKComputer",
-  "description": "تطبيق إدارة الاشتراكات والديون والمبالغ المستلمة",
-  "start_url": "./index.html",
+  "name": "SAS - نظام إدارة الاشتراكات",
+  "short_name": "SAS",
+  "description": "نظام إدارة شامل للاشتراكات والصيانات والمدفوعات",
+  "start_url": "/index.html",
   "display": "standalone",
-  "orientation": "portrait-primary",
   "background_color": "#ffffff",
-  "theme_color": "#1e40af",
-  "scope": "./",
+  "theme_color": "#667eea",
+  "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%231e40af' width='192' height='192'/><text x='50%' y='50%' font-size='80' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle' font-family='Arial'>OC</text></svg>",
-      "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "any"
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%231e40af' width='512' height='512'/><text x='50%' y='50%' font-size='250' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle' font-family='Arial'>OC</text></svg>",
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
-  "screenshots": [
-    {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%23f3f4f6' width='540' height='720'/><rect fill='%231e3a8a' width='540' height='60'/><text x='270' y='35' font-size='24' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'>OKComputer</text></svg>",
-      "sizes": "540x720",
-      "type": "image/svg+xml",
-      "form_factor": "narrow"
-    }
+  "categories": [
+    "business",
+    "finance",
+    "productivity"
   ],
-  "categories": ["business", "productivity"]
+  "lang": "ar",
+  "dir": "rtl"
 }

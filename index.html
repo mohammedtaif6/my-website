@@ -4,7 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>لوحة القيادة - OK Computer</title>
+    <meta name="description" content="نظام SAS لإدارة الاشتراكات والصيانات والمدفوعات">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SAS">
+
+    <title>SAS - لوحة القيادة</title>
+
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-512x512.png">
+    <link rel="apple-touch-icon" href="/icons/icon-512x512.png">
+
     <link rel="stylesheet" href="style.css?v=18.4">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -773,8 +784,15 @@
                 return;
             }
 
+            // التحقق من وجود DataManager
+            if (typeof DataManager === 'undefined' || !DataManager.subscribers) {
+                resultsDiv.innerHTML = '<div style="padding:10px; text-align:center; color:#999;">جاري تحميل البيانات...</div>';
+                resultsDiv.style.display = 'block';
+                return;
+            }
+
             // البحث عن المشتركين الذين لديهم ديون
-            const subs = DataManager.getSubscribers();
+            const subs = DataManager.subscribers || [];
             const debtors = subs.filter(s => {
                 const hasDebt = s.price && parseInt(s.price) > 0;
                 const matchesQuery = s.name.toLowerCase().includes(query.toLowerCase()) ||
@@ -789,11 +807,12 @@
             }
 
             resultsDiv.innerHTML = debtors.slice(0, 5).map(s => `
-                <div onclick="window.selectDebtor(${s.id}, '${s.firebaseId}', '${s.name}', ${s.price || 0})" 
-                     style="padding:10px; cursor:pointer; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                <div onclick="window.selectDebtor(${s.id}, '${s.firebaseId}', '${s.name.replace(/'/g, "\\'")}', ${s.price || 0})"
+                     style="padding:12px; cursor:pointer; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; transition: background 0.2s;"
+                     onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'">
                     <div>
-                        <strong>${s.name}</strong>
-                        <div style="font-size:0.85rem; color:#666;">${s.phone || '-'}</div>
+                        <strong style="color:#333;">${s.name}</strong>
+                        <div style="font-size:0.85rem; color:#666;">${s.phone || 'لا يوجد رقم'}</div>
                     </div>
                     <div style="color:#d32f2f; font-weight:bold;">${parseInt(s.price || 0).toLocaleString()} د.ع</div>
                 </div>
