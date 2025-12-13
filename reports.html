@@ -3,291 +3,431 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>التقارير - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=13.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقارير الصندوق - OK Computer</title>
+    <link rel="stylesheet" href="style.css?v=21.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="auth-system.js"></script>
-    <script>AuthSystem.checkSession();</script>
-    <script src="auto-refresh.js"></script>
-
     <script type="module">
         import { DataManager } from './data-manager.js';
         window.DataManager = DataManager;
         DataManager.init();
     </script>
+
     <style>
-        #ptr-indicator {
+        .report-header {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .date-input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+
+        .report-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
             text-align: center;
-            color: var(--secondary);
-            height: 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .summary-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin: 10px 0;
+            color: var(--primary);
+        }
+
+        .summary-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .transactions-list {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             overflow: hidden;
-            transition: height 0.3s;
+        }
+
+        .transaction-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .transaction-item:hover {
+            background: #f9fafb;
+        }
+
+        .tx-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .tx-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: #f0f2f5;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: #666;
+        }
+
+        .income {
+            color: #10b981;
+        }
+
+        .expense {
+            color: #ef4444;
+        }
+
+        @media (max-width: 600px) {
+            .report-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group {
+                flex-direction: column;
+            }
+
+            .date-input {
+                width: 100%;
+            }
+        }
+
+        /* تنسيق زر الأرشفة */
+        .archive-btn {
+            background: linear-gradient(135deg, #607d8b 0%, #455a64 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .archive-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(96, 125, 139, 0.3);
+        }
+
+        .toggle-archive-btn {
+            background: transparent;
+            border: 1px solid #ccc;
+            color: #666;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-left: 10px;
         }
     </style>
 </head>
 
 <body>
+    <script>AuthSystem.checkSession();</script>
 
     <nav class="navbar">
-        <div class="logo">
-            <i class="fas fa-chart-line"></i> OK Computer
-            <span id="user-name-display"
-                style="font-size:0.8rem; margin-right:10px;opacity:0.8;font-weight:normal;"></span>
-        </div>
+        <div class="logo"><i class="fas fa-chart-pie"></i> التقارير المالية</div>
         <ul class="nav-links">
             <li><a href="index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
-            <li id="nav-subscribers"><a href="subscribers.html"><i class="fas fa-users"></i> المشتركين</a></li>
-            <li id="nav-debts"><a href="debts.html"><i class="fas fa-money-bill-wave"></i> الديون</a></li>
-            <li id="nav-payments"><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> الصندوق</a></li>
-            <li id="nav-reports"><a href="reports.html" class="active"><i class="fas fa-chart-bar"></i> التقارير</a>
-            </li>
-            <li id="nav-employees"><a href="employees.html"><i class="fas fa-users-cog"></i> الموظفين</a></li>
-            <li id="nav-telegram"><a href="telegram-settings.html"><i class="fab fa-telegram"></i> Telegram</a></li>
             <li><a href="#" onclick="AuthSystem.logout()"><i class="fas fa-sign-out-alt"></i> خروج</a></li>
         </ul>
     </nav>
 
-    <div class="container">
+    <div class="container" style="padding-bottom: 80px;">
 
-        <div class="header-card">
-            <div>
-                <h1>السجل المالي الشامل</h1>
-                <p>الأرشيف والتعديلات</p>
-            </div>
-            <div>
-                <button onclick="window.print()" class="btn btn-outline">
-                    <i class="fas fa-print"></i> طباعة
+        <!-- Header & Filters -->
+        <div class="report-header">
+            <h2 style="margin:0;">📊 كشف الحساب</h2>
+            <div class="filter-group">
+                <button id="show-archived-btn" class="toggle-archive-btn" onclick="toggleArchivedView()">
+                    <i class="fas fa-history"></i> عرض الأرشيف السابق
+                </button>
+                <select id="report-period" class="date-input" onchange="updateReport()">
+                    <option value="daily">يومي</option>
+                    <option value="monthly" selected>شهري</option>
+                    <option value="all">الكل</option>
+                </select>
+                <!-- زر الأرشفة الجديد -->
+                <button onclick="archiveCurrentView()" class="archive-btn" id="archive-btn">
+                    <i class="fas fa-box-archive"></i> إغلاق الفترة المالية
                 </button>
             </div>
         </div>
 
-        <div class="card" style="margin-bottom: 20px;">
-            <div style="display: flex; gap: 10px; align-items: flex-end;">
-                <div class="form-group" style="flex:1; margin:0;">
-                    <label>من</label>
-                    <input type="date" id="dateFrom" onchange="generateReport()">
-                </div>
-                <div class="form-group" style="flex:1; margin:0;">
-                    <label>إلى</label>
-                    <input type="date" id="dateTo" onchange="generateReport()">
+        <!-- Summary Cards -->
+        <div class="report-summary">
+            <div class="summary-card">
+                <div class="summary-label">إجمالي المقبوضات</div>
+                <div class="summary-value income" id="total-income">0</div>
+                <div style="font-size:0.8rem; color:#10b981;">
+                    <i class="fas fa-arrow-up"></i> واردات
                 </div>
             </div>
-        </div>
-
-        <!-- إحصائيات مالية جميلة -->
-        <div class="stats-grid"
-            style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 20px;">
-            <!-- إجمالي المقبوضات -->
-            <div class="card" onclick="showIncomeDetails()"
-                style="background: linear-gradient(135deg, #10b981, #059669); color: white; cursor: pointer; transition: transform 0.2s;"
-                onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
-                <div style="display: flex; gap: 15px; align-items: center;">
-                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px;">
-                        <i class="fas fa-arrow-up" style="font-size: 1.5rem;"></i>
-                    </div>
-                    <div>
-                        <small style="opacity: 0.9;">إجمالي المقبوضات</small>
-                        <h2 id="stat-income" style="margin: 5px 0; font-size: 1.8rem;">0</h2>
-                    </div>
+            <div class="summary-card">
+                <div class="summary-label">إجمالي المصروفات</div>
+                <div class="summary-value expense" id="total-expense">0</div>
+                <div style="font-size:0.8rem; color:#ef4444;">
+                    <i class="fas fa-arrow-down"></i> مصروفات ورواتب
                 </div>
             </div>
-
-            <!-- إجمالي المصروفات -->
-            <div class="card" onclick="showExpenseDetails()"
-                style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; cursor: pointer; transition: transform 0.2s;"
-                onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
-                <div style="display: flex; gap: 15px; align-items: center;">
-                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px;">
-                        <i class="fas fa-arrow-down" style="font-size: 1.5rem;"></i>
-                    </div>
-                    <div>
-                        <small style="opacity: 0.9;">إجمالي المصروفات</small>
-                        <h2 id="stat-expense" style="margin: 5px 0; font-size: 1.8rem;">0</h2>
-                    </div>
-                </div>
-            </div>
-
-            <!-- الصافي -->
-            <div class="card" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white;">
-                <div style="display: flex; gap: 15px; align-items: center;">
-                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px;">
-                        <i class="fas fa-wallet" style="font-size: 1.5rem;"></i>
-                    </div>
-                    <div>
-                        <small style="opacity: 0.9;">الصافي</small>
-                        <h2 id="stat-net" style="margin: 5px 0; font-size: 1.8rem;">0</h2>
-                    </div>
-                </div>
-            </div>
-
-            <!-- عدد المعاملات -->
-            <div class="card" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white;">
-                <div style="display: flex; gap: 15px; align-items: center;">
-                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px;">
-                        <i class="fas fa-receipt" style="font-size: 1.5rem;"></i>
-                    </div>
-                    <div>
-                        <small style="opacity: 0.9;">عدد المعاملات</small>
-                        <h2 id="stat-count" style="margin: 5px 0; font-size: 1.8rem;">0</h2>
-                    </div>
+            <div class="summary-card">
+                <div class="summary-label">صافي الصندوق</div>
+                <div class="summary-value" id="net-balance" style="color:var(--primary);">0</div>
+                <div style="font-size:0.8rem; color:#666;">
+                    الرصيد الحالي
                 </div>
             </div>
         </div>
 
-        <div class="table-container">
-            <div class="table-header">
-                <h3>سجل العمليات (يمكن التعديل والحذف)</h3>
-            </div>
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>التاريخ</th>
-                            <th>الوصف</th>
-                            <th>المبلغ</th>
-                            <th>حالة الأرشيف</th>
-                            <th>تحكم</th>
-                        </tr>
-                    </thead>
-                    <tbody id="reportBody"></tbody>
-                </table>
+        <!-- Transactions List -->
+        <h3 style="margin-bottom:15px; color:#444;">📝 تفاصيل العمليات <span id="view-mode-label"
+                style="font-size: 0.8rem; color:#888;">(نشط)</span></h3>
+        <div class="transactions-list" id="report-list">
+            <div style="padding:40px; text-align:center; color:#999;">
+                <i class="fas fa-spinner fa-spin fa-2x"></i>
+                <p style="margin-top:10px;">جاري تحميل البيانات...</p>
             </div>
         </div>
+
     </div>
 
-    <!-- Edit Transaction Modal -->
-    <div id="editTxModal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3>تعديل المعاملة</h3>
-                <button class="close-btn" onclick="closeEditModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="edit-id">
-                <div class="form-group">
-                    <label>الوصف</label>
-                    <input type="text" id="edit-desc">
-                </div>
-                <div class="form-group">
-                    <label>المبلغ (سالب للصرفيات)</label>
-                    <input type="number" id="edit-amount">
-                </div>
-                <button onclick="saveTxEdit()" class="btn btn-primary btn-full">حفظ التعديلات</button>
-            </div>
-        </div>
-    </div>
+    <script type="module">
+        import { DataManager } from './data-manager.js';
 
-    <script>
-        // Pull to refresh (simplified)
-        let ts = 0;
-        window.addEventListener('touchstart', e => { if (window.scrollY === 0) ts = e.touches[0].clientY });
-        window.addEventListener('touchend', e => { if (window.scrollY === 0 && e.changedTouches[0].clientY - ts > 80) location.reload() });
+        let isViewArchived = false; // هل نعرض الأرشيف أم الحالي؟
 
-        window.generateReport = function () {
-            if (typeof DataManager === 'undefined') return;
+        window.generateReport = () => {
+            const period = document.getElementById('report-period').value;
+            let txs = DataManager.getAllTransactions();
+            const list = document.getElementById('report-list');
 
-            const fromVal = document.getElementById('dateFrom').value;
-            const toVal = document.getElementById('dateTo').value;
+            if (!txs) return;
 
+            // 1. تصفية حسب الأرشيف (نشط أو مؤرشف)
+            txs = txs.filter(t => isViewArchived ? t.isArchived : !t.isArchived);
+
+            // تحديث حالة الزر والعنوان
+            const viewLabel = document.getElementById('view-mode-label');
+            const toggleBtn = document.getElementById('show-archived-btn');
+            const archiveBtn = document.getElementById('archive-btn');
+
+            if (isViewArchived) {
+                viewLabel.innerText = "(الأرشيف السابق)";
+                viewLabel.style.color = "#ef4444";
+                toggleBtn.innerHTML = '<i class="fas fa-chart-line"></i> عرض الحركات الحالية';
+                toggleBtn.style.background = "#ffebee";
+                toggleBtn.style.color = "#c62828";
+                toggleBtn.style.border = "1px solid #ef5350";
+
+                // إخفاء زر الأرشفة عند عرض الأرشيف
+                archiveBtn.style.display = 'none';
+            } else {
+                viewLabel.innerText = "(الفترة الحالية)";
+                viewLabel.style.color = "#10b981";
+                toggleBtn.innerHTML = '<i class="fas fa-history"></i> عرض الأرشيف السابق';
+                toggleBtn.style.background = "transparent";
+                toggleBtn.style.color = "#666";
+                toggleBtn.style.border = "1px solid #ccc";
+
+                // إظهار زر الأرشفة للفترة الحالية
+                archiveBtn.style.display = 'flex';
+            }
+
+            // 2. تصفية حسب التاريخ (للفترة الحالية فقط أو الأرشيف)
             const now = new Date();
-            const from = fromVal ? new Date(fromVal) : new Date(now.getFullYear(), now.getMonth(), 1);
-            const to = toVal ? new Date(toVal) : now;
-            to.setHours(23, 59, 59);
-            from.setHours(0, 0, 0);
+            txs = txs.filter(t => {
+                const date = new Date(t.createdAt);
 
-            // Set inputs defaults
-            if (!fromVal) document.getElementById('dateFrom').value = from.toISOString().split('T')[0];
-            if (!toVal) document.getElementById('dateTo').value = to.toISOString().split('T')[0];
-
-            const txs = DataManager.getAllTransactions();
-
-            // Show ALL matching date range, regardless of archive status
-            const filtered = txs.filter(t => {
-                const d = new Date(t.createdAt);
+                // استثناء ديون الاشتراكات من الحسابات النقدية
                 if (t.type === 'subscription_debt') return false;
-                return d >= from && d <= to;
+
+                if (period === 'daily') {
+                    return date.getDate() === now.getDate() &&
+                        date.getMonth() === now.getMonth() &&
+                        date.getFullYear() === now.getFullYear();
+                }
+                if (period === 'monthly') {
+                    return date.getMonth() === now.getMonth() &&
+                        date.getFullYear() === now.getFullYear();
+                }
+                return true;
             });
 
-            filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            // الحسابات
+            const income = txs.filter(t => t.amount > 0).reduce((a, b) => a + b.amount, 0);
+            const expense = txs.filter(t => t.amount < 0).reduce((a, b) => a + Math.abs(b.amount), 0);
+            const net = income - expense;
 
-            const tbody = document.getElementById('reportBody');
-            tbody.innerHTML = '';
+            // تحديث الكروت
+            document.getElementById('total-income').innerText = income.toLocaleString();
+            document.getElementById('total-expense').innerText = expense.toLocaleString();
+            document.getElementById('net-balance').innerText = net.toLocaleString();
 
-            if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">لا توجد بيانات</td></tr>';
+            // رسم الجدول
+            if (txs.length === 0) {
+                list.innerHTML = `
+                    <div style="padding:40px; text-align:center; color:#999;">
+                        <i class="fas fa-file-invoice-dollar" style="font-size:3rem; opacity:0.3; margin-bottom:15px;"></i>
+                        <p>${isViewArchived ? 'لا يوجد أرشيف مطابق' : 'لا توجد حركات لهذه الفترة'}</p>
+                    </div>
+                `;
                 return;
             }
 
-            filtered.forEach(t => {
-                const date = new Date(t.createdAt).toLocaleDateString('ar-IQ') + ' ' + new Date(t.createdAt).toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' });
-                const isExp = t.amount < 0;
+            list.innerHTML = txs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .map(t => {
+                    const isIncome = t.amount > 0;
+                    const date = new Date(t.createdAt);
 
-                // تحديد نوع المعاملة
-                let typeBadge = '';
-                if (t.type === 'employee_advance') {
-                    typeBadge = '<span class="badge" style="background: #ff9800; color: white; font-size: 0.75rem;">💸 سلفة موظف</span> ';
-                } else if (t.type === 'employee_reward') {
-                    typeBadge = '<span class="badge" style="background: #4caf50; color: white; font-size: 0.75rem;">🎁 مكافأة</span> ';
-                }
+                    // تحديد الأيقونة واللون بناءً على نوع المعاملة
+                    let icon = 'fa-money-bill-wave';
+                    let typeLabel = isIncome ? 'قبض' : 'صرف';
+                    let badge = '';
 
-                tbody.innerHTML += `
-                    <tr>
-                        <td data-label="التاريخ" style="font-size:0.85rem;">${date}</td>
-                        <td data-label="الوصف">${typeBadge}${t.description || '-'}</td>
-                        <td data-label="المبلغ" style="color:${isExp ? 'red' : 'green'}">${Math.abs(t.amount).toLocaleString()}</td>
-                        <td data-label="الحالة">
-                            ${t.isArchived ? '<span class="badge badge-success">مرحّل</span>' : '<span class="badge badge-warning">نشط</span>'}
-                        </td>
-                        <td data-label="تحكم">
-                            <button onclick="openEditModal('${t.id}')" class="btn btn-outline" style="padding:4px 8px;">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="DataManager.deleteTransaction('${t.id}')" class="btn btn-outline" style="padding:4px 8px; color:red; border-color:red;">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
+                    if (t.type === 'employee_advance') {
+                        icon = 'fa-user-clock';
+                        typeLabel = 'سلفة موظف';
+                        badge = '<span class="badge" style="background:#fff3e0; color:#e65100;">💸 سلفة</span> ';
+                    } else if (t.type === 'employee_reward') {
+                        icon = 'fa-gift';
+                        typeLabel = 'مكافأة';
+                        badge = '<span class="badge" style="background:#e8f5e9; color:#2e7d32;">🎁 مكافأة</span> ';
+                    } else if (t.type === 'salary_payment') {
+                        icon = 'fa-money-check-alt';
+                        typeLabel = 'راتب شهري';
+                        badge = '<span class="badge" style="background:#e3f2fd; color:#1565c0;">💰 راتب</span> ';
+                    } else if (t.description && (t.description.includes('راتب') || t.description.includes('سلفة'))) {
+                        // محاولة التعرف على الرواتب القديمة من الوصف
+                        badge = '<span class="badge" style="background:#f3e5f5; color:#7b1fa2;">👤 موظفين</span> ';
+                    }
 
-            // حساب الإحصائيات
-            const income = filtered.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
-            const expense = filtered.filter(t => t.amount < 0).reduce((sum, t) => sum + Math.abs(t.amount), 0);
-            const net = income - expense;
-
-            // عرض الإحصائيات
-            document.getElementById('stat-income').innerText = income.toLocaleString() + ' د.ع';
-            document.getElementById('stat-expense').innerText = expense.toLocaleString() + ' د.ع';
-            document.getElementById('stat-net').innerText = net.toLocaleString() + ' د.ع';
-            document.getElementById('stat-count').innerText = filtered.length.toLocaleString();
+                    return `
+                    <div class="transaction-item">
+                        <div class="tx-info">
+                            <div class="tx-icon"><i class="fas ${icon}"></i></div>
+                            <div>
+                                <div style="font-weight:bold; color:#333;">${badge}${t.description || typeLabel}</div>
+                                <div style="font-size:0.8rem; color:#888;">
+                                    ${date.toLocaleDateString('ar-IQ')} - ${date.toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' })}
+                                </div>
+                            </div>
+                        </div>
+                        <div style="font-weight:bold; font-size:1.1rem; direction:ltr;" class="${isIncome ? 'income' : 'expense'}">
+                            ${isIncome ? '+' : '-'}${Math.abs(t.amount).toLocaleString()}
+                        </div>
+                    </div>
+                `}).join('');
         };
 
-        window.openEditModal = function (id) {
-            const t = DataManager.getAllTransactions().find(tx => tx.id == id);
-            if (!t) return;
-            document.getElementById('edit-id').value = id;
-            document.getElementById('edit-desc').value = t.description;
-            document.getElementById('edit-amount').value = t.amount;
-            document.getElementById('editTxModal').classList.add('active');
-        }
-        window.closeEditModal = () => document.getElementById('editTxModal').classList.remove('active');
+        // تبديل العرض بين الأرشيف والحالي
+        window.toggleArchivedView = () => {
+            isViewArchived = !isViewArchived;
+            window.generateReport();
+        };
 
-        window.saveTxEdit = async function () {
-            const id = document.getElementById('edit-id').value;
-            const desc = document.getElementById('edit-desc').value;
-            const amount = document.getElementById('edit-amount').value;
+        // تحديث التقرير عند تغيير الفلتر
+        window.updateReport = () => {
+            window.generateReport();
+        };
 
-            await DataManager.updateTransaction(id, { description: desc, amount: parseInt(amount) });
-            closeEditModal();
-        }
+        // دالة الأرشفة
+        window.archiveCurrentView = async () => {
+            const period = document.getElementById('report-period').value;
+            if (period !== 'all' && !confirm('أنت تعرض جزءاً من البيانات (يومي/شهري). هل تريد أرشفة كل شيء لفتح فترة جديدة؟')) {
+                // إذا كان المستخدم يفلتر، نبهه أن الأرشفة الأفضل تكون للكل أو نأرشف الظاهر فقط؟
+                // الأفضل: أرشفة كل ما هو "active" حالياً.
+            }
 
-        window.updatePageData = window.generateReport;
-        setTimeout(() => { if (typeof DataManager !== 'undefined') generateReport() }, 1000);
+            if (!confirm('⚠️ هل أنت متأكد من إغلاق الفترة المالية الحالية؟\n\n- سيتم تصفير الصندوق والبدء من جديد.\n- الديون المسجلة على المشتركين لن تتأثر.\n- يمكنك العودة للبيانات القديمة من خلال زر "الأرشيف".')) {
+                return;
+            }
+
+            try {
+                const txs = DataManager.getAllTransactions().filter(t => !t.isArchived);
+                if (txs.length === 0) {
+                    alert('لا توجد بيانات لأرشفتها!');
+                    return;
+                }
+
+                // تنفيذ الأرشفة
+                let count = 0;
+                for (const t of txs) {
+                    // تحديث في Firebase (ملاحظة: هذا قد يأخذ وقتاً إذا كانت البيانات كثيرة)
+                    // في بيئة إنتاجية حقيقية يفضل استخدام Batch Write
+                    await DataManager.updateTransaction(t.id, { isArchived: true });
+                    count++;
+                }
+
+                DataManager.showToast(`✅ تم أرشفة ${count} حركة مالية بنجاح`);
+                window.generateReport(); // تحديث العرض
+
+            } catch (e) {
+                console.error(e);
+                DataManager.showToast('خطأ أثناء الأرشفة: ' + e.message, 'error');
+            }
+        };
+
+        // Initial Load
+        setInterval(() => {
+            if (typeof DataManager !== 'undefined' && DataManager.getAllTransactions()) {
+                // تحديث دوري فقط إذا لم نكن نعرض الأرشيف (لأن الأرشيف ثابت)
+                if (!isViewArchived) window.generateReport();
+            }
+        }, 5000);
+
+        // Load once immediately when data is ready
+        const checkData = setInterval(() => {
+            if (typeof DataManager !== 'undefined' && DataManager.getAllTransactions && DataManager.getAllTransactions().length > 0) {
+                window.generateReport();
+                clearInterval(checkData);
+            }
+        }, 500);
+
     </script>
 </body>
 
