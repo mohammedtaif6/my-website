@@ -936,21 +936,29 @@
             if (!AuthSystem.currentUser || AuthSystem.currentUser.type !== 'employee') return;
 
             const empId = AuthSystem.currentUser.id;
+            // نحتاج لجلب بيانات الموظف المحدثة لمعرفة تاريخ آخر تصفية (startDate)
+            const empData = DataManager.getEmployee(empId);
+
+            // إذا لم نجد بيانات الموظف، نعتمد تاريخ اليوم كاحتياطي
+            const lastSettlementDate = empData ? new Date(empData.startDate) : new Date();
 
             // جلب جميع المعاملات
             const allTxs = DataManager.getAllTransactions();
             const empName = AuthSystem.currentUser.name;
 
-            // البحث عن المعاملات التي تشير للموظف في الوصف
-            // حيث أن النظام يسجل السلف كـ 'expense' مع وصف "سلفة موظف: [الاسم]"
-            const empAdvances = allTxs.filter(t => {
+            // البحث عن السلف "النشطة" فقط (التي حدثت بعد تاريخ آخر تصفية)
+            const activeAdvances = allTxs.filter(t => {
+                const txDate = new Date(t.createdAt);
+
+                // تجاهل المعاملات الأقدم من تاريخ التصفية (مع هامش دقيقة واحدة لضمان الدقة)
+                if (txDate < lastSettlementDate) return false;
+
                 const desc = t.description || '';
 
                 // 1. تطابق صريح إذا كان هناك معرف
-                if (t.employeeId == empId) return true;
+                if (t.employeeId == empId && t.type === 'employee_advance') return true;
 
-                // 2. البحث في الوصف (للسلف المسجلة كصرفيات)
-                // نتأكد أن الوصف يحتوي على اسم الموظف وكلمة "سلفة" أو "راتب"
+                // 2. البحث في الوصف
                 if (desc.includes(empName)) {
                     if (desc.includes('سلفة') || desc.includes('راتب') || desc.includes('مكافأة')) {
                         return true;
@@ -960,38 +968,41 @@
                 return false;
             }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-            const totalAdvances = empAdvances.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+            const totalAdvances = activeAdvances.reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
-            document.getElementById('emp-modal-title').innerHTML = '💸 تفاصيل السلف المسحوبة';
+            document.getElementById('emp-modal-title').innerHTML = '💸 السلف المستحقة (الشهر الحالي)';
 
-            if (empAdvances.length === 0) {
+            if (activeAdvances.length === 0) {
                 document.getElementById('emp-details-content').innerHTML = `
                     <div style="text-align: center; padding: 40px 20px; color: #666;">
-                        <i class="fas fa-inbox" style="font-size: 3rem; opacity: 0.3; margin-bottom: 15px;"></i>
-                        <p>لا توجد سلف مسحوبة</p>
+                        <i class="fas fa-check-circle" style="font-size: 4rem; color: #4caf50; margin-bottom: 15px; opacity: 0.8;"></i>
+                        <h3 style="color: #333; margin-bottom: 10px;">سجلك نظيف!</h3>
+                        <p>لا توجد سلف مسحوبة بعد آخر استلام راتب.</p>
+                        <div style="font-size: 0.8rem; color: #999; margin-top: 15px;">
+                            آخر تصفية: ${lastSettlementDate.toLocaleDateString('ar-IQ')}
+                        </div>
                     </div>
                 `;
             } else {
                 document.getElementById('emp-details-content').innerHTML = `
                     <div style="background: #ffebee; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                        <h4 style="margin: 0 0 5px 0; color: #c62828;">📊 إجمالي السلف (الكلي)</h4>
+                        <h4 style="margin: 0 0 5px 0; color: #c62828;">📊 إجمالي السلف الحالية</h4>
                         <div style="font-size: 1.8rem; font-weight: bold; color: #c62828;">${totalAdvances.toLocaleString()} د.ع</div>
-                        <small style="color: #666;">عدد السلف: ${empAdvances.length}</small>
+                        <small style="color: #666;">منذ: ${lastSettlementDate.toLocaleDateString('ar-IQ')}</small>
                     </div>
                     
-                    <h4 style="margin: 15px 0 10px 0; color: #333; font-size: 1rem;">📝 سجل السلف الكامل:</h4>
+                    <h4 style="margin: 15px 0 10px 0; color: #333; font-size: 1rem;">📝 قائمة السلف الجديدة:</h4>
                     <div style="max-height: 250px; overflow-y: auto;">
-                        ${empAdvances.map(adv => {
+                        ${activeAdvances.map(adv => {
                     const date = new Date(adv.createdAt);
                     const dateStr = date.toLocaleDateString('ar-IQ');
                     const timeStr = date.toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' });
-                    const isArchived = adv.isArchived;
 
                     return `
-                                <div style="background: white; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-right: 3px solid ${isArchived ? '#4caf50' : '#c62828'}; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                <div style="background: white; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-right: 3px solid #c62828; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                                        <span style="font-weight: bold; color: ${isArchived ? '#4caf50' : '#c62828'};">${Math.abs(adv.amount).toLocaleString()} د.ع</span>
-                                        ${isArchived ? '<span class="badge" style="background:#e8f5e9; color:#2e7d32; font-size:0.7rem;">تم التسوية</span>' : '<span class="badge" style="background:#ffebee; color:#c62828; font-size:0.7rem;">غير مسدد</span>'}
+                                        <span style="font-weight: bold; color: #c62828;">${Math.abs(adv.amount).toLocaleString()} د.ع</span>
+                                        <span class="badge" style="background:#ffebee; color:#c62828; font-size:0.7rem;">جديد</span>
                                     </div>
                                     <div style="display:flex; justify-content:space-between; font-size: 0.85rem; color: #666;">
                                         <span><i class="fas fa-calendar-alt"></i> ${dateStr}</span>
