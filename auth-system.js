@@ -84,11 +84,10 @@ const AuthSystem = {
         const required = protections[page];
         if (!required) return; // صفحة عامة
 
-        // فحص الصلاحية
+        // فحص الصلاحية (بدون رسائل مزعجة)
         if (required === 'employee_only') {
             if (user.type === 'admin') {
-                alert('🚫 هذه الصفحة للموظفين فقط!');
-                window.location.href = 'index.html';
+                window.location.replace('index.html');
                 return;
             }
             // الموظفون مسموح لهم
@@ -96,14 +95,12 @@ const AuthSystem = {
         }
 
         if (required === 'admin_only') {
-            alert('🚫 هذه الصفحة للمدير فقط!');
-            window.location.href = 'index.html';
+            window.location.replace('index.html');
             return;
         }
 
         if (!user.permissions[required]) {
-            alert('🚫 ليس لديك صلاحية لدخول هذه الصفحة!');
-            window.location.href = 'index.html';
+            window.location.replace('index.html');
         }
     },
 

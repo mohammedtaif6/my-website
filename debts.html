@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>الديون - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=12.0">
+    <link rel="stylesheet" href="style.css?v=25.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- إضافة AuthSystem -->
@@ -18,6 +18,87 @@
         window.DataManager = DataManager;
         DataManager.init();
     </script>
+
+    <style>
+        /* تحسينات للهاتف المحمول */
+        .search-container {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--bg-app);
+            padding: 10px 0;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 14px 45px 14px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1rem;
+            background: white;
+            transition: all 0.2s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1);
+            outline: none;
+        }
+
+        .search-box i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        /* تحسين الجدول للهاتف */
+        @media (max-width: 768px) {
+            .table-wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            table {
+                min-width: 100%;
+            }
+
+            th,
+            td {
+                padding: 12px 10px;
+                font-size: 0.9rem;
+            }
+
+            .btn-sm {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* تحسين المودال للهاتف */
+        .modal-box {
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .action-buttons button {
+            flex: 1;
+        }
+    </style>
 </head>
 
 <body>
@@ -68,14 +149,11 @@
             </div>
         </div>
 
-        <!-- خانة البحث -->
-        <div class="stats-grid" style="margin-bottom: 20px;">
-            <div class="card">
-                <input type="text" id="debtSearch" placeholder="🔍 بحث بالاسم أو رقم الهاتف..." class="form-group"
-                    style="width:100%; margin:0; border:none; box-shadow:none; padding:12px; font-size:1.1rem; outline:none;"
-                    oninput="renderDebts()">
-                <i class="fas fa-search"
-                    style="color:var(--secondary); position:absolute; left:15px; top:50%; transform:translateY(-50%);"></i>
+        <!-- خانة البحث المحسّنة -->
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" id="debtSearch" placeholder="ابحث بالاسم أو رقم الهاتف..." oninput="renderDebts()">
+                <i class="fas fa-search"></i>
             </div>
         </div>
 
@@ -109,10 +187,13 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="debtSubId">
+                <input type="hidden" id="debtSubFirebaseId">
+
                 <div class="form-group">
                     <label>المبلغ المدفوع (من أصل <span id="currentDebtAmount"></span>)</label>
-                    <input type="number" id="payDebtAmount">
+                    <input type="number" id="payDebtAmount" placeholder="0">
                 </div>
+
                 <!-- WhatsApp Option for Debt Payment -->
                 <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
                     <input type="checkbox" id="send-whatsapp-debt" style="width: auto;">
@@ -120,48 +201,56 @@
                         الوصل واتساب</label>
                 </div>
 
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="confirmPayDebt(true)" class="btn btn-success" style="flex:1"><i
-                            class="fas fa-print"></i> تسديد وطباعة</button>
-                    <button onclick="confirmPayDebt(false)" class="btn btn-primary" style="flex:1">تسديد فقط</button>
+                <div class="action-buttons">
+                    <button onclick="confirmPayDebt(true)" class="btn btn-success">
+                        <i class="fas fa-print"></i> تسديد وطباعة
+                    </button>
+                    <button onclick="confirmPayDebt(false)" class="btn btn-primary">
+                        <i class="fas fa-check"></i> تسديد فقط
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        window.openPayDebtModal = function (id, name, amount) {
+        window.openPayDebtModal = function (id, firebaseId, name, amount) {
             document.getElementById('debtSubId').value = id;
+            document.getElementById('debtSubFirebaseId').value = firebaseId;
             document.getElementById('debtSubName').innerText = name;
             document.getElementById('currentDebtAmount').innerText = amount.toLocaleString();
             document.getElementById('payDebtAmount').value = '';
             document.getElementById('payDebtModal').classList.add('active');
         };
+
         window.closeDebtModal = () => document.getElementById('payDebtModal').classList.remove('active');
 
         window.confirmPayDebt = async function (print = false) {
             const subId = document.getElementById('debtSubId').value;
+            const firebaseId = document.getElementById('debtSubFirebaseId').value;
             const amount = document.getElementById('payDebtAmount').value;
             const sendWhatsapp = document.getElementById('send-whatsapp-debt').checked;
 
-            if (!amount) return alert("الرجاء إدخال المبلغ");
+            if (!amount || amount <= 0) {
+                DataManager.showToast('الرجاء إدخال مبلغ صحيح', 'error');
+                return;
+            }
 
-            const sub = DataManager.getSubscriber(subId);
-            if (sub) {
-                // Logic to update Debt
-                // 1. Record Transaction (Income)
+            try {
+                const sub = DataManager.getSubscriber(subId);
+                if (!sub) {
+                    DataManager.showToast('لم يتم العثور على المشترك', 'error');
+                    return;
+                }
+
+                // 1. تسجيل المعاملة (دخل)
                 await DataManager.recordTransaction(subId, parseInt(amount), `تسديد دين من المشترك: ${sub.name}`, 'نقد');
 
-                // 2. Reduce the price (or debt field) logic - Here simpler is just record Transaction.
-                // Assuming DataManager handles debt reduction? 
-                // Wait, based on previous logic, debt is calculated dynamically or stored? 
-                // Let's check updateSubscriber. Actually for debt system usually we update the subscriber price/debt valid.
+                // 2. تقليل الدين
+                const newPrice = Math.max(0, parseInt(sub.price || 0) - parseInt(amount));
+                await DataManager.updateSubscriber(firebaseId, subId, { price: newPrice });
 
-                // For simplicity as per previous code:
-                const newPrice = parseInt(sub.price) - parseInt(amount);
-                await DataManager.updateSubscriber(subId, { price: newPrice }); // Reduce debt
-
-                // Receipt Logic
+                // 3. الطباعة
                 if (print) {
                     const receiptData = {
                         title: "وصل تسديد دين",
@@ -174,15 +263,26 @@
                     DataManager.printReceipt(receiptData);
                 }
 
-                if (sendWhatsapp) {
+                // 4. واتساب
+                if (sendWhatsapp && sub.phone) {
                     const msg = `مرحباً ${sub.name}،\n\nتم استلام دفعة تسديد دين بقيمة: ${parseInt(amount).toLocaleString()} د.ع\nالمتبقي بذمتكم: ${newPrice.toLocaleString()} د.ع\n\nشكراً لكم 🌹`;
                     let phone = sub.phone.replace(/^0+/, '');
                     if (!phone.startsWith('964')) phone = '964' + phone;
-                    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+
+                    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                    if (isMobile) {
+                        window.location.href = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(msg)}`;
+                    } else {
+                        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+                    }
                 }
 
                 closeDebtModal();
-                DataManager.showToast("تم التسديد بنجاح");
+                DataManager.showToast('تم التسديد بنجاح', 'success');
+                renderDebts();
+            } catch (error) {
+                console.error('خطأ في التسديد:', error);
+                DataManager.showToast('حدث خطأ أثناء التسديد', 'error');
             }
         };
 
@@ -215,7 +315,7 @@
             }
 
             tbody.innerHTML = list.map(s => {
-                let expiry = new Date(s.expiryDate);
+                let expiry = new Date(s.expiryDate || s.endDate);
                 const daysLeft = Math.ceil((expiry - new Date()) / (1000 * 60 * 60 * 24));
                 let badge = '';
 
@@ -224,11 +324,11 @@
 
                 return `
                  <tr>
-                    <td data-label="الاسم">${s.name} <br> <small style="color:#666">${s.phone}</small></td>
+                    <td data-label="الاسم">${s.name} <br> <small style="color:#666">${s.phone || ''}</small></td>
                     <td data-label="المبلغ" style="font-weight:bold; color:#d32f2f;">${parseInt(s.price).toLocaleString()}</td>
-                    <td data-label="تاريخ الاستحقاق">${s.expiryDate} ${badge}</td>
+                    <td data-label="تاريخ الاستحقاق">${s.expiryDate || s.endDate || '-'} ${badge}</td>
                     <td data-label="إجراءات">
-                        <button onclick="openPayDebtModal('${s.id}', '${s.name}', ${s.price})" class="btn btn-sm btn-success">
+                        <button onclick="openPayDebtModal('${s.id}', '${s.firebaseId}', '${s.name}', ${s.price})" class="btn btn-sm btn-success">
                             <i class="fas fa-hand-holding-usd"></i> تسديد
                         </button>
                     </td>
@@ -241,6 +341,7 @@
         window.onload = () => AuthSystem.checkSession();
 
         setInterval(() => window.renderDebts(), 1000);
+
         // Menu Toggle Logic
         window.toggleMenu = function () {
             const nav = document.getElementById('main-nav');
