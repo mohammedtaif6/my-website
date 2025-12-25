@@ -923,3 +923,150 @@ tbody tr:hover {
         box-shadow: none;
     }
 }
+
+/* 21. Colored Dashboard Cards - Professional Gradients */
+.dash-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 140px;
+}
+
+.dash-card .card-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+    opacity: 0.95;
+}
+
+.dash-card .card-content {
+    text-align: center;
+    width: 100%;
+}
+
+.dash-card .card-content h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    opacity: 0.95;
+}
+
+.dash-card .card-content p {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1;
+}
+
+.dash-card .card-content small {
+    font-size: 0.85rem;
+    opacity: 0.85;
+    display: block;
+    margin-top: 0.25rem;
+}
+
+.dash-card .card-arrow {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.25rem;
+    opacity: 0.3;
+    transition: all 0.3s;
+}
+
+.dash-card:hover .card-arrow {
+    opacity: 0.7;
+    transform: translateY(-50%) translateX(-4px);
+}
+
+/* Gradient Card Variants */
+.card-blue {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.card-teal {
+    background: linear-gradient(135deg, #0ba360 0%, #3cba92 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(11, 163, 96, 0.4);
+}
+
+.card-red {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+}
+
+.card-purple {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+}
+
+.card-indigo {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(67, 233, 123, 0.4);
+}
+
+.card-orange {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(250, 112, 154, 0.4);
+}
+
+.card-dark {
+    background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(48, 207, 208, 0.4);
+}
+
+.card-green {
+    background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(86, 171, 47, 0.4);
+}
+
+.card-yellow {
+    background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(247, 151, 30, 0.4);
+}
+
+.card-pink {
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4);
+}
+
+.card-cyan {
+    background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+    color: #1e293b;
+    box-shadow: 0 4px 15px rgba(161, 196, 253, 0.4);
+}
+
+.card-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Enhanced hover for gradient cards */
+.card-blue:hover,
+.card-teal:hover,
+.card-red:hover,
+.card-purple:hover,
+.card-indigo:hover,
+.card-orange:hover,
+.card-dark:hover,
+.card-green:hover,
+.card-yellow:hover,
+.card-pink:hover,
+.card-cyan:hover,
+.card-gradient:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+}
