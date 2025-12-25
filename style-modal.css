@@ -1,83 +1,150 @@
-/* --- GLOBAL MODAL SYSTEM (PROFESSIONAL & FIXED) --- */
-/* This file controls all popups across the entire system */
+/* --- PROFESSIONAL BOTTOM SHEET SYSTEM (MOBILE FIRST) --- */
 
+/* 1. الخلفية المعتمة (Overlay) */
 .modal-overlay {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    background: rgba(0, 0, 0, 0.5) !important;
-    backdrop-filter: blur(4px);
-    /* Professional Blur Effect */
-    z-index: 999999 !important;
-    /* Always on top of everything */
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    /* تعتيم أقوى */
+    backdrop-filter: blur(5px);
+    /* بلور جميل */
+    z-index: 100000 !important;
+    /* فوق كل شيء */
     display: none;
-    align-items: center !important;
-    justify-content: center !important;
     opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: opacity 0.3s ease;
+    /* للهاتف: نقوم بترتيب العناصر للأسفل */
+    align-items: flex-end !important;
+    justify-content: center !important;
 }
 
 .modal-overlay.active {
     display: flex !important;
     opacity: 1 !important;
-    visibility: visible !important;
 }
 
+/* 2. صندوق النافذة (Modal Box) */
 .modal-box {
     background: white !important;
-    width: 90% !important;
-    max-width: 450px !important;
-    margin: auto !important;
-    border-radius: 20px !important;
-    padding: 25px !important;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
     position: relative !important;
-    transform: scale(0.95);
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    max-height: 85vh !important;
-    overflow-y: auto !important;
-}
-
-.modal-overlay.active .modal-box {
-    transform: scale(1);
-}
-
-/* Header Styling */
-.modal-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #f0f0f0;
-    padding-bottom: 15px;
+    flex-direction: column;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2) !important;
+    transition: transform 0.3s cubic-bezier(0.1, 0.7, 0.1, 1) !important;
+    overflow: hidden !important;
+
+    /* افتراضياً للهاتف (Bottom Sheet) */
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    /* تدوير من الأعلى فقط */
+    margin: 0 !important;
+    transform: translateY(100%) !important;
+    /* مخفية تحت الشاشة */
+    max-height: 85vh !important;
+    /* لا تغطي الشاشة بالكامل */
+    padding-bottom: 30px !important;
+    /* مسافة أمان للآيفون */
+}
+
+/* عند التفعيل تظهر من الأسفل */
+.modal-overlay.active .modal-box {
+    transform: translateY(0) !important;
+}
+
+/* 3. الهيدر (المقبض) */
+.modal-header {
+    padding: 15px 20px !important;
+    border-bottom: 1px solid #eee !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    background: #fff !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10;
+}
+
+/* إضافة "مقبض" صغير في الأعلى ليوحي بالسحب */
+.modal-header::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 4px;
+    background: #e0e0e0;
+    border-radius: 2px;
 }
 
 .modal-header h3 {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--primary, #111827);
+    margin: 10px 0 0 0 !important;
+    /* مسافة للمقبض */
+    font-size: 1.2rem !important;
+    font-weight: 700 !important;
+    color: #333 !important;
 }
 
 .close-btn {
-    background: transparent;
-    border: none;
-    font-size: 1.8rem;
-    color: #9ca3af;
-    cursor: pointer;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: all 0.2s;
+    font-size: 1.5rem !important;
+    padding: 5px 10px !important;
+    background: #f5f5f5 !important;
+    border-radius: 50% !important;
+    width: 35px !important;
+    height: 35px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #666 !important;
+    border: none !important;
 }
 
-.close-btn:hover {
-    background: #f3f4f6;
-    color: #ef4444;
+/* 4. محتوى النافذة */
+.modal-body {
+    padding: 20px !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    /* تمرير سلس */
+}
+
+/* --- تعديلات للحاسبة والتابلت (Desktop) --- */
+@media (min-width: 768px) {
+    .modal-overlay {
+        align-items: center !important;
+        /* توسيط في الحاسبة */
+    }
+
+    .modal-box {
+        width: 450px !important;
+        /* عرض ثابت */
+        max-width: 90% !important;
+        border-radius: 20px !important;
+        /* تدوير كامل */
+        margin: auto !important;
+        /* توسيط */
+        transform: scale(0.9) !important;
+        /* أنيميشن تكبير */
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+        max-height: 90vh !important;
+        padding-bottom: 0 !important;
+    }
+
+    .modal-overlay.active .modal-box {
+        transform: scale(1) !important;
+        transform: translateY(0) !important;
+        /* إلغاء خاصية الهاتف */
+    }
+
+    .modal-header::before {
+        display: none;
+        /* إخفاء المقبض في الحاسبة */
+    }
+
+    .modal-header h3 {
+        margin: 0 !important;
+    }
 }
