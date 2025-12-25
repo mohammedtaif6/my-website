@@ -1,8 +1,53 @@
-/* ------------------------------------------------------------
-   Unified Professional Responsive Design
-   ------------------------------------------------------------ */
+/* ============================================
+   OK Computer - Professional Management System
+   Unified Responsive Design
+   ============================================ */
 
-/* 1️⃣ Reset & Box‑Sizing */
+/* 1. CSS Variables & Theme */
+:root {
+    /* Colors */
+    --primary: #2563eb;
+    --primary-dark: #1e40af;
+    --primary-light: #3b82f6;
+    --secondary: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --success: #22c55e;
+
+    /* Backgrounds */
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-header: #ffffff;
+    --bg-sidebar: #1e293b;
+
+    /* Text */
+    --text-main: #0f172a;
+    --text-sub: #64748b;
+    --text-light: #94a3b8;
+
+    /* Borders & Shadows */
+    --border: #e2e8f0;
+    --border-light: #f1f5f9;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+    /* Radius */
+    --radius-sm: 0.375rem;
+    --radius: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+
+    /* Spacing */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+}
+
+/* 2. Reset & Base */
 *,
 *::before,
 *::after {
@@ -12,198 +57,288 @@
 }
 
 html {
-    /* Use the new dynamic viewport unit for mobile */
-    height: 100%;
     font-size: 16px;
     scroll-behavior: smooth;
+    height: 100%;
 }
 
 body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg-main);
+    color: var(--text-main);
+    line-height: 1.6;
     min-height: 100vh;
-    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    line-height: 1.5;
-    background: var(--bg-main, #f9fafb);
-    color: var(--text-main, #111827);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    direction: rtl;
+    text-align: right;
 }
 
-/* 2️⃣ CSS Variables – easy theming */
-:root {
-    /* Primary palette */
-    --primary: #2563eb;
-    /* blue‑600 */
-    --primary-light: #3b82f6;
-    /* blue‑500 */
-    --primary-dark: #1e40af;
-    /* blue‑800 */
-    --secondary: #10b981;
-    /* emerald‑600 */
-    --danger: #ef4444;
-    /* red‑500 */
-    --warning: #f59e0b;
-    /* amber‑500 */
-    --bg-main: #f9fafb;
-    /* very light gray */
-    --bg-card: #ffffff;
-    /* white cards */
-    --bg-header: #ffffff;
-    /* header background */
-    --text-main: #111827;
-    /* dark gray */
-    --text-muted: #6b7280;
-    /* gray‑500 */
-    --border: #e5e7eb;
-    /* gray‑200 */
-    --radius: 0.75rem;
-    /* 12px */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.15);
-}
-
-/* 3️⃣ Layout helpers */
+/* 3. Container */
 .container {
     width: 100%;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 1rem;
 }
 
-/* 4️⃣ Header & Navigation (mobile‑first) */
-header {
-    background: var(--bg-header);
-    box-shadow: var(--shadow-sm);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
+@media (min-width: 768px) {
+    .container {
+        padding: 1.5rem 2rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .container {
+        padding: 2rem 3rem;
+    }
+}
+
+/* 4. Navigation & Sidebar */
+.menu-btn {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1001;
+    background: var(--primary);
+    color: white;
+    border: none;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-lg);
+    font-size: 1.25rem;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    transition: all 0.3s ease;
+}
+
+.menu-btn:hover {
+    background: var(--primary-dark);
+    transform: scale(1.05);
 }
 
 .navbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 0;
+    position: fixed;
+    top: 0;
+    right: -300px;
+    width: 280px;
+    height: 100vh;
+    background: var(--bg-sidebar);
+    box-shadow: var(--shadow-xl);
+    z-index: 1000;
+    transition: right 0.3s ease;
+    overflow-y: auto;
+    padding: 1.5rem 0;
 }
 
-.menu-btn {
-    background: none;
-    border: none;
+.navbar.active {
+    right: 0;
+}
+
+.logo {
+    padding: 1rem 1.5rem;
     font-size: 1.5rem;
-    color: var(--text-main);
+    font-weight: bold;
+    color: white;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.close-menu {
+    position: absolute;
+    left: 1rem;
+    top: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius);
+    font-size: 1.5rem;
     cursor: pointer;
+    line-height: 1;
+    transition: background 0.2s;
+}
+
+.close-menu:hover {
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .nav-links {
     list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    position: fixed;
-    inset: 0;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 4rem 2rem 2rem;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    z-index: 999;
+    padding: 0;
 }
 
-.nav-links.active {
-    transform: translateX(0);
+.nav-links li {
+    margin-bottom: 0.25rem;
 }
 
 .nav-links a {
-    text-decoration: none;
-    color: var(--text-main);
-    font-size: 1.1rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-}
-
-/* Desktop navigation – horizontal */
-@media (min-width: 768px) {
-    .menu-btn {
-        display: none;
-    }
-
-    .nav-links {
-        position: static;
-        flex-direction: row;
-        background: transparent;
-        transform: none;
-        padding: 0;
-    }
-
-    .nav-links a {
-        font-size: 1rem;
-    }
-}
-
-/* 5️⃣ Dashboard grid – cards */
-.main-menu-grid {
-    display: grid;
-    gap: 1rem;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    margin-bottom: 2rem;
-}
-
-.dash-card {
-    background: var(--bg-card);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
-    padding: 1rem;
-    text-align: center;
-    transition: transform 0.2s ease;
-}
-
-.dash-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-}
-
-.dash-card h3 {
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
-    color: var(--primary);
-}
-
-.dash-card p {
+    gap: 0.75rem;
+    padding: 0.875rem 1.5rem;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: all 0.2s;
     font-size: 0.95rem;
-    color: var(--text-muted);
 }
 
-/* 6️⃣ Tables – responsive */
+.nav-links a:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.nav-links a.active {
+    background: var(--primary);
+    color: white;
+    font-weight: 600;
+}
+
+.nav-links i {
+    width: 20px;
+    text-align: center;
+}
+
+.nav-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none;
+    backdrop-filter: blur(2px);
+}
+
+.navbar.active~.nav-overlay,
+.navbar.active+* .nav-overlay {
+    display: block;
+}
+
+/* 5. Header Card */
+.header-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.header-card h1 {
+    font-size: 1.75rem;
+    color: var(--text-main);
+    margin-bottom: 0.25rem;
+}
+
+.header-card p {
+    color: var(--text-sub);
+    font-size: 0.95rem;
+}
+
+/* 6. Search Container */
+.search-container {
+    margin-bottom: 1.5rem;
+}
+
+.search-box {
+    position: relative;
+    max-width: 500px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 0.875rem 1rem 0.875rem 3rem;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    transition: all 0.2s;
+    background: var(--bg-card);
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.search-box i {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-sub);
+    font-size: 1.1rem;
+}
+
+/* 7. Table Styles */
 .table-container {
-    overflow-x: auto;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
     margin-bottom: 2rem;
+}
+
+.table-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.table-header h3 {
+    font-size: 1.125rem;
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+.table-wrapper {
+    overflow-x: auto;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 600px;
-    /* keep readability on larger screens */
 }
 
-th,
-td {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--border);
-    text-align: left;
+thead {
+    background: var(--bg-main);
 }
 
 th {
-    background: var(--bg-header);
-    color: var(--text-main);
+    padding: 1rem 1.5rem;
+    text-align: right;
     font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--text-sub);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
 }
 
-tr:hover td {
-    background: #f3f4f6;
+td {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-light);
+    color: var(--text-main);
 }
 
-@media (max-width: 600px) {
+tbody tr {
+    transition: background 0.2s;
+}
+
+tbody tr:hover {
+    background: var(--bg-main);
+}
+
+/* Mobile Table - Card View */
+@media (max-width: 768px) {
+    .table-wrapper {
+        overflow-x: visible;
+    }
 
     table,
     thead,
@@ -220,122 +355,460 @@ tr:hover td {
 
     tr {
         margin-bottom: 1rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        background: var(--bg-card);
+        box-shadow: var(--shadow-sm);
     }
 
     td {
-        text-align: right;
-        padding-left: 50%;
-        position: relative;
+        padding: 0.75rem 1rem;
+        border: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
     td::before {
         content: attr(data-label);
-        position: absolute;
-        left: 0;
-        width: 45%;
-        padding-left: 1rem;
         font-weight: 600;
-        color: var(--text-muted);
-        text-align: left;
+        color: var(--text-sub);
+        font-size: 0.875rem;
     }
 }
 
-/* 7️⃣ Buttons – primary, secondary, danger */
+/* 8. Buttons */
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
+    padding: 0.625rem 1.25rem;
     border: none;
     border-radius: var(--radius);
     font-size: 0.95rem;
     font-weight: 500;
     cursor: pointer;
-    transition: background 0.2s ease, transform 0.1s ease;
+    transition: all 0.2s;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.btn:active {
+    transform: scale(0.98);
 }
 
 .btn-primary {
     background: var(--primary);
-    color: #fff;
+    color: white;
 }
 
 .btn-primary:hover {
     background: var(--primary-dark);
+    box-shadow: var(--shadow-md);
 }
 
 .btn-success {
-    background: var(--secondary);
-    color: #fff;
+    background: var(--success);
+    color: white;
 }
 
 .btn-success:hover {
-    background: #059669;
+    background: #16a34a;
 }
 
 .btn-danger {
     background: var(--danger);
-    color: #fff;
+    color: white;
 }
 
 .btn-danger:hover {
-    background: #b91c1c;
+    background: #dc2626;
 }
 
-.btn:active {
-    transform: scale(0.97);
+.btn-warning {
+    background: var(--warning);
+    color: white;
 }
 
-/* 8️⃣ Floating Action Button (FAB) – always fixed */
-.fab-btn {
+.btn-warning:hover {
+    background: #d97706;
+}
+
+.btn-secondary {
+    background: var(--text-sub);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: var(--text-main);
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+}
+
+.btn-outline:hover {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-full {
+    width: 100%;
+}
+
+.btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.btn-lg {
+    padding: 0.875rem 1.75rem;
+    font-size: 1.05rem;
+}
+
+/* 9. Forms */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-main);
+    font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 1rem;
+    transition: all 0.2s;
+    background: var(--bg-card);
+    color: var(--text-main);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* 10. Dashboard Cards */
+.main-menu-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+@media (min-width: 640px) {
+    .main-menu-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .main-menu-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+    }
+}
+
+.dash-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+}
+
+.dash-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.dash-card i {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.dash-card h3 {
+    font-size: 1.125rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+}
+
+.dash-card p {
+    font-size: 1.75rem;
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+}
+
+.dash-card small {
+    color: var(--text-sub);
+    font-size: 0.875rem;
+}
+
+/* Card Colors */
+.dash-card.primary {
+    border-top: 4px solid var(--primary);
+}
+
+.dash-card.primary i {
+    color: var(--primary);
+}
+
+.dash-card.success {
+    border-top: 4px solid var(--success);
+}
+
+.dash-card.success i {
+    color: var(--success);
+}
+
+.dash-card.danger {
+    border-top: 4px solid var(--danger);
+}
+
+.dash-card.danger i {
+    color: var(--danger);
+}
+
+.dash-card.warning {
+    border-top: 4px solid var(--warning);
+}
+
+.dash-card.warning i {
+    color: var(--warning);
+}
+
+/* 11. Badges & Status */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.badge-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-primary {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+/* 12. Action Buttons in Table */
+.action-btn {
+    padding: 0.375rem 0.75rem;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin: 0 0.25rem;
+}
+
+.action-btn i {
+    margin-left: 0.25rem;
+}
+
+/* 13. Tabs */
+.tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--border-light);
+    overflow-x: auto;
+    padding-bottom: 0;
+}
+
+.tab {
+    padding: 0.875rem 1.5rem;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--text-sub);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.tab:hover {
+    color: var(--primary);
+}
+
+.tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    font-weight: 600;
+}
+
+/* 14. Stats Cards */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.stat-card h4 {
+    color: var(--text-sub);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.75rem;
+}
+
+.stat-card .value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+}
+
+.stat-card .change {
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.stat-card .change.positive {
+    color: var(--success);
+}
+
+.stat-card .change.negative {
+    color: var(--danger);
+}
+
+/* 15. Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: var(--text-sub);
+}
+
+.empty-state i {
+    font-size: 4rem;
+    opacity: 0.3;
+    margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+}
+
+.empty-state p {
+    font-size: 0.95rem;
+}
+
+/* 16. Loading Spinner */
+.spinner {
+    border: 3px solid var(--border-light);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 0.8s linear infinite;
+    margin: 2rem auto;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 17. Toast Notifications */
+.toast {
     position: fixed;
     bottom: 2rem;
-    right: 2rem;
-    width: 56px;
-    height: 56px;
-    background: var(--primary);
-    color: #fff;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    box-shadow: var(--shadow-lg);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text-main);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
     z-index: 10000;
-    cursor: pointer;
-    transition: background 0.2s ease;
+    animation: slideUp 0.3s ease;
 }
 
-.fab-btn:hover {
-    background: var(--primary-dark);
+.toast.success {
+    background: var(--success);
 }
 
-.fab-mini {
-    position: fixed;
-    bottom: 8rem;
-    right: 2rem;
-    width: 44px;
-    height: 44px;
-    background: var(--secondary);
-    color: #fff;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    box-shadow: var(--shadow-md);
-    z-index: 9999;
-    cursor: pointer;
+.toast.error {
+    background: var(--danger);
 }
 
-/* 9️⃣ Modal – keep existing style‑modal.css for animation, only basic overrides */
-.modal-overlay {
-    /* already defined in style‑modal.css – keep it */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(100%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
 }
 
-/* 10️⃣ Utility classes */
+/* 18. Utility Classes */
 .text-center {
     text-align: center;
+}
+
+.text-left {
+    text-align: left;
 }
 
 .text-right {
@@ -343,59 +816,110 @@ tr:hover td {
 }
 
 .mt-1 {
-    margin-top: 0.25rem;
+    margin-top: var(--spacing-xs);
 }
 
 .mt-2 {
-    margin-top: 0.5rem;
+    margin-top: var(--spacing-sm);
 }
 
 .mt-3 {
-    margin-top: 1rem;
+    margin-top: var(--spacing);
+}
+
+.mt-4 {
+    margin-top: var(--spacing-lg);
 }
 
 .mb-1 {
-    margin-bottom: 0.25rem;
+    margin-bottom: var(--spacing-xs);
 }
 
 .mb-2 {
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--spacing-sm);
 }
 
 .mb-3 {
-    margin-bottom: 1rem;
+    margin-bottom: var(--spacing);
+}
+
+.mb-4 {
+    margin-bottom: var(--spacing-lg);
 }
 
 .p-2 {
-    padding: 0.5rem;
+    padding: var(--spacing-sm);
 }
 
 .p-3 {
-    padding: 1rem;
+    padding: var(--spacing);
 }
 
-/* 11️⃣ Responsive typography */
-html {
-    font-size: 100%;
+.p-4 {
+    padding: var(--spacing-lg);
 }
 
-@media (max-width: 600px) {
+.flex {
+    display: flex;
+}
+
+.flex-col {
+    flex-direction: column;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.gap-2 {
+    gap: var(--spacing-sm);
+}
+
+.gap-3 {
+    gap: var(--spacing);
+}
+
+.hidden {
+    display: none;
+}
+
+/* 19. Responsive Typography */
+@media (max-width: 640px) {
     html {
-        font-size: 90%;
+        font-size: 14px;
+    }
+
+    .header-card h1 {
+        font-size: 1.5rem;
     }
 }
 
 @media (min-width: 1200px) {
     html {
-        font-size: 110%;
+        font-size: 17px;
     }
 }
 
-/* 12️⃣ Smooth scroll for anchor links */
-html {
-    scroll-behavior: smooth;
-}
+/* 20. Print Styles */
+@media print {
 
-/* ------------------------------------------------------------
-   End of Unified Design
-   ------------------------------------------------------------ */
+    .menu-btn,
+    .navbar,
+    .btn,
+    .search-container {
+        display: none !important;
+    }
+
+    .container {
+        max-width: 100%;
+        padding: 0;
+    }
+
+    .table-container {
+        box-shadow: none;
+    }
+}
