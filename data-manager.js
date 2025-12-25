@@ -3,6 +3,7 @@
  */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { initializeFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, persistentLocalCache, persistentMultipleTabManager } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { telegramBot } from './telegram-bot.js?v=19.1';
 
 const firebaseConfig = {
@@ -22,6 +23,8 @@ const db = initializeFirestore(app, {
         tabManager: persistentMultipleTabManager()
     })
 });
+
+const auth = getAuth(app);
 
 console.log('✅ Firebase مُهيأ بالتخزين المحلي المتقدم - جاهز للعمل!');
 
@@ -60,8 +63,18 @@ export const DataManager = {
         this.sync('subscribers');
         this.sync('transactions');
         this.sync('employees'); // مزامنة الموظفين
+
         this.sync('maintenances'); // مزامنة الصيانات
         this.monitorConnection();
+
+        // تسجيل الدخول المجهول (لحل مشاكل Security Rules)
+        signInAnonymously(auth)
+            .then(() => {
+                console.log('✅ Signed in anonymously');
+            })
+            .catch((error) => {
+                console.warn('⚠️ Auth Error (may cause permission issues):', error);
+            });
 
         // تهيئة Telegram Bot مع Firebase (إذا كان موجوداً)
         try {
