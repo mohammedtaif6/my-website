@@ -1,68 +1,83 @@
-/* --- Fixed & Centered Modals (Global System) --- */
+/* --- GLOBAL MODAL SYSTEM (PROFESSIONAL & FIXED) --- */
+/* This file controls all popups across the entire system */
+
 .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100% !important;
-    height: 100% !important;
-    background: rgba(0, 0, 0, 0.4);
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(0, 0, 0, 0.5) !important;
     backdrop-filter: blur(4px);
-    z-index: 10000;
-    /* Extremely high to cover everything */
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    /* Professional Blur Effect */
+    z-index: 999999 !important;
+    /* Always on top of everything */
+    display: none;
+    align-items: center !important;
+    justify-content: center !important;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .modal-overlay.active {
-    opacity: 1;
-    visibility: visible;
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 .modal-box {
-    background: white;
-    width: 90%;
-    max-width: 450px;
-    border-radius: 20px;
-    padding: 25px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-    position: relative;
-    /* Relative to flex container (overlay) */
-    transform: scale(0.9);
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    max-height: 85vh;
-    overflow-y: auto;
+    background: white !important;
+    width: 90% !important;
+    max-width: 450px !important;
+    margin: auto !important;
+    border-radius: 20px !important;
+    padding: 25px !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+    position: relative !important;
+    transform: scale(0.95);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-height: 85vh !important;
+    overflow-y: auto !important;
 }
 
 .modal-overlay.active .modal-box {
     transform: scale(1);
 }
 
+/* Header Styling */
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #f0f0f0;
     padding-bottom: 15px;
 }
 
 .modal-header h3 {
     margin: 0;
-    font-size: 1.2rem;
-    color: var(--primary);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--primary, #111827);
 }
 
 .close-btn {
-    background: none;
+    background: transparent;
     border: none;
     font-size: 1.8rem;
-    color: #999;
+    color: #9ca3af;
     cursor: pointer;
-    line-height: 1;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
 }
 
-/* .modal-body { Padding handled by box } */
+.close-btn:hover {
+    background: #f3f4f6;
+    color: #ef4444;
+}
