@@ -77,22 +77,29 @@ body::before {
     display: none;
 }
 
-/* --- Layout Container --- */
+/* --- Layout Container (Responsive) --- */
 .container {
     width: 100%;
-    max-width: 100%;
-    margin: 0;
+    margin: 0 auto;
     padding: 12px;
     padding-top: 12px;
     padding-bottom: 100px;
+    /* Phone: Full Width */
 }
 
 @media (min-width: 768px) {
     .container {
-        max-width: 800px;
-        margin: 0 auto;
+        max-width: 95%;
+        /* Tablet uses more space */
         padding: 24px;
-        padding-bottom: 120px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .container {
+        max-width: 1200px;
+        /* Desktop constrained but wide */
+        padding: 40px;
     }
 }
 
@@ -228,19 +235,29 @@ body::before {
 }
 
 /* --- Dashboard Grid (Responsive) --- */
-/* --- Dashboard Grid (Restored to 2 columns) --- */
+/* --- Dashboard Grid (Responsive Web App) --- */
 .main-menu-grid {
     display: grid;
+    /* Mobile: Strictly 2 Columns */
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
     margin-bottom: 25px;
 }
 
+/* Tablet: 3 Columns */
 @media (min-width: 768px) {
     .main-menu-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         gap: 16px;
         margin-bottom: 30px;
+    }
+}
+
+/* Desktop: 4 Columns (Full Web App Feel) */
+@media (min-width: 1024px) {
+    .main-menu-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
     }
 }
 

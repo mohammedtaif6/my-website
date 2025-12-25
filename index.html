@@ -1,100 +1,110 @@
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="SAS">
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
 
-<title>SAS - لوحة القيادة</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#f9fafb">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SAS">
 
-<link rel="manifest" href="/manifest.json">
-<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-512x512.png">
-<link rel="apple-touch-icon" href="/icons/icon-512x512.png">
+    <title>SAS - لوحة القيادة</title>
 
-<link rel="stylesheet" href="style.css?v=25.0">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-512x512.png">
+    <link rel="apple-touch-icon" href="/icons/icon-512x512.png">
 
-<!-- نظام الصلاحيات الجديد -->
-<script src="auth-system.js"></script>
-<script>AuthSystem.checkSession();</script>
+    <link rel="stylesheet" href="style.css?v=25.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<!-- Cache Clear Logic (On Demand Only) -->
-<!-- script src="force-cache-clear.js"></script -->
+    <!-- نظام الصلاحيات الجديد -->
+    <script src="auth-system.js"></script>
+    <script>AuthSystem.checkSession();</script>
 
-<!-- نظام التحديث التلقائي -->
-<script src="auto-refresh.js"></script>
+    <!-- Cache Clear Logic (On Demand Only) -->
+    <!-- script src="force-cache-clear.js"></script -->
 
-<!-- تسجيل Service Worker للعمل بدون إنترنت وتسريع التحميل -->
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-                .then(reg => console.log('🚀 Service Worker مفعّل - النظام أسرع الآن!'))
-                .catch(err => console.log('⚠️ Service Worker غير متاح (ليس ضرورياً)'));
-        });
-    }
-</script>
-<style>
-    /* Print Receipt Style - 80mm Thermal Printer */
-    .receipt-container {
-        display: block;
-        position: fixed;
-        left: -9999px;
-        top: 0;
-    }
+    <!-- نظام التحديث التلقائي -->
+    <script src="auto-refresh.js"></script>
 
-    @media print {
-        @page {
-            size: 80mm auto;
-            margin: 0;
+    <!-- تسجيل Service Worker للعمل بدون إنترنت وتسريع التحميل -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('🚀 Service Worker مفعّل - النظام أسرع الآن!'))
+                    .catch(err => console.log('⚠️ Service Worker غير متاح (ليس ضرورياً)'));
+            });
         }
-
-        body * {
-            visibility: hidden;
-        }
-
-        .receipt-container,
-        .receipt-container * {
-            visibility: visible;
-        }
-
+    </script>
+    <style>
+        /* Print Receipt Style - 80mm Thermal Printer */
         .receipt-container {
-            position: absolute;
-            left: 0;
+            display: block;
+            position: fixed;
+            left: -9999px;
             top: 0;
-            width: 80mm;
-            padding: 5mm;
-            text-align: center;
-            font-family: 'Courier New', monospace;
-            direction: rtl;
-            background: white;
         }
 
-        .rec-header {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 8px;
-            border-bottom: 2px dashed #000;
-            padding-bottom: 8px;
-        }
+        @media print {
+            @page {
+                size: 80mm auto;
+                margin: 0;
+            }
 
-        .rec-row {
-            display: flex;
-            justify-content: space-between;
-            margin: 6px 0;
-            font-size: 14px;
-            border-bottom: 1px dotted #999;
-            padding: 4px 0;
-        }
+            body * {
+                visibility: hidden;
+            }
 
-        .rec-row span:first-child {
-            font-weight: bold;
-        }
+            .receipt-container,
+            .receipt-container * {
+                visibility: visible;
+            }
 
-        .rec-footer {
-            margin-top: 15px;
-            font-size: 12px;
-            border-top: 2px dashed #000;
-            padding-top: 10px;
+            .receipt-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 80mm;
+                padding: 5mm;
+                text-align: center;
+                font-family: 'Courier New', monospace;
+                direction: rtl;
+                background: white;
+            }
+
+            .rec-header {
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 8px;
+                border-bottom: 2px dashed #000;
+                padding-bottom: 8px;
+            }
+
+            .rec-row {
+                display: flex;
+                justify-content: space-between;
+                margin: 6px 0;
+                font-size: 14px;
+                border-bottom: 1px dotted #999;
+                padding: 4px 0;
+            }
+
+            .rec-row span:first-child {
+                font-weight: bold;
+            }
+
+            .rec-footer {
+                margin-top: 15px;
+                font-size: 12px;
+                border-top: 2px dashed #000;
+                padding-top: 10px;
+            }
         }
-    }
-</style>
+    </style>
 </head>
 
 <body>
