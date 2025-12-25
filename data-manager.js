@@ -2,7 +2,7 @@
  * DataManager v15.0 - مع دعم Telegram Bot
  */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { initializeFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, persistentLocalCache, persistentMultipleTabManager } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { initializeFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, limit, persistentLocalCache, persistentMultipleTabManager } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { telegramBot } from './telegram-bot.js?v=19.1';
 
@@ -114,7 +114,9 @@ export const DataManager = {
         // تهيئة المصفوفة لضمان عدم حدوث خطأ عند القراءة
         if (!localData[colName]) localData[colName] = [];
 
-        const q = query(collection(db, colName), orderBy("createdAt", "desc"));
+        // Limit queries to 150 items to improve performance
+        const limitCount = colName === 'transactions' ? 150 : 2000;
+        const q = query(collection(db, colName), orderBy("createdAt", "desc"), limit(limitCount));
 
         onSnapshot(q,
             (snapshot) => {
