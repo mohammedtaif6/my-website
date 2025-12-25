@@ -119,10 +119,12 @@ export const DataManager = {
             (error) => {
                 console.error(`❌ Firebase Error (${colName}):`, error);
 
+                // لا نعرض رسائل خطأ للموظفين - فقط نسجلها في الكونسول
                 if (error.code === 'permission-denied') {
-                    showToast(`عذراً، ليس لديك صلاحية للوصول لبيانات: ${colName}`, 'error');
+                    console.warn(`⚠️ لا توجد صلاحية للوصول لـ: ${colName}`);
+                    // لا نعرض Toast - فقط نسجل في الكونسول
                 } else {
-                    showToast('خطأ في الاتصال بقاعدة البيانات', 'error');
+                    console.warn('⚠️ خطأ في الاتصال بقاعدة البيانات');
                 }
             }
         );
@@ -137,7 +139,10 @@ export const DataManager = {
                 isArchived: false,
                 ...data
             });
-        } catch (e) { console.error(e); showToast("خطأ أمني", "error"); }
+        } catch (e) {
+            console.error('❌ Transaction Error:', e);
+            // لا نعرض رسالة خطأ للمستخدم - فقط نسجل في الكونسول
+        }
         finally { isProcessing = false; }
     },
 

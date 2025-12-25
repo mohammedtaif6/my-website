@@ -417,7 +417,7 @@
             try {
                 const txs = DataManager.getAllTransactions().filter(t => !t.isArchived);
                 if (txs.length === 0) {
-                    alert('لا توجد بيانات لأرشفتها!');
+                    DataManager.showToast('⚠️ لا توجد بيانات لأرشفتها!', 'error');
                     return;
                 }
 

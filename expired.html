@@ -168,9 +168,9 @@
                     dateEnd: end
                 });
                 closeQuickActivate();
-                alert('تم التجديد بنجاح');
+                DataManager.showToast('✅ تم التجديد بنجاح', 'success');
             } catch (e) {
-                alert('خطأ');
+                DataManager.showToast('❌ حدث خطأ في التجديد', 'error');
             }
         };
 

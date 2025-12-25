@@ -315,9 +315,9 @@
                     dateEnd: end
                 });
                 closeQuickActivate();
-                alert('تم التجديد بنجاح');
+                DataManager.showToast('✅ تم التجديد بنجاح', 'success');
             } catch (e) {
-                alert('خطأ');
+                DataManager.showToast('❌ حدث خطأ في التجديد', 'error');
             }
         };
 
@@ -345,7 +345,7 @@
             const phone = document.getElementById('new-phone').value;
             const price = document.getElementById('new-price').value || 0;
 
-            if (!name) return alert('يجب كتابة الاسم على الأقل');
+            if (!name) return DataManager.showToast('⚠️ يجب كتابة الاسم على الأقل', 'error');
 
             btn.disabled = true;
             btn.innerHTML = 'جاري الحفظ...';
@@ -364,7 +364,7 @@
                 document.getElementById('new-name').value = '';
                 document.getElementById('new-phone').value = '';
             } catch (e) {
-                alert('خطأ');
+                DataManager.showToast('❌ حدث خطأ أثناء الحفظ', 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-save"></i> حفظ البيانات';
@@ -454,7 +454,7 @@
             // تحديث الجدول
             renderPage();
             // إظهار رسالة النجاح
-            alert(`تم استيراد ${addedCount} مشترك بنجاح!`);
+            DataManager.showToast(`🎉 تم استيراد ${addedCount} مشترك بنجاح!`, 'success');
         };
         // Menu Toggle Logic
         window.toggleMenu = function () {

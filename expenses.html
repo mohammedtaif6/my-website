@@ -179,7 +179,7 @@
             const amount = parseInt(document.getElementById('expenseAmount').value);
 
             if (!desc || !amount || amount <= 0) {
-                alert('الرجاء إدخال وصف ومبلغ صحيح');
+                DataManager.showToast('⚠️ يرجى إدخال وصف ومبلغ صحيح', 'error');
                 return;
             }
 
@@ -195,7 +195,7 @@
                 closeExpenseModal();
             } catch (e) {
                 console.error(e);
-                alert('حدث خطأ');
+                DataManager.showToast('❌ حدث خطأ أثناء الحفظ', 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-save"></i> حفظ الصرفية';

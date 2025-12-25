@@ -394,7 +394,7 @@
         window.confirmReward = async () => {
             const id = document.getElementById('reward-maint-id').value;
             const amount = parseInt(document.getElementById('reward-amount').value);
-            if (!amount || amount <= 0) return alert('أدخل مبلغاً صحيحاً');
+            if (!amount || amount <= 0) return DataManager.showToast('⚠️ يرجى إدخال مبلغ صحيح', 'error');
 
             await DataManager.payMaintenanceReward(id, amount);
             closeRewardModal();
