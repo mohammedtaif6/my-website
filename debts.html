@@ -98,6 +98,30 @@
         </div>
     </div>
 
+    <!-- Bottom Navigation Bar -->
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="fas fa-home"></i>
+            <span>الرئيسية</span>
+        </a>
+        <a href="subscribers.html" class="nav-item">
+            <i class="fas fa-users"></i>
+            <span>المشتركين</span>
+        </a>
+        <a href="debts.html" class="nav-item active">
+            <i class="fas fa-money-bill-wave"></i>
+            <span>الديون</span>
+        </a>
+        <a href="maintenance.html" class="nav-item">
+            <i class="fas fa-wrench"></i>
+            <span>صيانة</span>
+        </a>
+        <a href="#" class="nav-item" onclick="toggleMenu(); return false;">
+            <i class="fas fa-bars"></i>
+            <span>المزيد</span>
+        </a>
+    </div>
+
     <!-- Modal: Pay Debt -->
     <div id="payDebtModal" class="modal-overlay">
         <div class="modal-box">
@@ -148,7 +172,7 @@
         window.confirmPayDebt = async function (print = false) {
             const subId = document.getElementById('debtSubId').value;
             const firebaseId = document.getElementById('debtSubFirebaseId').value;
-            const amount = document.getElementById('payDebtAmount').value;
+            const amount = parseInt(document.getElementById('payDebtAmount').value);
             const sendWhatsapp = document.getElementById('send-whatsapp-debt').checked;
 
             if (!amount || amount <= 0) {
@@ -157,25 +181,19 @@
             }
 
             try {
+                // استخدام دالة payDebt الموحدة في DataManager
+                // الترتيب: firebaseId, subId, amount
+                await DataManager.payDebt(firebaseId, subId, amount);
+
                 const sub = DataManager.getSubscriber(subId);
-                if (!sub) {
-                    DataManager.showToast('لم يتم العثور على المشترك', 'error');
-                    return;
-                }
+                const newPrice = Math.max(0, (parseInt(sub.price) || 0));
 
-                // 1. تسجيل المعاملة (دخل)
-                await DataManager.recordTransaction(subId, parseInt(amount), `تسديد دين من المشترك: ${sub.name}`, 'نقد');
-
-                // 2. تقليل الدين
-                const newPrice = Math.max(0, parseInt(sub.price || 0) - parseInt(amount));
-                await DataManager.updateSubscriber(firebaseId, subId, { price: newPrice });
-
-                // 3. الطباعة
-                if (print) {
+                // 3. الطباعة (إذا طلبت)
+                if (print && sub) {
                     const receiptData = {
                         title: "وصل تسديد دين",
                         subName: sub.name,
-                        amount: parseInt(amount),
+                        amount: amount,
                         totalRemaining: newPrice,
                         date: new Date().toLocaleDateString('ar-IQ'),
                         type: "تسديد نقد"
@@ -183,26 +201,26 @@
                     DataManager.printReceipt(receiptData);
                 }
 
-                // 4. واتساب
-                if (sendWhatsapp && sub.phone) {
-                    const msg = `مرحباً ${sub.name}،\n\nتم استلام دفعة تسديد دين بقيمة: ${parseInt(amount).toLocaleString()} د.ع\nالمتبقي بذمتكم: ${newPrice.toLocaleString()} د.ع\n\nشكراً لكم 🌹`;
+                // 4. واتساب (إذا طلب)
+                if (sendWhatsapp && sub && sub.phone) {
+                    const msg = `مرحباً ${sub.name}،\n\nتم استلام دفعة تسديد دين بقيمة: ${amount.toLocaleString()} د.ع\nالمتبقي بذمتكم: ${newPrice.toLocaleString()} د.ع\n\nشكراً لكم 🌹`;
                     let phone = sub.phone.replace(/^0+/, '');
                     if (!phone.startsWith('964')) phone = '964' + phone;
 
                     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-                    if (isMobile) {
-                        window.location.href = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(msg)}`;
-                    } else {
-                        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
-                    }
+                    const url = isMobile
+                        ? `whatsapp://send?phone=${phone}&text=${encodeURIComponent(msg)}`
+                        : `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+
+                    window.open(url, '_blank');
                 }
 
                 closeDebtModal();
-                DataManager.showToast('تم التسديد بنجاح', 'success');
+                // DataManager.showToast يظهر داخل payDebt
                 renderDebts();
             } catch (error) {
                 console.error('خطأ في التسديد:', error);
-                DataManager.showToast('حدث خطأ أثناء التسديد', 'error');
+                DataManager.showToast('حدث خطأ أثناء التسديد: ' + error.message, 'error');
             }
         };
 
