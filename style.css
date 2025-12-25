@@ -80,11 +80,19 @@ body::before {
 /* --- Layout Container --- */
 .container {
     width: 100%;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 14px;
-    padding-top: 14px;
+    max-width: 100%;
+    margin: 0;
+    padding: 10px;
+    padding-top: 10px;
     padding-bottom: 100px;
+}
+
+@media (min-width: 768px) {
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
 }
 
 /* --- Minimal Navbar Button --- */
@@ -199,9 +207,9 @@ body::before {
 
 .header-card h1 {
     color: var(--text-main);
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     font-weight: 800;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.8px;
     margin-bottom: 4px;
     text-shadow: none;
 }
@@ -222,19 +230,19 @@ body::before {
 .main-menu-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    margin-bottom: 25px;
+    gap: 8px;
+    margin-bottom: 20px;
 }
 
 .dash-card {
     background: var(--surface);
-    border-radius: 18px;
-    padding: 20px;
+    border-radius: 20px;
+    padding: 18px;
     text-decoration: none;
     position: relative;
     box-shadow: var(--shadow-card);
     border: 1px solid var(--border-light);
-    min-height: 135px;
+    min-height: 140px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -254,23 +262,26 @@ body::before {
 
 /* Typography inside cards */
 .dash-card h3 {
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     color: var(--text-sub);
     font-weight: 500;
     margin: 0;
+    line-height: 1.3;
 }
 
 .dash-card p {
-    font-size: 1.85rem;
+    font-size: 2rem;
     color: var(--text-main);
     font-weight: 800;
-    margin: 8px 0 0 0;
-    letter-spacing: -0.5px;
+    margin: 10px 0 0 0;
+    letter-spacing: -0.8px;
+    line-height: 1;
 }
 
 .dash-card small {
     color: var(--text-muted);
-    font-size: 0.75rem;
+    font-size: 0.78rem;
+    line-height: 1.4;
 }
 
 /* Icons inside cards - Minimal & Unified */
@@ -278,12 +289,12 @@ body::before {
     position: absolute;
     top: 16px;
     left: 16px;
-    font-size: 1.25rem;
+    font-size: 1.3rem;
     color: var(--text-main);
     opacity: 1;
     background: #f3f4f6;
-    width: 42px;
-    height: 42px;
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
     display: flex;
     align-items: center;
