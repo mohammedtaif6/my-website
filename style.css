@@ -92,6 +92,7 @@ body::before {
         max-width: 800px;
         margin: 0 auto;
         padding: 20px;
+        padding-bottom: 120px;
     }
 }
 
@@ -231,18 +232,25 @@ body::before {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
+}
+
+@media (min-width: 768px) {
+    .main-menu-grid {
+        gap: 16px;
+        margin-bottom: 30px;
+    }
 }
 
 .dash-card {
     background: var(--surface);
-    border-radius: 20px;
-    padding: 18px;
+    border-radius: 18px;
+    padding: 16px;
     text-decoration: none;
     position: relative;
     box-shadow: var(--shadow-card);
     border: 1px solid var(--border-light);
-    min-height: 140px;
+    min-height: 130px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -270,12 +278,18 @@ body::before {
 }
 
 .dash-card p {
-    font-size: 2rem;
+    font-size: 1.9rem;
     color: var(--text-main);
     font-weight: 800;
-    margin: 10px 0 0 0;
-    letter-spacing: -0.8px;
-    line-height: 1;
+    margin: 8px 0 0 0;
+    letter-spacing: -0.6px;
+    line-height: 1.1;
+}
+
+@media (min-width: 768px) {
+    .dash-card p {
+        font-size: 2.2rem;
+    }
 }
 
 .dash-card small {
@@ -287,14 +301,14 @@ body::before {
 /* Icons inside cards - Minimal & Unified */
 .dash-card .card-icon {
     position: absolute;
-    top: 16px;
-    left: 16px;
-    font-size: 1.3rem;
+    top: 14px;
+    left: 14px;
+    font-size: 1.25rem;
     color: var(--text-main);
     opacity: 1;
     background: #f3f4f6;
-    width: 45px;
-    height: 45px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     display: flex;
     align-items: center;
