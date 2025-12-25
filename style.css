@@ -228,11 +228,12 @@ body::before {
 }
 
 /* --- Dashboard Grid (Responsive) --- */
+/* --- Dashboard Grid (Restored to 2 columns) --- */
 .main-menu-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 8px;
-    margin-bottom: 15px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 25px;
 }
 
 @media (min-width: 768px) {
