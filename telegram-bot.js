@@ -82,7 +82,12 @@ class TelegramBot {
     }
 
     async sendMessage(message, options = {}) {
-        if (!this.config.enabled || !this.config.botToken || !this.config.chatId) {
+        // Ensure config is loaded
+        if (!this.configLoaded && this.db) {
+            await this.loadConfig();
+        }
+
+        if (!this.config || !this.config.enabled || !this.config.botToken || !this.config.chatId) {
             console.log('⚠️ Telegram غير مفعّل أو الإعدادات غير مكتملة');
             return false;
         }
