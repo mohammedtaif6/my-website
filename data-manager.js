@@ -115,7 +115,8 @@ export const DataManager = {
         if (!localData[colName]) localData[colName] = [];
 
         // Limit queries to 150 items to improve performance
-        const limitCount = colName === 'transactions' ? 150 : 2000;
+        // Limit queries: Transactions 100, Subscribers & others 1000 (Optimized for speed)
+        const limitCount = colName === 'transactions' ? 100 : 1000;
         const q = query(collection(db, colName), orderBy("createdAt", "desc"), limit(limitCount));
 
         onSnapshot(q,
