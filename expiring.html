@@ -63,8 +63,9 @@
                         <tr>
                             <th>الاسم</th>
                             <th>الهاتف</th>
-                            <th>الأيام المتبقية</th>
+                            <th>المتبقي</th>
                             <th>تاريخ الانتهاء</th>
+                            <th>إجراء</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -92,19 +93,31 @@
             tbody.innerHTML = '';
 
             if (expiring.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--success);">لا توجد اشتراكات قاربت على الانتهاء</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--success);">لا توجد اشتراكات قاربت على الانتهاء</td></tr>';
             } else {
                 expiring.forEach(s => {
                     const exp = new Date(s.expiryDate);
                     const diffTime = exp - today;
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
+                    // تحضير رسالة الواتساب
+                    const msg = `مرحباً ${s.name}،\nنود تذكيركم بأن اشتراككم سينتهي بتاريخ ${s.expiryDate}.\nيرجى التجديد لضمان استمرار الخدمة.\nشكراً لثقتكم بنا - OK Computer 🌹`;
+                    const phone = s.phone ? s.phone.replace(/\D/g, '') : '';
+                    const waLink = phone ? `https://wa.me/964${phone.startsWith('0') ? phone.slice(1) : phone}?text=${encodeURIComponent(msg)}` : '#';
+
                     tbody.innerHTML += `
                         <tr>
                             <td data-label="الاسم" style="font-weight:bold;">${s.name}</td>
-                            <td data-label="الهاتف">${s.phone || '-'}</td>
+                            <td data-label="الهاتف" style="direction: ltr;">${s.phone || '-'}</td>
                             <td data-label="المتبقي"><span class="badge badge-warning">${diffDays} أيام</span></td>
                             <td data-label="التاريخ">${s.expiryDate}</td>
+                            <td data-label="إجراء">
+                                ${phone ? `
+                                <a href="${waLink}" target="_blank" class="btn btn-success btn-sm" style="background:#25D366; border-color:#25D366; color:white; display:inline-flex; align-items:center; gap:5px;">
+                                    <i class="fab fa-whatsapp"></i> تنبيه
+                                </a>
+                                ` : '<span style="color:#999; font-size:0.8rem;">لا يوجد رقم</span>'}
+                            </td>
                         </tr>
                     `;
                 });
