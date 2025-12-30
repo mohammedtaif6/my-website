@@ -73,7 +73,11 @@ export const DataManager = {
                 console.log('✅ Signed in anonymously');
             })
             .catch((error) => {
-                console.warn('⚠️ Auth Error (may cause permission issues):', error);
+                if (error.code === 'auth/configuration-not-found') {
+                    console.warn('⚠️ تنبيه: خدمة "Anonymous Auth" غير مفعلة في لوحة تحكم Firebase.');
+                } else {
+                    console.warn('⚠️ Auth Error (may cause permission issues):', error);
+                }
             });
 
         // تهيئة Telegram Bot مع Firebase (إذا كان موجوداً)
