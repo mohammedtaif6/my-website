@@ -730,6 +730,28 @@ OK Computer`;
         }
     },
 
+    async getTodayAttendance() {
+        try {
+            const today = new Date().toISOString().split('T')[0];
+            const attendanceRef = collection(db, "attendance");
+            const q = query(attendanceRef);
+            const snapshot = await getDocs(q);
+
+            const records = [];
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                if (data.date === today) {
+                    records.push(data);
+                }
+            });
+
+            return records;
+        } catch (e) {
+            console.error('Error fetching attendance:', e);
+            return [];
+        }
+    },
+
     // بدء المراقبة التلقائية للحضور
     startAttendanceTracking() {
         if (!AuthSystem.currentUser || AuthSystem.currentUser.type !== 'employee') {

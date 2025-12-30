@@ -115,6 +115,100 @@
         .get-location-btn:hover {
             opacity: 0.9;
         }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: var(--primary);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Employee Status Cards */
+        .employee-status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .employee-status-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #ccc;
+        }
+
+        .employee-status-card.present {
+            border-left-color: var(--secondary);
+            background: linear-gradient(135deg, #ffffff 0%, #f0fff4 100%);
+        }
+
+        .employee-status-card.absent {
+            border-left-color: #e74c3c;
+            background: linear-gradient(135deg, #ffffff 0%, #fff5f5 100%);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .status-badge.present {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .status-badge.absent {
+            background: #e74c3c;
+            color: white;
+        }
     </style>
 
     <script type="module">
@@ -198,6 +292,105 @@
             alert('✅ تم حفظ الإعدادات بنجاح!');
         };
 
+        // Tab Management
+        window.switchTab = function (tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            document.getElementById(tabName + '-btn').classList.add('active');
+
+            // Load data if needed
+            if (tabName === 'reports') {
+                loadReports();
+            }
+        };
+
+        // Load attendance reports
+        async function loadReports() {
+            const container = document.getElementById('employee-status-container');
+            container.innerHTML = '<p style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</p>';
+
+            try {
+                const employees = DataManager.getEmployees();
+                const settings = await DataManager.getAttendanceSettings();
+
+                if (!settings) {
+                    container.innerHTML = '<p style="text-align:center; color: #e74c3c;">⚠️ يرجى ضبط الإعدادات أولاً</p>';
+                    return;
+                }
+
+                const today = new Date().toISOString().split('T')[0];
+                const attendanceData = await DataManager.getTodayAttendance();
+
+                let html = '';
+                for (const emp of employees) {
+                    const empAttendance = attendanceData.filter(a => a.employeeId === emp.id);
+                    const isPresent = empAttendance.some(a => a.type === 'in');
+                    const lastRecord = empAttendance[empAttendance.length - 1];
+
+                    const totalHours = calculateHours(empAttendance);
+                    const salary = Math.round(totalHours * (settings.hourlyRate || 0));
+
+                    html += `
+                        <div class="employee-status-card ${isPresent ? 'present' : 'absent'}">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <h4 style="margin: 0;">${emp.name}</h4>
+                                <span class="status-badge ${isPresent ? 'present' : 'absent'}">
+                                    ${isPresent ? '✅ حاضر' : '⚪ غائب'}
+                                </span>
+                            </div>
+                            ${isPresent ? `
+                                <p style="margin: 5px 0; font-size: 0.9rem; color: #666;">
+                                    <i class="fas fa-clock"></i> ساعات العمل: <strong>${totalHours.toFixed(2)}</strong> ساعة
+                                </p>
+                                <p style="margin: 5px 0; font-size: 0.9rem; color: #666;">
+                                    <i class="fas fa-dollar-sign"></i> الراتب المستحق: <strong>${salary.toLocaleString()}</strong> د.ع
+                                </p>
+                                ${lastRecord ? `
+                                    <p style="margin: 5px 0; font-size: 0.85rem; color: #999;">
+                                        📍 آخر تحديث: ${new Date(lastRecord.timestamp).toLocaleTimeString('ar-IQ')}
+                                    </p>
+                                ` : ''}
+                            ` : '<p style="margin: 5px 0; font-size: 0.9rem; color: #999;">لم يسجل حضور اليوم</p>'}
+                        </div>
+                    `;
+                }
+
+                container.innerHTML = html || '<p style="text-align:center;">لا يوجد موظفين</p>';
+            } catch (e) {
+                console.error('Error loading reports:', e);
+                container.innerHTML = '<p style="text-align:center; color: #e74c3c;">❌ حدث خطأ في التحميل</p>';
+            }
+        }
+
+        function calculateHours(records) {
+            let totalMinutes = 0;
+            let lastIn = null;
+
+            for (const record of records) {
+                if (record.type === 'in') {
+                    lastIn = new Date(record.timestamp);
+                } else if (record.type === 'out' && lastIn) {
+                    const out = new Date(record.timestamp);
+                    const diff = (out - lastIn) / 1000 / 60; // minutes
+                    totalMinutes += diff;
+                    lastIn = null;
+                }
+            }
+
+            // If still clocked in, count until now
+            if (lastIn) {
+                const now = new Date();
+                const diff = (now - lastIn) / 1000 / 60;
+                totalMinutes += diff;
+            }
+
+            return totalMinutes / 60; // convert to hours
+        }
+
         // Auto-focus on PIN input
         window.onload = () => {
             document.getElementById('pin-input').focus();
@@ -232,81 +425,117 @@
     <div class="container" style="padding-top: 60px;">
         <div class="card fade-in">
             <h2 style="color: var(--primary); margin-bottom: 20px; text-align: center;">
-                <i class="fas fa-cog"></i> إعدادات نظام الحضور التلقائي
+                <i class="fas fa-user-clock"></i> نظام الحضور التلقائي
             </h2>
 
-            <div class="settings-grid">
-                <!-- Location Settings -->
-                <div class="setting-card">
-                    <h3><i class="fas fa-map-marker-alt"></i> موقع المحل</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>خط العرض (Latitude)</label>
-                            <input type="number" id="shop-lat" class="form-control" step="0.000001"
-                                placeholder="33.312805">
-                            <p class="help-text">مثال: 33.312805</p>
+            <!-- Tabs -->
+            <div class="tabs">
+                <button id="settings-btn" class="tab active" onclick="switchTab('settings')">
+                    <i class="fas fa-cog"></i> الإعدادات
+                </button>
+                <button id="reports-btn" class="tab" onclick="switchTab('reports')">
+                    <i class="fas fa-chart-line"></i> التقارير
+                </button>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settings-tab" class="tab-content active">
+                <div class="settings-grid">
+                    <!-- Location Settings -->
+                    <div class="setting-card">
+                        <h3><i class="fas fa-map-marker-alt"></i> موقع المحل</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>خط العرض (Latitude)</label>
+                                <input type="number" id="shop-lat" class="form-control" step="0.000001"
+                                    placeholder="33.312805">
+                                <p class="help-text">مثال: 33.312805</p>
+                            </div>
+                            <div class="form-group">
+                                <label>خط الطول (Longitude)</label>
+                                <input type="number" id="shop-lng" class="form-control" step="0.000001"
+                                    placeholder="44.361488">
+                                <p class="help-text">مثال: 44.361488</p>
+                            </div>
                         </div>
+                        <button id="get-location-btn" class="get-location-btn" onclick="getCurrentLocation()">
+                            <i class="fas fa-map-marker-alt"></i> استخدام موقعي الحالي
+                        </button>
+                        <p class="help-text" style="margin-top: 10px;">
+                            💡 اضغط الزر أعلاه وأنت موجود في المحل لتحديد الموقع تلقائياً
+                        </p>
+                    </div>
+
+                    <!-- Range Settings -->
+                    <div class="setting-card">
+                        <h3><i class="fas fa-bullseye"></i> نطاق القبول</h3>
                         <div class="form-group">
-                            <label>خط الطول (Longitude)</label>
-                            <input type="number" id="shop-lng" class="form-control" step="0.000001"
-                                placeholder="44.361488">
-                            <p class="help-text">مثال: 44.361488</p>
+                            <label>المسافة المسموحة (بالمتر)</label>
+                            <input type="number" id="radius" class="form-control" value="50" min="10" max="500">
+                            <p class="help-text">المسافة التي يجب أن يكون الموظف ضمنها ليُسجل حضوره (افتراضي: 50 متر)
+                            </p>
                         </div>
                     </div>
-                    <button id="get-location-btn" class="get-location-btn" onclick="getCurrentLocation()">
-                        <i class="fas fa-map-marker-alt"></i> استخدام موقعي الحالي
-                    </button>
-                    <p class="help-text" style="margin-top: 10px;">
-                        💡 اضغط الزر أعلاه وأنت موجود في المحل لتحديد الموقع تلقائياً
+
+                    <!-- Time Settings -->
+                    <div class="setting-card">
+                        <h3><i class="fas fa-clock"></i> أوقات الدوام</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>وقت البدء</label>
+                                <input type="time" id="start-time" class="form-control" value="09:00">
+                            </div>
+                            <div class="form-group">
+                                <label>وقت الانتهاء</label>
+                                <input type="time" id="end-time" class="form-control" value="18:00">
+                            </div>
+                        </div>
+                        <p class="help-text">سيتم حساب الحضور فقط ضمن هذه الأوقات</p>
+                    </div>
+
+                    <!-- Salary Settings -->
+                    <div class="setting-card">
+                        <h3><i class="fas fa-dollar-sign"></i> الراتب</h3>
+                        <div class="form-group">
+                            <label>أجر الساعة (دينار)</label>
+                            <input type="number" id="hourly-rate" class="form-control" value="2000" min="0" step="100">
+                            <p class="help-text">سيتم حساب راتب كل موظف بناءً على عدد الساعات × هذا المبلغ</p>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="saveSettings()" class="btn-primary"
+                    style="width: 100%; margin-top: 30px; padding: 15px;">
+                    <i class="fas fa-save"></i> حفظ الإعدادات
+                </button>
+
+                <div class="alert" style="margin-top: 20px; background: #fff3cd; border-left: 4px solid #ffc107;">
+                    <p style="margin: 0; color: #856404;">
+                        <i class="fas fa-info-circle"></i> <strong>ملاحظة:</strong>
+                        بعد حفظ الإعدادات، سيبدأ النظام تلقائياً بتتبع حضور الموظفين عند فتحهم للنظام من أجهزتهم.
                     </p>
-                </div>
-
-                <!-- Range Settings -->
-                <div class="setting-card">
-                    <h3><i class="fas fa-bullseye"></i> نطاق القبول</h3>
-                    <div class="form-group">
-                        <label>المسافة المسموحة (بالمتر)</label>
-                        <input type="number" id="radius" class="form-control" value="50" min="10" max="500">
-                        <p class="help-text">المسافة التي يجب أن يكون الموظف ضمنها ليُسجل حضوره (افتراضي: 50 متر)</p>
-                    </div>
-                </div>
-
-                <!-- Time Settings -->
-                <div class="setting-card">
-                    <h3><i class="fas fa-clock"></i> أوقات الدوام</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>وقت البدء</label>
-                            <input type="time" id="start-time" class="form-control" value="09:00">
-                        </div>
-                        <div class="form-group">
-                            <label>وقت الانتهاء</label>
-                            <input type="time" id="end-time" class="form-control" value="18:00">
-                        </div>
-                    </div>
-                    <p class="help-text">سيتم حساب الحضور فقط ضمن هذه الأوقات</p>
-                </div>
-
-                <!-- Salary Settings -->
-                <div class="setting-card">
-                    <h3><i class="fas fa-dollar-sign"></i> الراتب</h3>
-                    <div class="form-group">
-                        <label>أجر الساعة (دينار)</label>
-                        <input type="number" id="hourly-rate" class="form-control" value="2000" min="0" step="100">
-                        <p class="help-text">سيتم حساب راتب كل موظف بناءً على عدد الساعات × هذا المبلغ</p>
-                    </div>
                 </div>
             </div>
 
-            <button onclick="saveSettings()" class="btn-primary" style="width: 100%; margin-top: 30px; padding: 15px;">
-                <i class="fas fa-save"></i> حفظ الإعدادات
-            </button>
+            <!-- Reports Tab -->
+            <div id="reports-tab" class="tab-content">
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 10px 0; color: var(--primary);">
+                        <i class="fas fa-calendar-day"></i> حضور اليوم
+                    </h3>
+                    <p style="margin: 0; color: #666; font-size: 0.9rem;">
+                        يتم تحديث البيانات تلقائياً كل 5 دقائق
+                    </p>
+                </div>
 
-            <div class="alert" style="margin-top: 20px; background: #fff3cd; border-left: 4px solid #ffc107;">
-                <p style="margin: 0; color: #856404;">
-                    <i class="fas fa-info-circle"></i> <strong>ملاحظة:</strong>
-                    بعد حفظ الإعدادات، سيبدأ النظام تلقائياً بتتبع حضور الموظفين عند فتحهم للنظام من أجهزتهم.
-                </p>
+                <div id="employee-status-container" class="employee-status-grid">
+                    <p style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</p>
+                </div>
+
+                <button onclick="loadReports()" class="btn-secondary"
+                    style="width: 100%; margin-top: 20px; padding: 12px;">
+                    <i class="fas fa-sync-alt"></i> تحديث البيانات
+                </button>
             </div>
         </div>
     </div>
