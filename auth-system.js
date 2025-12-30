@@ -72,9 +72,8 @@ const AuthSystem = {
         const protections = {
             'subscribers.html': 'subscribers',
             'debts.html': 'debts',
-            'payments.html': 'payments',
+            'payments.html': 'box', // الصندوق
             'reports.html': 'reports',
-            'expenses.html': 'expenses',
             'employees.html': 'admin_only', // صفحة الموظفين للمدير فقط
             'telegram-settings.html': 'admin_only',
             'maintenance-log.html': 'admin_only', // سجل الصيانات للمدير فقط

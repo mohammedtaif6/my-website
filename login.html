@@ -19,6 +19,19 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- Fix: Import DataManager for Employee Login -->
+    <script type="module">
+        import { DataManager } from './data-manager.js';
+        window.DataManager = DataManager;
+        // We do NOT call DataManager.init() here to avoid heavy sync, 
+        // we just need .getEmployees() to work which requires initial sync or at least connection.
+        // Actually DataManager.getEmployees() relies on localData which is populated by sync.
+        // So we MUST call DataManager.init() but maybe we can optimize it?
+        // For now, let's just init it. It uses local cache so it should be fast.
+        DataManager.init();
+    </script>
+    <script src="auth-system.js"></script>
+
     <style>
         :root {
             --primary: #2563eb;
