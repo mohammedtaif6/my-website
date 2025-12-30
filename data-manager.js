@@ -689,6 +689,7 @@ OK Computer`;
                 const today = new Date().toISOString().split('T')[0];
 
                 if (distance <= settings.radius) {
+                    this.updateAttendanceUI('success', Math.round(distance), true);
                     // داخل النطاق
 
                     // التحقق من الحاجة لتسجيل 'ping' (تحديث التواجد)
@@ -720,6 +721,7 @@ OK Computer`;
                         }
                     }
                 } else {
+                    this.updateAttendanceUI('success', Math.round(distance), false);
                     // خارج النطاق - تسجيل الخروج
                     await this.recordAttendance(employeeId, today, 'out', {
                         lat: position.coords.latitude,
@@ -729,11 +731,41 @@ OK Computer`;
                 }
             },
             (error) => {
-                // تجاهل الأخطاء بهدوء
-                console.log('GPS check skipped');
+                console.error('GPS Check Error:', error);
+                this.updateAttendanceUI('gps_error', 0, false);
             },
-            { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
         );
+    },
+
+    // Helper to update UI
+    updateAttendanceUI(status, distance, isInside) {
+        const card = document.getElementById('attendance-status-card');
+        const text = document.getElementById('attendance-status-text');
+        const distEl = document.getElementById('attendance-status-distance');
+        const icon = document.getElementById('attendance-status-icon');
+        const distText = document.getElementById('attendance-distance');
+
+        if (card) {
+            card.style.display = 'block';
+
+            if (status === 'gps_error') {
+                text.innerText = 'تعذر تحديد الموقع';
+                if (distText) distText.innerText = 'يرجى تفعيل GPS';
+                return;
+            }
+
+            if (isInside) {
+                card.querySelector('div').style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                text.innerText = 'تم تسجيل الحضور ✅';
+                if (icon) icon.innerHTML = '<i class="fas fa-check-circle"></i>';
+            } else {
+                card.querySelector('div').style.background = 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)';
+                text.innerText = 'خارج الموقع المتوقع ❌';
+                if (icon) icon.innerHTML = '<i class="fas fa-times-circle"></i>';
+            }
+            if (distText) distText.innerText = `المسافة: ${distance} متر`;
+        }
     },
 
     async recordAttendance(employeeId, date, type, location) {
@@ -920,6 +952,7 @@ OK Computer`;
                     const today = new Date().toISOString().split('T')[0];
 
                     if (distance <= settings.radius) {
+                        this.updateAttendanceUI('success', Math.round(distance), true);
                         // داخل النطاق
 
                         // منطق الـ Ping للحفاظ على الجلسة نشطة
@@ -951,6 +984,7 @@ OK Computer`;
                             console.log(`📡 Heartbeat sent: ${Math.round(distance)}m`);
                         }
                     } else {
+                        this.updateAttendanceUI('success', Math.round(distance), false);
                         // خارج النطاق - تسجيل الخروج
                         await this.recordAttendance(employeeId, today, 'out', {
                             lat: position.coords.latitude,
@@ -962,6 +996,7 @@ OK Computer`;
                 },
                 (error) => {
                     console.log('GPS monitoring:', error.code === 1 ? 'Permission denied' : 'Error');
+                    this.updateAttendanceUI('gps_error', 0, false);
                 },
                 {
                     enableHighAccuracy: true,
