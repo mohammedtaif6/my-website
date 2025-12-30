@@ -94,39 +94,50 @@
             </div>
         </div>
 
+        <!-- Smart Summary Grid -->
         <div class="stats-grid">
-            <div class="card" id="card-payments"
-                style="background: linear-gradient(135deg, #10b981, #059669); color: white;">
-                <div style="display: flex; gap: 15px; align-items: center;">
-                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px;">
-                        <i class="fas fa-wallet" style="font-size: 1.5rem;"></i>
-                    </div>
+            <!-- Net Balance -->
+            <div class="card" id="card-net"
+                style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: #004d40;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
                     <div>
-                        <h3 style="color: rgba(255,255,255,0.9); margin-bottom: 5px;">الرصيد الصافي (الموجود)</h3>
-                        <p id="netBalanceDisplay" style="color: white; font-size: 2rem;">0</p>
+                        <h3 style="margin:0; font-size:0.9rem; opacity:0.8;">الصافي (الموجود)</h3>
+                        <div id="netBalanceDisplay" style="font-size:1.8rem; font-weight:bold;">0</div>
                     </div>
+                    <div style="font-size:2rem; opacity:0.3;"><i class="fas fa-wallet"></i></div>
+                </div>
+            </div>
+
+            <!-- Income -->
+            <div class="card" style="background: white; border-right: 5px solid #00c853;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <h3 style="margin:0; font-size:0.9rem; color:#666;">مجموع المقبوضات</h3>
+                        <div id="totalIncomeDisplay" style="font-size:1.5rem; font-weight:bold; color: #00c853;">0</div>
+                    </div>
+                    <div style="font-size:1.5rem; color:#e0e0e0;"><i class="fas fa-arrow-down"></i></div>
+                </div>
+            </div>
+
+            <!-- Expenses -->
+            <div class="card" style="background: white; border-right: 5px solid #ff3d00;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <h3 style="margin:0; font-size:0.9rem; color:#666;">مجموع المصروفات</h3>
+                        <div id="totalExpenseDisplay" style="font-size:1.5rem; font-weight:bold; color: #ff3d00;">0
+                        </div>
+                    </div>
+                    <div style="font-size:1.5rem; color:#e0e0e0;"><i class="fas fa-arrow-up"></i></div>
                 </div>
             </div>
         </div>
 
-        <div class="table-container">
+        <div class="table-container tx-list-container">
             <div class="table-header">
-                <h3>سجل العمليات (مقبوضات ومصروفات)</h3>
+                <h3>سجل العمليات</h3>
             </div>
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>البيان / المشترك</th>
-                            <th>المبلغ</th>
-                            <th>النوع</th>
-                            <th>التوقيت</th>
-                            <th>تحكم</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody"></tbody>
-                </table>
-            </div>
+            <!-- Transctions List (Cards) -->
+            <div id="transactionsList" class="tx-list"></div>
         </div>
     </div>
 
@@ -158,6 +169,7 @@
     </div>
 
     <!-- Modal: Expense (Moved here) -->
+    <!-- Modal: Expense -->
     <div id="expenseModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
@@ -177,6 +189,89 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal: Edit Transaction -->
+    <div id="editTxModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>تعديل عملية</h3>
+                <button class="close-btn" onclick="closeEditTxModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editTxId">
+                <div class="form-group">
+                    <label>البيان</label>
+                    <input type="text" id="editTxDesc">
+                </div>
+                <div class="form-group">
+                    <label>المبلغ</label>
+                    <input type="number" inputmode="numeric" id="editTxAmount">
+                </div>
+                <button onclick="saveEditTx()" class="btn btn-primary btn-full">حفظ التعديلات</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .tx-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .tx-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #f0f0f0;
+            transition: transform 0.2s;
+        }
+
+        .tx-card:active {
+            transform: scale(0.98);
+            background: #fafafa;
+        }
+
+        .tx-amount {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .tx-amount.inc {
+            color: #00c853;
+        }
+
+        .tx-amount.exp {
+            color: #ff3d00;
+        }
+
+        .tx-meta {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .tx-desc {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .tx-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 5px;
+        }
+    </style>
 
     <!-- Script for Pull to Refresh & Logic -->
     <script>
@@ -208,28 +303,30 @@
         });
 
         // === Page Logic ===
+        // === Page Logic ===
         window.renderPage = function () {
             if (typeof DataManager === 'undefined') return;
 
             // Get All Transactions
             const allTxs = DataManager.getAllTransactions();
-            const tbody = document.getElementById('tableBody');
+            const container = document.getElementById('transactionsList');
 
             // Filter: NOT Archived, Not Debt-Only Record
             const activeTxs = allTxs.filter(t => !t.isArchived && t.type !== 'subscription_debt');
 
-            // Calculate Net Balance (Available Money)
-            // Income: positive amounts
-            // Expense: negative amounts
+            // Calculate Totals
             const income = activeTxs.filter(t => t.amount > 0).reduce((a, b) => a + b.amount, 0);
             const expense = activeTxs.filter(t => t.amount < 0).reduce((a, b) => a + Math.abs(b.amount), 0);
             const net = income - expense;
 
+            // Update Header Stats
             document.getElementById('netBalanceDisplay').innerText = net.toLocaleString() + ' د.ع';
+            document.getElementById('totalIncomeDisplay').innerText = income.toLocaleString();
+            document.getElementById('totalExpenseDisplay').innerText = expense.toLocaleString();
 
-            tbody.innerHTML = '';
+            container.innerHTML = '';
             if (activeTxs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; opacity:0.6;">لا توجد حركات يومية. الكل مرحّل.</td></tr>';
+                container.innerHTML = '<div style="text-align:center; padding:30px; opacity:0.6;"><i class="fas fa-receipt fa-2x"></i><br>لا توجد حركات يومية. الكل مرحّل.</div>';
             } else {
                 // Sort Newest First
                 activeTxs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(t => {
@@ -243,25 +340,32 @@
                         desc = sub ? sub.name : (isExp ? 'صرفية' : 'مقبوض');
                     }
 
-                    tbody.innerHTML += `
-                        <tr style="background: ${isExp ? '#fef2f2' : 'white'}">
-                            <td data-label="البيان">
-                                <span style="font-weight:bold; color: ${isExp ? 'var(--danger)' : 'var(--dark)'}">
-                                    ${isExp ? '<i class="fas fa-arrow-down text-danger"></i>' : '<i class="fas fa-arrow-up text-success"></i>'} 
-                                    ${desc}
-                                </span>
-                            </td>
-                            <td data-label="المبلغ" style="font-weight:bold; color:${isExp ? 'var(--danger)' : 'var(--success)'}">
-                                ${amount.toLocaleString()}
-                            </td>
-                            <td data-label="النوع">${isExp ? 'صرف' : 'قبض'}</td>
-                            <td data-label="التوقيت">${time}</td>
-                            <td data-label="تحكم">
-                                <button onclick="window.DataManager.deleteTransaction('${t.id}')" class="btn btn-outline" style="padding:5px; color:var(--danger)">
-                                    <i class="fas fa-times"></i>
+                    // Escape JSON for onclick
+                    const tJson = JSON.stringify(t).replace(/'/g, "&#39;");
+
+                    container.innerHTML += `
+                        <div class="tx-card" style="border-right: 4px solid ${isExp ? '#ff3d00' : '#00c853'}">
+                            <div style="flex: 1;">
+                                <div class="tx-desc">${desc}</div>
+                                <div class="tx-meta">
+                                    <i class="far fa-clock"></i> ${time} 
+                                    ${t.type === 'subscription_payment' ? '<span class="badge badge-success">اشتراك</span>' : ''}
+                                </div>
+                            </div>
+                            <div style="text-align: left; margin-left: 10px;">
+                                <div class="tx-amount ${isExp ? 'exp' : 'inc'}">
+                                    ${isExp ? '-' : '+'} ${amount.toLocaleString()}
+                                </div>
+                            </div>
+                            <div class="tx-actions">
+                                <button onclick='openEditTxModal(${tJson})' class="btn-icon" style="color:#2196f3;">
+                                    <i class="fas fa-pen"></i>
                                 </button>
-                            </td>
-                        </tr>
+                                <button onclick="window.DataManager.deleteTransaction('${t.id}')" class="btn-icon" style="color:#f44336;">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
                     `;
                 });
             }
@@ -301,6 +405,38 @@
             closeExpenseModal();
             document.getElementById('expAmount').value = '';
             document.getElementById('expDesc').value = '';
+        };
+
+        // --- Edit Logic ---
+        window.openEditTxModal = function (tx) {
+            document.getElementById('editTxId').value = tx.id;
+            document.getElementById('editTxDesc').value = tx.description || '';
+            document.getElementById('editTxAmount').value = Math.abs(tx.amount);
+            document.getElementById('editTxModal').classList.add('active');
+        };
+
+        window.closeEditTxModal = () => document.getElementById('editTxModal').classList.remove('active');
+
+        window.saveEditTx = async function () {
+            const id = document.getElementById('editTxId').value;
+            const desc = document.getElementById('editTxDesc').value;
+            const amountAbs = parseInt(document.getElementById('editTxAmount').value);
+
+            if (!id || !amountAbs) return;
+
+            // نحتاج معرفة هل المبلغ كان سالب أم موجب للحفاظ على الإشارة
+            const originalTx = DataManager.getAllTransactions().find(t => t.id == id);
+            if (!originalTx) return;
+
+            const isNegative = originalTx.amount < 0;
+            const finalAmount = isNegative ? -amountAbs : amountAbs; // نحافظ على الإشارة
+
+            await DataManager.updateTransaction(id, {
+                description: desc,
+                amount: finalAmount
+            });
+
+            closeEditTxModal();
         };
 
         window.updatePageData = window.renderPage;
