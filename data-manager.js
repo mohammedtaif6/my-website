@@ -772,6 +772,8 @@ OK Computer`;
     async getTodayAttendance() {
         try {
             const today = new Date().toISOString().split('T')[0];
+            console.log('📅 Fetching attendance for:', today);
+
             const attendanceRef = collection(db, "attendance");
             const q = query(attendanceRef);
             const snapshot = await getDocs(q);
@@ -784,9 +786,11 @@ OK Computer`;
                 }
             });
 
+            console.log(`✅ Found ${records.length} attendance records for today`);
             return records;
         } catch (e) {
-            console.error('Error fetching attendance:', e);
+            console.error('❌ Error fetching attendance:', e);
+            console.error('Error details:', e.message);
             return [];
         }
     },

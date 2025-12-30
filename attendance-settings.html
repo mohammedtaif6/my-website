@@ -626,6 +626,7 @@
 
         // Load attendance reports with improved error handling
         window.loadReports = async function () {
+            console.log('🔄 Starting loadReports...');
             const container = document.getElementById('employee-status-container');
             container.innerHTML = `
                 <div class="loading-container">
@@ -635,9 +636,11 @@
             `;
 
             try {
+                console.log('⏳ Waiting for DataManager...');
                 // انتظار قليل للتأكد من تحميل DataManager
                 await new Promise(resolve => setTimeout(resolve, 500));
 
+                console.log('👥 Getting employees...');
                 const employees = DataManager.getEmployees();
 
                 if (!employees || employees.length === 0) {
@@ -654,9 +657,12 @@
                     return;
                 }
 
+                console.log('⚙️ Getting settings...');
                 const settings = await DataManager.getAttendanceSettings();
+                console.log('Settings:', settings);
 
                 if (!settings || !settings.shopLat || !settings.shopLng) {
+                    console.warn('⚠️ Settings incomplete');
                     container.innerHTML = `
                         <div class="error-container">
                             <i class="fas fa-cog error-icon"></i>
@@ -670,7 +676,9 @@
                     return;
                 }
 
+                console.log('📋 Getting attendance data...');
                 const attendanceData = await DataManager.getTodayAttendance();
+                console.log('Attendance records:', attendanceData.length);
                 const timeoutMinutes = settings.timeoutMinutes || 15;
 
                 let html = '';
