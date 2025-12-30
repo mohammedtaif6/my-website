@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إعدادات الحضور - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=25.0">
+    <title>نظام الحضور الذكي - OK Computer</title>
+    <link rel="stylesheet" href="style.css?v=26.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="auth-system.js"></script>
@@ -18,6 +18,7 @@
             --secondary: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
+            --success: #10b981;
             --glass-bg: rgba(255, 255, 255, 0.95);
             --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
             --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
@@ -27,8 +28,10 @@
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
+        /* PIN Protection Overlay */
         .pin-overlay {
             position: fixed;
             top: 0;
@@ -98,6 +101,7 @@
             border-color: var(--secondary);
             box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
             background: white;
+            outline: none;
         }
 
         .pin-error {
@@ -124,7 +128,7 @@
             }
         }
 
-        /* Tabs - Modern Design */
+        /* Modern Tabs */
         .tabs {
             display: flex;
             gap: 8px;
@@ -183,7 +187,7 @@
             }
         }
 
-        /* Settings Grid - Premium Cards */
+        /* Settings Cards */
         .settings-grid {
             display: grid;
             gap: 24px;
@@ -260,6 +264,7 @@
             border-color: var(--primary);
             box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
             background: white;
+            outline: none;
         }
 
         .help-text {
@@ -282,6 +287,8 @@
             font-weight: 600;
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
             transition: all 0.3s;
+            width: 100%;
+            justify-content: center;
         }
 
         .get-location-btn:hover {
@@ -293,7 +300,7 @@
             transform: translateY(0);
         }
 
-        /* Employee Status Cards - Ultra Premium */
+        /* Employee Status Cards */
         .employee-status-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -381,27 +388,6 @@
             gap: 6px;
         }
 
-        .btn-primary,
-        .btn-secondary {
-            border-radius: 14px;
-            font-weight: 600;
-            padding: 16px 32px;
-            transition: all 0.3s;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .btn-primary:hover,
-        .btn-secondary:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .alert {
-            border-radius: 16px;
-            border: none;
-            box-shadow: var(--shadow-sm);
-        }
-
         /* Premium Timeout Slider */
         .timeout-slider {
             -webkit-appearance: none;
@@ -446,6 +432,98 @@
             transform: scale(1.2);
             box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
         }
+
+        /* Stats Cards */
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .stat-card.danger {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Loading State */
+        .loading-container {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .loading-spinner {
+            font-size: 3rem;
+            color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Error State */
+        .error-container {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .error-icon {
+            font-size: 3rem;
+            color: var(--danger);
+            margin-bottom: 15px;
+        }
+
+        .error-title {
+            color: var(--danger);
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .error-message {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
     </style>
 
     <script type="module">
@@ -453,7 +531,7 @@
         window.DataManager = DataManager;
         DataManager.init();
 
-        const CORRECT_PIN = '2580'; // الرمز الافتراضي
+        const CORRECT_PIN = '2580';
 
         window.checkPIN = function () {
             const input = document.getElementById('pin-input').value;
@@ -535,44 +613,63 @@
 
         // Tab Management
         window.switchTab = function (tabName) {
-            // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
 
-            // Show selected tab
             document.getElementById(tabName + '-tab').classList.add('active');
             document.getElementById(tabName + '-btn').classList.add('active');
 
-            // Load data if needed
             if (tabName === 'reports') {
                 loadReports();
             }
         };
 
-        // Load attendance reports
+        // Load attendance reports with improved error handling
         window.loadReports = async function () {
             const container = document.getElementById('employee-status-container');
-            container.innerHTML = '<p style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</p>';
+            container.innerHTML = `
+                <div class="loading-container">
+                    <i class="fas fa-spinner loading-spinner"></i>
+                    <p style="color: #666; margin-top: 15px;">جاري تحميل بيانات الحضور...</p>
+                </div>
+            `;
 
             try {
-                // الانتظار قليلاً للتأكد من تحميل DataManager
+                // انتظار قليل للتأكد من تحميل DataManager
                 await new Promise(resolve => setTimeout(resolve, 500));
 
                 const employees = DataManager.getEmployees();
-                
+
                 if (!employees || employees.length === 0) {
-                    container.innerHTML = '<p style="text-align:center; color: #666;">لا يوجد موظفين في النظام</p>';
+                    container.innerHTML = `
+                        <div class="error-container">
+                            <i class="fas fa-users-slash error-icon"></i>
+                            <p class="error-title">لا يوجد موظفين</p>
+                            <p class="error-message">لم يتم إضافة أي موظفين في النظام بعد</p>
+                            <a href="employees.html" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> إضافة موظف
+                            </a>
+                        </div>
+                    `;
                     return;
                 }
 
                 const settings = await DataManager.getAttendanceSettings();
 
-                if (!settings) {
-                    container.innerHTML = '<p style="text-align:center; color: #e74c3c;">⚠️ يرجى ضبط الإعدادات أولاً من تبويب الإعدادات</p>';
+                if (!settings || !settings.shopLat || !settings.shopLng) {
+                    container.innerHTML = `
+                        <div class="error-container">
+                            <i class="fas fa-cog error-icon"></i>
+                            <p class="error-title">الإعدادات غير مكتملة</p>
+                            <p class="error-message">يرجى ضبط إعدادات الحضور أولاً من تبويب "الإعدادات"</p>
+                            <button onclick="switchTab('settings')" class="btn btn-primary">
+                                <i class="fas fa-cog"></i> اذهب للإعدادات
+                            </button>
+                        </div>
+                    `;
                     return;
                 }
 
-                const today = new Date().toISOString().split('T')[0];
                 const attendanceData = await DataManager.getTodayAttendance();
                 const timeoutMinutes = settings.timeoutMinutes || 15;
 
@@ -583,7 +680,6 @@
                 for (const emp of employees) {
                     const empAttendance = attendanceData.filter(a => a.employeeId === emp.id);
 
-                    // حساب ساعات العمل
                     let workData = {
                         hours: 0,
                         isActive: false,
@@ -605,7 +701,6 @@
                     if (isPresent) totalPresent++;
                     if (workData.isActive) totalActive++;
 
-                    // تحديد الحالة
                     let statusClass = 'absent';
                     let statusText = '⚪ غائب';
                     let statusBadgeClass = 'absent';
@@ -623,7 +718,7 @@
                     html += `
                         <div class="employee-status-card ${statusClass}">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                <h4 style="margin: 0;">${emp.name}</h4>
+                                <h4 style="margin: 0; font-size: 1.2rem;">${emp.name}</h4>
                                 <span class="status-badge ${statusBadgeClass}">
                                     ${statusText}
                                 </span>
@@ -651,41 +746,39 @@
                     `;
                 }
 
-                // إضافة إحصائيات في الأعلى
                 const statsHtml = `
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px;">
-                        <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 20px; border-radius: 16px; text-align: center;">
-                            <div style="font-size: 2rem; font-weight: bold;">${totalActive}</div>
-                            <div style="font-size: 0.9rem; opacity: 0.9;">نشط الآن</div>
+                    <div class="stats-overview">
+                        <div class="stat-card success">
+                            <div class="stat-value">${totalActive}</div>
+                            <div class="stat-label">نشط الآن</div>
                         </div>
-                        <div style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; padding: 20px; border-radius: 16px; text-align: center;">
-                            <div style="font-size: 2rem; font-weight: bold;">${totalPresent}</div>
-                            <div style="font-size: 0.9rem; opacity: 0.9;">إجمالي الحضور</div>
+                        <div class="stat-card">
+                            <div class="stat-value">${totalPresent}</div>
+                            <div class="stat-label">إجمالي الحضور</div>
                         </div>
-                        <div style="background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: white; padding: 20px; border-radius: 16px; text-align: center;">
-                            <div style="font-size: 2rem; font-weight: bold;">${employees.length - totalPresent}</div>
-                            <div style="font-size: 0.9rem; opacity: 0.9;">غائب</div>
+                        <div class="stat-card danger">
+                            <div class="stat-value">${employees.length - totalPresent}</div>
+                            <div class="stat-label">غائب</div>
                         </div>
                     </div>
                 `;
 
-                container.innerHTML = statsHtml + (html || '<p style="text-align:center;">لا يوجد بيانات حضور</p>');
+                container.innerHTML = statsHtml + `<div class="employee-status-grid">${html || '<p style="text-align:center; grid-column: 1/-1;">لا يوجد بيانات حضور</p>'}</div>`;
             } catch (e) {
                 console.error('Error loading reports:', e);
                 container.innerHTML = `
-                    <div style="text-align:center; padding: 40px;">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #e74c3c; margin-bottom: 15px;"></i>
-                        <p style="color: #e74c3c; font-size: 1.1rem; margin-bottom: 10px;">❌ حدث خطأ في تحميل البيانات</p>
-                        <p style="color: #666; font-size: 0.9rem;">${e.message}</p>
-                        <button onclick="loadReports()" class="btn btn-primary" style="margin-top: 20px;">
+                    <div class="error-container">
+                        <i class="fas fa-exclamation-triangle error-icon"></i>
+                        <p class="error-title">حدث خطأ في تحميل البيانات</p>
+                        <p class="error-message">${e.message}</p>
+                        <button onclick="loadReports()" class="btn btn-primary">
                             <i class="fas fa-redo"></i> إعادة المحاولة
                         </button>
                     </div>
                 `;
             }
-        }
+        };
 
-        // Auto-focus on PIN input
         window.onload = () => {
             document.getElementById('pin-input').focus();
         };
@@ -693,7 +786,7 @@
 </head>
 
 <body>
-    <!-- PIN Protection Overlay -->
+    <!-- PIN Protection -->
     <div id="pin-overlay" class="pin-overlay">
         <div class="pin-box">
             <h2><i class="fas fa-lock"></i> صفحة محمية</h2>
@@ -711,7 +804,7 @@
         </div>
     </div>
 
-    <!-- Main Content (Hidden until PIN is correct) -->
+    <!-- Main Content -->
     <button class="menu-btn" onclick="window.location.href='index.html'">
         <i class="fas fa-arrow-right"></i>
     </button>
@@ -719,7 +812,7 @@
     <div class="container" style="padding-top: 60px;">
         <div class="card fade-in">
             <h2 style="color: var(--primary); margin-bottom: 20px; text-align: center;">
-                <i class="fas fa-user-clock"></i> نظام الحضور التلقائي
+                <i class="fas fa-user-clock"></i> نظام الحضور الذكي
             </h2>
 
             <!-- Tabs -->
@@ -797,7 +890,7 @@
                         </div>
                     </div>
 
-                    <!-- Advanced Timeout Settings - NEW! -->
+                    <!-- Timeout Settings -->
                     <div class="setting-card"
                         style="border: 2px solid var(--warning); background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);">
                         <h3 style="color: var(--warning);"><i class="fas fa-hourglass-half"></i> إعدادات الانقطاع الذكية
@@ -815,54 +908,27 @@
                                 <span>5 دقائق</span>
                                 <span>60 دقيقة</span>
                             </div>
-                            <p class="help-text"
-                                style="background: #fef3c7; padding: 12px; border-radius: 8px; margin-top: 15px;">
-                                <i class="fas fa-lightbulb"></i> <strong>كيف يعمل؟</strong><br>
-                                إذا لم يسجل الموظف أي نشاط (دخول/خروج) خلال هذه المدة، سيعتبره النظام تلقائياً "غير نشط"
-                                ويوقف حساب الراتب.
+                            <p class="help-text" style="margin-top: 15px;">
+                                إذا لم يُسجل أي نشاط للموظف خلال هذه المدة، سيُعتبر خارج نطاق العمل
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <button onclick="saveSettings()" class="btn-primary"
-                    style="width: 100%; margin-top: 30px; padding: 15px;">
-                    <i class="fas fa-save"></i> حفظ الإعدادات
+                <button onclick="saveSettings()" class="btn btn-primary btn-full"
+                    style="margin-top: 30px; font-size: 1.1rem; padding: 16px;">
+                    <i class="fas fa-save"></i> حفظ جميع الإعدادات
                 </button>
-
-                <div class="alert" style="margin-top: 20px; background: #e3f2fd; border-left: 4px solid #2196f3;">
-                    <p style="margin: 0 0 10px 0; color: #0d47a1;">
-                        <i class="fas fa-info-circle"></i> <strong>كيف يعمل النظام؟</strong>
-                    </p>
-                    <ul style="margin: 0; padding-right: 20px; color: #1565c0; font-size: 0.9rem;">
-                        <li>النظام يعمل <strong>تلقائياً</strong> عند فتح الموظف للتطبيق من موبايله</li>
-                        <li>يراقب موقع الموظف <strong>باستمرار</strong> ويسجل الحضور/الخروج فوراً</li>
-                        <li>⚠️ <strong>مهم:</strong> يجب على الموظف فتح التطبيق مرة واحدة على الأقل يومياً</li>
-                        <li>💡 <strong>نصيحة:</strong> اطلب من الموظفين إضافة التطبيق للشاشة الرئيسية (Add to Home
-                            Screen)</li>
-                    </ul>
-                </div>
             </div>
 
             <!-- Reports Tab -->
             <div id="reports-tab" class="tab-content">
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-                    <h3 style="margin: 0 0 10px 0; color: var(--primary);">
-                        <i class="fas fa-calendar-day"></i> حضور اليوم
-                    </h3>
-                    <p style="margin: 0; color: #666; font-size: 0.9rem;">
-                        يتم تحديث البيانات تلقائياً كل 5 دقائق
-                    </p>
+                <div id="employee-status-container">
+                    <div class="loading-container">
+                        <i class="fas fa-spinner loading-spinner"></i>
+                        <p style="color: #666; margin-top: 15px;">جاري تحميل بيانات الحضور...</p>
+                    </div>
                 </div>
-
-                <div id="employee-status-container" class="employee-status-grid">
-                    <p style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</p>
-                </div>
-
-                <button onclick="loadReports()" class="btn-secondary"
-                    style="width: 100%; margin-top: 20px; padding: 12px;">
-                    <i class="fas fa-sync-alt"></i> تحديث البيانات
-                </button>
             </div>
         </div>
     </div>
