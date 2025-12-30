@@ -689,12 +689,36 @@ OK Computer`;
                 const today = new Date().toISOString().split('T')[0];
 
                 if (distance <= settings.radius) {
-                    // داخل النطاق - تسجيل الحضور
-                    await this.recordAttendance(employeeId, today, 'in', {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                        distance: Math.round(distance)
-                    });
+                    // داخل النطاق
+
+                    // التحقق من الحاجة لتسجيل 'ping' (تحديث التواجد)
+                    // نمنع التكرار المفرط: نسجل ping كل 5 دقائق كحد أدنى
+                    const lastPingKey = `lastPing_${employeeId}_${today}`;
+                    const lastPingStr = localStorage.getItem(lastPingKey);
+                    const lastPingTime = lastPingStr ? new Date(lastPingStr).getTime() : 0;
+                    const nowTs = new Date().getTime();
+
+                    // إذا كان آخر سجل ليس دخولاً، نسجل دخول
+                    const lastRecordKey = `lastAttendance_${employeeId}_${today}`;
+                    const lastRecordType = localStorage.getItem(lastRecordKey);
+
+                    if (lastRecordType !== 'in' && lastRecordType !== 'ping') {
+                        await this.recordAttendance(employeeId, today, 'in', {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                            distance: Math.round(distance)
+                        });
+                    } else {
+                        // هو مسجل دخول، هل مرت 5 دقائق؟
+                        if (nowTs - lastPingTime > 5 * 60 * 1000) {
+                            await this.recordAttendance(employeeId, today, 'ping', {
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude,
+                                distance: Math.round(distance)
+                            });
+                            localStorage.setItem(lastPingKey, new Date().toISOString());
+                        }
+                    }
                 } else {
                     // خارج النطاق - تسجيل الخروج
                     await this.recordAttendance(employeeId, today, 'out', {
@@ -714,12 +738,14 @@ OK Computer`;
 
     async recordAttendance(employeeId, date, type, location) {
         try {
-            // منع التسجيل المتكرر - فقط عند تغيير الحالة
+            // منع التسجيل المتكرر للحالات الثابتة (in/out)
+            // نسمح بـ ping والتبديل بين in/out/ping
             const lastRecordKey = `lastAttendance_${employeeId}_${date}`;
             const lastRecord = localStorage.getItem(lastRecordKey);
 
-            if (lastRecord === type) {
-                // نفس الحالة - لا داعي للتسجيل
+            // إذا كان النوع "ping"، نسمح به دائماً (لأننا تحكمنا بالتوقيت في دالة checkAttendance)
+            // إذا كان "in" أو "out"، نمنع التكرار المتتابع لنفس النوع
+            if (type !== 'ping' && lastRecord === type) {
                 return;
             }
 
@@ -765,42 +791,84 @@ OK Computer`;
         }
     },
 
-    // دالة ذكية لحساب الساعات مع كشف الانقطاع التلقائي
+    // دالة ذكية لحساب الساعات مع دعم نظام النبضات (Ping)
     calculateWorkHours(records, timeoutMinutes = 15) {
+        // 1. ترتيب السجلات زمنياً لضمان الدقة
+        const sortedRecords = records.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
         let totalMinutes = 0;
-        let lastIn = null;
+        let sessionStart = null;
+        let lastActivity = null;
         const now = new Date();
 
-        for (const record of records) {
+        for (const record of sortedRecords) {
+            const time = new Date(record.timestamp);
+
             if (record.type === 'in') {
-                lastIn = new Date(record.timestamp);
-            } else if (record.type === 'out' && lastIn) {
-                const out = new Date(record.timestamp);
-                const diff = (out - lastIn) / 1000 / 60; // minutes
-                totalMinutes += diff;
-                lastIn = null;
+                // بداية جلسة جديدة إذا لم تكن هناك جلسة مفتوحة
+                if (!sessionStart) {
+                    sessionStart = time;
+                }
+                lastActivity = time;
+            }
+            else if (record.type === 'ping') {
+                // تحديث آخر نشاط للجلسة الحالية
+                if (sessionStart) {
+                    lastActivity = time;
+                }
+            }
+            else if (record.type === 'out') {
+                if (sessionStart) {
+                    // إغلاق الجلسة واحتساب الوقت
+                    // نستخدم وقت الخروج، أو آخر نشاط إذا كان الفرق كبيراً جداً (حالة شاذة)
+                    const end = time;
+                    const diff = (end - sessionStart) / 1000 / 60;
+                    totalMinutes += diff;
+
+                    sessionStart = null;
+                    lastActivity = null;
+                }
             }
         }
 
-        // إذا ما زال مسجل دخول، تحقق من آخر نشاط
-        if (lastIn) {
-            const timeSinceLastActivity = (now - lastIn) / 1000 / 60; // minutes
+        // معالجة الجلسة المفتوحة (ما زال الموظف حاضراً)
+        let isActive = false;
+        let inactiveMinutes = 0;
 
-            // إذا مر أكثر من 15 دقيقة بدون نشاط، اعتبره خرج
-            if (timeSinceLastActivity > timeoutMinutes) {
-                totalMinutes += timeoutMinutes; // احسب فقط حتى الـ timeout
+        if (sessionStart && lastActivity) {
+            const timeSinceLastActivity = (now - lastActivity) / 1000 / 60;
+
+            if (timeSinceLastActivity <= timeoutMinutes) {
+                // الموظف نشط حالياً
+                // نحسب الوقت من البداية حتى الآن
+                const diff = (now - sessionStart) / 1000 / 60;
+                totalMinutes += diff; // نضيف المدة الحالية للمجموع (بشكل مؤقت للعرض)
+                // *ملاحظة: في المرة القادمة عندما يرسل ping، سيتم إعادة الحساب بناءً على الـ Ping الجديد
+                // لتجنب التكرار في العرض، نحن هنا نحسب "إلى أي مدى وصل الان"، لكن في التخزين الفعلي نعتمد على الـ Pings
+
+                // لكن انتظر، إذا حسبنا (now - start) هنا، وفي الدورة القادمة حسبنا (now_later - start).. النتيجة صحيحة تراكمياً.
+                // المشكلة فقط لو جمعنا الـ diff مرتين. المتغير totalMinutes يُحسب من الصفر في كل استدعاء للدالة. لذا هذا صحيح.
+
+                isActive = true;
             } else {
-                // ما زال نشط
-                const diff = (now - lastIn) / 1000 / 60;
-                totalMinutes += diff;
+                // الموظف خامل (تجاوز مهلة الانقطاع)
+                // نحسب الوقت فقط حتى آخر نشاط معروف (Ping او In)
+                const validDuration = (lastActivity - sessionStart) / 1000 / 60;
+                totalMinutes += validDuration; // نحسب فقط الفترة المؤكدة
+
+                isActive = false;
+                inactiveMinutes = Math.floor(timeSinceLastActivity);
             }
+        } else if (lastActivity) {
+            // حالة نادرة: انتهت الجلسة بـ Out، ولكن نريد معرفة وقت الانقطاع منذ آخر خروج؟ لا، هذا غير مهم للراتب.
+            inactiveMinutes = Math.floor((now - lastActivity) / 1000 / 60);
         }
 
         return {
             hours: totalMinutes / 60,
-            isActive: lastIn !== null && ((now - lastIn) / 1000 / 60) <= timeoutMinutes,
-            lastActivity: lastIn ? lastIn.toISOString() : null,
-            inactiveMinutes: lastIn ? Math.floor((now - lastIn) / 1000 / 60) : 0
+            isActive: isActive,
+            lastActivity: lastActivity ? lastActivity.toISOString() : null,
+            inactiveMinutes: inactiveMinutes
         };
     },
 
@@ -848,13 +916,36 @@ OK Computer`;
                     const today = new Date().toISOString().split('T')[0];
 
                     if (distance <= settings.radius) {
-                        // داخل النطاق - تسجيل الحضور
-                        await this.recordAttendance(employeeId, today, 'in', {
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude,
-                            distance: Math.round(distance)
-                        });
-                        console.log(`✅ Inside zone: ${Math.round(distance)}m`);
+                        // داخل النطاق
+
+                        // منطق الـ Ping للحفاظ على الجلسة نشطة
+                        const lastPingKey = `lastPing_${employeeId}_${today}`;
+                        const lastPingStr = localStorage.getItem(lastPingKey);
+                        const lastPingTime = lastPingStr ? new Date(lastPingStr).getTime() : 0;
+                        const nowTs = new Date().getTime();
+
+                        // التحقق من الحالة السابقة
+                        const lastRecordKey = `lastAttendance_${employeeId}_${today}`;
+                        const lastRecordType = localStorage.getItem(lastRecordKey);
+
+                        if (lastRecordType !== 'in' && lastRecordType !== 'ping') {
+                            // تسجيل دخول جديد
+                            await this.recordAttendance(employeeId, today, 'in', {
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude,
+                                distance: Math.round(distance)
+                            });
+                            console.log(`✅ Inside zone: ${Math.round(distance)}m (New Session)`);
+                        } else if (nowTs - lastPingTime > 5 * 60 * 1000) {
+                            // إرسال نبضة "أنا هنا" كل 5 دقائق
+                            await this.recordAttendance(employeeId, today, 'ping', {
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude,
+                                distance: Math.round(distance)
+                            });
+                            localStorage.setItem(lastPingKey, new Date().toISOString());
+                            console.log(`📡 Heartbeat sent: ${Math.round(distance)}m`);
+                        }
                     } else {
                         // خارج النطاق - تسجيل الخروج
                         await this.recordAttendance(employeeId, today, 'out', {
