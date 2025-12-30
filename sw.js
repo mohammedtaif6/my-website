@@ -2,7 +2,7 @@
 importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js');
 
-const CACHE_VERSION = 'ok-computer-v27.2';
+const CACHE_VERSION = 'ok-computer-v27.3';
 const CACHE_NAME = CACHE_VERSION;
 
 // === Firebase Messaging Setup ===
