@@ -555,22 +555,26 @@
             container.innerHTML = '<p style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</p>';
 
             try {
+                // الانتظار قليلاً للتأكد من تحميل DataManager
+                await new Promise(resolve => setTimeout(resolve, 500));
+
                 const employees = DataManager.getEmployees();
+                
+                if (!employees || employees.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color: #666;">لا يوجد موظفين في النظام</p>';
+                    return;
+                }
+
                 const settings = await DataManager.getAttendanceSettings();
 
                 if (!settings) {
-                    container.innerHTML = '<p style="text-align:center; color: #e74c3c;">⚠️ يرجى ضبط الإعدادات أولاً</p>';
+                    container.innerHTML = '<p style="text-align:center; color: #e74c3c;">⚠️ يرجى ضبط الإعدادات أولاً من تبويب الإعدادات</p>';
                     return;
                 }
 
                 const today = new Date().toISOString().split('T')[0];
                 const attendanceData = await DataManager.getTodayAttendance();
                 const timeoutMinutes = settings.timeoutMinutes || 15;
-
-                if (!employees || employees.length === 0) {
-                    container.innerHTML = '<p style="text-align:center; color: #666;">لا يوجد موظفين في النظام</p>';
-                    return;
-                }
 
                 let html = '';
                 let totalPresent = 0;
@@ -579,21 +583,23 @@
                 for (const emp of employees) {
                     const empAttendance = attendanceData.filter(a => a.employeeId === emp.id);
 
-                    // استخدام الدالة الذكية أو fallback
-                    let workData;
-                    if (typeof DataManager.calculateWorkHours === 'function') {
-                        workData = DataManager.calculateWorkHours(empAttendance, timeoutMinutes);
-                    } else {
-                        // Fallback: حساب بسيط
-                        workData = {
-                            hours: 0,
-                            isActive: false,
-                            lastActivity: null,
-                            inactiveMinutes: 0
-                        };
+                    // حساب ساعات العمل
+                    let workData = {
+                        hours: 0,
+                        isActive: false,
+                        lastActivity: null,
+                        inactiveMinutes: 0
+                    };
+
+                    if (empAttendance.length > 0 && typeof DataManager.calculateWorkHours === 'function') {
+                        try {
+                            workData = DataManager.calculateWorkHours(empAttendance, timeoutMinutes);
+                        } catch (err) {
+                            console.error('Error calculating work hours for', emp.name, err);
+                        }
                     }
 
-                    const isPresent = empAttendance.some(a => a.type === 'in');
+                    const isPresent = empAttendance.some(a => a.type === 'in' || a.type === 'ping');
                     const salary = Math.round(workData.hours * (settings.hourlyRate || 0));
 
                     if (isPresent) totalPresent++;
@@ -666,7 +672,16 @@
                 container.innerHTML = statsHtml + (html || '<p style="text-align:center;">لا يوجد بيانات حضور</p>');
             } catch (e) {
                 console.error('Error loading reports:', e);
-                container.innerHTML = `<p style="text-align:center; color: #e74c3c;">❌ حدث خطأ: ${e.message}</p>`;
+                container.innerHTML = `
+                    <div style="text-align:center; padding: 40px;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #e74c3c; margin-bottom: 15px;"></i>
+                        <p style="color: #e74c3c; font-size: 1.1rem; margin-bottom: 10px;">❌ حدث خطأ في تحميل البيانات</p>
+                        <p style="color: #666; font-size: 0.9rem;">${e.message}</p>
+                        <button onclick="loadReports()" class="btn btn-primary" style="margin-top: 20px;">
+                            <i class="fas fa-redo"></i> إعادة المحاولة
+                        </button>
+                    </div>
+                `;
             }
         }
 
