@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إعدادات الحضور - OK Computer</title>
+    <link rel="stylesheet" href="style.css?v=25.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="auth-system.js"></script>
+    <script>AuthSystem.checkSession();</script>
+
+    <style>
+        .pin-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .pin-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .pin-box h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+
+        .pin-input {
+            font-size: 2rem;
+            text-align: center;
+            letter-spacing: 15px;
+            padding: 15px;
+            border: 2px solid var(--primary);
+            border-radius: 10px;
+            width: 100%;
+            margin: 20px 0;
+            font-family: monospace;
+        }
+
+        .pin-error {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .settings-grid {
+            display: grid;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .setting-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .setting-card h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .get-location-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .get-location-btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+
+    <script type="module">
+        import { DataManager } from './data-manager.js';
+        window.DataManager = DataManager;
+        DataManager.init();
+
+        const CORRECT_PIN = '2580'; // الرمز الافتراضي
+
+        window.checkPIN = function () {
+            const input = document.getElementById('pin-input').value;
+            const error = document.getElementById('pin-error');
+
+            if (input === CORRECT_PIN) {
+                document.getElementById('pin-overlay').style.display = 'none';
+                loadSettings();
+            } else {
+                error.style.display = 'block';
+                document.getElementById('pin-input').value = '';
+                document.getElementById('pin-input').focus();
+            }
+        };
+
+        window.getCurrentLocation = function () {
+            const btn = document.getElementById('get-location-btn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري تحديد الموقع...';
+            btn.disabled = true;
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        document.getElementById('shop-lat').value = position.coords.latitude.toFixed(6);
+                        document.getElementById('shop-lng').value = position.coords.longitude.toFixed(6);
+                        btn.innerHTML = '<i class="fas fa-check"></i> تم التحديد بنجاح!';
+                        setTimeout(() => {
+                            btn.innerHTML = '<i class="fas fa-map-marker-alt"></i> استخدام موقعي الحالي';
+                            btn.disabled = false;
+                        }, 2000);
+                    },
+                    (error) => {
+                        alert('فشل تحديد الموقع. تأكد من تفعيل GPS والسماح للمتصفح بالوصول للموقع.');
+                        btn.innerHTML = '<i class="fas fa-map-marker-alt"></i> استخدام موقعي الحالي';
+                        btn.disabled = false;
+                    }
+                );
+            } else {
+                alert('المتصفح لا يدعم تحديد الموقع الجغرافي');
+                btn.innerHTML = '<i class="fas fa-map-marker-alt"></i> استخدام موقعي الحالي';
+                btn.disabled = false;
+            }
+        };
+
+        async function loadSettings() {
+            const settings = await DataManager.getAttendanceSettings();
+            if (settings) {
+                document.getElementById('shop-lat').value = settings.shopLat || '';
+                document.getElementById('shop-lng').value = settings.shopLng || '';
+                document.getElementById('radius').value = settings.radius || 50;
+                document.getElementById('start-time').value = settings.startTime || '09:00';
+                document.getElementById('end-time').value = settings.endTime || '18:00';
+                document.getElementById('hourly-rate').value = settings.hourlyRate || 2000;
+            }
+        }
+
+        window.saveSettings = async function () {
+            const settings = {
+                shopLat: parseFloat(document.getElementById('shop-lat').value),
+                shopLng: parseFloat(document.getElementById('shop-lng').value),
+                radius: parseInt(document.getElementById('radius').value),
+                startTime: document.getElementById('start-time').value,
+                endTime: document.getElementById('end-time').value,
+                hourlyRate: parseInt(document.getElementById('hourly-rate').value)
+            };
+
+            if (!settings.shopLat || !settings.shopLng) {
+                alert('يرجى تحديد موقع المحل أولاً');
+                return;
+            }
+
+            await DataManager.saveAttendanceSettings(settings);
+            alert('✅ تم حفظ الإعدادات بنجاح!');
+        };
+
+        // Auto-focus on PIN input
+        window.onload = () => {
+            document.getElementById('pin-input').focus();
+        };
+    </script>
+</head>
+
+<body>
+    <!-- PIN Protection Overlay -->
+    <div id="pin-overlay" class="pin-overlay">
+        <div class="pin-box">
+            <h2><i class="fas fa-lock"></i> صفحة محمية</h2>
+            <p>أدخل رمز PIN للوصول لإعدادات الحضور</p>
+            <input type="password" id="pin-input" class="pin-input" maxlength="4" placeholder="****"
+                onkeypress="if(event.key==='Enter') checkPIN()">
+            <p id="pin-error" class="pin-error">❌ رمز خاطئ! حاول مرة أخرى</p>
+            <button onclick="checkPIN()" class="btn-primary" style="width: 100%; margin-top: 10px;">
+                <i class="fas fa-unlock"></i> فتح
+            </button>
+            <button onclick="window.location.href='index.html'" class="btn-secondary"
+                style="width: 100%; margin-top: 10px;">
+                <i class="fas fa-arrow-right"></i> رجوع
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content (Hidden until PIN is correct) -->
+    <button class="menu-btn" onclick="window.location.href='index.html'">
+        <i class="fas fa-arrow-right"></i>
+    </button>
+
+    <div class="container" style="padding-top: 60px;">
+        <div class="card fade-in">
+            <h2 style="color: var(--primary); margin-bottom: 20px; text-align: center;">
+                <i class="fas fa-cog"></i> إعدادات نظام الحضور التلقائي
+            </h2>
+
+            <div class="settings-grid">
+                <!-- Location Settings -->
+                <div class="setting-card">
+                    <h3><i class="fas fa-map-marker-alt"></i> موقع المحل</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>خط العرض (Latitude)</label>
+                            <input type="number" id="shop-lat" class="form-control" step="0.000001"
+                                placeholder="33.312805">
+                            <p class="help-text">مثال: 33.312805</p>
+                        </div>
+                        <div class="form-group">
+                            <label>خط الطول (Longitude)</label>
+                            <input type="number" id="shop-lng" class="form-control" step="0.000001"
+                                placeholder="44.361488">
+                            <p class="help-text">مثال: 44.361488</p>
+                        </div>
+                    </div>
+                    <button id="get-location-btn" class="get-location-btn" onclick="getCurrentLocation()">
+                        <i class="fas fa-map-marker-alt"></i> استخدام موقعي الحالي
+                    </button>
+                    <p class="help-text" style="margin-top: 10px;">
+                        💡 اضغط الزر أعلاه وأنت موجود في المحل لتحديد الموقع تلقائياً
+                    </p>
+                </div>
+
+                <!-- Range Settings -->
+                <div class="setting-card">
+                    <h3><i class="fas fa-bullseye"></i> نطاق القبول</h3>
+                    <div class="form-group">
+                        <label>المسافة المسموحة (بالمتر)</label>
+                        <input type="number" id="radius" class="form-control" value="50" min="10" max="500">
+                        <p class="help-text">المسافة التي يجب أن يكون الموظف ضمنها ليُسجل حضوره (افتراضي: 50 متر)</p>
+                    </div>
+                </div>
+
+                <!-- Time Settings -->
+                <div class="setting-card">
+                    <h3><i class="fas fa-clock"></i> أوقات الدوام</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>وقت البدء</label>
+                            <input type="time" id="start-time" class="form-control" value="09:00">
+                        </div>
+                        <div class="form-group">
+                            <label>وقت الانتهاء</label>
+                            <input type="time" id="end-time" class="form-control" value="18:00">
+                        </div>
+                    </div>
+                    <p class="help-text">سيتم حساب الحضور فقط ضمن هذه الأوقات</p>
+                </div>
+
+                <!-- Salary Settings -->
+                <div class="setting-card">
+                    <h3><i class="fas fa-dollar-sign"></i> الراتب</h3>
+                    <div class="form-group">
+                        <label>أجر الساعة (دينار)</label>
+                        <input type="number" id="hourly-rate" class="form-control" value="2000" min="0" step="100">
+                        <p class="help-text">سيتم حساب راتب كل موظف بناءً على عدد الساعات × هذا المبلغ</p>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="saveSettings()" class="btn-primary" style="width: 100%; margin-top: 30px; padding: 15px;">
+                <i class="fas fa-save"></i> حفظ الإعدادات
+            </button>
+
+            <div class="alert" style="margin-top: 20px; background: #fff3cd; border-left: 4px solid #ffc107;">
+                <p style="margin: 0; color: #856404;">
+                    <i class="fas fa-info-circle"></i> <strong>ملاحظة:</strong>
+                    بعد حفظ الإعدادات، سيبدأ النظام تلقائياً بتتبع حضور الموظفين عند فتحهم للنظام من أجهزتهم.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

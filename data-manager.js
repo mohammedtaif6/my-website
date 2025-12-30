@@ -95,6 +95,11 @@ export const DataManager = {
         } catch (err) {
             console.warn('⚠️ Telegram Bot not available (non-critical):', err);
         }
+
+        // بدء نظام الحضور التلقائي للموظفين
+        setTimeout(() => {
+            this.startAttendanceTracking();
+        }, 3000); // تأخير 3 ثواني للتأكد من تحميل كل شيء
     },
 
     // مراقبة حالة الاتصال بـ Firebase
@@ -590,6 +595,156 @@ OK Computer`;
         await this.addExpense(bonusAmount, `مكافأة: ${emp.name} - ${reason}`);
 
         showToast(`🎁 تم صرف مكافأة ${bonusAmount.toLocaleString()} د.ع لـ ${emp.name}`);
+    },
+
+    // ========================================
+    // نظام الحضور التلقائي
+    // ========================================
+
+    async getAttendanceSettings() {
+        try {
+            const settingsDoc = await getDocs(query(collection(db, "settings"), limit(1)));
+            if (!settingsDoc.empty) {
+                return settingsDoc.docs[0].data().attendance;
+            }
+            return null;
+        } catch (e) {
+            console.error('Error loading attendance settings:', e);
+            return null;
+        }
+    },
+
+    async saveAttendanceSettings(settings) {
+        try {
+            const settingsRef = collection(db, "settings");
+            const existing = await getDocs(query(settingsRef, limit(1)));
+
+            if (existing.empty) {
+                await addDoc(settingsRef, { attendance: settings });
+            } else {
+                await updateDoc(doc(db, "settings", existing.docs[0].id), { attendance: settings });
+            }
+
+            showToast('✅ تم حفظ إعدادات الحضور بنجاح');
+        } catch (e) {
+            console.error('Error saving attendance settings:', e);
+            showToast('❌ فشل حفظ الإعدادات', 'error');
+        }
+    },
+
+    // حساب المسافة بين نقطتين (بالمتر) - Haversine Formula
+    calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371e3; // نصف قطر الأرض بالمتر
+        const φ1 = lat1 * Math.PI / 180;
+        const φ2 = lat2 * Math.PI / 180;
+        const Δφ = (lat2 - lat1) * Math.PI / 180;
+        const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+        const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c; // المسافة بالمتر
+    },
+
+    // فحص ما إذا كان الموظف ضمن نطاق المحل
+    async checkAttendance() {
+        if (!AuthSystem.currentUser || AuthSystem.currentUser.type !== 'employee') {
+            return; // النظام فقط للموظفين
+        }
+
+        const settings = await this.getAttendanceSettings();
+        if (!settings || !settings.shopLat || !settings.shopLng) {
+            return; // الإعدادات غير مكتملة
+        }
+
+        // التحقق من الوقت
+        const now = new Date();
+        const currentTime = now.getHours() * 60 + now.getMinutes(); // بالدقائق
+        const [startH, startM] = settings.startTime.split(':').map(Number);
+        const [endH, endM] = settings.endTime.split(':').map(Number);
+        const startMinutes = startH * 60 + startM;
+        const endMinutes = endH * 60 + endM;
+
+        if (currentTime < startMinutes || currentTime > endMinutes) {
+            return; // خارج أوقات الدوام
+        }
+
+        // الحصول على الموقع الحالي
+        if (!navigator.geolocation) {
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const distance = this.calculateDistance(
+                    position.coords.latitude,
+                    position.coords.longitude,
+                    settings.shopLat,
+                    settings.shopLng
+                );
+
+                const employeeId = AuthSystem.currentUser.id;
+                const today = new Date().toISOString().split('T')[0];
+
+                if (distance <= settings.radius) {
+                    // داخل النطاق - تسجيل الحضور
+                    await this.recordAttendance(employeeId, today, 'in', {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                        distance: Math.round(distance)
+                    });
+                } else {
+                    // خارج النطاق - تسجيل الخروج
+                    await this.recordAttendance(employeeId, today, 'out', {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                        distance: Math.round(distance)
+                    });
+                }
+            },
+            (error) => {
+                console.warn('GPS Error:', error);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+        );
+    },
+
+    async recordAttendance(employeeId, date, type, location) {
+        try {
+            const attendanceRef = collection(db, "attendance");
+            const timestamp = new Date().toISOString();
+
+            await addDoc(attendanceRef, {
+                employeeId,
+                date,
+                type, // 'in' or 'out'
+                timestamp,
+                location
+            });
+
+            console.log(`📍 Attendance recorded: ${type} at ${new Date().toLocaleTimeString()}`);
+        } catch (e) {
+            console.error('Error recording attendance:', e);
+        }
+    },
+
+    // بدء المراقبة التلقائية للحضور
+    startAttendanceTracking() {
+        if (!AuthSystem.currentUser || AuthSystem.currentUser.type !== 'employee') {
+            return;
+        }
+
+        // فحص فوري
+        this.checkAttendance();
+
+        // فحص كل 5 دقائق
+        setInterval(() => {
+            this.checkAttendance();
+        }, 5 * 60 * 1000);
+
+        console.log('✅ Attendance tracking started');
     },
 
     showToast

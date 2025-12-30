@@ -76,6 +76,7 @@ const AuthSystem = {
             'reports.html': 'reports',
             'employees.html': 'admin_only', // صفحة الموظفين للمدير فقط
             'telegram-settings.html': 'admin_only',
+            'attendance-settings.html': 'admin_only', // إعدادات الحضور للمدير فقط
             'maintenance-log.html': 'admin_only', // سجل الصيانات للمدير فقط
             'maintenance.html': 'employee_only' // تسجيل الصيانة للموظفين فقط
         };
