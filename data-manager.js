@@ -648,27 +648,59 @@ OK Computer`;
         return R * c; // المسافة بالمتر
     },
 
+    // الحصول على التاريخ المحلي بنسق YYYY-MM-DD
+    getLocalToday() {
+        const now = new Date();
+        // تعديل: الحفاظ على اليوم السابق إذا كنا بعد منتصف الليل وقبل انتهاء الشفت (مثلاً الساعة 2 فجراً تتبع اليوم السابق)
+        // ولكن للتبسيط وسهولة العرض، سنستخدم التاريخ المحلي الفعلي
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    },
+
+    // فحص ما إذا كان الوقت الحالي ضمن أوقات الدوام (يدعم الدوام الليلي)
+    isWorkTime(settings) {
+        if (!settings || !settings.startTime || !settings.endTime) return true;
+
+        const now = new Date();
+        const current = now.getHours() * 60 + now.getMinutes();
+
+        const [sh, sm] = settings.startTime.split(':').map(Number);
+        const [eh, em] = settings.endTime.split(':').map(Number);
+        const start = sh * 60 + sm;
+        const end = eh * 60 + em;
+
+        if (start <= end) {
+            return current >= start && current <= end;
+        } else {
+            // دوام ليلي (يعبر منتصف الليل)
+            return current >= start || current <= end;
+        }
+    },
+
     // فحص ما إذا كان الموظف ضمن نطاق المحل
     async checkAttendance() {
         if (!AuthSystem.currentUser || AuthSystem.currentUser.type !== 'employee') {
-            return; // النظام فقط للموظفين
+            return;
         }
 
         const settings = await this.getAttendanceSettings();
         if (!settings || !settings.shopLat || !settings.shopLng) {
-            return; // الإعدادات غير مكتملة
+            return;
         }
 
-        // التحقق من الوقت
-        const now = new Date();
-        const currentTime = now.getHours() * 60 + now.getMinutes(); // بالدقائق
-        const [startH, startM] = settings.startTime.split(':').map(Number);
-        const [endH, endM] = settings.endTime.split(':').map(Number);
-        const startMinutes = startH * 60 + startM;
-        const endMinutes = endH * 60 + endM;
-
-        if (currentTime < startMinutes || currentTime > endMinutes) {
-            return; // خارج أوقات الدوام
+        // التحقق من الوقت مع دعم الدوام الليلي
+        if (!this.isWorkTime(settings)) {
+            const card = document.getElementById('attendance-status-card');
+            if (card) {
+                card.style.display = 'block';
+                card.querySelector('div').style.background = 'linear-gradient(135deg, #64748b 0%, #475569 100%)';
+                document.getElementById('attendance-status-text').innerText = 'خارج أوقات الدوام 😴';
+                document.getElementById('attendance-distance').innerText = `يبدأ الدوام: ${settings.startTime}`;
+                document.getElementById('attendance-status-icon').innerHTML = '<i class="fas fa-moon"></i>';
+            }
+            return;
         }
 
         // الحصول على الموقع الحالي
@@ -686,7 +718,7 @@ OK Computer`;
                 );
 
                 const employeeId = AuthSystem.currentUser.id;
-                const today = new Date().toISOString().split('T')[0];
+                const today = this.getLocalToday();
 
                 if (distance <= settings.radius) {
                     this.updateAttendanceUI('success', Math.round(distance), true);
@@ -757,14 +789,14 @@ OK Computer`;
 
             if (isInside) {
                 card.querySelector('div').style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-                text.innerText = 'تم تسجيل الحضور ✅';
-                if (icon) icon.innerHTML = '<i class="fas fa-check-circle"></i>';
+                text.innerText = 'أنت في موقع العمل ✅';
+                if (icon) icon.innerHTML = '<i class="fas fa-check-circle pulse"></i>';
             } else {
-                card.querySelector('div').style.background = 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)';
-                text.innerText = 'خارج الموقع المتوقع ❌';
-                if (icon) icon.innerHTML = '<i class="fas fa-times-circle"></i>';
+                card.querySelector('div').style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+                text.innerText = 'أنت خارج النطاق 📍';
+                if (icon) icon.innerHTML = '<i class="fas fa-walking"></i>';
             }
-            if (distText) distText.innerText = `المسافة: ${distance} متر`;
+            if (distText) distText.innerText = `المسافة: ${distance} م (المسموح: ${settings.radius} م)`;
         }
     },
 
@@ -936,16 +968,10 @@ OK Computer`;
                         return;
                     }
 
-                    // التحقق من الوقت
-                    const now = new Date();
-                    const currentTime = now.getHours() * 60 + now.getMinutes();
-                    const [startH, startM] = settings.startTime.split(':').map(Number);
-                    const [endH, endM] = settings.endTime.split(':').map(Number);
-                    const startMinutes = startH * 60 + startM;
-                    const endMinutes = endH * 60 + endM;
-
-                    if (currentTime < startMinutes || currentTime > endMinutes) {
-                        return; // خارج أوقات الدوام
+                    // التحقق من الوقت مع دعم الدوام الليلي
+                    if (!this.isWorkTime(settings)) {
+                        this.updateAttendanceUI('outside_hours', 0, false);
+                        return;
                     }
 
                     const distance = this.calculateDistance(
@@ -956,7 +982,7 @@ OK Computer`;
                     );
 
                     const employeeId = AuthSystem.currentUser.id;
-                    const today = new Date().toISOString().split('T')[0];
+                    const today = this.getLocalToday();
 
                     if (distance <= settings.radius) {
                         this.updateAttendanceUI('success', Math.round(distance), true);
@@ -998,7 +1024,6 @@ OK Computer`;
                             lng: position.coords.longitude,
                             distance: Math.round(distance)
                         });
-                        console.log(`⏸️ Outside zone: ${Math.round(distance)}m`);
                     }
                 },
                 (error) => {
