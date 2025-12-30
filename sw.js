@@ -1,35 +1,5 @@
-// Service Worker v27 - High Performance Mode (Stale-While-Revalidate)
-importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js');
-
-const CACHE_VERSION = 'ok-computer-v27.3';
+const CACHE_VERSION = 'ok-computer-v27.4';
 const CACHE_NAME = CACHE_VERSION;
-
-// === Firebase Messaging Setup ===
-const firebaseConfig = {
-    apiKey: "AIzaSyA-raYlvzPz8T7Mnx8bTWA4O8CyHvp7K_0",
-    authDomain: "okcomputer-system.firebaseapp.com",
-    projectId: "okcomputer-system",
-    storageBucket: "okcomputer-system.firebasestorage.app",
-    messagingSenderId: "17748146044",
-    appId: "1:17748146044:web:e4a2063ac34c6ee27016f9"
-};
-
-firebase.initializeApp(firebaseConfig);
-const messaging = firebase.messaging();
-
-messaging.onBackgroundMessage((payload) => {
-    console.log('[sw.js] Background Message:', payload);
-    const notificationTitle = payload.notification.title;
-    const notificationOptions = {
-        body: payload.notification.body,
-        icon: './icons/icon-192x192.png',
-        badge: './icons/icon-192x192.png' // Android badge
-    };
-
-    self.registration.showNotification(notificationTitle, notificationOptions);
-});
-// =================================
 
 
 const urlsToCache = [
