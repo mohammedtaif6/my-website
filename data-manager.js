@@ -58,7 +58,7 @@ export const DataManager = {
     db: db, // تصدير قاعدة البيانات للاستخدام الخارجي (مثل صفحة الإعدادات)
     init() {
         console.log("========================================");
-        console.log("🚀 System v20.0 - Telegram Fix Edition");
+        console.log("🚀 System v20.1 - Clean Console Edition");
         console.log("========================================");
         this.sync('subscribers');
         this.sync('transactions');
