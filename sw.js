@@ -1,5 +1,5 @@
 // Service Worker v27 - High Performance Mode (Stale-While-Revalidate)
-const CACHE_VERSION = 'ok-computer-v27.0';
+const CACHE_VERSION = 'ok-computer-v27.1';
 const CACHE_NAME = CACHE_VERSION;
 
 const urlsToCache = [
@@ -21,13 +21,14 @@ const urlsToCache = [
     './modal-fix.js',
     './auth-system.js',
     './manifest.json',
+    './favicon.ico',
     './icons/icon-192x192.png',
     './icons/icon-512x512.png'
 ];
 
 // 1. Install & Precache
 self.addEventListener('install', (event) => {
-    console.log('📦 SW v26.0 - Installing & caching core assets...');
+    console.log(`📦 SW ${CACHE_VERSION} - Installing & caching core assets...`);
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
             return cache.addAll(urlsToCache);
@@ -38,7 +39,7 @@ self.addEventListener('install', (event) => {
 
 // 2. Activate & Cleanup
 self.addEventListener('activate', (event) => {
-    console.log('🔄 SW v26.0 - Activating...');
+    console.log(`🔄 SW ${CACHE_VERSION} - Activating...`);
     event.waitUntil(
         caches.keys().then((cacheNames) => {
             return Promise.all(
