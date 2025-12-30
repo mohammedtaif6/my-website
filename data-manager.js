@@ -914,7 +914,14 @@ OK Computer`;
             return;
         }
 
-        console.log('🚀 Starting smart attendance tracking...');
+        console.log('🚀 Starting smart attendance tracking for:', AuthSystem.currentUser.name);
+
+        // UI Reset
+        if (document.getElementById('attendance-status-card')) {
+            document.getElementById('attendance-status-card').style.display = 'block';
+            document.getElementById('attendance-status-text').innerHTML = '<i class="fas fa-satellite-dish fa-spin"></i> جاري البحث عن الموقع...';
+            document.getElementById('attendance-status-icon').innerHTML = '<i class="fas fa-crosshairs fa-spin"></i>';
+        }
 
         // فحص فوري عند فتح الصفحة
         this.checkAttendance();
@@ -995,13 +1002,13 @@ OK Computer`;
                     }
                 },
                 (error) => {
-                    console.log('GPS monitoring:', error.code === 1 ? 'Permission denied' : 'Error');
+                    console.error('GPS monitoring error:', error);
                     this.updateAttendanceUI('gps_error', 0, false);
                 },
                 {
                     enableHighAccuracy: true,
-                    timeout: 30000,
-                    maximumAge: 0 // دائماً احصل على موقع جديد
+                    timeout: 20000,
+                    maximumAge: 0
                 }
             );
 
@@ -1010,13 +1017,14 @@ OK Computer`;
             console.log('✅ Continuous GPS monitoring active');
         }
 
-        // فحص احتياطي كل دقيقة (في حالة فشل watchPosition)
+        // فحص احتياطي كل دقيقة
         setInterval(() => {
             this.checkAttendance();
-        }, 1 * 60 * 1000); // كل دقيقة بدلاً من 5 دقائق
+        }, 60000);
 
         console.log('✅ Attendance tracking started');
     },
 
     showToast
 };
+
