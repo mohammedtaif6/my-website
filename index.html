@@ -595,12 +595,22 @@
                 let subPhone = '';
 
                 if (existing) {
+                    subPhone = existing.phone;
+
+                    // تحسين: إذا طلب واتساب والمشترك ليس لديه رقم، نطلبه ونحفظه
+                    if (sendWA && !subPhone) {
+                        subPhone = prompt('⚠️ هذا المشترك ليس لديه رقم هاتف محفوظ.\nيرجى إدخاله لإرسال الوصل:', '07');
+                        if (subPhone) {
+                            // تحديث رقم الهاتف في قاعدة البيانات أيضاً
+                            await DataManager.updateSubscriber(existing.id, { phone: subPhone });
+                        }
+                    }
+
                     await DataManager.renewSubscription(existing.firebaseId, existing.id, {
                         price: parseInt(price), type: type, dateEnd: end
                     });
-                    subPhone = existing.phone;
                 } else {
-                    // For new subscriber, prompt for phone if WhatsApp is needed
+                    // مشترك جديد
                     if (sendWA) {
                         subPhone = prompt('أدخل رقم هاتف المشترك للواتساب:', '07');
                     }
