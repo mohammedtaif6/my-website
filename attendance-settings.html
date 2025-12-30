@@ -565,7 +565,12 @@
 
                 const today = new Date().toISOString().split('T')[0];
                 const attendanceData = await DataManager.getTodayAttendance();
-                const timeoutMinutes = settings.timeoutMinutes || 15; // استخدام القيمة من الإعدادات
+                const timeoutMinutes = settings.timeoutMinutes || 15;
+
+                if (!employees || employees.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color: #666;">لا يوجد موظفين في النظام</p>';
+                    return;
+                }
 
                 let html = '';
                 let totalPresent = 0;
@@ -573,7 +578,20 @@
 
                 for (const emp of employees) {
                     const empAttendance = attendanceData.filter(a => a.employeeId === emp.id);
-                    const workData = DataManager.calculateWorkHours(empAttendance, timeoutMinutes); // استخدام القيمة المخصصة
+
+                    // استخدام الدالة الذكية أو fallback
+                    let workData;
+                    if (typeof DataManager.calculateWorkHours === 'function') {
+                        workData = DataManager.calculateWorkHours(empAttendance, timeoutMinutes);
+                    } else {
+                        // Fallback: حساب بسيط
+                        workData = {
+                            hours: 0,
+                            isActive: false,
+                            lastActivity: null,
+                            inactiveMinutes: 0
+                        };
+                    }
 
                     const isPresent = empAttendance.some(a => a.type === 'in');
                     const salary = Math.round(workData.hours * (settings.hourlyRate || 0));
@@ -645,10 +663,10 @@
                     </div>
                 `;
 
-                container.innerHTML = statsHtml + (html || '<p style="text-align:center;">لا يوجد موظفين</p>');
+                container.innerHTML = statsHtml + (html || '<p style="text-align:center;">لا يوجد بيانات حضور</p>');
             } catch (e) {
                 console.error('Error loading reports:', e);
-                container.innerHTML = '<p style="text-align:center; color: #e74c3c;">❌ حدث خطأ في التحميل</p>';
+                container.innerHTML = `<p style="text-align:center; color: #e74c3c;">❌ حدث خطأ: ${e.message}</p>`;
             }
         }
 
