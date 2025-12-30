@@ -705,9 +705,10 @@ OK Computer`;
                 }
             },
             (error) => {
-                console.warn('GPS Error:', error);
+                // تجاهل الأخطاء بهدوء
+                console.log('GPS check skipped');
             },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+            { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
         );
     },
 

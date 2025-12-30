@@ -309,7 +309,7 @@
         };
 
         // Load attendance reports
-        async function loadReports() {
+        window.loadReports = async function () {
             const container = document.getElementById('employee-status-container');
             container.innerHTML = '<p style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</p>';
 
