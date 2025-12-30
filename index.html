@@ -183,6 +183,27 @@
 
     </div>
 
+    <!-- مؤشر حالة الحضور المباشر (للموظفين فقط) -->
+    <div id="attendance-status-card" style="display:none; margin-bottom: 20px;">
+        <div
+            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); color: white;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <h3 style="margin: 0 0 8px 0; font-size: 1.1rem;">
+                        <i class="fas fa-map-marker-alt"></i> حالة الحضور
+                    </h3>
+                    <p id="attendance-status-text" style="margin: 0; font-size: 1.3rem; font-weight: bold;">
+                        جاري التحميل...
+                    </p>
+                    <small id="attendance-distance" style="opacity: 0.9; font-size: 0.85rem;"></small>
+                </div>
+                <div id="attendance-status-icon" style="font-size: 3rem; animation: pulse 2s infinite;">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ملخص الموظف (يظهر للموظفين فقط) -->
     <div id="employee-dashboard-stats" style="display:none; margin-bottom: 20px;">
         <div
@@ -1017,6 +1038,10 @@
         if (AuthSystem.currentUser && AuthSystem.currentUser.type === 'employee') {
             const paymentCard = document.getElementById('card-record-payment');
             if (paymentCard) paymentCard.style.display = 'block';
+
+            // إظهار مؤشر حالة الحضور
+            const attendanceCard = document.getElementById('attendance-status-card');
+            if (attendanceCard) attendanceCard.style.display = 'block';
         }
 
         // تأكيد أخير على الصلاحيات بعد اكتمال التحميل

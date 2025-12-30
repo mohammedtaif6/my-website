@@ -792,19 +792,86 @@ OK Computer`;
         };
     },
 
-    // بدء المراقبة التلقائية للحضور
+    // بدء المراقبة التلقائية للحضور - نظام ذكي ومتطور
     startAttendanceTracking() {
         if (!AuthSystem.currentUser || AuthSystem.currentUser.type !== 'employee') {
             return;
         }
 
-        // فحص فوري
+        console.log('🚀 Starting smart attendance tracking...');
+
+        // فحص فوري عند فتح الصفحة
         this.checkAttendance();
 
-        // فحص كل 5 دقائق
+        // مراقبة مستمرة للموقع (يكتشف التغيير فوراً!)
+        if (navigator.geolocation) {
+            const watchId = navigator.geolocation.watchPosition(
+                async (position) => {
+                    // تم تحديث الموقع - فحص الحضور فوراً
+                    const settings = await this.getAttendanceSettings();
+                    if (!settings || !settings.shopLat || !settings.shopLng) {
+                        return;
+                    }
+
+                    // التحقق من الوقت
+                    const now = new Date();
+                    const currentTime = now.getHours() * 60 + now.getMinutes();
+                    const [startH, startM] = settings.startTime.split(':').map(Number);
+                    const [endH, endM] = settings.endTime.split(':').map(Number);
+                    const startMinutes = startH * 60 + startM;
+                    const endMinutes = endH * 60 + endM;
+
+                    if (currentTime < startMinutes || currentTime > endMinutes) {
+                        return; // خارج أوقات الدوام
+                    }
+
+                    const distance = this.calculateDistance(
+                        position.coords.latitude,
+                        position.coords.longitude,
+                        settings.shopLat,
+                        settings.shopLng
+                    );
+
+                    const employeeId = AuthSystem.currentUser.id;
+                    const today = new Date().toISOString().split('T')[0];
+
+                    if (distance <= settings.radius) {
+                        // داخل النطاق - تسجيل الحضور
+                        await this.recordAttendance(employeeId, today, 'in', {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                            distance: Math.round(distance)
+                        });
+                        console.log(`✅ Inside zone: ${Math.round(distance)}m`);
+                    } else {
+                        // خارج النطاق - تسجيل الخروج
+                        await this.recordAttendance(employeeId, today, 'out', {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                            distance: Math.round(distance)
+                        });
+                        console.log(`⏸️ Outside zone: ${Math.round(distance)}m`);
+                    }
+                },
+                (error) => {
+                    console.log('GPS monitoring:', error.code === 1 ? 'Permission denied' : 'Error');
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 30000,
+                    maximumAge: 0 // دائماً احصل على موقع جديد
+                }
+            );
+
+            // حفظ الـ watchId لإمكانية إيقافه لاحقاً
+            window.attendanceWatchId = watchId;
+            console.log('✅ Continuous GPS monitoring active');
+        }
+
+        // فحص احتياطي كل دقيقة (في حالة فشل watchPosition)
         setInterval(() => {
             this.checkAttendance();
-        }, 5 * 60 * 1000);
+        }, 1 * 60 * 1000); // كل دقيقة بدلاً من 5 دقائق
 
         console.log('✅ Attendance tracking started');
     },
