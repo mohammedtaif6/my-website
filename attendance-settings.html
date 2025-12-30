@@ -613,6 +613,7 @@
 
         // Tab Management
         window.switchTab = function (tabName) {
+            console.log('🔀 Switching to tab:', tabName);
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
 
@@ -620,6 +621,7 @@
             document.getElementById(tabName + '-btn').classList.add('active');
 
             if (tabName === 'reports') {
+                console.log('📊 Calling loadReports...');
                 loadReports();
             }
         };
