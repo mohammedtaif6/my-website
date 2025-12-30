@@ -835,7 +835,7 @@ OK Computer`;
 
     async getTodayAttendance() {
         try {
-            const today = new Date().toISOString().split('T')[0];
+            const today = this.getLocalToday();
             console.log('📅 Fetching attendance for:', today);
 
             const attendanceRef = collection(db, "attendance");
