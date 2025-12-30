@@ -714,6 +714,15 @@ OK Computer`;
 
     async recordAttendance(employeeId, date, type, location) {
         try {
+            // منع التسجيل المتكرر - فقط عند تغيير الحالة
+            const lastRecordKey = `lastAttendance_${employeeId}_${date}`;
+            const lastRecord = localStorage.getItem(lastRecordKey);
+
+            if (lastRecord === type) {
+                // نفس الحالة - لا داعي للتسجيل
+                return;
+            }
+
             const attendanceRef = collection(db, "attendance");
             const timestamp = new Date().toISOString();
 
@@ -724,6 +733,9 @@ OK Computer`;
                 timestamp,
                 location
             });
+
+            // حفظ آخر حالة
+            localStorage.setItem(lastRecordKey, type);
 
             console.log(`📍 Attendance recorded: ${type} at ${new Date().toLocaleTimeString()}`);
         } catch (e) {
