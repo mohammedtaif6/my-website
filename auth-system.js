@@ -141,6 +141,16 @@ const AuthSystem = {
                 }
             }
 
+            // إخفاء الصفحات الخاصة بالمدير فقط
+            const adminOnlyElements = ['nav-employees', 'nav-attendance', 'nav-telegram'];
+            adminOnlyElements.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.style.display = 'none';
+                    el.setAttribute('hidden', 'true');
+                }
+            });
+
             // إخفاء الكروت الخاصة بالمدير فقط في لوحة التحكم الجديدة
             if (user.type !== 'admin') {
                 const restricted = ['nav-card-employees', 'nav-card-maintenance', 'nav-card-telegram'];
