@@ -753,6 +753,45 @@ OK Computer`;
         }
     },
 
+    // دالة ذكية لحساب الساعات مع كشف الانقطاع التلقائي
+    calculateWorkHours(records, timeoutMinutes = 15) {
+        let totalMinutes = 0;
+        let lastIn = null;
+        const now = new Date();
+
+        for (const record of records) {
+            if (record.type === 'in') {
+                lastIn = new Date(record.timestamp);
+            } else if (record.type === 'out' && lastIn) {
+                const out = new Date(record.timestamp);
+                const diff = (out - lastIn) / 1000 / 60; // minutes
+                totalMinutes += diff;
+                lastIn = null;
+            }
+        }
+
+        // إذا ما زال مسجل دخول، تحقق من آخر نشاط
+        if (lastIn) {
+            const timeSinceLastActivity = (now - lastIn) / 1000 / 60; // minutes
+
+            // إذا مر أكثر من 15 دقيقة بدون نشاط، اعتبره خرج
+            if (timeSinceLastActivity > timeoutMinutes) {
+                totalMinutes += timeoutMinutes; // احسب فقط حتى الـ timeout
+            } else {
+                // ما زال نشط
+                const diff = (now - lastIn) / 1000 / 60;
+                totalMinutes += diff;
+            }
+        }
+
+        return {
+            hours: totalMinutes / 60,
+            isActive: lastIn !== null && ((now - lastIn) / 1000 / 60) <= timeoutMinutes,
+            lastActivity: lastIn ? lastIn.toISOString() : null,
+            inactiveMinutes: lastIn ? Math.floor((now - lastIn) / 1000 / 60) : 0
+        };
+    },
+
     // بدء المراقبة التلقائية للحضور
     startAttendanceTracking() {
         if (!AuthSystem.currentUser || AuthSystem.currentUser.type !== 'employee') {

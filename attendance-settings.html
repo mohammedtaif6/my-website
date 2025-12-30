@@ -364,6 +364,23 @@
             color: #64748b;
         }
 
+        .status-badge.inactive {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .inactive-warning {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         .btn-primary,
         .btn-secondary {
             border-radius: 14px;
@@ -501,69 +518,90 @@
                 const attendanceData = await DataManager.getTodayAttendance();
 
                 let html = '';
+                let totalPresent = 0;
+                let totalActive = 0;
+
                 for (const emp of employees) {
                     const empAttendance = attendanceData.filter(a => a.employeeId === emp.id);
-                    const isPresent = empAttendance.some(a => a.type === 'in');
-                    const lastRecord = empAttendance[empAttendance.length - 1];
+                    const workData = DataManager.calculateWorkHours(empAttendance, 15); // 15 دقيقة timeout
 
-                    const totalHours = calculateHours(empAttendance);
-                    const salary = Math.round(totalHours * (settings.hourlyRate || 0));
+                    const isPresent = empAttendance.some(a => a.type === 'in');
+                    const salary = Math.round(workData.hours * (settings.hourlyRate || 0));
+
+                    if (isPresent) totalPresent++;
+                    if (workData.isActive) totalActive++;
+
+                    // تحديد الحالة
+                    let statusClass = 'absent';
+                    let statusText = '⚪ غائب';
+                    let statusBadgeClass = 'absent';
+
+                    if (workData.isActive) {
+                        statusClass = 'present';
+                        statusText = '✅ نشط';
+                        statusBadgeClass = 'present';
+                    } else if (isPresent && !workData.isActive) {
+                        statusClass = 'present';
+                        statusText = '⚠️ غير نشط';
+                        statusBadgeClass = 'inactive';
+                    }
 
                     html += `
-                        <div class="employee-status-card ${isPresent ? 'present' : 'absent'}">
+                        <div class="employee-status-card ${statusClass}">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                                 <h4 style="margin: 0;">${emp.name}</h4>
-                                <span class="status-badge ${isPresent ? 'present' : 'absent'}">
-                                    ${isPresent ? '✅ حاضر' : '⚪ غائب'}
+                                <span class="status-badge ${statusBadgeClass}">
+                                    ${statusText}
                                 </span>
                             </div>
                             ${isPresent ? `
                                 <p style="margin: 5px 0; font-size: 0.9rem; color: #666;">
-                                    <i class="fas fa-clock"></i> ساعات العمل: <strong>${totalHours.toFixed(2)}</strong> ساعة
+                                    <i class="fas fa-clock"></i> ساعات العمل: <strong>${workData.hours.toFixed(2)}</strong> ساعة
                                 </p>
                                 <p style="margin: 5px 0; font-size: 0.9rem; color: #666;">
                                     <i class="fas fa-dollar-sign"></i> الراتب المستحق: <strong>${salary.toLocaleString()}</strong> د.ع
                                 </p>
-                                ${lastRecord ? `
+                                ${workData.lastActivity ? `
                                     <p style="margin: 5px 0; font-size: 0.85rem; color: #999;">
-                                        📍 آخر تحديث: ${new Date(lastRecord.timestamp).toLocaleTimeString('ar-IQ')}
+                                        📍 آخر نشاط: ${new Date(workData.lastActivity).toLocaleTimeString('ar-IQ')}
                                     </p>
+                                ` : ''}
+                                ${!workData.isActive && workData.inactiveMinutes > 0 ? `
+                                    <div class="inactive-warning">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <span>لا يوجد نشاط منذ ${workData.inactiveMinutes} دقيقة</span>
+                                    </div>
                                 ` : ''}
                             ` : '<p style="margin: 5px 0; font-size: 0.9rem; color: #999;">لم يسجل حضور اليوم</p>'}
                         </div>
                     `;
                 }
 
-                container.innerHTML = html || '<p style="text-align:center;">لا يوجد موظفين</p>';
+                // إضافة إحصائيات في الأعلى
+                const statsHtml = `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                        <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 20px; border-radius: 16px; text-align: center;">
+                            <div style="font-size: 2rem; font-weight: bold;">${totalActive}</div>
+                            <div style="font-size: 0.9rem; opacity: 0.9;">نشط الآن</div>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; padding: 20px; border-radius: 16px; text-align: center;">
+                            <div style="font-size: 2rem; font-weight: bold;">${totalPresent}</div>
+                            <div style="font-size: 0.9rem; opacity: 0.9;">إجمالي الحضور</div>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: white; padding: 20px; border-radius: 16px; text-align: center;">
+                            <div style="font-size: 2rem; font-weight: bold;">${employees.length - totalPresent}</div>
+                            <div style="font-size: 0.9rem; opacity: 0.9;">غائب</div>
+                        </div>
+                    </div>
+                `;
+
+                container.innerHTML = statsHtml + (html || '<p style="text-align:center;">لا يوجد موظفين</p>');
             } catch (e) {
                 console.error('Error loading reports:', e);
                 container.innerHTML = '<p style="text-align:center; color: #e74c3c;">❌ حدث خطأ في التحميل</p>';
             }
         }
 
-        function calculateHours(records) {
-            let totalMinutes = 0;
-            let lastIn = null;
-
-            for (const record of records) {
-                if (record.type === 'in') {
-                    lastIn = new Date(record.timestamp);
-                } else if (record.type === 'out' && lastIn) {
-                    const out = new Date(record.timestamp);
-                    const diff = (out - lastIn) / 1000 / 60; // minutes
-                    totalMinutes += diff;
-                    lastIn = null;
-                }
-            }
-
-            // If still clocked in, count until now
-            if (lastIn) {
-                const now = new Date();
-                const diff = (now - lastIn) / 1000 / 60;
-                totalMinutes += diff;
-            }
-
-            return totalMinutes / 60; // convert to hours
         }
 
         // Auto-focus on PIN input
