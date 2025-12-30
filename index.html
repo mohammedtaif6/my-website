@@ -591,10 +591,9 @@
     </script>
 
     <script type="module">
-        import { DataManager } from './data-manager.js?v=22.0';
-
-
-        // Activation with Fixed Print & WhatsApp
+        import { DataManager } from './data-manager.js?v=25.0';
+        window.DataManager = DataManager;
+        DataManager.init();
         window.saveActivation = async function (print) {
             const name = document.getElementById('act-name').value;
             const price = document.getElementById('act-price').value;

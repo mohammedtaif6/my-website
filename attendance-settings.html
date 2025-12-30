@@ -628,164 +628,61 @@
 
         // Load attendance reports with improved error handling
         window.loadReports = async function () {
-            console.log('🔄 Starting loadReports...');
             const container = document.getElementById('employee-status-container');
-            container.innerHTML = `
-                <div class="loading-container">
-                    <i class="fas fa-spinner loading-spinner"></i>
-                    <p style="color: #666; margin-top: 15px;">جاري تحميل بيانات الحضور...</p>
-                </div>
-            `;
+            container.innerHTML = '<div class="loading-container"><i class="fas fa-spinner loading-spinner"></i><p>جاري تحميل البيانات...</p></div>';
 
             try {
-                console.log('⏳ Waiting for DataManager...');
-                // انتظار قليل للتأكد من تحميل DataManager
-                await new Promise(resolve => setTimeout(resolve, 500));
-
-                console.log('👥 Getting employees...');
                 const employees = DataManager.getEmployees();
-
-                if (!employees || employees.length === 0) {
-                    container.innerHTML = `
-                        <div class="error-container">
-                            <i class="fas fa-users-slash error-icon"></i>
-                            <p class="error-title">لا يوجد موظفين</p>
-                            <p class="error-message">لم يتم إضافة أي موظفين في النظام بعد</p>
-                            <a href="employees.html" class="btn btn-primary">
-                                <i class="fas fa-plus"></i> إضافة موظف
-                            </a>
-                        </div>
-                    `;
-                    return;
-                }
-
-                console.log('⚙️ Getting settings...');
                 const settings = await DataManager.getAttendanceSettings();
-                console.log('Settings:', settings);
-
-                if (!settings || !settings.shopLat || !settings.shopLng) {
-                    console.warn('⚠️ Settings incomplete');
-                    container.innerHTML = `
-                        <div class="error-container">
-                            <i class="fas fa-cog error-icon"></i>
-                            <p class="error-title">الإعدادات غير مكتملة</p>
-                            <p class="error-message">يرجى ضبط إعدادات الحضور أولاً من تبويب "الإعدادات"</p>
-                            <button onclick="switchTab('settings')" class="btn btn-primary">
-                                <i class="fas fa-cog"></i> اذهب للإعدادات
-                            </button>
-                        </div>
-                    `;
-                    return;
-                }
-
-                console.log('📋 Getting attendance data...');
-                const attendanceData = await DataManager.getTodayAttendance();
-                console.log('Attendance records:', attendanceData.length);
-                const timeoutMinutes = settings.timeoutMinutes || 15;
+                const shiftDate = await DataManager.getCurrentShiftDate();
+                const hourlyRate = settings?.hourlyRate || 0;
 
                 let html = '';
                 let totalPresent = 0;
-                let totalActive = 0;
 
                 for (const emp of employees) {
-                    const empAttendance = attendanceData.filter(a => a.employeeId === emp.id);
-
-                    let workData = {
-                        hours: 0,
-                        isActive: false,
-                        lastActivity: null,
-                        inactiveMinutes: 0
-                    };
-
-                    if (empAttendance.length > 0 && typeof DataManager.calculateWorkHours === 'function') {
-                        try {
-                            workData = DataManager.calculateWorkHours(empAttendance, timeoutMinutes);
-                        } catch (err) {
-                            console.error('Error calculating work hours for', emp.name, err);
-                        }
-                    }
-
-                    const isPresent = empAttendance.some(a => a.type === 'in' || a.type === 'ping');
-                    const salary = Math.round(workData.hours * (settings.hourlyRate || 0));
+                    const report = await DataManager.getEmployeeAttendanceReport(emp.id, shiftDate);
+                    const salary = Math.round(report.totalHours * hourlyRate);
+                    const isPresent = report.totalHours > 0;
 
                     if (isPresent) totalPresent++;
-                    if (workData.isActive) totalActive++;
 
-                    let statusClass = 'absent';
-                    let statusText = '⚪ غائب';
-                    let statusBadgeClass = 'absent';
-
-                    if (workData.isActive) {
-                        statusClass = 'present';
-                        statusText = '✅ نشط';
-                        statusBadgeClass = 'present';
-                    } else if (isPresent && !workData.isActive) {
-                        statusClass = 'present';
-                        statusText = '⚠️ غير نشط';
-                        statusBadgeClass = 'inactive';
-                    }
+                    let statusClass = isPresent ? 'present' : 'absent';
+                    let statusText = isPresent ? '✅ بموقع العمل' : '⚪ غائب';
 
                     html += `
                         <div class="employee-status-card ${statusClass}">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                <h4 style="margin: 0; font-size: 1.2rem;">${emp.name}</h4>
-                                <span class="status-badge ${statusBadgeClass}">
-                                    ${statusText}
-                                </span>
+                                <h4 style="margin: 0;">${emp.name}</h4>
+                                <span class="status-badge ${statusClass}">${statusText}</span>
                             </div>
-                            ${isPresent ? `
-                                <p style="margin: 5px 0; font-size: 0.9rem; color: #666;">
-                                    <i class="fas fa-clock"></i> ساعات العمل: <strong>${workData.hours.toFixed(2)}</strong> ساعة
-                                </p>
-                                <p style="margin: 5px 0; font-size: 0.9rem; color: #666;">
-                                    <i class="fas fa-dollar-sign"></i> الراتب المستحق: <strong>${salary.toLocaleString()}</strong> د.ع
-                                </p>
-                                ${workData.lastActivity ? `
-                                    <p style="margin: 5px 0; font-size: 0.85rem; color: #999;">
-                                        📍 آخر نشاط: ${new Date(workData.lastActivity).toLocaleTimeString('ar-IQ')}
-                                    </p>
-                                ` : ''}
-                                ${!workData.isActive && workData.inactiveMinutes > 0 ? `
-                                    <div class="inactive-warning">
-                                        <i class="fas fa-exclamation-triangle"></i>
-                                        <span>لا يوجد نشاط منذ ${workData.inactiveMinutes} دقيقة</span>
-                                    </div>
-                                ` : ''}
-                            ` : '<p style="margin: 5px 0; font-size: 0.9rem; color: #999;">لم يسجل حضور اليوم</p>'}
+                            <p style="margin: 5px 0; font-size: 0.9rem; color: #666;">
+                                <i class="fas fa-clock"></i> ساعات العمل: <strong>${report.totalHours.toFixed(2)}</strong> ساعة
+                            </p>
+                            <p style="margin: 5px 0; font-size: 0.9rem; color: #666;">
+                                <i class="fas fa-money-bill-wave"></i> الراتب المستحق: <strong>${salary.toLocaleString()}</strong> د.ع
+                            </p>
                         </div>
                     `;
                 }
 
                 const statsHtml = `
                     <div class="stats-overview">
-                        <div class="stat-card success">
-                            <div class="stat-value">${totalActive}</div>
-                            <div class="stat-label">نشط الآن</div>
-                        </div>
                         <div class="stat-card">
                             <div class="stat-value">${totalPresent}</div>
-                            <div class="stat-label">إجمالي الحضور</div>
+                            <div class="stat-label">المتواجدين</div>
                         </div>
                         <div class="stat-card danger">
                             <div class="stat-value">${employees.length - totalPresent}</div>
-                            <div class="stat-label">غائب</div>
+                            <div class="stat-label">الغائبين</div>
                         </div>
                     </div>
                 `;
 
-                container.innerHTML = statsHtml + `<div class="employee-status-grid">${html || '<p style="text-align:center; grid-column: 1/-1;">لا يوجد بيانات حضور</p>'}</div>`;
+                container.innerHTML = statsHtml + `<div class="employee-status-grid">${html || '<p>لا يوجد سجلات</p>'}</div>`;
             } catch (e) {
-                console.error('Error loading reports:', e);
-                container.innerHTML = `
-                    <div class="error-container">
-                        <i class="fas fa-exclamation-triangle error-icon"></i>
-                        <p class="error-title">حدث خطأ في تحميل البيانات</p>
-                        <p class="error-message">${e.message}</p>
-                        <button onclick="loadReports()" class="btn btn-primary">
-                            <i class="fas fa-redo"></i> إعادة المحاولة
-                        </button>
-                    </div>
-                `;
+                console.error('Report Error:', e);
+                container.innerHTML = `<p class="error">فشل تحميل التقرير: ${e.message}</p>`;
             }
         };
 

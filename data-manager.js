@@ -598,457 +598,193 @@ OK Computer`;
     },
 
     // ========================================
-    // نظام الحضور التلقائي
+    // ========================================
+    // 🛡️ نظام الحضور والانصراف المطور (v2.0)
     // ========================================
 
-    async getAttendanceSettings() {
-        try {
-            const settingsDoc = await getDocs(query(collection(db, "settings"), limit(1)));
-            if (!settingsDoc.empty) {
-                return settingsDoc.docs[0].data().attendance;
-            }
-            return null;
-        } catch (e) {
-            console.error('Error loading attendance settings:', e);
-            return null;
-        }
-    },
-
-    async saveAttendanceSettings(settings) {
-        try {
-            const settingsRef = collection(db, "settings");
-            const existing = await getDocs(query(settingsRef, limit(1)));
-
-            if (existing.empty) {
-                await addDoc(settingsRef, { attendance: settings });
-            } else {
-                await updateDoc(doc(db, "settings", existing.docs[0].id), { attendance: settings });
-            }
-
-            showToast('✅ تم حفظ إعدادات الحضور بنجاح');
-        } catch (e) {
-            console.error('Error saving attendance settings:', e);
-            showToast('❌ فشل حفظ الإعدادات', 'error');
-        }
-    },
-
-    // حساب المسافة بين نقطتين (بالمتر) - Haversine Formula
-    calculateDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371e3; // نصف قطر الأرض بالمتر
-        const φ1 = lat1 * Math.PI / 180;
-        const φ2 = lat2 * Math.PI / 180;
-        const Δφ = (lat2 - lat1) * Math.PI / 180;
-        const Δλ = (lon2 - lon1) * Math.PI / 180;
-
-        const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-            Math.cos(φ1) * Math.cos(φ2) *
-            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        return R * c; // المسافة بالمتر
-    },
-
-    // الحصول على التاريخ المحلي بنسق YYYY-MM-DD
-    getLocalToday() {
+    // 1. مساعدات الوقت والتوقيت
+    _getShiftContext(settings) {
         const now = new Date();
-        // تعديل: الحفاظ على اليوم السابق إذا كنا بعد منتصف الليل وقبل انتهاء الشفت (مثلاً الساعة 2 فجراً تتبع اليوم السابق)
-        // ولكن للتبسيط وسهولة العرض، سنستخدم التاريخ المحلي الفعلي
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    },
+        const currentTime = now.getHours() * 60 + now.getMinutes();
 
-    // فحص ما إذا كان الوقت الحالي ضمن أوقات الدوام (يدعم الدوام الليلي)
-    isWorkTime(settings) {
-        if (!settings || !settings.startTime || !settings.endTime) return true;
-
-        const now = new Date();
-        const current = now.getHours() * 60 + now.getMinutes();
-
-        const [sh, sm] = settings.startTime.split(':').map(Number);
-        const [eh, em] = settings.endTime.split(':').map(Number);
+        const [sh, sm] = (settings.startTime || "09:00").split(':').map(Number);
+        const [eh, em] = (settings.endTime || "18:00").split(':').map(Number);
         const start = sh * 60 + sm;
         const end = eh * 60 + em;
 
+        let isWorkTime = false;
+        let workDate = new Date(); // التاريخ الذي يُنسب له الدوام
+
         if (start <= end) {
-            return current >= start && current <= end;
+            // دوام نهاري عادي
+            isWorkTime = currentTime >= start && currentTime <= end;
         } else {
             // دوام ليلي (يعبر منتصف الليل)
-            return current >= start || current <= end;
+            isWorkTime = currentTime >= start || currentTime <= end;
+            // إذا كنا بعد منتصف الليل وقبل نهاية الدوام، العمل يتبع "يوم أمس"
+            if (currentTime <= end) {
+                workDate.setDate(workDate.getDate() - 1);
+            }
         }
+
+        const dateStr = workDate.toISOString().split('T')[0];
+        return { isWorkTime, dateStr, now };
     },
 
-    // فحص ما إذا كان الموظف ضمن نطاق المحل
-    async checkAttendance() {
-        if (!AuthSystem.currentUser || AuthSystem.currentUser.type !== 'employee') {
-            return;
-        }
+    async getCurrentShiftDate() {
+        const settings = await this.getAttendanceSettings();
+        return this._getShiftContext(settings || {}).dateStr;
+    },
+
+    // 2. تحديث الواجهة بشكل مركزي
+    _updateStatusUI(state, extra = {}) {
+        const card = document.getElementById('attendance-status-card');
+        const text = document.getElementById('attendance-status-text');
+        const icon = document.getElementById('attendance-status-icon');
+        const dist = document.getElementById('attendance-distance');
+
+        if (!card) return;
+        card.style.display = 'block';
+
+        const styles = {
+            loading: { bg: 'linear-gradient(135deg, #6366f1 0%, #4338ca 100%)', icon: 'fa-satellite-dish fa-spin', label: 'جاري تحديد الموقع...' },
+            inside: { bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', icon: 'fa-check-circle pulse', label: 'أنت في موقع العمل ✅' },
+            outside: { bg: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', icon: 'fa-street-view', label: 'أنت خارج النطاق 📍' },
+            off: { bg: 'linear-gradient(135deg, #64748b 0%, #475569 100%)', icon: 'fa-moon', label: 'خارج أوقات الدوام 😴' },
+            error: { bg: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)', icon: 'fa-exclamation-triangle', label: 'مشكلة في الـ GPS ❌' }
+        };
+
+        const s = styles[state] || styles.off;
+        card.querySelector('div').style.background = s.bg;
+        text.innerText = s.label;
+        icon.innerHTML = `<i class="fas ${s.icon}"></i>`;
+        if (dist) dist.innerText = extra.msg || '';
+    },
+
+    // 3. المحرك الرئيسي للحضور
+    async processAttendance() {
+        if (!AuthSystem.currentUser || AuthSystem.currentUser.type !== 'employee') return;
 
         const settings = await this.getAttendanceSettings();
-        if (!settings || !settings.shopLat || !settings.shopLng) {
+        if (!settings) return;
+
+        const ctx = this._getShiftContext(settings);
+
+        // أ. إذا كان خارج وقت الدوام
+        if (!ctx.isWorkTime) {
+            this._updateStatusUI('off', { msg: `يبدأ الدوام: ${settings.startTime}` });
             return;
         }
 
-        // التحقق من الوقت مع دعم الدوام الليلي
-        if (!this.isWorkTime(settings)) {
-            const card = document.getElementById('attendance-status-card');
-            if (card) {
-                card.style.display = 'block';
-                card.querySelector('div').style.background = 'linear-gradient(135deg, #64748b 0%, #475569 100%)';
-                document.getElementById('attendance-status-text').innerText = 'خارج أوقات الدوام 😴';
-                document.getElementById('attendance-distance').innerText = `يبدأ الدوام: ${settings.startTime}`;
-                document.getElementById('attendance-status-icon').innerHTML = '<i class="fas fa-moon"></i>';
-            }
-            return;
-        }
-
-        // الحصول على الموقع الحالي
-        if (!navigator.geolocation) {
-            return;
-        }
-
+        // ب. محاولة الحصول على الموقع
         navigator.geolocation.getCurrentPosition(
-            async (position) => {
+            async (pos) => {
                 const distance = this.calculateDistance(
-                    position.coords.latitude,
-                    position.coords.longitude,
-                    settings.shopLat,
-                    settings.shopLng
+                    pos.coords.latitude, pos.coords.longitude,
+                    settings.shopLat, settings.shopLng
                 );
 
-                const employeeId = AuthSystem.currentUser.id;
-                const today = this.getLocalToday();
+                const isInside = distance <= (settings.radius || 50);
+                const empId = AuthSystem.currentUser.id;
 
-                if (distance <= settings.radius) {
-                    this.updateAttendanceUI('success', Math.round(distance), true);
-                    // داخل النطاق
-
-                    // التحقق من الحاجة لتسجيل 'ping' (تحديث التواجد)
-                    // نمنع التكرار المفرط: نسجل ping كل 5 دقائق كحد أدنى
-                    const lastPingKey = `lastPing_${employeeId}_${today}`;
-                    const lastPingStr = localStorage.getItem(lastPingKey);
-                    const lastPingTime = lastPingStr ? new Date(lastPingStr).getTime() : 0;
-                    const nowTs = new Date().getTime();
-
-                    // إذا كان آخر سجل ليس دخولاً، نسجل دخول
-                    const lastRecordKey = `lastAttendance_${employeeId}_${today}`;
-                    const lastRecordType = localStorage.getItem(lastRecordKey);
-
-                    if (lastRecordType !== 'in' && lastRecordType !== 'ping') {
-                        await this.recordAttendance(employeeId, today, 'in', {
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude,
-                            distance: Math.round(distance)
-                        });
-                    } else {
-                        // هو مسجل دخول، هل مرت 5 دقائق؟
-                        if (nowTs - lastPingTime > 5 * 60 * 1000) {
-                            await this.recordAttendance(employeeId, today, 'ping', {
-                                lat: position.coords.latitude,
-                                lng: position.coords.longitude,
-                                distance: Math.round(distance)
-                            });
-                            localStorage.setItem(lastPingKey, new Date().toISOString());
-                        }
-                    }
+                if (isInside) {
+                    this._updateStatusUI('inside', { msg: `المسافة: ${Math.round(distance)} متر` });
+                    await this._syncRecord(empId, ctx.dateStr, 'in_session', pos.coords, distance);
                 } else {
-                    this.updateAttendanceUI('success', Math.round(distance), false);
-                    // خارج النطاق - تسجيل الخروج
-                    await this.recordAttendance(employeeId, today, 'out', {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                        distance: Math.round(distance)
-                    });
+                    this._updateStatusUI('outside', { msg: `المسافة: ${Math.round(distance)} متر (المسموح: ${settings.radius}م)` });
+                    await this._syncRecord(empId, ctx.dateStr, 'outside', pos.coords, distance);
                 }
             },
-            (error) => {
-                console.error('GPS Check Error:', error);
-                this.updateAttendanceUI('gps_error', 0, false);
+            (err) => {
+                console.error("GPS Error:", err);
+                this._updateStatusUI('error', { msg: 'يرجى تفعيل الموقع (GPS)' });
             },
-            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+            { enableHighAccuracy: true, timeout: 10000 }
         );
     },
 
-    // Helper to update UI
-    updateAttendanceUI(status, distance, isInside) {
-        const card = document.getElementById('attendance-status-card');
-        const text = document.getElementById('attendance-status-text');
-        const distEl = document.getElementById('attendance-status-distance');
-        const icon = document.getElementById('attendance-status-icon');
-        const distText = document.getElementById('attendance-distance');
+    // 4. مزامنة السجلات مع Firebase (بدون تكرار)
+    async _syncRecord(empId, date, status, coords, dist) {
+        const lastSyncKey = `last_sync_${empId}`;
+        const lastSync = JSON.parse(localStorage.getItem(lastSyncKey) || '{}');
+        const now = Date.now();
 
-        if (card) {
-            card.style.display = 'block';
+        // نرسل تحديث كل 5 دقائق فقط إذا كانت الحالة ثابتة، أو فوراً إذا تغيرت الحالة
+        if (lastSync.status === status && (now - lastSync.time < 5 * 60 * 1000)) return;
 
-            if (status === 'gps_error') {
-                text.innerText = 'تعذر تحديد الموقع';
-                if (distText) distText.innerText = 'يرجى تفعيل GPS';
-                return;
-            }
-
-            if (isInside) {
-                card.querySelector('div').style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-                text.innerText = 'أنت في موقع العمل ✅';
-                if (icon) icon.innerHTML = '<i class="fas fa-check-circle pulse"></i>';
-            } else {
-                card.querySelector('div').style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
-                text.innerText = 'أنت خارج النطاق 📍';
-                if (icon) icon.innerHTML = '<i class="fas fa-walking"></i>';
-            }
-            if (distText) distText.innerText = `المسافة: ${distance} م (المسموح: ${settings.radius} م)`;
-        }
-    },
-
-    async recordAttendance(employeeId, date, type, location) {
         try {
-            // منع التسجيل المتكرر للحالات الثابتة (in/out)
-            // نسمح بـ ping والتبديل بين in/out/ping
-            const lastRecordKey = `lastAttendance_${employeeId}_${date}`;
-            const lastRecord = localStorage.getItem(lastRecordKey);
-
-            // إذا كان النوع "ping"، نسمح به دائماً (لأننا تحكمنا بالتوقيت في دالة checkAttendance)
-            // إذا كان "in" أو "out"، نمنع التكرار المتتابع لنفس النوع
-            if (type !== 'ping' && lastRecord === type) {
-                return;
-            }
-
-            const attendanceRef = collection(db, "attendance");
-            const timestamp = new Date().toISOString();
-
-            await addDoc(attendanceRef, {
-                employeeId,
-                date,
-                type, // 'in' or 'out'
-                timestamp,
-                location
+            await addDoc(collection(db, "attendance"), {
+                employeeId: empId,
+                date: date, // تاريخ الشفت
+                status: status,
+                timestamp: new Date().toISOString(),
+                location: { lat: coords.latitude, lng: coords.longitude, distance: Math.round(dist) }
             });
 
-            // حفظ آخر حالة
-            localStorage.setItem(lastRecordKey, type);
-
-            console.log(`📍 Attendance recorded: ${type} at ${new Date().toLocaleTimeString()}`);
+            localStorage.setItem(lastSyncKey, JSON.stringify({ status, time: now }));
+            console.log(`✅ Sync: ${status} for ${date}`);
         } catch (e) {
-            console.error('Error recording attendance:', e);
+            console.error("Sync failed:", e);
         }
     },
 
-    async getTodayAttendance() {
-        try {
-            const today = this.getLocalToday();
-            console.log('📅 Fetching attendance for:', today);
+    // 5. بدء النظام
+    startAttendanceTracking() {
+        if (!AuthSystem.currentUser || AuthSystem.currentUser.type !== 'employee') return;
 
-            const attendanceRef = collection(db, "attendance");
-            const q = query(attendanceRef);
-            const snapshot = await getDocs(q);
+        this._updateStatusUI('loading');
+        this.processAttendance(); // تشغيل فوري
 
-            const records = [];
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                if (data.date === today) {
-                    records.push(data);
-                }
-            });
+        // تحديث دوري كل دقيقة
+        if (window.attendanceInterval) clearInterval(window.attendanceInterval);
+        window.attendanceInterval = setInterval(() => this.processAttendance(), 60000);
 
-            console.log(`✅ Found ${records.length} attendance records for today`);
-            return records;
-        } catch (e) {
-            console.error('❌ Error fetching attendance:', e);
-            console.error('Error details:', e.message);
-            return [];
+        // مراقبة عند تغيير الموقع
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(() => this.processAttendance(), null, { enableHighAccuracy: true });
         }
     },
 
-    // دالة ذكية لحساب الساعات مع دعم نظام النبضات (Ping)
-    calculateWorkHours(records, timeoutMinutes = 15) {
-        // 1. ترتيب السجلات زمنياً لضمان الدقة
-        const sortedRecords = records.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    // 6. التقارير وحساب الساعات (المنطق المطور)
+    async getEmployeeAttendanceReport(empId, date) {
+        const q = query(collection(db, "attendance"));
+        const snap = await getDocs(q);
+        const records = [];
+        snap.forEach(doc => {
+            const d = doc.data();
+            if (d.employeeId == empId && d.date == date) records.push(d);
+        });
 
-        let totalMinutes = 0;
-        let sessionStart = null;
-        let lastActivity = null;
-        const now = new Date();
+        // ترتيب زمنياً
+        records.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-        for (const record of sortedRecords) {
-            const time = new Date(record.timestamp);
+        if (records.length === 0) return { totalHours: 0, status: 'absent' };
 
-            if (record.type === 'in') {
-                // بداية جلسة جديدة إذا لم تكن هناك جلسة مفتوحة
-                if (!sessionStart) {
-                    sessionStart = time;
+        let totalMs = 0;
+        let lastIn = null;
+
+        for (const r of records) {
+            const time = new Date(r.timestamp);
+            if (r.status === 'in_session') {
+                if (!lastIn) lastIn = time;
+                else {
+                    // إذا كان الفرق بين السجلين أقل من 20 دقيقة، نعتبرها جلسة مستمرة
+                    const diff = time - lastIn;
+                    if (diff < 20 * 60 * 1000) totalMs += diff;
+                    lastIn = time;
                 }
-                lastActivity = time;
-            }
-            else if (record.type === 'ping') {
-                // تحديث آخر نشاط للجلسة الحالية
-                if (sessionStart) {
-                    lastActivity = time;
-                }
-            }
-            else if (record.type === 'out') {
-                if (sessionStart) {
-                    // إغلاق الجلسة واحتساب الوقت
-                    // نستخدم وقت الخروج، أو آخر نشاط إذا كان الفرق كبيراً جداً (حالة شاذة)
-                    const end = time;
-                    const diff = (end - sessionStart) / 1000 / 60;
-                    totalMinutes += diff;
-
-                    sessionStart = null;
-                    lastActivity = null;
-                }
-            }
-        }
-
-        // معالجة الجلسة المفتوحة (ما زال الموظف حاضراً)
-        let isActive = false;
-        let inactiveMinutes = 0;
-
-        if (sessionStart && lastActivity) {
-            const timeSinceLastActivity = (now - lastActivity) / 1000 / 60;
-
-            if (timeSinceLastActivity <= timeoutMinutes) {
-                // الموظف نشط حالياً
-                // نحسب الوقت من البداية حتى الآن
-                const diff = (now - sessionStart) / 1000 / 60;
-                totalMinutes += diff; // نضيف المدة الحالية للمجموع (بشكل مؤقت للعرض)
-                // *ملاحظة: في المرة القادمة عندما يرسل ping، سيتم إعادة الحساب بناءً على الـ Ping الجديد
-                // لتجنب التكرار في العرض، نحن هنا نحسب "إلى أي مدى وصل الان"، لكن في التخزين الفعلي نعتمد على الـ Pings
-
-                // لكن انتظر، إذا حسبنا (now - start) هنا، وفي الدورة القادمة حسبنا (now_later - start).. النتيجة صحيحة تراكمياً.
-                // المشكلة فقط لو جمعنا الـ diff مرتين. المتغير totalMinutes يُحسب من الصفر في كل استدعاء للدالة. لذا هذا صحيح.
-
-                isActive = true;
             } else {
-                // الموظف خامل (تجاوز مهلة الانقطاع)
-                // نحسب الوقت فقط حتى آخر نشاط معروف (Ping او In)
-                const validDuration = (lastActivity - sessionStart) / 1000 / 60;
-                totalMinutes += validDuration; // نحسب فقط الفترة المؤكدة
-
-                isActive = false;
-                inactiveMinutes = Math.floor(timeSinceLastActivity);
+                lastIn = null; // خرج عن النطاق
             }
-        } else if (lastActivity) {
-            // حالة نادرة: انتهت الجلسة بـ Out، ولكن نريد معرفة وقت الانقطاع منذ آخر خروج؟ لا، هذا غير مهم للراتب.
-            inactiveMinutes = Math.floor((now - lastActivity) / 1000 / 60);
         }
 
         return {
-            hours: totalMinutes / 60,
-            isActive: isActive,
-            lastActivity: lastActivity ? lastActivity.toISOString() : null,
-            inactiveMinutes: inactiveMinutes
+            totalHours: totalMs / (1000 * 60 * 60),
+            recordsCount: records.length,
+            status: totalMs > 0 ? 'present' : 'outside'
         };
     },
 
-    // بدء المراقبة التلقائية للحضور - نظام ذكي ومتطور
-    startAttendanceTracking() {
-        if (!AuthSystem.currentUser || AuthSystem.currentUser.type !== 'employee') {
-            return;
-        }
-
-        console.log('🚀 Starting smart attendance tracking for:', AuthSystem.currentUser.name);
-
-        // UI Reset
-        if (document.getElementById('attendance-status-card')) {
-            document.getElementById('attendance-status-card').style.display = 'block';
-            document.getElementById('attendance-status-text').innerHTML = '<i class="fas fa-satellite-dish fa-spin"></i> جاري البحث عن الموقع...';
-            document.getElementById('attendance-status-icon').innerHTML = '<i class="fas fa-crosshairs fa-spin"></i>';
-        }
-
-        // فحص فوري عند فتح الصفحة
-        this.checkAttendance();
-
-        // مراقبة مستمرة للموقع (يكتشف التغيير فوراً!)
-        if (navigator.geolocation) {
-            const watchId = navigator.geolocation.watchPosition(
-                async (position) => {
-                    // تم تحديث الموقع - فحص الحضور فوراً
-                    const settings = await this.getAttendanceSettings();
-                    if (!settings || !settings.shopLat || !settings.shopLng) {
-                        return;
-                    }
-
-                    // التحقق من الوقت مع دعم الدوام الليلي
-                    if (!this.isWorkTime(settings)) {
-                        this.updateAttendanceUI('outside_hours', 0, false);
-                        return;
-                    }
-
-                    const distance = this.calculateDistance(
-                        position.coords.latitude,
-                        position.coords.longitude,
-                        settings.shopLat,
-                        settings.shopLng
-                    );
-
-                    const employeeId = AuthSystem.currentUser.id;
-                    const today = this.getLocalToday();
-
-                    if (distance <= settings.radius) {
-                        this.updateAttendanceUI('success', Math.round(distance), true);
-                        // داخل النطاق
-
-                        // منطق الـ Ping للحفاظ على الجلسة نشطة
-                        const lastPingKey = `lastPing_${employeeId}_${today}`;
-                        const lastPingStr = localStorage.getItem(lastPingKey);
-                        const lastPingTime = lastPingStr ? new Date(lastPingStr).getTime() : 0;
-                        const nowTs = new Date().getTime();
-
-                        // التحقق من الحالة السابقة
-                        const lastRecordKey = `lastAttendance_${employeeId}_${today}`;
-                        const lastRecordType = localStorage.getItem(lastRecordKey);
-
-                        if (lastRecordType !== 'in' && lastRecordType !== 'ping') {
-                            // تسجيل دخول جديد
-                            await this.recordAttendance(employeeId, today, 'in', {
-                                lat: position.coords.latitude,
-                                lng: position.coords.longitude,
-                                distance: Math.round(distance)
-                            });
-                            console.log(`✅ Inside zone: ${Math.round(distance)}m (New Session)`);
-                        } else if (nowTs - lastPingTime > 5 * 60 * 1000) {
-                            // إرسال نبضة "أنا هنا" كل 5 دقائق
-                            await this.recordAttendance(employeeId, today, 'ping', {
-                                lat: position.coords.latitude,
-                                lng: position.coords.longitude,
-                                distance: Math.round(distance)
-                            });
-                            localStorage.setItem(lastPingKey, new Date().toISOString());
-                            console.log(`📡 Heartbeat sent: ${Math.round(distance)}m`);
-                        }
-                    } else {
-                        this.updateAttendanceUI('success', Math.round(distance), false);
-                        // خارج النطاق - تسجيل الخروج
-                        await this.recordAttendance(employeeId, today, 'out', {
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude,
-                            distance: Math.round(distance)
-                        });
-                    }
-                },
-                (error) => {
-                    console.error('GPS monitoring error:', error);
-                    this.updateAttendanceUI('gps_error', 0, false);
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 20000,
-                    maximumAge: 0
-                }
-            );
-
-            // حفظ الـ watchId لإمكانية إيقافه لاحقاً
-            window.attendanceWatchId = watchId;
-            console.log('✅ Continuous GPS monitoring active');
-        }
-
-        // فحص احتياطي كل دقيقة
-        setInterval(() => {
-            this.checkAttendance();
-        }, 60000);
-
-        console.log('✅ Attendance tracking started');
-    },
 
     showToast
 };
