@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>تنبيهات - OK Computer</title>
+    <title>تنبيهات - نظام الإدارة</title>
     <link rel="stylesheet" href="style.css?v=25.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="module">
@@ -25,7 +25,7 @@
         <div class="header-card"
             style="margin: 0; background: none; box-shadow: none; border: none; padding: 0 0 20px 0;">
             <div class="logo" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 0;">
-                <i class="fas fa-chart-line"></i> OK Computer
+                <i class="fas fa-chart-line"></i> نظام الإدارة
             </div>
             <button class="close-menu" onclick="toggleMenu()"
                 style="position: absolute; left: 0; top: 0;">&times;</button>
@@ -96,14 +96,29 @@
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--success);">لا توجد اشتراكات قاربت على الانتهاء</td></tr>';
             } else {
                 expiring.forEach(s => {
-                    const exp = new Date(s.expiryDate);
-                    const diffTime = exp - today;
+                    const diffTime = new Date(s.expiryDate) - today;
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-                    // تحضير رسالة الواتساب
-                    const msg = `مرحباً ${s.name}،\nنود تذكيركم بأن اشتراككم سينتهي بتاريخ ${s.expiryDate}.\nيرجى التجديد لضمان استمرار الخدمة.\nشكراً لثقتكم بنا - OK Computer 🌹`;
                     const phone = s.phone ? s.phone.replace(/\D/g, '') : '';
-                    const waLink = phone ? `https://wa.me/964${phone.startsWith('0') ? phone.slice(1) : phone}?text=${encodeURIComponent(msg)}` : '#';
+                    let actionHtml = '';
+
+                    if (!phone) {
+                        actionHtml = '<span style="color:#999; font-size:0.8rem;">لا يوجد رقم</span>';
+                    } else if (s.expiryWarningSent) {
+                        // Already Sent
+                        actionHtml = `
+                            <span class="badge badge-success" style="padding: 8px 12px; font-size: 0.9rem;">
+                                <i class="fas fa-check-double"></i> تم الإرسال
+                            </span>
+                        `;
+                    } else {
+                        // Not sent yet
+                        actionHtml = `
+                            <button onclick="sendWarning('${s.id}', '${s.name}', '${s.expiryDate}', '${s.phone}')" class="btn btn-success btn-sm" style="background:#25D366; border-color:#25D366; color:white; display:inline-flex; align-items:center; gap:5px;">
+                                <i class="fab fa-whatsapp"></i> تنبيه
+                            </button>
+                        `;
+                    }
 
                     tbody.innerHTML += `
                         <tr>
@@ -111,17 +126,31 @@
                             <td data-label="الهاتف" style="direction: ltr;">${s.phone || '-'}</td>
                             <td data-label="المتبقي"><span class="badge badge-warning">${diffDays} أيام</span></td>
                             <td data-label="التاريخ">${s.expiryDate}</td>
-                            <td data-label="إجراء">
-                                ${phone ? `
-                                <a href="${waLink}" target="_blank" class="btn btn-success btn-sm" style="background:#25D366; border-color:#25D366; color:white; display:inline-flex; align-items:center; gap:5px;">
-                                    <i class="fab fa-whatsapp"></i> تنبيه
-                                </a>
-                                ` : '<span style="color:#999; font-size:0.8rem;">لا يوجد رقم</span>'}
-                            </td>
+                            <td data-label="إجراء">${actionHtml}</td>
                         </tr>
                     `;
                 });
             }
+        };
+
+        window.sendWarning = async function (id, name, date, phoneRaw) {
+            // 1. Mark as sent in Database
+            await DataManager.markExpiryWarningSent(id);
+
+            // 2. Prepare WhatsApp Link
+            const msg = `مرحباً ${name}،\nنود تذكيركم بأن اشتراككم سينتهي بتاريخ ${date}.\nيرجى التجديد لضمان استمرار الخدمة.\nشكراً لثقتكم بنا - نظام الإدارة 🌹`;
+
+            let phone = phoneRaw.replace(/\D/g, '');
+            if (phone.startsWith('0')) phone = phone.substring(1);
+            if (!phone.startsWith('964')) phone = '964' + phone;
+
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+
+            // 3. Open WhatsApp
+            window.open(url, '_blank');
+
+            // 4. Re-render will happen automatically via DataManager sync or interval
+            renderPage();
         };
 
         window.updatePageData = window.renderPage;

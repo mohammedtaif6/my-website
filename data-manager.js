@@ -232,7 +232,11 @@ export const DataManager = {
         });
 
         await updateDoc(doc(db, "subscribers", subscriberFirebaseId), {
-            status: 'نشط', expiryDate: renewalData.dateEnd, paymentType: renewalData.type, price: newDebt
+            status: 'نشط',
+            expiryDate: renewalData.dateEnd,
+            paymentType: renewalData.type,
+            price: newDebt,
+            expiryWarningSent: false // Reset warning flag on renewal
         });
 
         // إشعار Telegram
@@ -249,6 +253,13 @@ export const DataManager = {
     async updateSubscriber(id, data) {
         const sub = localData.subscribers.find(s => s.id == id);
         if (sub) { await updateDoc(doc(db, "subscribers", sub.firebaseId), data); showToast("تم الحفظ"); }
+    },
+
+    async markExpiryWarningSent(id) {
+        const sub = localData.subscribers.find(s => s.id == id);
+        if (sub) {
+            await updateDoc(doc(db, "subscribers", sub.firebaseId), { expiryWarningSent: true });
+        }
     },
 
     async payDebt(fid, did, amount) {
