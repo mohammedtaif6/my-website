@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'ok-computer-v27.6';
+const CACHE_VERSION = 'ok-computer-v28.0';
 const CACHE_NAME = CACHE_VERSION;
 
 
