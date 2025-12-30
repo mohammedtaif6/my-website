@@ -1,5 +1,5 @@
-// Service Worker v26 - High Performance Mode (Stale-While-Revalidate)
-const CACHE_VERSION = 'ok-computer-v26.0';
+// Service Worker v27 - High Performance Mode (Stale-While-Revalidate)
+const CACHE_VERSION = 'ok-computer-v27.0';
 const CACHE_NAME = CACHE_VERSION;
 
 const urlsToCache = [
@@ -19,7 +19,10 @@ const urlsToCache = [
     './style-modal.css',
     './data-manager.js',
     './modal-fix.js',
-    './auth-system.js'
+    './auth-system.js',
+    './manifest.json',
+    './icons/icon-192x192.png',
+    './icons/icon-512x512.png'
 ];
 
 // 1. Install & Precache
