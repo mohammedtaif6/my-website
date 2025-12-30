@@ -107,8 +107,8 @@
             // Actually, multicast is possible with 'registration_ids' parameter in JSON!
 
             try {
-                // استخدام ThingProxy لتجاوز CORS
-                const proxyUrl = 'https://thingproxy.freeboard.io/fetch/';
+                // استخدام CodeTabs Proxy (مستقر وعالي الأداء)
+                const proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=';
                 const targetUrl = 'https://fcm.googleapis.com/fcm/send';
 
                 const response = await fetch(proxyUrl + targetUrl, {
