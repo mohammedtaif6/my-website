@@ -598,6 +598,46 @@ OK Computer`;
     },
 
     // ========================================
+    // ⚙️ إعدادات النظام المساعدة
+    // ========================================
+
+    async getAttendanceSettings() {
+        try {
+            const settingsDoc = await getDocs(query(collection(db, "settings"), limit(1)));
+            if (!settingsDoc.empty) return settingsDoc.docs[0].data().attendance;
+            return null;
+        } catch (e) {
+            console.error('Error loading settings:', e);
+            return null;
+        }
+    },
+
+    async saveAttendanceSettings(settings) {
+        try {
+            const settingsRef = collection(db, "settings");
+            const existing = await getDocs(query(settingsRef, limit(1)));
+            if (existing.empty) await addDoc(settingsRef, { attendance: settings });
+            else await updateDoc(doc(db, "settings", existing.docs[0].id), { attendance: settings });
+            showToast('✅ تم حفظ الإعدادات');
+        } catch (e) {
+            console.error('Error saving settings:', e);
+            showToast('❌ فشل الحفظ', 'error');
+        }
+    },
+
+    calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371e3; // Earth radius in meters
+        const φ1 = lat1 * Math.PI / 180;
+        const φ2 = lat2 * Math.PI / 180;
+        const Δφ = (lat2 - lat1) * Math.PI / 180;
+        const Δλ = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    },
+
     // ========================================
     // 🛡️ نظام الحضور والانصراف المطور (v2.0)
     // ========================================
@@ -697,9 +737,12 @@ OK Computer`;
             },
             (err) => {
                 console.error("GPS Error:", err);
-                this._updateStatusUI('error', { msg: 'يرجى تفعيل الموقع (GPS)' });
+                const msg = err.code === 1 ? 'يرجى السماح بالوصول للموقع' :
+                    err.code === 3 ? 'انتهت مهلة البحث عن الموقع' :
+                        'مشكلة في الـ GPS ❌';
+                this._updateStatusUI('error', { msg });
             },
-            { enableHighAccuracy: true, timeout: 10000 }
+            { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
         );
     },
 
@@ -741,7 +784,11 @@ OK Computer`;
 
         // مراقبة عند تغيير الموقع
         if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(() => this.processAttendance(), null, { enableHighAccuracy: true });
+            navigator.geolocation.watchPosition(
+                () => this.processAttendance(),
+                (err) => console.warn("Background GPS Watch Error:", err),
+                { enableHighAccuracy: true, maximumAge: 10000 }
+            );
         }
     },
 
