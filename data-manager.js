@@ -4,6 +4,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { initializeFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, limit, persistentLocalCache, persistentMultipleTabManager } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
 import { telegramBot } from './telegram-bot.js?v=19.1';
 
 const firebaseConfig = {
@@ -25,6 +26,7 @@ const db = initializeFirestore(app, {
 });
 
 const auth = getAuth(app);
+const messaging = getMessaging(app);
 
 console.log('✅ Firebase مُهيأ بالتخزين المحلي المتقدم - جاهز للعمل!');
 
@@ -56,10 +58,58 @@ function showToast(message, type = 'success') {
 
 export const DataManager = {
     db: db, // تصدير قاعدة البيانات للاستخدام الخارجي (مثل صفحة الإعدادات)
+    messaging: messaging, // تصدير Messaging
+
+    async enableNotifications() {
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                // استخدام Service Worker الحالي
+                const registration = await navigator.serviceWorker.getRegistration();
+
+                // الحصول على التوكن
+                const token = await getToken(messaging, {
+                    serviceWorkerRegistration: registration
+                });
+
+                if (token) {
+                    console.log('🔔 FCM Token:', token);
+                    // حفظ التوكن للمستخدم الحالي
+                    if (AuthSystem.currentUser && AuthSystem.currentUser.id) {
+                        // إذا كان موظف
+                        if (AuthSystem.currentUser.type === 'employee') {
+                            await updateDoc(doc(db, "employees", AuthSystem.currentUser.id), {
+                                fcmToken: token
+                            });
+                        }
+                        showToast('تم تفعيل الإشعارات بنجاح!', 'success');
+                    } else {
+                        showToast('يجب تسجيل الدخول لتفعيل الإشعارات', 'error');
+                    }
+                } else {
+                    console.warn('No registration token available.');
+                    showToast('تعذر الحصول على إذن الإشعارات', 'error');
+                }
+            } else {
+                showToast('تم رفض الإذن بالإشعارات', 'error');
+            }
+        } catch (err) {
+            console.error('An error occurred while retrieving token. ', err);
+            showToast('حدث خطأ أثناء تفعيل الإشعارات', 'error');
+        }
+    },
+
     init() {
         console.log("========================================");
         console.log("🚀 System v20.1 - Clean Console Edition");
         console.log("========================================");
+
+        // استماع للرسائل والإشعارات والنظام مفتوح
+        onMessage(messaging, (payload) => {
+            console.log('Message received. ', payload);
+            showToast(`🔔 ${payload.notification.title}: ${payload.notification.body}`, 'success');
+        });
+
         this.sync('subscribers');
         this.sync('transactions');
         this.sync('employees'); // مزامنة الموظفين
