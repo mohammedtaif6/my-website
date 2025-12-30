@@ -27,13 +27,8 @@
     <script src="auth-system.js"></script>
     <script>AuthSystem.checkSession();</script>
 
-    <!-- Cache Clear Logic (On Demand Only) -->
-    <!-- script src="force-cache-clear.js"></script -->
 
-    <!-- نظام التحديث التلقائي -->
-    <script src="auto-refresh.js"></script>
-
-    <!-- تسجيل Service Worker للعمل بدون إنترنت وتسريع التحميل -->
+    <!-- تسجيل Service Worker للصيانة ووضع عدم الاتصال -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -108,7 +103,6 @@
             }
         }
     </style>
-    <script src="modal-fix.js"></script>
 </head>
 
 
