@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>الصندوق المالي - OK Computer</title>
+    <title>الصندوق المالي - نظام الإدارة</title>
     <link rel="stylesheet" href="style.css?v=25.0">
     <link rel="stylesheet" href="style-fab.css?v=1.0">
     <link rel="stylesheet" href="style-modal.css?v=1.0">
@@ -49,7 +49,7 @@
         <div class="header-card"
             style="margin: 0; background: none; box-shadow: none; border: none; padding: 0 0 20px 0;">
             <div class="logo" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 0;">
-                <i class="fas fa-chart-line"></i> OK Computer
+                <i class="fas fa-chart-line"></i> نظام الإدارة
             </div>
             <button class="close-menu" onclick="toggleMenu()"
                 style="position: absolute; left: 0; top: 0;">&times;</button>
@@ -146,7 +146,7 @@
                 </div>
                 <div class="form-group">
                     <label>المبلغ</label>
-                    <input type="number" id="payAmount">
+                    <input type="number" inputmode="numeric" id="payAmount">
                 </div>
                 <div class="form-group">
                     <label>ملاحظة</label>
@@ -171,7 +171,7 @@
                 </div>
                 <div class="form-group">
                     <label>المبلغ</label>
-                    <input type="number" id="expAmount">
+                    <input type="number" inputmode="numeric" id="expAmount">
                 </div>
                 <button onclick="saveExpense()" class="btn btn-danger btn-full">خصم من الصندوق</button>
             </div>

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>الديون - OK Computer</title>
+    <title>الديون - نظام الإدارة</title>
     <link rel="stylesheet" href="style.css?v=25.0">
     <link rel="stylesheet" href="style-fab.css?v=1.0">
     <link rel="stylesheet" href="style-modal.css?v=1.0">
@@ -35,7 +35,7 @@
         <div class="header-card"
             style="margin: 0; background: none; box-shadow: none; border: none; padding: 0 0 20px 0;">
             <div class="logo" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 0;">
-                <i class="fas fa-chart-line"></i> OK Computer
+                <i class="fas fa-chart-line"></i> نظام الإدارة
             </div>
             <button class="close-menu" onclick="toggleMenu()"
                 style="position: absolute; left: 0; top: 0;">&times;</button>
@@ -99,29 +99,7 @@
         </div>
     </div>
 
-    <!-- Bottom Navigation Bar -->
-    <div class="bottom-nav">
-        <a href="index.html" class="nav-item">
-            <i class="fas fa-home"></i>
-            <span>الرئيسية</span>
-        </a>
-        <a href="subscribers.html" class="nav-item">
-            <i class="fas fa-users"></i>
-            <span>المشتركين</span>
-        </a>
-        <a href="debts.html" class="nav-item active">
-            <i class="fas fa-money-bill-wave"></i>
-            <span>الديون</span>
-        </a>
-        <a href="maintenance.html" class="nav-item">
-            <i class="fas fa-wrench"></i>
-            <span>صيانة</span>
-        </a>
-        <a href="#" class="nav-item" onclick="toggleMenu(); return false;">
-            <i class="fas fa-bars"></i>
-            <span>المزيد</span>
-        </a>
-    </div>
+
 
     <!-- Modal: Pay Debt -->
     <div id="payDebtModal" class="modal-overlay">
@@ -136,7 +114,7 @@
 
                 <div class="form-group">
                     <label>المبلغ المدفوع (من أصل <span id="currentDebtAmount"></span>)</label>
-                    <input type="number" id="payDebtAmount" placeholder="0">
+                    <input type="number" inputmode="numeric" id="payDebtAmount" placeholder="0">
                 </div>
 
                 <!-- WhatsApp Option for Debt Payment -->
@@ -270,10 +248,30 @@
                         <button onclick="openPayDebtModal('${s.id}', '${s.firebaseId}', '${s.name}', ${s.price})" class="btn btn-sm btn-success">
                             <i class="fas fa-hand-holding-usd"></i> تسديد
                         </button>
+                        <button onclick="notifyDebtor('${s.name}', '${s.phone}', ${s.price})" class="btn btn-sm btn-primary" style="background-color: #25D366; border:none; margin-right:5px;">
+                            <i class="fab fa-whatsapp"></i> تنبيه
+                        </button>
                     </td>
                  </tr>
                  `;
             }).join('');
+        };
+
+        window.notifyDebtor = function (name, phone, amount) {
+            if (!phone) { DataManager.showToast('لا يوجد رقم هاتف مسجل', 'error'); return; }
+
+            let p = phone.replace(/\D/g, ''); // أرقام فقط
+            if (p.startsWith('0')) p = p.substring(1);
+            if (!p.startsWith('964')) p = '964' + p;
+
+            const msg = `مرحباً ${name}،\nيرجى تسديد الدين المترتب عليكم بقيمة: ${amount.toLocaleString()} د.ع\n\nشكراً لكم 🌹`;
+
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            const url = isMobile
+                ? `whatsapp://send?phone=${p}&text=${encodeURIComponent(msg)}`
+                : `https://wa.me/${p}?text=${encodeURIComponent(msg)}`;
+
+            window.open(url, '_blank');
         };
 
         // تأكيد أخير على الصلاحيات
