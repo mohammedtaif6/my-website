@@ -416,51 +416,11 @@
         window.DataManager = DataManager;
         DataManager.init();
 
-        // دالة مسح الكاش وإعادة التحميل (محسّنة للهاتف)
-        async function clearCacheAndReload() {
-            try {
-                console.log('🧹 Starting cache clear...');
-
-                // 1. مسح كل الكاش
-                if ('caches' in window) {
-                    const cacheNames = await caches.keys();
-                    console.log('📦 Found caches:', cacheNames);
-                    await Promise.all(cacheNames.map(name => {
-                        console.log('🗑️ Deleting cache:', name);
-                        return caches.delete(name);
-                    }));
-                }
-
-                // 2. إلغاء تسجيل Service Workers
-                if ('serviceWorker' in navigator) {
-                    const registrations = await navigator.serviceWorker.getRegistrations();
-                    console.log('🔄 Found SW registrations:', registrations.length);
-                    await Promise.all(registrations.map(reg => {
-                        console.log('❌ Unregistering SW');
-                        return reg.unregister();
-                    }));
-                }
-
-                // 3. مسح localStorage (اختياري - احتفظ بالجلسة)
-                // localStorage.clear(); // لا نريد مسح الجلسة
-
-                // 4. مسح sessionStorage
-                sessionStorage.clear();
-
-                // 5. إعادة تحميل قوية مع منع الكاش
-                const timestamp = Date.now();
-                const url = `index.html?v=25.0&t=${timestamp}&nocache=${Math.random()}`;
-
-                console.log('✅ Cache cleared, redirecting to:', url);
-
-                // استخدام replace لمنع الرجوع
-                window.location.replace(url);
-
-            } catch (e) {
-                console.error('❌ Cache clear error:', e);
-                // حتى لو فشل، أعد التحميل مع timestamp
-                window.location.replace('index.html?v=25.0&t=' + Date.now());
-            }
+        // دالة انتقال سريع
+        function redirectHome() {
+            // إضافة timestamp لمنع الكاش لصفحة الاندكس فقط
+            const url = `index.html?t=${Date.now()}`;
+            window.location.replace(url);
         }
 
         window.doLogin = async function (e) {
@@ -477,7 +437,7 @@
 
             try {
                 if (AuthSystem.login(phone, pass)) {
-                    await clearCacheAndReload();
+                    redirectHome();
                     return;
                 }
 
@@ -490,7 +450,7 @@
                 }
 
                 if (AuthSystem.login(phone, pass)) {
-                    await clearCacheAndReload();
+                    redirectHome();
                 } else {
                     throw new Error('رقم الهاتف أو كلمة المرور خطأ');
                 }
