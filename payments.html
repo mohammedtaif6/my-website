@@ -80,9 +80,7 @@
                 <p>قائمة العمليات الحالية (غير المرحّلة)</p>
             </div>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                <button onclick="openPaymentModal()" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> مقبوض
-                </button>
+
                 <button id="btn-quick-expense" onclick="openExpenseModal()" class="btn btn-danger">
                     <i class="fas fa-minus"></i> صرفية
                 </button>
@@ -141,32 +139,7 @@
         </div>
     </div>
 
-    <!-- Modal: Manual Payment -->
-    <div id="paymentModal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3>إضافة مقبوض خارجي</h3>
-                <button class="close-btn" onclick="closePaymentModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>المشترك (اختياري)</label>
-                    <select id="subSelect">
-                        <option value="">-- عام --</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>المبلغ</label>
-                    <input type="number" inputmode="numeric" id="payAmount">
-                </div>
-                <div class="form-group">
-                    <label>ملاحظة</label>
-                    <input type="text" id="payDesc" placeholder="سبب القبض...">
-                </div>
-                <button onclick="savePayment()" class="btn btn-success btn-full">حفظ المقبوض</button>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Modal: Expense (Moved here) -->
     <!-- Modal: Expense -->
@@ -371,30 +344,12 @@
             }
         };
 
-        // Modal Helpers
-        window.openPaymentModal = function () {
-            const sel = document.getElementById('subSelect');
-            sel.innerHTML = '<option value="">-- عام --</option>';
-            DataManager.getSubscribers().forEach(s => {
-                sel.innerHTML += `<option value="${s.id}">${s.name}</option>`;
-            });
-            document.getElementById('paymentModal').classList.add('active');
-        };
-        window.closePaymentModal = () => document.getElementById('paymentModal').classList.remove('active');
+
 
         window.openExpenseModal = () => document.getElementById('expenseModal').classList.add('active');
         window.closeExpenseModal = () => document.getElementById('expenseModal').classList.remove('active');
 
-        window.savePayment = async function () {
-            const subId = document.getElementById('subSelect').value;
-            const amt = document.getElementById('payAmount').value;
-            const desc = document.getElementById('payDesc').value;
-            if (!amt) return;
 
-            await DataManager.recordTransaction(subId || null, parseInt(amt), desc || 'مقبوض يدوي', 'نقد');
-            closePaymentModal();
-            document.getElementById('payAmount').value = '';
-        };
 
         window.saveExpense = async function () {
             const amt = document.getElementById('expAmount').value;
