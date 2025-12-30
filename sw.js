@@ -1,5 +1,5 @@
 // Service Worker v27 - High Performance Mode (Stale-While-Revalidate)
-const CACHE_VERSION = 'ok-computer-v27.1';
+const CACHE_VERSION = 'ok-computer-v27.2';
 const CACHE_NAME = CACHE_VERSION;
 
 const urlsToCache = [
@@ -18,7 +18,6 @@ const urlsToCache = [
     './style-fab.css',
     './style-modal.css',
     './data-manager.js',
-    './modal-fix.js',
     './auth-system.js',
     './manifest.json',
     './favicon.ico',
