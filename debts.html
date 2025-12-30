@@ -81,6 +81,10 @@
         <div class="table-container">
             <div class="table-header">
                 <h3>قائمة الديون</h3>
+                <button id="adminShareBtn" class="btn btn-sm btn-primary" onclick="openShareDebtsModal()"
+                    style="display:none; margin-right:auto; background-color: var(--primary);">
+                    <i class="fas fa-share-alt"></i> إرسال للموظف
+                </button>
             </div>
             <div class="table-wrapper">
                 <table>
@@ -134,112 +138,132 @@
                 </div>
             </div>
         </div>
-    </div>
+        <!-- Modal: Share Debts (Admin Only) -->
+        <div id="shareDebtsModal" class="modal-overlay">
+            <div class="modal-box">
+                <div class="modal-header">
+                    <h3>إرسال جدول الديون</h3>
+                    <button class="close-btn" onclick="closeShareModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p>اختر الموظف لإرسال قائمة الديون له عبر واتساب:</p>
+                    <div class="form-group">
+                        <label>الموظف</label>
+                        <select id="employeeSelect" class="form-control" style="width:100%; padding:10px;">
+                            <option value="">-- اختر موظف --</option>
+                        </select>
+                    </div>
+                    <button onclick="sendDebtsToEmployee()" class="btn btn-success btn-full">
+                        <i class="fab fa-whatsapp"></i> إرسال عبر واتساب
+                    </button>
+                </div>
+            </div>
+        </div>
 
-    <script>
-        window.openPayDebtModal = function (id, firebaseId, name, amount) {
-            document.getElementById('debtSubId').value = id;
-            document.getElementById('debtSubFirebaseId').value = firebaseId;
-            document.getElementById('debtSubName').innerText = name;
-            document.getElementById('currentDebtAmount').innerText = amount.toLocaleString();
-            document.getElementById('payDebtAmount').value = '';
-            document.getElementById('payDebtModal').classList.add('active');
-        };
+        <script>
+            window.openPayDebtModal = function (id, firebaseId, name, amount) {
+                document.getElementById('debtSubId').value = id;
+                document.getElementById('debtSubFirebaseId').value = firebaseId;
+                document.getElementById('debtSubName').innerText = name;
+                document.getElementById('currentDebtAmount').innerText = amount.toLocaleString();
+                document.getElementById('payDebtAmount').value = '';
+                document.getElementById('payDebtModal').classList.add('active');
+            };
 
-        window.closeDebtModal = () => document.getElementById('payDebtModal').classList.remove('active');
+            window.closeDebtModal = () => document.getElementById('payDebtModal').classList.remove('active');
 
-        window.confirmPayDebt = async function (print = false) {
-            const subId = document.getElementById('debtSubId').value;
-            const firebaseId = document.getElementById('debtSubFirebaseId').value;
-            const amount = parseInt(document.getElementById('payDebtAmount').value);
-            const sendWhatsapp = document.getElementById('send-whatsapp-debt').checked;
+            window.confirmPayDebt = async function (print = false) {
+                const subId = document.getElementById('debtSubId').value;
+                const firebaseId = document.getElementById('debtSubFirebaseId').value;
+                const amount = parseInt(document.getElementById('payDebtAmount').value);
+                const sendWhatsapp = document.getElementById('send-whatsapp-debt').checked;
 
-            if (!amount || amount <= 0) {
-                DataManager.showToast('الرجاء إدخال مبلغ صحيح', 'error');
-                return;
-            }
-
-            try {
-                // استخدام دالة payDebt الموحدة في DataManager
-                // الترتيب: firebaseId, subId, amount
-                await DataManager.payDebt(firebaseId, subId, amount);
-
-                const sub = DataManager.getSubscriber(subId);
-                const newPrice = Math.max(0, (parseInt(sub.price) || 0));
-
-                // 3. الطباعة (إذا طلبت)
-                if (print && sub) {
-                    const receiptData = {
-                        title: "وصل تسديد دين",
-                        subName: sub.name,
-                        amount: amount,
-                        totalRemaining: newPrice,
-                        date: new Date().toLocaleDateString('ar-IQ'),
-                        type: "تسديد نقد"
-                    };
-                    DataManager.printReceipt(receiptData);
+                if (!amount || amount <= 0) {
+                    DataManager.showToast('الرجاء إدخال مبلغ صحيح', 'error');
+                    return;
                 }
 
-                // 4. واتساب (إذا طلب)
-                if (sendWhatsapp && sub && sub.phone) {
-                    const msg = `مرحباً ${sub.name}،\n\nتم استلام دفعة تسديد دين بقيمة: ${amount.toLocaleString()} د.ع\nالمتبقي بذمتكم: ${newPrice.toLocaleString()} د.ع\n\nشكراً لكم 🌹`;
-                    let phone = sub.phone.replace(/^0+/, '');
-                    if (!phone.startsWith('964')) phone = '964' + phone;
+                try {
+                    // استخدام دالة payDebt الموحدة في DataManager
+                    // الترتيب: firebaseId, subId, amount
+                    await DataManager.payDebt(firebaseId, subId, amount);
 
-                    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-                    const url = isMobile
-                        ? `whatsapp://send?phone=${phone}&text=${encodeURIComponent(msg)}`
-                        : `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+                    const sub = DataManager.getSubscriber(subId);
+                    const newPrice = Math.max(0, (parseInt(sub.price) || 0));
 
-                    window.open(url, '_blank');
+                    // 3. الطباعة (إذا طلبت)
+                    if (print && sub) {
+                        const receiptData = {
+                            title: "وصل تسديد دين",
+                            subName: sub.name,
+                            amount: amount,
+                            totalRemaining: newPrice,
+                            date: new Date().toLocaleDateString('ar-IQ'),
+                            type: "تسديد نقد"
+                        };
+                        DataManager.printReceipt(receiptData);
+                    }
+
+                    // 4. واتساب (إذا طلب)
+                    if (sendWhatsapp && sub && sub.phone) {
+                        const msg = `مرحباً ${sub.name}،\n\nتم استلام دفعة تسديد دين بقيمة: ${amount.toLocaleString()} د.ع\nالمتبقي بذمتكم: ${newPrice.toLocaleString()} د.ع\n\nشكراً لكم 🌹`;
+                        let phone = sub.phone.replace(/^0+/, '');
+                        if (!phone.startsWith('964')) phone = '964' + phone;
+
+                        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                        const url = isMobile
+                            ? `whatsapp://send?phone=${phone}&text=${encodeURIComponent(msg)}`
+                            : `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+
+                        window.open(url, '_blank');
+                    }
+
+                    closeDebtModal();
+                    // DataManager.showToast يظهر داخل payDebt
+                    renderDebts();
+                } catch (error) {
+                    console.error('خطأ في التسديد:', error);
+                    DataManager.showToast('حدث خطأ أثناء التسديد: ' + error.message, 'error');
+                }
+            };
+
+            window.renderDebts = function () {
+                if (typeof DataManager === 'undefined') return;
+
+                // الحصول على قيمة البحث
+                const searchQuery = document.getElementById('debtSearch')?.value.toLowerCase() || '';
+
+                // فلترة المشتركين الذين لديهم ديون
+                let list = DataManager.getSubscribers().filter(s => parseInt(s.price || 0) > 0);
+
+                // تطبيق البحث
+                if (searchQuery) {
+                    list = list.filter(s =>
+                        s.name.toLowerCase().includes(searchQuery) ||
+                        (s.phone && s.phone.includes(searchQuery))
+                    );
                 }
 
-                closeDebtModal();
-                // DataManager.showToast يظهر داخل payDebt
-                renderDebts();
-            } catch (error) {
-                console.error('خطأ في التسديد:', error);
-                DataManager.showToast('حدث خطأ أثناء التسديد: ' + error.message, 'error');
-            }
-        };
+                const tbody = document.getElementById('debtsTableBody');
 
-        window.renderDebts = function () {
-            if (typeof DataManager === 'undefined') return;
+                // Calculate Total Debt
+                const total = list.reduce((sum, s) => sum + parseInt(s.price || 0), 0);
+                document.getElementById('totalDebtDisplay').innerText = total.toLocaleString() + ' د.ع';
 
-            // الحصول على قيمة البحث
-            const searchQuery = document.getElementById('debtSearch')?.value.toLowerCase() || '';
+                if (list.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">لا توجد ديون مستحقة</td></tr>';
+                    return;
+                }
 
-            // فلترة المشتركين الذين لديهم ديون
-            let list = DataManager.getSubscribers().filter(s => parseInt(s.price || 0) > 0);
+                tbody.innerHTML = list.map(s => {
+                    let expiry = new Date(s.expiryDate || s.endDate);
+                    const daysLeft = Math.ceil((expiry - new Date()) / (1000 * 60 * 60 * 24));
+                    let badge = '';
 
-            // تطبيق البحث
-            if (searchQuery) {
-                list = list.filter(s =>
-                    s.name.toLowerCase().includes(searchQuery) ||
-                    (s.phone && s.phone.includes(searchQuery))
-                );
-            }
+                    if (daysLeft < 0) badge = '<span class="badge badge-danger">منتهية</span>';
+                    else if (daysLeft <= 3) badge = '<span class="badge badge-warning">تشارف على الانتهاء</span>';
 
-            const tbody = document.getElementById('debtsTableBody');
-
-            // Calculate Total Debt
-            const total = list.reduce((sum, s) => sum + parseInt(s.price || 0), 0);
-            document.getElementById('totalDebtDisplay').innerText = total.toLocaleString() + ' د.ع';
-
-            if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">لا توجد ديون مستحقة</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = list.map(s => {
-                let expiry = new Date(s.expiryDate || s.endDate);
-                const daysLeft = Math.ceil((expiry - new Date()) / (1000 * 60 * 60 * 24));
-                let badge = '';
-
-                if (daysLeft < 0) badge = '<span class="badge badge-danger">منتهية</span>';
-                else if (daysLeft <= 3) badge = '<span class="badge badge-warning">تشارف على الانتهاء</span>';
-
-                return `
+                    return `
                  <tr>
                     <td data-label="الاسم">${s.name} <br> <small style="color:#666">${s.phone || ''}</small></td>
                     <td data-label="المبلغ" style="font-weight:bold; color:#d32f2f;">${parseInt(s.price).toLocaleString()}</td>
@@ -254,43 +278,113 @@
                     </td>
                  </tr>
                  `;
-            }).join('');
-        };
+                }).join('');
+            };
 
-        window.notifyDebtor = function (name, phone, amount) {
-            if (!phone) { DataManager.showToast('لا يوجد رقم هاتف مسجل', 'error'); return; }
+            window.notifyDebtor = function (name, phone, amount) {
+                if (!phone) { DataManager.showToast('لا يوجد رقم هاتف مسجل', 'error'); return; }
 
-            let p = phone.replace(/\D/g, ''); // أرقام فقط
-            if (p.startsWith('0')) p = p.substring(1);
-            if (!p.startsWith('964')) p = '964' + p;
+                let p = phone.replace(/\D/g, ''); // أرقام فقط
+                if (p.startsWith('0')) p = p.substring(1);
+                if (!p.startsWith('964')) p = '964' + p;
 
-            const msg = `مرحباً ${name}،\nيرجى تسديد الدين المترتب عليكم بقيمة: ${amount.toLocaleString()} د.ع\n\nشكراً لكم 🌹`;
+                const msg = `مرحباً ${name}،\nيرجى تسديد الدين المترتب عليكم بقيمة: ${amount.toLocaleString()} د.ع\n\nشكراً لكم 🌹`;
 
-            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-            const url = isMobile
-                ? `whatsapp://send?phone=${p}&text=${encodeURIComponent(msg)}`
-                : `https://wa.me/${p}?text=${encodeURIComponent(msg)}`;
+                const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                const url = isMobile
+                    ? `whatsapp://send?phone=${p}&text=${encodeURIComponent(msg)}`
+                    : `https://wa.me/${p}?text=${encodeURIComponent(msg)}`;
 
-            window.open(url, '_blank');
-        };
+                window.open(url, '_blank');
+            };
 
-        // تأكيد أخير على الصلاحيات
-        window.onload = () => AuthSystem.checkSession();
+            // تأكيد أخير على الصلاحيات
+            // منطق المشاركة للمدير (Admin Only Logic)
+            window.openShareDebtsModal = function () {
+                const employees = DataManager.getEmployees();
+                const select = document.getElementById('employeeSelect');
+                select.innerHTML = '<option value="">-- اختر موظف --</option>';
 
-        setInterval(() => window.renderDebts(), 1000);
+                employees.forEach(emp => {
+                    const opt = document.createElement('option');
+                    opt.value = emp.phone; // نستخدم الهاتف كقيمة
+                    opt.innerText = emp.name;
+                    select.appendChild(opt);
+                });
 
-        // Menu Toggle Logic
-        window.toggleMenu = function () {
-            const nav = document.getElementById('main-nav');
-            const overlay = document.querySelector('.nav-overlay');
-            nav.classList.toggle('active');
-            if (nav.classList.contains('active')) {
-                document.body.style.overflow = 'hidden';
-            } else {
-                document.body.style.overflow = '';
+                document.getElementById('shareDebtsModal').classList.add('active');
+            };
+
+            window.closeShareModal = () => document.getElementById('shareDebtsModal').classList.remove('active');
+
+            window.sendDebtsToEmployee = function () {
+                const phoneRaw = document.getElementById('employeeSelect').value;
+                if (!phoneRaw) {
+                    DataManager.showToast('يرجى اختيار موظف', 'error');
+                    return;
+                }
+
+                // 1. Gather Debts
+                const debts = DataManager.getSubscribers().filter(s => parseInt(s.price || 0) > 0);
+                if (debts.length === 0) {
+                    DataManager.showToast('لا توجد ديون لإرسالها', 'error');
+                    return;
+                }
+
+                // 2. Build Message
+                const date = new Date().toLocaleDateString('ar-IQ');
+                const total = debts.reduce((sum, s) => sum + parseInt(s.price || 0), 0);
+
+                let msg = `📊 *جدول الديون المعلقة* \n📅 التاريخ: ${date}\n💰 المجموع الكلي: ${total.toLocaleString()} د.ع\n\n`;
+                msg += `------------------\n`;
+
+                const limit = 30;
+                debts.slice(0, limit).forEach(d => {
+                    msg += `👤 *${d.name}*: ${parseInt(d.price).toLocaleString()}\n📞 ${d.phone || 'بدون رقم'}\n\n`;
+                });
+
+                if (debts.length > limit) {
+                    msg += `... وهناك ${debts.length - limit} مشترك آخر.\n`;
+                }
+
+                msg += `------------------\nيرجى المتابعة والتحصيل. 💼`;
+
+                // 3. Open WhatsApp
+                let p = phoneRaw.replace(/\D/g, '');
+                if (p.startsWith('0')) p = p.substring(1);
+                if (!p.startsWith('964')) p = '964' + p;
+
+                const url = `https://wa.me/${p}?text=${encodeURIComponent(msg)}`;
+                window.open(url, '_blank');
+                closeShareModal();
+            };
+
+            // Check Permissions on Load to show Admin Button
+            window.onload = () => {
+                AuthSystem.checkSession();
+
+                // Check if Admin to show Share Button
+                const user = AuthSystem.currentUser;
+                if (user && user.type === 'admin') {
+                    const btn = document.getElementById('adminShareBtn');
+                    if (btn) btn.style.display = 'inline-block';
+                }
+            };
+
+            setInterval(() => window.renderDebts(), 1000);
+
+            // Menu Toggle Logic
+            window.toggleMenu = function () {
+                const nav = document.getElementById('main-nav');
+                const overlay = document.querySelector('.nav-overlay');
+                nav.classList.toggle('active');
+                if (nav.classList.contains('active')) {
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.body.style.overflow = '';
+                }
             }
-        }
-    </script>
+        </script>
 </body>
 
 </html>
