@@ -2,7 +2,7 @@
  * DataManager v15.0 - مع دعم Telegram Bot
  */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { initializeFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, limit, getDocs, persistentLocalCache, persistentMultipleTabManager } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { initializeFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, limit, getDocs, where, persistentLocalCache, persistentMultipleTabManager } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { telegramBot } from './telegram-bot.js?v=19.1';
 
@@ -807,18 +807,22 @@ OK Computer`;
 
     // 6. التقارير وحساب الساعات (المنطق المطور)
     async getEmployeeAttendanceReport(empId, date) {
-        const q = query(collection(db, "attendance"));
+        const q = query(
+            collection(db, "attendance"),
+            where("employeeId", "==", empId),
+            where("date", "==", date)
+        );
         const snap = await getDocs(q);
         const records = [];
-        snap.forEach(doc => {
-            const d = doc.data();
-            if (d.employeeId == empId && d.date == date) records.push(d);
-        });
+        snap.forEach(doc => records.push(doc.data()));
 
         // ترتيب زمنياً
         records.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
         if (records.length === 0) return { totalHours: 0, status: 'absent' };
+
+        let totalMs = 0;
+        let lastIn = null;
 
         // حساب الساعات (تراكمي)
         for (const r of records) {
