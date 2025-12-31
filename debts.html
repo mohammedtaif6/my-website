@@ -233,10 +233,10 @@
                 // الحصول على قيمة البحث
                 const searchQuery = document.getElementById('debtSearch')?.value.toLowerCase() || '';
 
-                // فلترة المشتركين الذين لديهم ديون وترتيبهم (الأحدث أولاً)
+                // فلترة المشتركين الذين لديهم ديون وترتيبهم (الأحدث أولاً بناءً على ID وهو وقت الإنشاء)
                 let list = DataManager.getSubscribers()
                     .filter(s => parseInt(s.price || 0) > 0)
-                    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+                    .sort((a, b) => (b.id || 0) - (a.id || 0)); // الترتيب حسب وقت الإضافة
 
                 // تطبيق البحث
                 if (searchQuery) {
@@ -265,16 +265,20 @@
                     if (daysLeft < 0) badge = '<span class="badge badge-danger">منتهية</span>';
                     else if (daysLeft <= 3) badge = '<span class="badge badge-warning">تشارف على الانتهاء</span>';
 
+                    // الهروب من الفواصل العليا في الأسماء (Sanitization)
+                    const safeName = s.name.replace(/'/g, "\\'");
+                    const safePhone = s.phone || '';
+
                     return `
                  <tr>
                     <td data-label="الاسم">${s.name} <br> <small style="color:#666">${s.phone || ''}</small></td>
                     <td data-label="المبلغ" style="font-weight:bold; color:#d32f2f;">${parseInt(s.price).toLocaleString()}</td>
                     <td data-label="تاريخ الاستحقاق">${s.expiryDate || s.endDate || '-'} ${badge}</td>
                     <td data-label="إجراءات">
-                        <button onclick="openPayDebtModal('${s.id}', '${s.firebaseId}', '${s.name}', ${s.price})" class="btn btn-sm btn-success">
+                        <button onclick="openPayDebtModal('${s.id}', '${s.firebaseId}', '${safeName}', ${s.price})" class="btn btn-sm btn-success">
                             <i class="fas fa-hand-holding-usd"></i> تسديد
                         </button>
-                        <button onclick="notifyDebtor('${s.name}', '${s.phone}', ${s.price})" class="btn btn-sm btn-primary" style="background-color: #25D366; border:none; margin-right:5px;">
+                        <button onclick="notifyDebtor('${safeName}', '${safePhone}', ${s.price})" class="btn btn-sm btn-primary" style="background-color: #25D366; border:none; margin-right:5px;">
                             <i class="fab fa-whatsapp"></i> تنبيه
                         </button>
                     </td>
