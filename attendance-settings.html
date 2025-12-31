@@ -288,6 +288,7 @@
                 startTime: document.getElementById('start-time').value,
                 endTime: document.getElementById('end-time').value,
                 hourlyRate: parseInt(document.getElementById('hourly-rate').value),
+                syncInterval: parseInt(document.getElementById('sync-interval').value),
                 timeoutMinutes: 15
             };
             await DataManager.saveAttendanceSettings(settings);
@@ -366,6 +367,14 @@
                 <div class="form-group">
                     <label>نطاق العمل (بالمتر):</label>
                     <input type="number" id="shop-radius" class="form-control" oninput="updateMapCircle()">
+                </div>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>فحص التواجد كل (دقيقة):</label>
+                    <input type="range" id="sync-interval" min="1" max="60" value="1" class="form-control"
+                        style="padding: 0;" oninput="document.getElementById('sync-label').innerText = this.value">
+                    <p class="help-text">الوقت بين كل فحص والآخر: <strong id="sync-label"
+                            style="color:var(--primary)">1</strong> دقيقة</p>
                 </div>
             </div>
 

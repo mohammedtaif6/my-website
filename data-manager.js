@@ -778,15 +778,19 @@ OK Computer`;
     },
 
     // 5. بدء النظام
-    startAttendanceTracking() {
+    async startAttendanceTracking() {
         if (!AuthSystem.currentUser || AuthSystem.currentUser.type !== 'employee') return;
 
         this._updateStatusUI('loading');
         this.processAttendance(); // تشغيل فوري
 
-        // تحديث دوري كل دقيقة
+        // جلب الإعدادات لتحديد وقت التحديث الدوري
+        const settings = await this.getAttendanceSettings();
+        const intervalMs = (settings?.syncInterval || 1) * 60 * 1000;
+
         if (window.attendanceInterval) clearInterval(window.attendanceInterval);
-        window.attendanceInterval = setInterval(() => this.processAttendance(), 60000);
+        window.attendanceInterval = setInterval(() => this.processAttendance(), intervalMs);
+        console.log(`📡 Attendance tracking started with interval: ${settings?.syncInterval || 1} min`);
 
         // مراقبة عند تغيير الموقع
         if (navigator.geolocation) {
