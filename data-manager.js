@@ -758,13 +758,16 @@ OK Computer`;
         const lastSync = JSON.parse(localStorage.getItem(lastSyncKey) || '{}');
         const now = Date.now();
 
-        // نرسل تحديث كل 5 دقائق فقط إذا كانت الحالة ثابتة، أو فوراً إذا تغيرت الحالة
-        if (lastSync.status === status && (now - lastSync.time < 5 * 60 * 1000)) return;
+        // نرسل تحديث إذا تغيرت الحالة فوراً، أو إذا مر وقت المزامنة المحدد (على الأقل دقيقة واحدة)
+        const settings = await this.getAttendanceSettings();
+        const syncIntervalMs = Math.max(60000, (settings?.syncInterval || 1) * 60 * 1000);
+
+        if (lastSync.status === status && (now - lastSync.time < syncIntervalMs)) return;
 
         try {
             await addDoc(collection(db, "attendance"), {
                 employeeId: empId,
-                date: date, // تاريخ الشفت
+                date: date,
                 status: status,
                 timestamp: new Date().toISOString(),
                 location: { lat: coords.latitude, lng: coords.longitude, distance: Math.round(dist) }
@@ -817,32 +820,46 @@ OK Computer`;
 
         if (records.length === 0) return { totalHours: 0, status: 'absent' };
 
-        let totalMs = 0;
-        let lastIn = null;
-
+        // حساب الساعات (تراكمي)
         for (const r of records) {
             const time = new Date(r.timestamp);
             if (r.status === 'in_session' || r.status === 'overtime') {
                 if (!lastIn) lastIn = time;
                 else {
-                    // إذا كان الفرق بين السجلين أقل من 20 دقيقة، نعتبرها جلسة مستمرة
                     const diff = time - lastIn;
+                    // نعتبرها جلسة مستمرة إذا كان الفرق أقل من 20 دقيقة (أو حسب إعداد المزامنة + 5 دقائق إضافية)
                     if (diff < 20 * 60 * 1000) totalMs += diff;
                     lastIn = time;
                 }
             } else {
-                lastIn = null; // خرج عن النطاق
+                lastIn = null;
             }
+        }
+
+        // تحديد الحالة "اللحظية" (Live Status)
+        const lastRecord = records[records.length - 1];
+        const lastTime = new Date(lastRecord.timestamp);
+        const now = new Date();
+        const diffMinutes = (now - lastTime) / (1000 * 60);
+
+        const settings = await this.getAttendanceSettings();
+        const syncInt = settings?.syncInterval || 1;
+
+        let liveStatus = 'absent';
+        if (lastRecord.status === 'in_session' || lastRecord.status === 'overtime') {
+            // إذا كان آخر سجل "داخل" ومر عليه أكثر من (وقت المزامنة × 2 + دقيقة) يعتبر انقطع الاتصال
+            const threshold = (syncInt * 2) + 1;
+            liveStatus = (diffMinutes < threshold) ? 'present' : 'stale';
+        } else {
+            liveStatus = 'outside';
         }
 
         return {
             totalHours: totalMs / (1000 * 60 * 60),
             recordsCount: records.length,
-            status: totalMs > 0 ? 'present' : 'outside'
+            status: liveStatus,
+            lastSeen: lastRecord.timestamp
         };
-    },
-
-
-    showToast
+    }
 };
 

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام الحضور الذكي - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=27.0">
+    <link rel="stylesheet" href="style.css?v=27.2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Leaflet Maps CSS -->
@@ -187,6 +187,37 @@
             color: white;
         }
 
+        .status-badge.outside {
+            background: var(--warning);
+            color: white;
+        }
+
+        .status-badge.stale {
+            background: #64748b;
+            color: white;
+        }
+
+        .status-badge.absent {
+            background: #cbd5e1;
+            color: #64748b;
+        }
+
+        .employee-status-card.outside {
+            border-right-color: var(--warning);
+        }
+
+        .employee-status-card.stale {
+            border-right-color: #64748b;
+            opacity: 0.8;
+        }
+
+        .last-seen {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            display: block;
+            margin-top: 5px;
+        }
+
         .stats-overview {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -313,19 +344,33 @@
 
                 for (const emp of employees) {
                     const report = await DataManager.getEmployeeAttendanceReport(emp.id, shiftDate);
-                    const isP = report.totalHours > 0;
-                    if (isP) total++;
+                    const status = report.status; // present, outside, stale, absent
+
+                    if (status === 'present') total++;
+
+                    const statusLabels = {
+                        'present': '✅ متواجد',
+                        'outside': '📍 خارج النطاق',
+                        'stale': '📵 انقطع الاتصال',
+                        'absent': '⚪ غائب'
+                    };
+
+                    const lastSeenTime = report.lastSeen ? new Date(report.lastSeen).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : '---';
+
                     html += `
-                        <div class="employee-status-card ${isP ? 'present' : ''}">
-                            <div style="display:flex; justify-content:space-between">
+                        <div class="employee-status-card ${status}">
+                            <div style="display:flex; justify-content:space-between; align-items: center;">
                                 <strong>${emp.name}</strong>
-                                <span class="status-badge ${isP ? 'present' : ''}">${isP ? 'متواجد' : 'غائب'}</span>
+                                <span class="status-badge ${status}">${statusLabels[status]}</span>
                             </div>
-                            <p>الساعات: ${report.totalHours.toFixed(2)}</p>
-                            <p>المبلغ: ${(report.totalHours * rate).toLocaleString()} د.ع</p>
+                            <div style="margin-top: 10px;">
+                                <p style="margin: 0; font-size: 0.9rem;">الساعات: <strong>${report.totalHours.toFixed(2)}</strong></p>
+                                <p style="margin: 0; font-size: 0.9rem;">المبلغ: <strong>${(report.totalHours * rate).toLocaleString()}</strong> د.ع</p>
+                                <small class="last-seen">آخر ظهور: ${lastSeenTime}</small>
+                            </div>
                         </div>`;
                 }
-                container.innerHTML = `<div class="stats-overview"><div class="stat-card"><h3>${total}</h3><p>المتواجدين</p></div></div><div class="employee-status-grid">${html}</div>`;
+                container.innerHTML = `<div class="stats-overview"><div class="stat-card"><h3>${total}</h3><p>المتواجدين الآن</p></div></div><div class="employee-status-grid">${html}</div>`;
             } catch (e) { container.innerHTML = 'خطأ في التحميل'; }
         };
     </script>
