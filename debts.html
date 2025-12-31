@@ -16,12 +16,10 @@
 
 
     <script type="module">
-        import { DataManager } from './data-manager.js';
+        import { DataManager } from './data-manager.js?v=20.2';
         window.DataManager = DataManager;
         DataManager.init();
     </script>
-
-
 </head>
 
 <body>
@@ -124,7 +122,8 @@
                 <!-- WhatsApp Option for Debt Payment -->
                 <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
                     <input type="checkbox" id="send-whatsapp-debt" style="width: auto;">
-                    <label for="send-whatsapp-debt" style="margin:0; font-weight:normal; cursor:pointer;">إرسال تفاصيل
+                    <label for="send-whatsapp-debt" style="margin:0; font-weight:normal; cursor:pointer;">إرسال
+                        تفاصيل
                         الوصل واتساب</label>
                 </div>
 
@@ -236,7 +235,7 @@
                 // فلترة المشتركين الذين لديهم ديون وترتيبهم (الأحدث أولاً بناءً على ID وهو وقت الإنشاء)
                 let list = DataManager.getSubscribers()
                     .filter(s => parseInt(s.price || 0) > 0)
-                    .sort((a, b) => (b.id || 0) - (a.id || 0)); // الترتيب حسب وقت الإضافة
+                    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)); // الترتيب حسب وقت الإضافة
 
                 // تطبيق البحث
                 if (searchQuery) {
