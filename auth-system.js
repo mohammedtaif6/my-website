@@ -76,7 +76,7 @@ const AuthSystem = {
             'reports.html': 'reports',
             'employees.html': 'admin_only', // صفحة الموظفين للمدير فقط
             'telegram-settings.html': 'admin_only',
-            'attendance-settings.html': 'admin_only', // إعدادات الحضور للمدير فقط
+
 
         };
 
@@ -141,7 +141,7 @@ const AuthSystem = {
             }
 
             // إخفاء الصفحات الخاصة بالمدير فقط
-            const adminOnlyElements = ['nav-employees', 'nav-attendance', 'nav-telegram'];
+            const adminOnlyElements = ['nav-employees', 'nav-telegram'];
             adminOnlyElements.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
