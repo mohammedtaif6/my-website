@@ -1075,3 +1075,123 @@ tbody tr:hover {
 .bottom-nav {
     display: none !important;
 }
+/* 22. Employee Dashboard & Interface (High-End Responsive) */
+.employee-interface-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    padding: clamp(1rem, 4vw, 2rem);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-light);
+    margin-bottom: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.employee-interface-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+}
+
+.employee-stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 1rem;
+}
+
+.employee-stats-header h3 {
+    font-size: clamp(1rem, 2.5vw, 1.25rem);
+    color: var(--primary-dark);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.employee-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: clamp(0.75rem, 2vw, 1.25rem);
+}
+
+.summary-item {
+    background: var(--bg-main);
+    padding: 1rem;
+    border-radius: var(--radius-lg);
+    text-align: center;
+    transition: background 0.2s;
+    cursor: pointer;
+}
+
+.summary-item:hover {
+    background: var(--border-light);
+}
+
+.summary-item.danger {
+    background: #fff5f5;
+    border: 1px solid #fed7d7;
+}
+
+.summary-item.danger:hover {
+    background: #fee2e2;
+}
+
+.summary-item small {
+    display: block;
+    color: var(--text-sub);
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.summary-item .value {
+    font-size: clamp(1.1rem, 3vw, 1.4rem);
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.summary-item.danger .value {
+    color: var(--danger);
+}
+
+.employee-rewards-banner {
+    margin-top: 1rem;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    padding: 1rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid #fde68a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.employee-net-footer {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 2px dashed var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.employee-net-footer strong {
+    font-size: 1.1rem;
+}
+
+.employee-net-footer .net-value {
+    font-size: clamp(1.4rem, 4vw, 1.8rem);
+    font-weight: 800;
+    color: var(--success);
+}
+
+@media (max-width: 480px) {
+    .employee-summary-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .employee-stats-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+

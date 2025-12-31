@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="style.css?v=25.0">
     <link rel="stylesheet" href="style-fab.css?v=1.0">
     <link rel="stylesheet" href="style-modal.css?v=1.0">
+    <link rel="stylesheet" href="style-employee.css?v=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- نظام الصلاحيات الجديد -->
@@ -188,44 +189,33 @@
 
     <!-- ملخص الموظف (يظهر للموظفين فقط) -->
     <div id="employee-dashboard-stats" style="display:none; margin-bottom: 20px;">
-        <div
-            style="background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e0e0e0;">
-            <h3
-                style="margin-bottom: 15px; color: var(--primary-dark); font-size: 1.1rem; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-                <i class="fas fa-wallet"></i> ملخص حسابي
-            </h3>
+        <div class="employee-interface-card">
+            <div class="employee-stats-header">
+                <h3><i class="fas fa-wallet"></i> ملخص حسابي</h3>
+                <div id="shift-date-display" style="font-size: 0.85rem; color: var(--text-sub);"></div>
+            </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
-                <div onclick="showEmpSalaryDetails()"
-                    style="background: #f8f9fa; padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s;"
-                    onmouseover="this.style.background='#e9ecef'; this.style.transform='translateY(-2px)'"
-                    onmouseout="this.style.background='#f8f9fa'; this.style.transform='translateY(0)'">
-                    <small style="color: #666;">الراتب المستحق</small>
-                    <div id="emp-qs-earned" style="font-weight: bold; font-size: 1.1rem;">0</div>
+            <div class="employee-summary-grid">
+                <div onclick="showEmpSalaryDetails()" class="summary-item">
+                    <small>الراتب المستحق</small>
+                    <div id="emp-qs-earned" class="value">0</div>
                 </div>
 
-                <div onclick="showEmpAdvancesDetails()"
-                    style="background: #ffebee; padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s;"
-                    onmouseover="this.style.background='#ffcdd2'; this.style.transform='translateY(-2px)'"
-                    onmouseout="this.style.background='#ffebee'; this.style.transform='translateY(0)'">
-                    <small style="color: #c62828;">السلف المسحوبة</small>
-                    <div id="emp-qs-advances" style="font-weight: bold; font-size: 1.1rem; color: #c62828;">0</div>
+                <div onclick="showEmpAdvancesDetails()" class="summary-item danger">
+                    <small>السلف المسحوبة</small>
+                    <div id="emp-qs-advances" class="value">0</div>
                 </div>
             </div>
 
             <!-- كارت المكافآت -->
-            <div id="emp-qs-rewards-card"
-                style="margin-top: 10px; background: #fff3e0; padding: 10px; border-radius: 8px; border: 1px solid #ffe0b2; display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <strong style="color: #e65100; font-size: 0.95rem;">🎁 إجمالي المكافآت:</strong>
-                    <span id="emp-qs-rewards" style="font-weight: bold; font-size: 1.1rem; color: #e65100;">0</span>
-                </div>
+            <div id="emp-qs-rewards-card" class="employee-rewards-banner" style="display: none;">
+                <strong style="color: #e65100; font-size: 0.95rem;">🎁 إجمالي المكافآت:</strong>
+                <span id="emp-qs-rewards" style="font-weight: bold; font-size: 1.1rem; color: #e65100;">0</span>
             </div>
 
-            <div
-                style="margin-top: 15px; padding-top: 10px; border-top: 2px dashed #eee; display: flex; justify-content: space-between; align-items: center;">
+            <div class="employee-net-footer">
                 <strong>الصافي للدفع:</strong>
-                <span id="emp-qs-net" style="font-weight: bold; font-size: 1.3rem; color: #2e7d32;">0</span>
+                <span id="emp-qs-net" class="net-value">0</span>
             </div>
         </div>
     </div>

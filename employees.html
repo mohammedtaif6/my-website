@@ -3,11 +3,12 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>إدارة الموظفين - OK Computer</title>
     <link rel="stylesheet" href="style.css?v=25.0">
     <link rel="stylesheet" href="style-fab.css?v=1.0">
     <link rel="stylesheet" href="style-modal.css?v=1.0">
+    <link rel="stylesheet" href="style-employee.css?v=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="auth-system.js"></script>
@@ -448,7 +449,7 @@
 
                         return `
                         <div class="emp-card" onclick="openHistory('${e.id}', '${e.name}')">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                                 <div class="emp-avatar">
                                     <i class="fas fa-user-tie"></i>
                                 </div>
@@ -457,38 +458,37 @@
                                 </div>
                             </div>
 
-                            <div>
-                                <h3 style="margin:0 0 5px 0; font-size:1.4rem;">${e.name}</h3>
-                                <div class="emp-detail"><i class="fas fa-phone-alt"></i> ${e.phone || '-'}</div>
+                            <div class="emp-info-section">
+                                <h3 style="margin:0 0 8px 0; font-size:clamp(1.2rem, 4vw, 1.5rem); font-weight:800; color:var(--text-main);">${e.name}</h3>
+                                <div class="emp-detail" style="font-size:0.95rem; margin-bottom:15px;"><i class="fas fa-phone-alt"></i> ${e.phone || '-'}</div>
                                 
-                                <!-- Smart Stats -->
-                                <div class="stats-bar">
+                                <!-- Smart Stats Grid -->
+                                <div class="stats-bar" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; background: #f8fafc; border: 1px solid #f1f5f9; padding: 12px; border-radius: 12px;">
                                     <div class="stat-item">
-                                        <span class="stat-label">المستحق</span>
-                                        <span class="stat-val" style="color:var(--primary)">${fmt(balance.earned)}</span>
+                                        <span class="stat-label" style="font-size:0.7rem; color:#64748b; display:block; margin-bottom:4px;">المستحق</span>
+                                        <span class="stat-val" style="color:var(--primary); font-weight:bold; font-size:clamp(0.85rem, 2.5vw, 1rem);">${fmt(balance.earned)}</span>
                                     </div>
-                                    <div class="stat-divider" style="width:1px; height:20px; background:#ddd"></div>
-                                    <div class="stat-item">
-                                        <span class="stat-label">الخصومات (السلف)</span>
-                                        <span class="stat-val" style="color:var(--danger)">${fmt(balance.advances)}</span>
+                                    <div class="stat-item" style="border-right: 1px solid #e2e8f0; border-left: 1px solid #e2e8f0;">
+                                        <span class="stat-label" style="font-size:0.7rem; color:#64748b; display:block; margin-bottom:4px;">سلف</span>
+                                        <span class="stat-val" style="color:var(--danger); font-weight:bold; font-size:clamp(0.85rem, 2.5vw, 1rem);">${fmt(balance.advances)}</span>
                                     </div>
-                                    <div class="stat-divider" style="width:1px; height:20px; background:#ddd"></div>
                                     <div class="stat-item">
-                                        <span class="stat-label">الصافي</span>
-                                        <span class="stat-val" style="color:var(--success)">${fmt(balance.net)}</span>
+                                        <span class="stat-label" style="font-size:0.7rem; color:#64748b; display:block; margin-bottom:4px;">الصافي</span>
+                                        <span class="stat-val" style="color:var(--success); font-weight:bold; font-size:clamp(0.85rem, 2.5vw, 1rem);">${fmt(balance.net)}</span>
                                     </div>
                                 </div>
 
-                                ${tags ? `<div class="perms-tags" style="margin-bottom:10px;">${tags}</div>` : ''}
+                                ${tags ? `<div class="perms-tags" style="margin-top:15px;">${tags}</div>` : ''}
                             </div>
                             
-                            <div class="actions" onclick="event.stopPropagation();" style="border-top:none; padding-top:10px;">
-                                <button onclick="window.openQuickExpense('${e.id}', '${e.name}')" class="btn btn-sm" style="background:#ffdd57; color:#333; border:none; flex:1;"><i class="fas fa-wallet"></i> سلفة</button>
-                                <button onclick="window.paySalary(${e.id})" class="btn btn-sm btn-success" style="flex:1;"><i class="fas fa-money-check-alt"></i> الراتب</button>
-                                <button onclick='window.editEmployee(${JSON.stringify(e).replace(/'/g, "&#39;")})' class="btn btn-sm btn-light" style="color:#555"><i class="fas fa-cog"></i></button>
-                                ${userIsAdmin ? `<button onclick="window.deleteEmp(${e.id})" class="btn btn-sm btn-light" style="color:red"><i class="fas fa-trash"></i></button>` : ''}
+                            <div class="actions" onclick="event.stopPropagation();" style="border-top: 1px solid #f1f5f9; padding-top:15px; margin-top:15px; display:flex; gap:8px;">
+                                <button onclick="window.openQuickExpense('${e.id}', '${e.name}')" class="btn btn-sm" style="background:#fff7ed; color:#c2410c; border:1px solid #ffedd5; flex:1; border-radius:10px;"><i class="fas fa-wallet"></i> سلفة</button>
+                                <button onclick="window.paySalary(${e.id})" class="btn btn-sm" style="background:#f0fdf4; color:#15803d; border:1px solid #dcfce7; flex:1; border-radius:10px; font-weight:bold;"><i class="fas fa-money-check-alt"></i> راتب</button>
+                                <button onclick='window.editEmployee(${JSON.stringify(e).replace(/'/g, "&#39;")})' class="btn btn-sm" style="background:#f8fafc; color:#64748b; border:1px solid #e2e8f0; border-radius:10px;"><i class="fas fa-cog"></i></button>
+                                ${userIsAdmin ? `<button onclick="window.deleteEmp(${e.id})" class="btn btn-sm" style="background:#fef2f2; color:#b91c1c; border:1px solid #fee2e2; border-radius:10px;"><i class="fas fa-trash"></i></button>` : ''}
                             </div>
                         </div>`;
+
                     } catch (itemErr) {
                         console.error(itemErr);
                         return '';
@@ -512,7 +512,7 @@
                 // Filter: Type='expense' AND (Description contains "سلفة موظف: NAME" OR Description contains "راتب موظف: NAME")
                 const history = allTxs.filter(t =>
                     t.type === 'expense' &&
-                    (t.description.includes(`سلفة موظف: ${empName}`) || t.description.includes(`راتب موظف: ${empName}`) || t.description.includes(empName))
+                    (t.description.includes(`سلفة موظف: ${empName} `) || t.description.includes(`راتب موظف: ${empName} `) || t.description.includes(empName))
                 ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
                 const total = history.reduce((sum, t) => sum + Math.abs(t.amount), 0);
@@ -525,12 +525,12 @@
                     const label = isSalary ? 'صرف راتب' : 'سلفة / خصم';
 
                     return `
-                    <tr style="border-bottom:1px solid #eee;">
+                            < tr style = "border-bottom:1px solid #eee;" >
                         <td style="padding:10px;">${date}</td>
                         <td style="padding:10px; font-weight:bold; color:${color};" dir="ltr">${Math.abs(t.amount).toLocaleString()}</td>
                         <td style="padding:10px; font-size:0.85rem; color:#666;">${t.description.split(':').pop() || t.description}</td>
-                    </tr>
-                `;
+                    </tr >
+                            `;
                 }).join('') : '<tr><td colspan="3" style="text-align:center; padding:10px;">لا يوجد سجل سحوبات</td></tr>';
             };
 
@@ -650,7 +650,7 @@
                     document.getElementById('qe-amount').value = '';
                     document.getElementById('qe-desc').value = '';
                     document.getElementById('qe-deduct').checked = false; // افتراضياً غير مخصوم
-                    document.getElementById('expenseModalTitle').innerText = `صرفية لـ: ${name}`;
+                    document.getElementById('expenseModalTitle').innerText = `صرفية لـ: ${name} `;
                     m.classList.add('active');
                     setTimeout(() => document.getElementById('qe-amount').focus(), 100);
                 }
