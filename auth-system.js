@@ -77,8 +77,7 @@ const AuthSystem = {
             'employees.html': 'admin_only', // صفحة الموظفين للمدير فقط
             'telegram-settings.html': 'admin_only',
             'attendance-settings.html': 'admin_only', // إعدادات الحضور للمدير فقط
-            'maintenance-log.html': 'admin_only', // سجل الصيانات للمدير فقط
-            'maintenance.html': 'employee_only' // تسجيل الصيانة للموظفين فقط
+
         };
 
         const required = protections[page];
@@ -153,7 +152,7 @@ const AuthSystem = {
 
             // إخفاء الكروت الخاصة بالمدير فقط في لوحة التحكم الجديدة
             if (user.type !== 'admin') {
-                const restricted = ['nav-card-employees', 'nav-card-maintenance', 'nav-card-telegram'];
+                const restricted = ['nav-card-employees', 'nav-card-telegram'];
                 restricted.forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.style.display = 'none';
@@ -162,16 +161,12 @@ const AuthSystem = {
 
 
             // إخفاء روابط الإدارة دائماً للموظف (المدير فقط)
-            ['nav-employees', 'nav-telegram', 'nav-maintenance-log'].forEach(id => {
+            ['nav-employees', 'nav-telegram'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.style.display = 'none';
             });
 
-            // إظهار رابط تسجيل الصيانة للموظفين فقط
-            const maintLink = document.getElementById('nav-maintenance');
-            if (maintLink) {
-                maintLink.style.display = 'list-item';
-            }
+
         };
 
         // التأكد من أن الصفحة محملة قبل التنفيذ

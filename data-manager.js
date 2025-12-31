@@ -30,7 +30,7 @@ console.log('✅ Firebase مُهيأ بالتخزين المحلي المتقد�
 
 
 
-let localData = { subscribers: [], transactions: [], employees: [], maintenances: [] };
+let localData = { subscribers: [], transactions: [], employees: [] };
 let isProcessing = false;
 
 // === Toast Logic ===
@@ -67,7 +67,7 @@ export const DataManager = {
         this.sync('transactions');
         this.sync('employees'); // مزامنة الموظفين
 
-        this.sync('maintenances'); // مزامنة الصيانات
+
         this.monitorConnection();
 
         // تسجيل الدخول المجهول (لحل مشاكل Security Rules)
@@ -477,98 +477,7 @@ export const DataManager = {
         };
     },
 
-    // === إدارة الصيانات ===
-    getMaintenances() { return localData.maintenances || []; },
 
-    async addMaintenance(data) {
-        const maintenance = {
-            id: Date.now(),
-            createdAt: new Date().toISOString(),
-            status: 'completed',
-            rewardPaid: false,
-            ...data
-        };
-
-        try {
-            await addDoc(collection(db, "maintenances"), maintenance);
-
-            // إرسال واتساب للمشترك
-            if (data.sendWhatsApp && data.subscriberPhone) {
-                this.sendMaintenanceWhatsApp(data);
-            }
-
-
-            // إشعار Telegram
-            try {
-                if (typeof telegramBot !== 'undefined' && telegramBot) {
-                    telegramBot.notifyMaintenance(data);
-                }
-            } catch (err) {
-                console.warn('Telegram notification failed:', err);
-            }
-
-            showToast(`تم تسجيل الصيانة لـ ${data.subscriberName}`);
-        } catch (e) {
-            console.error(e);
-            showToast("خطأ في حفظ الصيانة", "error");
-        }
-    },
-
-    sendMaintenanceWhatsApp(data) {
-        if (!data.subscriberPhone) return;
-
-        let phone = data.subscriberPhone.replace(/\D/g, '');
-        if (phone.startsWith('0')) phone = phone.substring(1);
-        if (!phone.startsWith('964')) phone = '964' + phone;
-
-        const costText = data.cost > 0 ?
-            `• التكلفة: ${data.cost.toLocaleString()} د.ع ${data.paymentType === 'مدفوع نقداً' ? '✅ (مدفوع)' : ''}` :
-            `• مجاني ✅`;
-
-        const msg = `مرحباً ${data.subscriberName} 👋
-
-تم إجراء صيانة لخدمتك بواسطة: ${data.employeeName}
-
-📋 التفاصيل:
-• نوع الصيانة: ${data.type}
-${data.parts ? `• القطع المستبدلة: ${data.parts}` : ''}
-${costText}
-
-شكراً لثقتكم بنا 💙
-OK Computer`;
-
-        const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-        window.open(url, '_blank');
-    },
-
-    async payMaintenanceReward(maintenanceId, amount) {
-        const maint = localData.maintenances.find(m => m.id == maintenanceId);
-        if (!maint || maint.rewardPaid) return;
-
-        const emp = this.getEmployee(maint.employeeId);
-        if (!emp) return;
-
-        // 1. إضافة المكافأة لحساب الموظف
-        const currentRewards = parseFloat(emp.rewards || 0);
-        await updateDoc(doc(db, "employees", emp.firebaseId), {
-            rewards: currentRewards + parseFloat(amount)
-        });
-
-        // 2. تسجيل الصرفية من الصندوق
-        await this.addExpense(amount, `مكافأة صيانة: ${emp.name} - ${maint.subscriberName}`);
-
-        // 3. تحديث حالة الصيانة
-        const maintDoc = localData.maintenances.find(m => m.id == maintenanceId);
-        if (maintDoc) {
-            await updateDoc(doc(db, "maintenances", maintDoc.firebaseId), {
-                rewardPaid: true,
-                rewardAmount: amount,
-                rewardDate: new Date().toISOString()
-            });
-        }
-
-        showToast(`تم صرف مكافأة ${amount.toLocaleString()} د.ع لـ ${emp.name}`);
-    },
 
     // إعطاء مكافأة مباشرة للموظف
     async giveBonus(empId, amount, reason = 'مكافأة') {

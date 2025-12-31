@@ -60,7 +60,7 @@ class TelegramBot {
                 debtPaid: true,           // تسديد دين
                 expense: true,            // صرفية جديدة
                 dailySummary: true,       // ملخص يومي
-                maintenance: true         // صيانة جديدة
+
             }
         };
     }
@@ -274,28 +274,7 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
         return diffDays;
     }
 
-    // إشعار صيانة جديدة
-    async notifyMaintenance(data) {
-        if (!this.config.notifications.maintenance) return;
 
-        const costText = data.cost > 0 ?
-            `💰 التكلفة: <b>${data.cost.toLocaleString()} د.ع</b> (${data.paymentType})` :
-            `🎁 مجاني`;
-
-        const message = `
-🔧 <b>صيانة جديدة</b>
-
-👤 المشترك: <b>${data.subscriberName}</b>
-👨‍🔧 الموظف: <b>${data.employeeName}</b>
-🛠 نوع الصيانة: <b>${data.type}</b>
-${data.parts ? `📦 القطع: <b>${data.parts}</b>` : ''}
-${costText}
-
-⏰ ${new Date().toLocaleString('ar-IQ')}
-        `.trim();
-
-        return await this.sendMessage(message);
-    }
 
     // اختبار الاتصال
     async testConnection() {

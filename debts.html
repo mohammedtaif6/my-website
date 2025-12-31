@@ -233,8 +233,10 @@
                 // الحصول على قيمة البحث
                 const searchQuery = document.getElementById('debtSearch')?.value.toLowerCase() || '';
 
-                // فلترة المشتركين الذين لديهم ديون
-                let list = DataManager.getSubscribers().filter(s => parseInt(s.price || 0) > 0);
+                // فلترة المشتركين الذين لديهم ديون وترتيبهم (الأحدث أولاً)
+                let list = DataManager.getSubscribers()
+                    .filter(s => parseInt(s.price || 0) > 0)
+                    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
                 // تطبيق البحث
                 if (searchQuery) {
