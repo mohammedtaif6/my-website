@@ -689,6 +689,7 @@ OK Computer`;
         const styles = {
             loading: { bg: 'linear-gradient(135deg, #6366f1 0%, #4338ca 100%)', icon: 'fa-satellite-dish fa-spin', label: 'جاري تحديد الموقع...' },
             inside: { bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', icon: 'fa-check-circle pulse', label: 'أنت في موقع العمل ✅' },
+            overtime: { bg: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)', icon: 'fa-clock pulse', label: 'عمل إضافي (Overtime) 🚀' },
             outside: { bg: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', icon: 'fa-street-view', label: 'أنت خارج النطاق 📍' },
             off: { bg: 'linear-gradient(135deg, #64748b 0%, #475569 100%)', icon: 'fa-moon', label: 'خارج أوقات الدوام 😴' },
             error: { bg: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)', icon: 'fa-exclamation-triangle', label: 'مشكلة في الـ GPS ❌' }
@@ -710,13 +711,7 @@ OK Computer`;
 
         const ctx = this._getShiftContext(settings);
 
-        // أ. إذا كان خارج وقت الدوام
-        if (!ctx.isWorkTime) {
-            this._updateStatusUI('off', { msg: `يبدأ الدوام: ${settings.startTime}` });
-            return;
-        }
-
-        // ب. محاولة الحصول على الموقع
+        // محاولة الحصول على الموقع
         navigator.geolocation.getCurrentPosition(
             async (pos) => {
                 const distance = this.calculateDistance(
@@ -728,11 +723,22 @@ OK Computer`;
                 const empId = AuthSystem.currentUser.id;
 
                 if (isInside) {
-                    this._updateStatusUI('inside', { msg: `المسافة: ${Math.round(distance)} متر` });
-                    await this._syncRecord(empId, ctx.dateStr, 'in_session', pos.coords, distance);
+                    if (ctx.isWorkTime) {
+                        this._updateStatusUI('inside', { msg: `المسافة: ${Math.round(distance)} متر` });
+                        await this._syncRecord(empId, ctx.dateStr, 'in_session', pos.coords, distance);
+                    } else {
+                        // نظام الأوفر تايم: متواجد في الموقع خارج أوقات الدوام
+                        this._updateStatusUI('overtime', { msg: `المسافة: ${Math.round(distance)} متر (خارج وقت الدوام)` });
+                        await this._syncRecord(empId, ctx.dateStr, 'overtime', pos.coords, distance);
+                    }
                 } else {
-                    this._updateStatusUI('outside', { msg: `المسافة: ${Math.round(distance)} متر (المسموح: ${settings.radius}م)` });
-                    await this._syncRecord(empId, ctx.dateStr, 'outside', pos.coords, distance);
+                    if (ctx.isWorkTime) {
+                        this._updateStatusUI('outside', { msg: `المسافة: ${Math.round(distance)} متر (المسموح: ${settings.radius}م)` });
+                        await this._syncRecord(empId, ctx.dateStr, 'outside', pos.coords, distance);
+                    } else {
+                        this._updateStatusUI('off', { msg: `يبدأ الدوام: ${settings.startTime}` });
+                        // لا حاجة لمزامنة سجل "خارج" إذا كان أصلاً خارج وقت الدوام وخارج الموقع
+                    }
                 }
             },
             (err) => {
@@ -812,7 +818,7 @@ OK Computer`;
 
         for (const r of records) {
             const time = new Date(r.timestamp);
-            if (r.status === 'in_session') {
+            if (r.status === 'in_session' || r.status === 'overtime') {
                 if (!lastIn) lastIn = time;
                 else {
                     // إذا كان الفرق بين السجلين أقل من 20 دقيقة، نعتبرها جلسة مستمرة
