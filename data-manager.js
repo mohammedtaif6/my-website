@@ -55,6 +55,7 @@ function showToast(message, type = 'success') {
 }
 
 export const DataManager = {
+    showToast: showToast, // تصدير دالة التنبيهات
     db: db, // تصدير قاعدة البيانات للاستخدام الخارجي (مثل صفحة الإعدادات)
 
     init() {
