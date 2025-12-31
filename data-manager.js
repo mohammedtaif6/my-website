@@ -696,9 +696,9 @@ OK Computer`;
         };
 
         const s = styles[state] || styles.off;
-        card.querySelector('div').style.background = s.bg;
-        text.innerText = s.label;
-        icon.innerHTML = `<i class="fas ${s.icon}"></i>`;
+        card.style.display = 'none'; // نضمن بقاء البطاقة مخفية دائماً للموظف
+        if (text) text.innerText = s.label;
+        if (icon) icon.innerHTML = `<i class="fas ${s.icon}"></i>`;
         if (dist) dist.innerText = extra.msg || '';
     },
 
