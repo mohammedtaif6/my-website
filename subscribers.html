@@ -293,12 +293,26 @@
             closeActionModal();
             // Open Quick Activate Modal
             const today = new Date();
-            const nextMonth = new Date();
-            nextMonth.setDate(today.getDate() + 30);
+            today.setHours(0, 0, 0, 0);
+
+            let targetDate = new Date(today);
+            const currentExpiryStr = selectedSubscriber.expiryDate || selectedSubscriber.endDate;
+
+            if (currentExpiryStr) {
+                const currentExpiry = new Date(currentExpiryStr);
+                currentExpiry.setHours(0, 0, 0, 0);
+                if (currentExpiry > today) {
+                    // إذا كان المشترك فعال، نضيف 30 يوم من تاريخ انتهائه الحالي
+                    targetDate = new Date(currentExpiry);
+                }
+            }
+
+            // إضافة 30 يوم
+            targetDate.setDate(targetDate.getDate() + 30);
 
             document.getElementById('qa-id').value = selectedSubscriber.id;
             document.getElementById('qa-fid').value = selectedSubscriber.firebaseId;
-            document.getElementById('qa-end').value = nextMonth.toISOString().split('T')[0];
+            document.getElementById('qa-end').value = targetDate.toISOString().split('T')[0];
             document.getElementById('quickActivateModal').classList.add('active');
         };
 

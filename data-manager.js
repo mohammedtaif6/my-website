@@ -226,13 +226,6 @@ export const DataManager = {
     async renewSubscription(subscriberFirebaseId, subscriberDataId, renewalData) {
         const sub = localData.subscribers.find(s => s.firebaseId === subscriberFirebaseId);
 
-        // Strict Double Activation Check
-        if (sub && sub.expiryDate) {
-            const today = new Date(); today.setHours(0, 0, 0, 0);
-            const exp = new Date(sub.expiryDate);
-            if (exp > today) { throw new Error(`الاشتراك فعال وينتهي في ${sub.expiryDate}`); }
-        }
-
         let newDebt = parseInt(sub.price || 0);
         if (renewalData.type === 'أجل') newDebt += parseInt(renewalData.price);
 

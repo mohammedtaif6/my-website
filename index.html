@@ -710,7 +710,31 @@
                 r.style.display = 'block';
             } else r.style.display = 'none';
         };
-        window.selectSub = (n) => { document.getElementById('act-name').value = n; document.getElementById('search-results').style.display = 'none'; };
+        window.selectSub = (n) => {
+            document.getElementById('act-name').value = n;
+            document.getElementById('search-results').style.display = 'none';
+
+            // تحديث التاريخ بناءً على المشترك المختار
+            const subs = DataManager.getSubscribers();
+            const selected = subs.find(s => s.name === n);
+            if (selected) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                let targetDate = new Date(today);
+                const currentExpiryStr = selected.expiryDate || selected.endDate;
+
+                if (currentExpiryStr) {
+                    const currentExpiry = new Date(currentExpiryStr);
+                    currentExpiry.setHours(0, 0, 0, 0);
+                    if (currentExpiry > today) {
+                        targetDate = new Date(currentExpiry);
+                    }
+                }
+                targetDate.setDate(targetDate.getDate() + 30);
+                document.getElementById('act-end').value = targetDate.toISOString().split('T')[0];
+            }
+        };
 
         // Render Stats
         window.renderDashboard = () => {

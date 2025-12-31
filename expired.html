@@ -140,13 +140,25 @@
         };
 
         window.openRenew = function (fid, id) {
+            const subs = DataManager.getSubscribers();
+            const sub = subs.find(s => s.id == id);
+
             const today = new Date();
-            const nextMonth = new Date();
-            nextMonth.setDate(today.getDate() + 30);
+            today.setHours(0, 0, 0, 0);
+
+            let targetDate = new Date(today);
+            if (sub && sub.expiryDate) {
+                const currentExpiry = new Date(sub.expiryDate);
+                currentExpiry.setHours(0, 0, 0, 0);
+                if (currentExpiry > today) {
+                    targetDate = new Date(currentExpiry);
+                }
+            }
+            targetDate.setDate(targetDate.getDate() + 30);
 
             document.getElementById('qa-id').value = id;
             document.getElementById('qa-fid').value = fid;
-            document.getElementById('qa-end').value = nextMonth.toISOString().split('T')[0];
+            document.getElementById('qa-end').value = targetDate.toISOString().split('T')[0];
             document.getElementById('quickActivateModal').classList.add('active');
         };
 
