@@ -107,13 +107,30 @@
         window.renderPage = function () {
             if (typeof DataManager === 'undefined') return;
             const subs = DataManager.getSubscribers();
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            const todayStr = new Date().toISOString().split('T')[0];
+            const now = new Date();
 
             const expired = subs.filter(s => {
                 if (!s.expiryDate) return false;
-                const exp = new Date(s.expiryDate);
-                return exp < today;
+
+                // Helper to get ISO date (handles potentially varying formats if needed, but assuming consistent)
+                // Using simple string slicing for YYYY-MM-DD
+                let itemDate = s.expiryDate;
+                // Ensure format YYYY-MM-DD
+                if (itemDate.indexOf('/') > 0) {
+                    // Very basic conversion if mixed formats exist
+                    const parts = itemDate.split('/');
+                    if (parts.length === 3) itemDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                }
+
+                if (itemDate < todayStr) return true; // Past date = Expired
+
+                // If today, check 4 PM rule
+                if (itemDate === todayStr) {
+                    return now.getHours() >= 16;
+                }
+
+                return false; // Future date = Not Expired
             });
 
             const tbody = document.getElementById('tableBody');

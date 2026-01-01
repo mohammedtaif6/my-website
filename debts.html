@@ -257,12 +257,37 @@
                 }
 
                 tbody.innerHTML = list.map(s => {
-                    let expiry = new Date(s.expiryDate || s.endDate);
-                    const daysLeft = Math.ceil((expiry - new Date()) / (1000 * 60 * 60 * 24));
+                    // Logic for Expiry at 4 PM
+                    const expiryStr = s.expiryDate || s.endDate;
+                    let daysLeft = -999;
+                    let isExpired = false;
+
+                    if (expiryStr) {
+                        // Normalize date strings for comparison
+                        let endStr = expiryStr;
+                        if (expiryStr.indexOf('/') > 0) {
+                            const parts = expiryStr.split('/');
+                            if (parts.length === 3) endStr = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                        }
+
+                        const todayStr = new Date().toISOString().split('T')[0];
+                        const now = new Date();
+
+                        if (endStr < todayStr) isExpired = true;
+                        else if (endStr === todayStr && now.getHours() >= 16) isExpired = true;
+
+                        // Days calc for badge logic
+                        const endD = new Date(endStr);
+                        const todayD = new Date();
+                        todayD.setHours(0, 0, 0, 0);
+                        endD.setHours(0, 0, 0, 0);
+                        daysLeft = Math.ceil((endD - todayD) / (1000 * 60 * 60 * 24));
+                    }
+
                     let badge = '';
 
-                    if (daysLeft < 0) badge = '<span class="badge badge-danger">منتهية</span>';
-                    else if (daysLeft <= 3) badge = '<span class="badge badge-warning">تشارف على الانتهاء</span>';
+                    if (isExpired) badge = '<span class="badge badge-danger">منتهية</span>';
+                    else if (daysLeft <= 3 && daysLeft >= 0) badge = '<span class="badge badge-warning">تشارف على الانتهاء</span>';
 
                     // الهروب من الفواصل العليا في الأسماء (Sanitization)
                     const safeName = s.name.replace(/'/g, "\\'");

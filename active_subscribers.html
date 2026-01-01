@@ -149,8 +149,17 @@
 
                 if (!isoDate) return false;
 
-                // String comparison works perfectly for ISO dates
-                const isActiveByDate = isoDate >= todayStr;
+                const isActiveByDate = (() => {
+                    if (isoDate > todayStr) return true;
+                    if (isoDate < todayStr) return false;
+                    // If today is the expiry date, check time (4:00 PM rule)
+                    if (isoDate === todayStr) {
+                        const now = new Date();
+                        // Expiry is at 16:00 (4 PM). If checking at 16:01, it is expired.
+                        return now.getHours() < 16;
+                    }
+                    return false;
+                })();
 
                 const matchesSearch = s.name.toLowerCase().includes(q) || (s.phone && s.phone.includes(q));
 

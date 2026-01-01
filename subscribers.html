@@ -227,17 +227,36 @@
                 const expiry = s.expiryDate || s.endDate;
 
                 if (expiry) {
-                    const end = new Date(expiry);
+                    // Normalize date strings for comparison
+                    let endStr = expiry;
+                    if (expiry.indexOf('/') > 0) {
+                        const parts = expiry.split('/');
+                        if (parts.length === 3) endStr = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                    }
+
+                    const todayStr = new Date().toISOString().split('T')[0];
                     const now = new Date();
-                    now.setHours(0, 0, 0, 0);
-                    end.setHours(0, 0, 0, 0);
+                    const currentHour = now.getHours();
 
-                    const diffTime = end - now;
-                    const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    let isExpired = false;
 
-                    if (daysLeft < 0) {
+                    if (endStr < todayStr) {
+                        isExpired = true;
+                    } else if (endStr === todayStr && currentHour >= 16) {
+                        isExpired = true;
+                    }
+
+                    // For 'daysLeft' calculation (visual only)
+                    const endDateObj = new Date(endStr);
+                    const nowZero = new Date();
+                    nowZero.setHours(0, 0, 0, 0);
+                    endDateObj.setHours(0, 0, 0, 0);
+                    const daysLeft = Math.ceil((endDateObj - nowZero) / (1000 * 60 * 60 * 24));
+
+                    if (isExpired) {
                         statusHtml = `<span class="badge badge-danger">منتهي</span>`;
                     } else if (daysLeft <= 3) {
+                        // Note: If daysLeft is 0 (today) and we are here, it means it is < 16:00
                         statusHtml = `<span class="badge badge-warning">باقي ${daysLeft} يوم</span>`;
                     } else {
                         statusHtml = `<span class="badge badge-success">باقي ${daysLeft} يوم</span>`;
