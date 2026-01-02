@@ -261,6 +261,11 @@
             </div>
         </div>
 
+        <div id="debug-info"
+            style="margin-top: 20px; text-align: center; color: #aaa; font-size: 0.8rem; direction: ltr;">
+            Loading stats...
+        </div>
+
     </div>
 
     <script type="module">
@@ -301,9 +306,24 @@
                 toggleBtn.style.color = "#666";
                 toggleBtn.style.border = "1px solid #ccc";
 
+                toggleBtn.style.color = "#666";
+                toggleBtn.style.border = "1px solid #ccc";
+
                 // إظهار زر الأرشفة للفترة الحالية
                 archiveBtn.style.display = 'flex';
             }
+
+            // --- Debug Info Update ---
+            const allRaw = DataManager.getAllTransactions();
+            const archivedCount = allRaw.filter(t => t.isArchived).length;
+            const activeCount = allRaw.filter(t => !t.isArchived).length;
+            const totalCount = allRaw.length;
+            document.getElementById('debug-info').innerHTML = `
+                Total Loaded: <b>${totalCount}</b> | 
+                Active: <b style="color:green">${activeCount}</b> | 
+                Archived: <b style="color:red">${archivedCount}</b> <br>
+                (Max Limit: 500)
+            `;
 
             // 2. تصفية حسب التاريخ (للفترة الحالية فقط أو الأرشيف)
             const now = new Date();
