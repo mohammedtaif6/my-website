@@ -464,6 +464,8 @@ export const DataManager = {
     // حساب رصيد الموظف الحالي
     calculateEmployeeBalance(empId) {
         const emp = this.getEmployee(empId);
+        // ندعم dailySalary (حسب الهيكلة القديمة والجديدة)
+        // الراتب المخزن هو "اليومي" (الأسبوعي / 7)
         if (!emp || !emp.dailySalary) return 0;
 
         const start = new Date(emp.startDate || emp.createdAt);
@@ -471,7 +473,14 @@ export const DataManager = {
 
         // حساب عدد الأيام (الفرق بالملي ثانية / ملي ثانية اليوم)
         const diffTime = Math.abs(now - start);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        // --- تعديل (طلب المستخدم): الدوام من 6 مساءً (18:00) ---
+        // إذا كان الوقت الحالي قبل الساعة 18:00، لا نحسب "اليوم الحالي" ضمن الأيام المستحقة
+        // هذا يعني أن الراتب "ينزل" أو يُضاف لحساب الموظف عند حلول الساعة 6 مساءً
+        if (now.getHours() < 18) {
+            diffDays = Math.max(0, diffDays - 1);
+        }
 
         // الراتب المستحق = الأيام * الراتب اليومي
         const totalEarned = diffDays * parseFloat(emp.dailySalary);
