@@ -154,397 +154,388 @@ export const DataManager = {
             }
         );
     },
-    if(error.code === 'permission-denied') {
-        console.warn(`⚠️ لا توجد صلاحية للوصول لـ: ${colName}`);
-                    // لا نعرض Toast - فقط نسجل في الكونسول
-                } else {
-    console.warn('⚠️ خطأ في الاتصال بقاعدة البيانات');
-}
-            }
-        );
-    },
 
     async logTransaction(data) {
-    if (isProcessing) return; isProcessing = true;
-    try {
-        await addDoc(collection(db, "transactions"), {
-            id: Date.now(),
-            createdAt: new Date().toISOString(),
-            isArchived: false,
-            ...data
-        });
-    } catch (e) {
-        console.error('❌ Transaction Error:', e);
-        // لا نعرض رسالة خطأ للمستخدم - فقط نسجل في الكونسول
-    }
-    finally { isProcessing = false; }
-},
+        if (isProcessing) return; isProcessing = true;
+        try {
+            await addDoc(collection(db, "transactions"), {
+                id: Date.now(),
+                createdAt: new Date().toISOString(),
+                isArchived: false,
+                ...data
+            });
+        } catch (e) {
+            console.error('❌ Transaction Error:', e);
+            // لا نعرض رسالة خطأ للمستخدم - فقط نسجل في الكونسول
+        }
+        finally { isProcessing = false; }
+    },
 
-// WhatsApp Helper
-sendWhatsApp(sub, amount, type, endDate) {
-    if (!sub.phone) return;
-    // Clean phone number (Iraq format)
-    let phone = sub.phone.replace(/\D/g, ''); // Remove non-digits
-    if (phone.startsWith('0')) phone = phone.substring(1);
-    if (!phone.startsWith('964')) phone = '964' + phone;
+    // WhatsApp Helper
+    sendWhatsApp(sub, amount, type, endDate) {
+        if (!sub.phone) return;
+        // Clean phone number (Iraq format)
+        let phone = sub.phone.replace(/\D/g, ''); // Remove non-digits
+        if (phone.startsWith('0')) phone = phone.substring(1);
+        if (!phone.startsWith('964')) phone = '964' + phone;
 
-    const msg = `مرحباً ${sub.name}،
+        const msg = `مرحباً ${sub.name}،
 تم ${type === 'تجديد' ? 'تجديد اشتراكك' : 'تفعيل اشتراكك'} بنجاح.
 المبلغ: ${amount.toLocaleString()} د.ع
 تاريخ الانتهاء: ${endDate}
 شكراً لثقتكم بنا - OK Computer`;
 
-    // Encode and open
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-    window.open(url, '_blank');
-},
+        // Encode and open
+        const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+        window.open(url, '_blank');
+    },
 
     async addSubscriber(data) {
-    // Prevent dupes? (Maybe later)
-    const subData = {
-        id: Date.now(),
-        createdAt: new Date().toISOString(),
-        ...data
-    };
-    const subRef = await addDoc(collection(db, "subscribers"), subData);
+        // Prevent dupes? (Maybe later)
+        const subData = {
+            id: Date.now(),
+            createdAt: new Date().toISOString(),
+            ...data
+        };
+        const subRef = await addDoc(collection(db, "subscribers"), subData);
 
-    const initialAmount = data.initialPrice || 0;
-    if (initialAmount > 0) {
-        await this.logTransaction({
-            subscriberId: subData.id,
-            amount: parseInt(initialAmount),
-            type: data.paymentType === 'نقد' ? 'subscription_cash' : 'subscription_debt',
-            description: `اشتراك جديد (${data.paymentType}): ${subData.name}`
-        });
-        if (data.paymentType === 'نقد') await updateDoc(doc(db, "subscribers", subRef.id), { price: 0 });
+        const initialAmount = data.initialPrice || 0;
+        if (initialAmount > 0) {
+            await this.logTransaction({
+                subscriberId: subData.id,
+                amount: parseInt(initialAmount),
+                type: data.paymentType === 'نقد' ? 'subscription_cash' : 'subscription_debt',
+                description: `اشتراك جديد (${data.paymentType}): ${subData.name}`
+            });
+            if (data.paymentType === 'نقد') await updateDoc(doc(db, "subscribers", subRef.id), { price: 0 });
 
-        // إشعار Telegram
-        telegramBot.notifyNewActivation(
-            subData.name,
-            parseInt(initialAmount),
-            data.paymentType,
-            data.expiryDate || 'غير محدد'
-        );
-    }
-    showToast("تمت الإضافة بنجاح");
-},
+            // إشعار Telegram
+            telegramBot.notifyNewActivation(
+                subData.name,
+                parseInt(initialAmount),
+                data.paymentType,
+                data.expiryDate || 'غير محدد'
+            );
+        }
+        showToast("تمت الإضافة بنجاح");
+    },
 
     async renewSubscription(subscriberFirebaseId, subscriberDataId, renewalData) {
-    const sub = localData.subscribers.find(s => s.firebaseId === subscriberFirebaseId);
+        const sub = localData.subscribers.find(s => s.firebaseId === subscriberFirebaseId);
 
-    let newDebt = parseInt(sub.price || 0);
-    if (renewalData.type === 'أجل') newDebt += parseInt(renewalData.price);
+        let newDebt = parseInt(sub.price || 0);
+        if (renewalData.type === 'أجل') newDebt += parseInt(renewalData.price);
 
-    await this.logTransaction({
-        subscriberId: subscriberDataId,
-        amount: parseInt(renewalData.price),
-        type: renewalData.type === 'نقد' ? 'subscription_cash' : 'subscription_debt',
-        description: `تجديد (${renewalData.type}) - ${renewalData.dateEnd}`
-    });
+        await this.logTransaction({
+            subscriberId: subscriberDataId,
+            amount: parseInt(renewalData.price),
+            type: renewalData.type === 'نقد' ? 'subscription_cash' : 'subscription_debt',
+            description: `تجديد (${renewalData.type}) - ${renewalData.dateEnd}`
+        });
 
-    await updateDoc(doc(db, "subscribers", subscriberFirebaseId), {
-        status: 'نشط',
-        expiryDate: renewalData.dateEnd,
-        paymentType: renewalData.type,
-        price: newDebt,
-        expiryWarningSent: false // Reset warning flag on renewal
-    });
+        await updateDoc(doc(db, "subscribers", subscriberFirebaseId), {
+            status: 'نشط',
+            expiryDate: renewalData.dateEnd,
+            paymentType: renewalData.type,
+            price: newDebt,
+            expiryWarningSent: false // Reset warning flag on renewal
+        });
 
-    // إشعار Telegram
-    telegramBot.notifyRenewal(
-        sub.name,
-        parseInt(renewalData.price),
-        renewalData.type,
-        renewalData.dateEnd
-    );
+        // إشعار Telegram
+        telegramBot.notifyRenewal(
+            sub.name,
+            parseInt(renewalData.price),
+            renewalData.type,
+            renewalData.dateEnd
+        );
 
-    showToast("تم التجديد بنجاح");
-},
+        showToast("تم التجديد بنجاح");
+    },
 
     async updateSubscriber(id, data) {
-    const sub = localData.subscribers.find(s => s.id == id);
-    if (sub) { await updateDoc(doc(db, "subscribers", sub.firebaseId), data); showToast("تم الحفظ"); }
-},
+        const sub = localData.subscribers.find(s => s.id == id);
+        if (sub) { await updateDoc(doc(db, "subscribers", sub.firebaseId), data); showToast("تم الحفظ"); }
+    },
 
     async markExpiryWarningSent(id) {
-    const sub = localData.subscribers.find(s => s.id == id);
-    if (sub) {
-        await updateDoc(doc(db, "subscribers", sub.firebaseId), { expiryWarningSent: true });
-    }
-},
+        const sub = localData.subscribers.find(s => s.id == id);
+        if (sub) {
+            await updateDoc(doc(db, "subscribers", sub.firebaseId), { expiryWarningSent: true });
+        }
+    },
 
     async payDebt(fid, did, amount) {
-    const sub = localData.subscribers.find(s => s.firebaseId === fid);
-    const newDebt = Math.max(0, (parseInt(sub.price) || 0) - amount);
+        const sub = localData.subscribers.find(s => s.firebaseId === fid);
+        const newDebt = Math.max(0, (parseInt(sub.price) || 0) - amount);
 
-    await this.logTransaction({
-        subscriberId: did, amount: parseInt(amount), type: 'debt_payment',
-        description: `تسديد دين من ${sub.name}`
-    });
+        await this.logTransaction({
+            subscriberId: did, amount: parseInt(amount), type: 'debt_payment',
+            description: `تسديد دين من ${sub.name}`
+        });
 
-    await updateDoc(doc(db, "subscribers", fid), { price: newDebt, paymentType: newDebt === 0 ? 'نقد' : 'أجل' });
+        await updateDoc(doc(db, "subscribers", fid), { price: newDebt, paymentType: newDebt === 0 ? 'نقد' : 'أجل' });
 
-    // إشعار Telegram
-    telegramBot.notifyDebtPaid(
-        sub.name,
-        parseInt(amount),
-        newDebt
-    );
+        // إشعار Telegram
+        telegramBot.notifyDebtPaid(
+            sub.name,
+            parseInt(amount),
+            newDebt
+        );
 
-    showToast("تم التسديد");
-},
+        showToast("تم التسديد");
+    },
 
     async addExpense(amount, description) {
-    await this.logTransaction({ subscriberId: null, amount: -Math.abs(amount), type: 'expense', description });
+        await this.logTransaction({ subscriberId: null, amount: -Math.abs(amount), type: 'expense', description });
 
-    // إشعار Telegram
-    telegramBot.notifyExpense(description, Math.abs(amount));
+        // إشعار Telegram
+        telegramBot.notifyExpense(description, Math.abs(amount));
 
-    showToast("تم حفظ الصرفية");
-},
+        showToast("تم حفظ الصرفية");
+    },
 
     async recordTransaction(sid, amt, desc, type) {
-    await this.logTransaction({ subscriberId: sid, amount: amt, description: desc, type });
-    showToast("تم الحفظ");
-},
+        await this.logTransaction({ subscriberId: sid, amount: amt, description: desc, type });
+        showToast("تم الحفظ");
+    },
 
     async archiveAllCurrent() {
-    const unarchived = localData.transactions.filter(t => !t.isArchived);
-    if (unarchived.length === 0) return showToast("لا يوجد شيء لترحيله", "error");
+        const unarchived = localData.transactions.filter(t => !t.isArchived);
+        if (unarchived.length === 0) return showToast("لا يوجد شيء لترحيله", "error");
 
-    if (!confirm("ترحيل كل السجلات لليوم؟")) return;
+        if (!confirm("ترحيل كل السجلات لليوم؟")) return;
 
-    const batch = unarchived.map(t => updateDoc(doc(db, "transactions", t.firebaseId), { isArchived: true }));
-    await Promise.all(batch);
-    showToast("تم الترحيل بنجاح");
-},
+        const batch = unarchived.map(t => updateDoc(doc(db, "transactions", t.firebaseId), { isArchived: true }));
+        await Promise.all(batch);
+        showToast("تم الترحيل بنجاح");
+    },
 
     async deleteTransaction(id) {
-    if (!confirm("حذف؟")) return;
-    const t = localData.transactions.find(tx => tx.id == id);
-    if (t) { await deleteDoc(doc(db, "transactions", t.firebaseId)); showToast("تم الحذف"); }
-},
+        if (!confirm("حذف؟")) return;
+        const t = localData.transactions.find(tx => tx.id == id);
+        if (t) { await deleteDoc(doc(db, "transactions", t.firebaseId)); showToast("تم الحذف"); }
+    },
 
     async updateTransaction(id, newData) {
-    const t = localData.transactions.find(tx => tx.id == id);
-    if (t) { await updateDoc(doc(db, "transactions", t.firebaseId), newData); showToast("تم التعديل"); }
-},
+        const t = localData.transactions.find(tx => tx.id == id);
+        if (t) { await updateDoc(doc(db, "transactions", t.firebaseId), newData); showToast("تم التعديل"); }
+    },
 
     async deleteSubscriber(id) {
-    if (!confirm("حذف المشترك نهائياً؟")) return;
-    const sub = localData.subscribers.find(s => s.id == id);
-    if (sub) { await deleteDoc(doc(db, "subscribers", sub.firebaseId)); showToast("تم الحذف"); }
-},
+        if (!confirm("حذف المشترك نهائياً؟")) return;
+        const sub = localData.subscribers.find(s => s.id == id);
+        if (sub) { await deleteDoc(doc(db, "subscribers", sub.firebaseId)); showToast("تم الحذف"); }
+    },
 
-getDailyBalance() {
-    const txs = localData.transactions.filter(t => !t.isArchived && t.type !== 'subscription_debt');
-    const inc = txs.filter(t => t.amount > 0).reduce((a, b) => a + b.amount, 0);
-    const exp = txs.filter(t => t.amount < 0).reduce((a, b) => a + Math.abs(b.amount), 0);
-    return inc - exp;
-},
+    getDailyBalance() {
+        const txs = localData.transactions.filter(t => !t.isArchived && t.type !== 'subscription_debt');
+        const inc = txs.filter(t => t.amount > 0).reduce((a, b) => a + b.amount, 0);
+        const exp = txs.filter(t => t.amount < 0).reduce((a, b) => a + Math.abs(b.amount), 0);
+        return inc - exp;
+    },
 
-getAllTransactions() { return localData.transactions; },
-getSubscribers() { return localData.subscribers; },
+    getAllTransactions() { return localData.transactions; },
+    getSubscribers() { return localData.subscribers; },
     get subscribers() { return localData.subscribers; }, // إضافة getter للوصول المباشر
-getSubscriber(id) { return localData.subscribers.find(s => s.id == id); },
-searchSubscribers(q) {
-    if (!q) return localData.subscribers;
-    return localData.subscribers.filter(s => s.name?.toLowerCase().includes(q.toLowerCase()) || s.phone?.includes(q));
-},
+    getSubscriber(id) { return localData.subscribers.find(s => s.id == id); },
+    searchSubscribers(q) {
+        if (!q) return localData.subscribers;
+        return localData.subscribers.filter(s => s.name?.toLowerCase().includes(q.toLowerCase()) || s.phone?.includes(q));
+    },
 
-// --- إدارة الموظفين والرواتب ---
-getEmployees() { return localData.employees || []; },
+    // --- إدارة الموظفين والرواتب ---
+    getEmployees() { return localData.employees || []; },
 
-getEmployee(id) { return (localData.employees || []).find(e => e.id == id); },
+    getEmployee(id) { return (localData.employees || []).find(e => e.id == id); },
 
     async addEmployee(data) {
-    // نحدد تاريخ التعيين لليوم بشكل افتراضي لبدء حساب الراتب
-    const emp = {
-        id: Date.now(),
-        createdAt: new Date().toISOString(),
-        startDate: new Date().toISOString().split('T')[0], // تاريخ بدء الحساب
-        advances: 0, // مجموع السلف
-        ...data
-    };
+        // نحدد تاريخ التعيين لليوم بشكل افتراضي لبدء حساب الراتب
+        const emp = {
+            id: Date.now(),
+            createdAt: new Date().toISOString(),
+            startDate: new Date().toISOString().split('T')[0], // تاريخ بدء الحساب
+            advances: 0, // مجموع السلف
+            ...data
+        };
 
-    try {
-        // نرسل البيانات للسيرفر فقط، وننتظر عودتها عبر الـ Sync
-        await addDoc(collection(db, "employees"), emp);
-        showToast("تم إرسال بيانات الموظف للسيرفر...");
-    } catch (e) {
-        console.error("Error adding employee:", e);
-        showToast("فشل الحفظ في قاعدة البيانات: " + e.message, "error");
-    }
-},
+        try {
+            // نرسل البيانات للسيرفر فقط، وننتظر عودتها عبر الـ Sync
+            await addDoc(collection(db, "employees"), emp);
+            showToast("تم إرسال بيانات الموظف للسيرفر...");
+        } catch (e) {
+            console.error("Error adding employee:", e);
+            showToast("فشل الحفظ في قاعدة البيانات: " + e.message, "error");
+        }
+    },
 
     async updateEmployee(id, newData) {
-    const emp = this.getEmployee(id);
-    if (emp) {
-        await updateDoc(doc(db, "employees", emp.firebaseId), newData);
-        showToast("تم تحديث بيانات الموظف");
-    }
-},
+        const emp = this.getEmployee(id);
+        if (emp) {
+            await updateDoc(doc(db, "employees", emp.firebaseId), newData);
+            showToast("تم تحديث بيانات الموظف");
+        }
+    },
 
     async deleteEmployee(id) {
-    if (!confirm("هل أنت متأكد من حذف الموظف؟")) return;
-    const emp = this.getEmployee(id);
-    if (emp) {
-        await deleteDoc(doc(db, "employees", emp.firebaseId));
-        showToast("تم حذف الموظف");
-    }
-},
+        if (!confirm("هل أنت متأكد من حذف الموظف؟")) return;
+        const emp = this.getEmployee(id);
+        if (emp) {
+            await deleteDoc(doc(db, "employees", emp.firebaseId));
+            showToast("تم حذف الموظف");
+        }
+    },
 
     // تسجيل سلفة (خصم من الراتب)
     async addAdvance(empId, amount, note) {
-    const emp = this.getEmployee(empId);
-    if (!emp) return;
+        const emp = this.getEmployee(empId);
+        if (!emp) return;
 
-    // 1. تسجيلها كصرفية عامة في النظام
-    await this.addExpense(amount, `سلفة موظف: ${emp.name} - ${note}`);
+        // 1. تسجيلها كصرفية عامة في النظام
+        await this.addExpense(amount, `سلفة موظف: ${emp.name} - ${note}`);
 
-    // 2. تحديث مجموع السلف للموظف
-    const currentAdvances = parseFloat(emp.advances || 0);
-    await updateDoc(doc(db, "employees", emp.firebaseId), {
-        advances: currentAdvances + parseFloat(amount)
-    });
-},
+        // 2. تحديث مجموع السلف للموظف
+        const currentAdvances = parseFloat(emp.advances || 0);
+        await updateDoc(doc(db, "employees", emp.firebaseId), {
+            advances: currentAdvances + parseFloat(amount)
+        });
+    },
 
     // صرف راتب الموظف (يصفر الرصيد ويسجل صرفية)
     async paySalary(empId) {
-    const emp = this.getEmployee(empId);
-    if (!emp) return;
+        const emp = this.getEmployee(empId);
+        if (!emp) return;
 
-    const balance = this.calculateEmployeeBalance(empId);
+        const balance = this.calculateEmployeeBalance(empId);
 
-    if (balance.net <= 0) {
-        showToast('لا يوجد راتب مستحق للصرف', 'error');
-        return;
-    }
+        if (balance.net <= 0) {
+            showToast('لا يوجد راتب مستحق للصرف', 'error');
+            return;
+        }
 
-    if (!confirm(`هل تريد صرف راتب ${emp.name}؟\nالمبلغ: ${balance.net.toLocaleString()} د.ع`)) {
-        return;
-    }
+        if (!confirm(`هل تريد صرف راتب ${emp.name}؟\nالمبلغ: ${balance.net.toLocaleString()} د.ع`)) {
+            return;
+        }
 
-    // 1. تسجيل الصرفية من الصندوق
-    await this.addExpense(balance.net, `راتب موظف: ${emp.name}`);
+        // 1. تسجيل الصرفية من الصندوق
+        await this.addExpense(balance.net, `راتب موظف: ${emp.name}`);
 
-    // 2. تصفير الرصيد (نعيد ضبط تاريخ البداية لليوم ونصفر السلف)
-    await updateDoc(doc(db, "employees", emp.firebaseId), {
-        startDate: new Date().toISOString().split('T')[0],
-        advances: 0
-    });
+        // 2. تصفير الرصيد (نعيد ضبط تاريخ البداية لليوم ونصفر السلف)
+        await updateDoc(doc(db, "employees", emp.firebaseId), {
+            startDate: new Date().toISOString().split('T')[0],
+            advances: 0
+        });
 
-    showToast(`تم صرف راتب ${emp.name} بنجاح`);
-},
+        showToast(`تم صرف راتب ${emp.name} بنجاح`);
+    },
 
     // تصفير العدادات وترحيل الحساب (طلب المستخدم)
     async archiveAndReset(empId) {
-    const emp = this.getEmployee(empId);
-    if (!emp) return;
+        const emp = this.getEmployee(empId);
+        if (!emp) return;
 
-    const balance = this.calculateEmployeeBalance(empId);
+        const balance = this.calculateEmployeeBalance(empId);
 
-    // التحقق من أن المبلغ يستحق التصفير (ممكن يكون سالب أو موجب)
-    if (balance.net === 0 && balance.advances === 0) {
-        showToast('لا توجد مبالغ أو سلف لتصفيرها', 'warning');
-        return;
-    }
+        // التحقق من أن المبلغ يستحق التصفير (ممكن يكون سالب أو موجب)
+        if (balance.net === 0 && balance.advances === 0) {
+            showToast('لا توجد مبالغ أو سلف لتصفيرها', 'warning');
+            return;
+        }
 
-    if (!confirm(`هل أنت متأكد من تصفير العدادات وترحيل الحساب للموظف ${emp.name}؟\nسيتم تسجيل صافي المبلغ (${balance.net.toLocaleString()}) في الصندوق.`)) {
-        return;
-    }
+        if (!confirm(`هل أنت متأكد من تصفير العدادات وترحيل الحساب للموظف ${emp.name}؟\nسيتم تسجيل صافي المبلغ (${balance.net.toLocaleString()}) في الصندوق.`)) {
+            return;
+        }
 
-    // 1. تسجيل العملية في الصندوق (سواء صرف أو قبض حسب الإشارة)
-    // إذا كان الصافي موجب (له راتب) -> صرفية
-    // إذا كان الصافي سالب (مطلوب) -> مقبوضات (نظرياً، أو يتم ترحيلها كدين مسدد)
-    // سنعتبرها صرفية بنفس القيمة (موجبة أو سالبة) لضبط الصندوق
-    await this.addExpense(balance.net, `تصفية حساب موظف: ${emp.name}`);
+        // 1. تسجيل العملية في الصندوق (سواء صرف أو قبض حسب الإشارة)
+        // إذا كان الصافي موجب (له راتب) -> صرفية
+        // إذا كان الصافي سالب (مطلوب) -> مقبوضات (نظرياً، أو يتم ترحيلها كدين مسدد)
+        // سنعتبرها صرفية بنفس القيمة (موجبة أو سالبة) لضبط الصندوق
+        await this.addExpense(balance.net, `تصفية حساب موظف: ${emp.name}`);
 
-    // 2. تصفير العدادات
-    await updateDoc(doc(db, "employees", emp.firebaseId), {
-        startDate: new Date().toISOString().split('T')[0],
-        advances: 0
-    });
+        // 2. تصفير العدادات
+        await updateDoc(doc(db, "employees", emp.firebaseId), {
+            startDate: new Date().toISOString().split('T')[0],
+            advances: 0
+        });
 
-    showToast(`تم تصفير عدادات ${emp.name} وترحيل الحساب بنجاح`);
-},
+        showToast(`تم تصفير عدادات ${emp.name} وترحيل الحساب بنجاح`);
+    },
 
-// حساب رصيد الموظف الحالي
-calculateEmployeeBalance(empId) {
-    const emp = this.getEmployee(empId);
-    // ندعم dailySalary (حسب الهيكلة القديمة والجديدة)
-    // الراتب المخزن هو "اليومي" (الأسبوعي / 7)
-    if (!emp || !emp.dailySalary) return 0;
+    // حساب رصيد الموظف الحالي
+    calculateEmployeeBalance(empId) {
+        const emp = this.getEmployee(empId);
+        // ندعم dailySalary (حسب الهيكلة القديمة والجديدة)
+        // الراتب المخزن هو "اليومي" (الأسبوعي / 7)
+        if (!emp || !emp.dailySalary) return 0;
 
-    const start = new Date(emp.startDate || emp.createdAt);
-    const now = new Date();
+        const start = new Date(emp.startDate || emp.createdAt);
+        const now = new Date();
 
-    // حساب عدد الأيام (الفرق بالملي ثانية / ملي ثانية اليوم)
-    const diffTime = Math.abs(now - start);
-    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        // حساب عدد الأيام (الفرق بالملي ثانية / ملي ثانية اليوم)
+        const diffTime = Math.abs(now - start);
+        let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    // --- تعديل (طلب المستخدم): الدوام من 6 مساءً (18:00) ---
-    // إذا كان الوقت الحالي قبل الساعة 18:00، لا نحسب "اليوم الحالي" ضمن الأيام المستحقة
-    // هذا يعني أن الراتب "ينزل" أو يُضاف لحساب الموظف عند حلول الساعة 6 مساءً
-    if (now.getHours() < 18) {
-        diffDays = Math.max(0, diffDays - 1);
-    }
+        // --- تعديل (طلب المستخدم): الدوام من 6 مساءً (18:00) ---
+        // إذا كان الوقت الحالي قبل الساعة 18:00، لا نحسب "اليوم الحالي" ضمن الأيام المستحقة
+        // هذا يعني أن الراتب "ينزل" أو يُضاف لحساب الموظف عند حلول الساعة 6 مساءً
+        if (now.getHours() < 18) {
+            diffDays = Math.max(0, diffDays - 1);
+        }
 
-    // الراتب المستحق = الأيام * الراتب اليومي
-    const totalEarned = diffDays * parseFloat(emp.dailySalary);
+        // الراتب المستحق = الأيام * الراتب اليومي
+        const totalEarned = diffDays * parseFloat(emp.dailySalary);
 
-    // الراتب الصافي = المستحق - السلف
-    const netBalance = totalEarned - (parseFloat(emp.advances) || 0);
+        // الراتب الصافي = المستحق - السلف
+        const netBalance = totalEarned - (parseFloat(emp.advances) || 0);
 
-    return {
-        days: diffDays,
-        earned: totalEarned,
-        advances: (parseFloat(emp.advances) || 0),
-        net: netBalance
-    };
-},
+        return {
+            days: diffDays,
+            earned: totalEarned,
+            advances: (parseFloat(emp.advances) || 0),
+            net: netBalance
+        };
+    },
 
-getStats() {
-    const subs = localData.subscribers;
-    const totalDebts = subs.reduce((sum, s) => sum + (parseInt(s.price) || 0), 0);
-    const today = new Date(); today.setHours(0, 0, 0, 0);
+    getStats() {
+        const subs = localData.subscribers;
+        const totalDebts = subs.reduce((sum, s) => sum + (parseInt(s.price) || 0), 0);
+        const today = new Date(); today.setHours(0, 0, 0, 0);
 
-    return {
-        totalSubs: subs.length,
-        debts: totalDebts,
-        boxBalance: this.getDailyBalance(),
-        expired: subs.filter(s => s.expiryDate && new Date(s.expiryDate) < today).length,
-        expiring: subs.filter(s => {
-            if (!s.expiryDate) return false;
-            const d = new Date(s.expiryDate);
-            const diffTime = d - today;
-            const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return days > 0 && days <= 3;
-        }).length
-    };
-},
+        return {
+            totalSubs: subs.length,
+            debts: totalDebts,
+            boxBalance: this.getDailyBalance(),
+            expired: subs.filter(s => s.expiryDate && new Date(s.expiryDate) < today).length,
+            expiring: subs.filter(s => {
+                if (!s.expiryDate) return false;
+                const d = new Date(s.expiryDate);
+                const diffTime = d - today;
+                const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return days > 0 && days <= 3;
+            }).length
+        };
+    },
 
 
 
     // إعطاء مكافأة مباشرة للموظف
     async giveBonus(empId, amount, reason = 'مكافأة') {
-    const emp = this.getEmployee(empId);
-    if (!emp) return;
+        const emp = this.getEmployee(empId);
+        if (!emp) return;
 
-    const bonusAmount = parseFloat(amount);
-    if (bonusAmount <= 0) return;
+        const bonusAmount = parseFloat(amount);
+        if (bonusAmount <= 0) return;
 
-    // 1. إضافة المكافأة لسجل الموظف
-    const currentRewards = parseFloat(emp.rewards || 0);
-    await updateDoc(doc(db, "employees", emp.firebaseId), {
-        rewards: currentRewards + bonusAmount
-    });
+        // 1. إضافة المكافأة لسجل الموظف
+        const currentRewards = parseFloat(emp.rewards || 0);
+        await updateDoc(doc(db, "employees", emp.firebaseId), {
+            rewards: currentRewards + bonusAmount
+        });
 
-    // 2. تسجيل الصرفية من الصندوق
-    await this.addExpense(bonusAmount, `مكافأة: ${emp.name} - ${reason}`);
+        // 2. تسجيل الصرفية من الصندوق
+        await this.addExpense(bonusAmount, `مكافأة: ${emp.name} - ${reason}`);
 
-    showToast(`🎁 تم صرف مكافأة ${bonusAmount.toLocaleString()} د.ع لـ ${emp.name}`);
-},
+        showToast(`🎁 تم صرف مكافأة ${bonusAmount.toLocaleString()} د.ع لـ ${emp.name}`);
+    },
 
 
 };
