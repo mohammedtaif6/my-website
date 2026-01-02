@@ -96,8 +96,8 @@
 
                 <div class="form-grid">
                     <div class="form-group" style="margin:0">
-                        <label>الراتب اليومي</label>
-                        <input type="number" id="emp-daily-salary" placeholder="10000" class="compact-input">
+                        <label>الراتب الأسبوعي</label>
+                        <input type="number" id="emp-daily-salary" placeholder="70000" class="compact-input">
                     </div>
                     <div class="form-group" style="margin:0">
                         <label>كلمة السر</label>
@@ -135,326 +135,330 @@
                     style="width: 100%; margin-top: 20px;">حفظ البيانات</button>
             </div>
         </div>
-        <!-- Modal: Employee History -->
-        <div id="empHistoryModal" class="modal-overlay">
-            <div class="modal-box">
-                <div class="modal-header">
-                    <h3>سجل السحوبات - <span id="histEmpName"></span></h3>
-                    <button class="close-btn" onclick="closeHistoryModal()">&times;</button>
+    </div>
+
+    <!-- Modal: Employee History -->
+    <div id="empHistoryModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>سجل السحوبات - <span id="histEmpName"></span></h3>
+                <button class="close-btn" onclick="closeHistoryModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <div style="padding: 15px; background: #f8f9fa; border-bottom: 1px solid #eee;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span>إجمالي المسحوب:</span>
+                        <span id="histTotal" style="font-weight: bold; color: red;">0</span>
+                    </div>
                 </div>
-                <div class="modal-body" style="padding: 0;">
-                    <div style="padding: 15px; background: #f8f9fa; border-bottom: 1px solid #eee;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                            <span>إجمالي المسحوب:</span>
-                            <span id="histTotal" style="font-weight: bold; color: red;">0</span>
-                        </div>
-                    </div>
-                    <div style="max-height: 300px; overflow-y: auto;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <thead style="background: #eee; font-size: 0.85rem; position: sticky; top: 0;">
-                                <tr>
-                                    <th style="padding: 10px; text-align: right;">التاريخ</th>
-                                    <th style="padding: 10px; text-align: right;">المبلغ</th>
-                                    <th style="padding: 10px; text-align: right;">السبب</th>
-                                </tr>
-                            </thead>
-                            <tbody id="historyTableBody"></tbody>
-                        </table>
-                    </div>
+                <div style="max-height: 300px; overflow-y: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead style="background: #eee; font-size: 0.85rem; position: sticky; top: 0;">
+                            <tr>
+                                <th style="padding: 10px; text-align: right;">التاريخ</th>
+                                <th style="padding: 10px; text-align: right;">المبلغ</th>
+                                <th style="padding: 10px; text-align: right;">السبب</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody"></tbody>
+                    </table>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Modal صرفية سريعة -->
-        <div id="quickExpenseModal" class="modal-overlay">
-            <div class="modal-box" style="max-width: 400px;">
-                <div class="modal-header">
-                    <h3 id="expenseModalTitle">صرفية سريعة</h3>
-                    <button class="close-btn" onclick="window.closeQuickExpense()">&times;</button>
+    <!-- Modal صرفية سريعة -->
+    <div id="quickExpenseModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3 id="expenseModalTitle">صرفية سريعة</h3>
+                <button class="close-btn" onclick="window.closeQuickExpense()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="qe-emp-id">
+                <input type="hidden" id="qe-emp-name">
+
+                <div class="form-group">
+                    <label>المبلغ</label>
+                    <input type="number" id="qe-amount" placeholder="0" class="compact-input"
+                        style="font-size: 1.2rem; font-weight: bold;">
                 </div>
-                <div class="modal-body">
-                    <input type="hidden" id="qe-emp-id">
-                    <input type="hidden" id="qe-emp-name">
 
-                    <div class="form-group">
-                        <label>المبلغ</label>
-                        <input type="number" id="qe-amount" placeholder="0" class="compact-input"
-                            style="font-size: 1.2rem; font-weight: bold;">
-                    </div>
-
-                    <div class="form-group">
-                        <label>التفاصيل (السبب)</label>
-                        <input type="text" id="qe-desc" placeholder="مثلاً: وجبة غداء" class="compact-input">
-                    </div>
-
-                    <div class="form-group"
-                        style="background: #fff3e0; padding: 15px; border-radius: 10px; border: 1px solid #ffe0b2;">
-                        <label class="checkbox-label" style="margin:0; font-weight: bold; color: #e65100;">
-                            <input type="checkbox" id="qe-deduct"> خصم من الراتب (سلفة)
-                        </label>
-                        <p style="font-size: 0.8rem; color: #ef6c00; margin-top: 5px;">عند التفعيل، سيتم خصم المبلغ من
-                            راتب
-                            الموظف.</p>
-                    </div>
-
-                    <button onclick="window.saveQuickExpense()" class="btn btn-warning btn-full"
-                        style="margin-top: 10px;">
-                        <i class="fas fa-save"></i> حفظ الصرفية
-                    </button>
+                <div class="form-group">
+                    <label>التفاصيل (السبب)</label>
+                    <input type="text" id="qe-desc" placeholder="مثلاً: وجبة غداء" class="compact-input">
                 </div>
+
+                <div class="form-group"
+                    style="background: #fff3e0; padding: 15px; border-radius: 10px; border: 1px solid #ffe0b2;">
+                    <label class="checkbox-label" style="margin:0; font-weight: bold; color: #e65100;">
+                        <input type="checkbox" id="qe-deduct"> خصم من الراتب (سلفة)
+                    </label>
+                    <p style="font-size: 0.8rem; color: #ef6c00; margin-top: 5px;">عند التفعيل، سيتم خصم المبلغ من
+                        راتب
+                        الموظف.</p>
+                </div>
+
+                <button onclick="window.saveQuickExpense()" class="btn btn-warning btn-full" style="margin-top: 10px;">
+                    <i class="fas fa-save"></i> حفظ الصرفية
+                </button>
             </div>
         </div>
+    </div>
 
-        <!-- Modal المكافأة -->
-        <div id="bonusModal" class="modal-overlay">
-            <div class="modal-box" style="max-width: 450px;">
-                <div class="modal-header">
-                    <h3 id="bonusModalTitle">🎁 مكافأة موظف</h3>
-                    <button class="close-btn" onclick="window.closeBonusModal()">&times;</button>
+    <!-- Modal المكافأة -->
+    <div id="bonusModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3 id="bonusModalTitle">🎁 مكافأة موظف</h3>
+                <button class="close-btn" onclick="window.closeBonusModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="bonus-emp-id">
+                <input type="hidden" id="bonus-emp-name">
+
+                <div class="form-group">
+                    <label>الموظف</label>
+                    <input type="text" id="bonus-emp-display" disabled style="background:#f5f5f5; font-weight:bold;">
                 </div>
-                <div class="modal-body">
-                    <input type="hidden" id="bonus-emp-id">
-                    <input type="hidden" id="bonus-emp-name">
 
-                    <div class="form-group">
-                        <label>الموظف</label>
-                        <input type="text" id="bonus-emp-display" disabled
-                            style="background:#f5f5f5; font-weight:bold;">
-                    </div>
-
-                    <div class="form-group">
-                        <label>المبلغ</label>
-                        <input type="number" id="bonus-amount" placeholder="0" min="0" class="compact-input">
-                    </div>
-
-                    <div class="form-group">
-                        <label>السبب (اختياري)</label>
-                        <input type="text" id="bonus-reason" placeholder="مثلاً: تحفيز، إنجاز متميز..."
-                            class="compact-input">
-                    </div>
-
-                    <div
-                        style="background:#e8f5e9; padding:12px; border-radius:8px; margin-bottom:15px; font-size:0.9rem; color:#2e7d32;">
-                        <i class="fas fa-info-circle"></i> المكافأة ستُصرف فوراً من الصندوق
-                    </div>
-
-                    <button onclick="window.saveBonus()" class="btn btn-full"
-                        style="background:#ff9800; color:white; margin-top: 10px;">
-                        <i class="fas fa-gift"></i> صرف المكافأة
-                    </button>
+                <div class="form-group">
+                    <label>المبلغ</label>
+                    <input type="number" id="bonus-amount" placeholder="0" min="0" class="compact-input">
                 </div>
+
+                <div class="form-group">
+                    <label>السبب (اختياري)</label>
+                    <input type="text" id="bonus-reason" placeholder="مثلاً: تحفيز، إنجاز متميز..."
+                        class="compact-input">
+                </div>
+
+                <div
+                    style="background:#e8f5e9; padding:12px; border-radius:8px; margin-bottom:15px; font-size:0.9rem; color:#2e7d32;">
+                    <i class="fas fa-info-circle"></i> المكافأة ستُصرف فوراً من الصندوق
+                </div>
+
+                <button onclick="window.saveBonus()" class="btn btn-full"
+                    style="background:#ff9800; color:white; margin-top: 10px;">
+                    <i class="fas fa-gift"></i> صرف المكافأة
+                </button>
             </div>
         </div>
+    </div>
 
-        <!-- Custom CSS for Employees Page -->
-        <style>
-            .employees-container {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-                gap: 20px;
-                padding: 20px 0;
+    <!-- Custom CSS for Employees Page -->
+    <style>
+        .employees-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+
+
+        /* Modern Card Styling */
+        .emp-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            /* Soft Shadow */
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            /* Clickable */
+        }
+
+        .emp-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--primary), #6dd5ed);
+        }
+
+        .emp-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        /* Avatar Placeholder */
+        .emp-avatar {
+            width: 60px;
+            height: 60px;
+            background: #e3f2fd;
+            color: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            border: 2px solid white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .emp-detail {
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Smart Stats Bar */
+        .stats-bar {
+            background: #f1f2f6;
+            border-radius: 8px;
+            margin: 15px 0;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: #888;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .stat-val {
+            font-weight: bold;
+            color: #333;
+            font-size: 0.95rem;
+        }
+
+        .emp-salary-badge {
+            background: #e0f2f1;
+            color: #00695c;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .checkbox-label {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            border: 1px solid #eee;
+        }
+
+        .checkbox-label:hover {
+            background: #e3f2fd;
+        }
+
+        .perms-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .perm-tag {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+        }
+    </style>
+
+    <script>
+        // تحميل الموظفين
+        setInterval(() => {
+            if (typeof DataManager !== 'undefined') renderEmployees();
+        }, 1000);
+
+        function renderEmployees() {
+            // نأكد من أن DataManager محمل
+            if (typeof DataManager === 'undefined') {
+                console.warn('DataManager not loaded yet');
+                return;
             }
 
+            const list = DataManager.getEmployees();
+            // Check Admin Status
+            const userIsAdmin = AuthSystem && AuthSystem.currentUser && AuthSystem.currentUser.type === 'admin';
 
+            const container = document.getElementById('employees-grid');
+            if (!container) return;
 
-            /* Modern Card Styling */
-            .emp-card {
-                background: rgba(255, 255, 255, 0.95);
-                border-radius: 20px;
-                padding: 20px;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-                /* Soft Shadow */
-                transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-                border: 1px solid rgba(0, 0, 0, 0.05);
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-                position: relative;
-                overflow: hidden;
-                cursor: pointer;
-                /* Clickable */
+            if (!list || list.length === 0) {
+                container.innerHTML = '<p style="grid-column: 1/-1; text-align:center;">لا يوجد موظفين حالياً</p>';
+                return;
             }
 
-            .emp-card::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 6px;
-                background: linear-gradient(90deg, var(--primary), #6dd5ed);
-            }
+            // Safe formatting helper
+            const fmt = (n) => {
+                try {
+                    const num = parseInt(n);
+                    return isNaN(num) ? '0' : num.toLocaleString();
+                } catch (e) { return '0'; }
+            };
 
-            .emp-card:hover {
-                transform: translateY(-8px) scale(1.02);
-                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
-            }
+            container.innerHTML = list.map(e => {
+                try {
+                    const perms = e.permissions || {};
+                    let balance = { earned: 0, advances: 0, net: 0 };
 
-            /* Avatar Placeholder */
-            .emp-avatar {
-                width: 60px;
-                height: 60px;
-                background: #e3f2fd;
-                color: var(--primary);
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 1.5rem;
-                margin-bottom: 15px;
-                border: 2px solid white;
-                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            }
-
-            .emp-detail {
-                font-size: 0.9rem;
-                margin-bottom: 5px;
-                color: #666;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-
-            /* Smart Stats Bar */
-            .stats-bar {
-                background: #f1f2f6;
-                border-radius: 8px;
-                margin: 15px 0;
-                padding: 12px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-
-            .stat-item {
-                text-align: center;
-            }
-
-            .stat-label {
-                font-size: 0.7rem;
-                color: #888;
-                display: block;
-            }
-
-            .stat-val {
-                font-weight: bold;
-                color: #333;
-                font-size: 0.95rem;
-            }
-
-            .emp-salary-badge {
-                background: #e0f2f1;
-                color: #00695c;
-                padding: 5px 10px;
-                border-radius: 20px;
-                font-size: 0.8rem;
-                font-weight: bold;
-                display: inline-block;
-            }
-
-            .actions {
-                margin-top: 20px;
-                display: flex;
-                gap: 10px;
-                border-top: 1px solid #eee;
-                padding-top: 15px;
-            }
-
-            .checkbox-label {
-                background: #f8f9fa;
-                border-radius: 8px;
-                padding: 10px;
-                margin-bottom: 8px;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                cursor: pointer;
-                border: 1px solid #eee;
-            }
-
-            .checkbox-label:hover {
-                background: #e3f2fd;
-            }
-
-            .perms-tags {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 5px;
-                margin-top: 10px;
-            }
-
-            .perm-tag {
-                background: #e3f2fd;
-                color: #1565c0;
-                padding: 2px 8px;
-                border-radius: 10px;
-                font-size: 0.8rem;
-            }
-        </style>
-
-        <script>
-            // تحميل الموظفين
-            setInterval(() => {
-                if (typeof DataManager !== 'undefined') renderEmployees();
-            }, 1000);
-
-            function renderEmployees() {
-                // نأكد من أن DataManager محمل
-                if (typeof DataManager === 'undefined') {
-                    console.warn('DataManager not loaded yet');
-                    return;
-                }
-
-                const list = DataManager.getEmployees();
-                // Check Admin Status
-                const userIsAdmin = AuthSystem && AuthSystem.currentUser && AuthSystem.currentUser.type === 'admin';
-
-                const container = document.getElementById('employees-grid');
-                if (!container) return;
-
-                if (!list || list.length === 0) {
-                    container.innerHTML = '<p style="grid-column: 1/-1; text-align:center;">لا يوجد موظفين حالياً</p>';
-                    return;
-                }
-
-                // Safe formatting helper
-                const fmt = (n) => {
                     try {
-                        const num = parseInt(n);
-                        return isNaN(num) ? '0' : num.toLocaleString();
-                    } catch (e) { return '0'; }
-                };
-
-                container.innerHTML = list.map(e => {
-                    try {
-                        const perms = e.permissions || {};
-                        let balance = { earned: 0, advances: 0, net: 0 };
-
-                        try {
-                            const calculated = DataManager.calculateEmployeeBalance(e.id);
-                            if (calculated) {
-                                balance.earned = calculated.earned || 0;
-                                balance.advances = calculated.advances || 0;
-                                balance.net = calculated.net || 0;
-                            }
-                        } catch (err) {
-                            console.error('Error calculating balance loop:', err);
+                        const calculated = DataManager.calculateEmployeeBalance(e.id);
+                        if (calculated) {
+                            balance.earned = calculated.earned || 0;
+                            balance.advances = calculated.advances || 0;
+                            balance.net = calculated.net || 0;
                         }
+                    } catch (err) {
+                        console.error('Error calculating balance loop:', err);
+                    }
 
-                        let tags = '';
-                        if (perms.subscribers) tags += `<span class="perm-tag">المشتركين</span>`;
-                        if (perms.debts) tags += `<span class="perm-tag">الديون</span>`;
-                        if (perms.reports) tags += `<span class="perm-tag">التقارير</span>`;
-                        if (perms.expenses) tags += `<span class="perm-tag">المصاريف</span>`;
+                    let tags = '';
+                    if (perms.subscribers) tags += `<span class="perm-tag">المشتركين</span>`;
+                    if (perms.debts) tags += `<span class="perm-tag">الديون</span>`;
+                    if (perms.reports) tags += `<span class="perm-tag">التقارير</span>`;
+                    if (perms.expenses) tags += `<span class="perm-tag">المصاريف</span>`;
 
-                        return `
+                    // تحويل الراتب اليومي إلى أسبوعي للعرض
+                    const weeklySalary = Math.round((e.dailySalary || 0) * 7);
+
+                    return `
                         <div class="emp-card" onclick="openHistory('${e.id}', '${e.name}')">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                                 <div class="emp-avatar">
                                     <i class="fas fa-user-tie"></i>
                                 </div>
                                 <div class="emp-salary-badge">
-                                    ${fmt(e.dailySalary)} د.ع / يوم
+                                    ${fmt(weeklySalary)} د.ع / أسبوع
                                 </div>
                             </div>
 
@@ -481,224 +485,239 @@
                                 ${tags ? `<div class="perms-tags" style="margin-top:15px;">${tags}</div>` : ''}
                             </div>
                             
-                            <div class="actions" onclick="event.stopPropagation();" style="border-top: 1px solid #f1f5f9; padding-top:15px; margin-top:15px; display:flex; gap:8px;">
+                            <div class="actions" onclick="event.stopPropagation();" style="border-top: 1px solid #f1f5f9; padding-top:15px; margin-top:15px; display:flex; gap:8px; flex-wrap:wrap;">
                                 <button onclick="window.openQuickExpense('${e.id}', '${e.name}')" class="btn btn-sm" style="background:#fff7ed; color:#c2410c; border:1px solid #ffedd5; flex:1; border-radius:10px;"><i class="fas fa-wallet"></i> سلفة</button>
                                 <button onclick="window.paySalary(${e.id})" class="btn btn-sm" style="background:#f0fdf4; color:#15803d; border:1px solid #dcfce7; flex:1; border-radius:10px; font-weight:bold;"><i class="fas fa-money-check-alt"></i> راتب</button>
+                                <button onclick="window.archiveAndReset(${e.id})" class="btn btn-sm" style="background:#fefce8; color:#a16207; border:1px solid #fef08a; flex:100%; border-radius:10px; font-weight:bold; margin-top:5px;"><i class="fas fa-archive"></i> تصفير وترحيل</button>
+                                
                                 <button onclick='window.editEmployee(${JSON.stringify(e).replace(/'/g, "&#39;")})' class="btn btn-sm" style="background:#f8fafc; color:#64748b; border:1px solid #e2e8f0; border-radius:10px;"><i class="fas fa-cog"></i></button>
                                 ${userIsAdmin ? `<button onclick="window.deleteEmp(${e.id})" class="btn btn-sm" style="background:#fef2f2; color:#b91c1c; border:1px solid #fee2e2; border-radius:10px;"><i class="fas fa-trash"></i></button>` : ''}
                             </div>
                         </div>`;
 
-                    } catch (itemErr) {
-                        console.error(itemErr);
-                        return '';
-                    }
-                }).join('');
+                } catch (itemErr) {
+                    console.error(itemErr);
+                    return '';
+                }
+            }).join('');
+        }
+
+        // --- History Logic ---
+        window.openHistory = function (empId, empName) {
+            const historyModal = document.getElementById('empHistoryModal');
+            document.getElementById('histEmpName').innerText = empName;
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">جاري التحميل...</td></tr>';
+
+            historyModal.classList.add('active');
+
+            // Fetch History from Transactions (Client-side filtering for simplicity)
+            // Note: DataManager.getAllTransactions() returns all. We filter by desc.
+            const allTxs = DataManager.getAllTransactions();
+
+            // Filter: Type='expense' AND (Description contains "سلفة موظف: NAME" OR Description contains "راتب موظف: NAME")
+            const history = allTxs.filter(t =>
+                t.type === 'expense' &&
+                (t.description.includes(`سلفة موظف: ${empName} `) || t.description.includes(`راتب موظف: ${empName} `) || t.description.includes(empName))
+            ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            const total = history.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+            document.getElementById('histTotal').innerText = total.toLocaleString() + ' د.ع';
+
+            tbody.innerHTML = history.length ? history.map(t => {
+                const date = new Date(t.createdAt).toLocaleDateString('ar-IQ');
+                const isSalary = t.description.includes('راتب');
+                const color = isSalary ? 'green' : 'red';
+                const label = isSalary ? 'صرف راتب' : 'سلفة / خصم';
+
+                return `
+                        <tr style="border-bottom:1px solid #eee;">
+                    <td style="padding:10px;">${date}</td>
+                    <td style="padding:10px; font-weight:bold; color:${color};" dir="ltr">${Math.abs(t.amount).toLocaleString()}</td>
+                    <td style="padding:10px; font-size:0.85rem; color:#666;">${t.description.split(':').pop() || t.description}</td>
+                </tr>
+                        `;
+            }).join('') : '<tr><td colspan="3" style="text-align:center; padding:10px;">لا يوجد سجل سحوبات</td></tr>';
+        };
+
+        window.closeHistoryModal = () => document.getElementById('empHistoryModal').classList.remove('active');
+
+        // --- إدارة المودال ---
+        function openEmployeeModal() {
+            const m = document.getElementById('empModal');
+            if (m) {
+                document.getElementById('emp-id').value = '';
+                document.getElementById('emp-name').value = '';
+                document.getElementById('emp-phone').value = '';
+                document.getElementById('emp-pass').value = '';
+                document.getElementById('emp-daily-salary').value = '70000'; // قيمة افتراضية أسبوعية
+                // تصفير الصلاحيات
+                document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
+                document.getElementById('modalTitle').innerText = 'موظف جديد';
+                m.classList.add('active');
+            } else {
+                console.error("Modal not found");
             }
+        }
 
-            // --- History Logic ---
-            window.openHistory = function (empId, empName) {
-                const historyModal = document.getElementById('empHistoryModal');
-                document.getElementById('histEmpName').innerText = empName;
-                const tbody = document.getElementById('historyTableBody');
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">جاري التحميل...</td></tr>';
+        window.closeModal = function () {
+            const m = document.getElementById('empModal');
+            if (m) m.classList.remove('active');
+        };
 
-                historyModal.classList.add('active');
+        window.editEmployee = (e) => {
+            const m = document.getElementById('empModal');
+            document.getElementById('emp-id').value = e.id;
+            document.getElementById('emp-name').value = e.name;
+            document.getElementById('emp-phone').value = e.phone;
+            document.getElementById('emp-pass').value = e.password;
 
-                // Fetch History from Transactions (Client-side filtering for simplicity)
-                // Note: DataManager.getAllTransactions() returns all. We filter by desc.
-                const allTxs = DataManager.getAllTransactions();
+            // تحويل Daily إلى Weekly للعرض في الـ Input
+            const weekly = Math.round((e.dailySalary || 0) * 7);
+            document.getElementById('emp-daily-salary').value = weekly;
 
-                // Filter: Type='expense' AND (Description contains "سلفة موظف: NAME" OR Description contains "راتب موظف: NAME")
-                const history = allTxs.filter(t =>
-                    t.type === 'expense' &&
-                    (t.description.includes(`سلفة موظف: ${empName} `) || t.description.includes(`راتب موظف: ${empName} `) || t.description.includes(empName))
-                ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            const p = e.permissions || {};
+            document.getElementById('perm-subscribers').checked = p.subscribers;
+            document.getElementById('perm-debts').checked = p.debts;
+            document.getElementById('perm-payments').checked = p.payments;
+            document.getElementById('perm-reports').checked = p.reports;
+            document.getElementById('perm-expenses').checked = p.expenses;
 
-                const total = history.reduce((sum, t) => sum + Math.abs(t.amount), 0);
-                document.getElementById('histTotal').innerText = total.toLocaleString() + ' د.ع';
+            document.getElementById('modalTitle').innerText = 'تعديل موظف';
+            if (m) m.classList.add('active');
+        };
 
-                tbody.innerHTML = history.length ? history.map(t => {
-                    const date = new Date(t.createdAt).toLocaleDateString('ar-IQ');
-                    const isSalary = t.description.includes('راتب');
-                    const color = isSalary ? 'green' : 'red';
-                    const label = isSalary ? 'صرف راتب' : 'سلفة / خصم';
+        window.saveEmployee = async () => {
+            const id = document.getElementById('emp-id').value;
 
-                    return `
-                            < tr style = "border-bottom:1px solid #eee;" >
-                        <td style="padding:10px;">${date}</td>
-                        <td style="padding:10px; font-weight:bold; color:${color};" dir="ltr">${Math.abs(t.amount).toLocaleString()}</td>
-                        <td style="padding:10px; font-size:0.85rem; color:#666;">${t.description.split(':').pop() || t.description}</td>
-                    </tr >
-                            `;
-                }).join('') : '<tr><td colspan="3" style="text-align:center; padding:10px;">لا يوجد سجل سحوبات</td></tr>';
+            // تحويل Weekly Input إلى Daily للحفظ
+            const weeklyInput = parseFloat(document.getElementById('emp-daily-salary').value) || 0;
+            const dailyVal = weeklyInput / 7;
+
+            const data = {
+                name: document.getElementById('emp-name').value,
+                phone: document.getElementById('emp-phone').value,
+                password: document.getElementById('emp-pass').value,
+                dailySalary: dailyVal,
+                permissions: {
+                    subscribers: document.getElementById('perm-subscribers').checked,
+                    debts: document.getElementById('perm-debts').checked,
+                    payments: document.getElementById('perm-payments').checked,
+                    reports: document.getElementById('perm-reports').checked,
+                    expenses: document.getElementById('perm-expenses').checked
+                }
             };
 
-            window.closeHistoryModal = () => document.getElementById('empHistoryModal').classList.remove('active');
+            if (!data.name || !data.phone || !data.password) return DataManager.showToast('⚠️ يرجى إكمال جميع البيانات', 'error');
 
-            // --- إدارة المودال ---
-            function openEmployeeModal() {
-                const m = document.getElementById('empModal');
-                if (m) {
-                    document.getElementById('emp-id').value = '';
-                    document.getElementById('emp-name').value = '';
-                    document.getElementById('emp-phone').value = '';
-                    document.getElementById('emp-pass').value = '';
-                    document.getElementById('emp-daily-salary').value = '10000'; // قيمة افتراضية
-                    // تصفير الصلاحيات
-                    document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
-                    document.getElementById('modalTitle').innerText = 'موظف جديد';
-                    m.classList.add('active');
-                } else {
-                    console.error("Modal not found");
-                }
+            if (id) {
+                await DataManager.updateEmployee(id, data);
+            } else {
+                await DataManager.addEmployee(data);
             }
+            window.closeModal();
+        };
 
-            window.closeModal = function () {
-                const m = document.getElementById('empModal');
-                if (m) m.classList.remove('active');
-            };
+        window.deleteEmp = (id) => DataManager.deleteEmployee(id);
 
-            window.editEmployee = (e) => {
-                const m = document.getElementById('empModal');
-                document.getElementById('emp-id').value = e.id;
-                document.getElementById('emp-name').value = e.name;
-                document.getElementById('emp-phone').value = e.phone;
-                document.getElementById('emp-pass').value = e.password;
-                document.getElementById('emp-daily-salary').value = e.dailySalary || 0;
+        // صرف راتب الموظف
+        window.paySalary = async (id) => {
+            await DataManager.paySalary(id);
+        };
 
-                const p = e.permissions || {};
-                document.getElementById('perm-subscribers').checked = p.subscribers;
-                document.getElementById('perm-debts').checked = p.debts;
-                document.getElementById('perm-payments').checked = p.payments;
-                document.getElementById('perm-reports').checked = p.reports;
-                document.getElementById('perm-expenses').checked = p.expenses;
+        // تصفير وترحيل
+        window.archiveAndReset = async (id) => {
+            await DataManager.archiveAndReset(id);
+        };
 
-                document.getElementById('modalTitle').innerText = 'تعديل موظف';
-                if (m) m.classList.add('active');
-            };
-
-            window.saveEmployee = async () => {
-                const id = document.getElementById('emp-id').value;
-                const data = {
-                    name: document.getElementById('emp-name').value,
-                    phone: document.getElementById('emp-phone').value,
-                    password: document.getElementById('emp-pass').value,
-                    dailySalary: document.getElementById('emp-daily-salary').value,
-                    permissions: {
-                        subscribers: document.getElementById('perm-subscribers').checked,
-                        debts: document.getElementById('perm-debts').checked,
-                        payments: document.getElementById('perm-payments').checked,
-                        reports: document.getElementById('perm-reports').checked,
-                        expenses: document.getElementById('perm-expenses').checked
-                    }
-                };
-
-                if (!data.name || !data.phone || !data.password) return DataManager.showToast('⚠️ يرجى إكمال جميع البيانات', 'error');
-
-                if (id) {
-                    await DataManager.updateEmployee(id, data);
-                } else {
-                    await DataManager.addEmployee(data);
-                }
-                window.closeModal();
-            };
-
-            window.deleteEmp = (id) => DataManager.deleteEmployee(id);
-
-            // صرف راتب الموظف
-            window.paySalary = async (id) => {
-                await DataManager.paySalary(id);
-            };
-
-            // --- إدارة مودال المكافأة ---
-            window.openBonusModal = (id, name) => {
-                const m = document.getElementById('bonusModal');
-                if (m) {
-                    document.getElementById('bonus-emp-id').value = id;
-                    document.getElementById('bonus-emp-name').value = name;
-                    document.getElementById('bonus-emp-display').value = name;
-                    document.getElementById('bonus-amount').value = '';
-                    document.getElementById('bonus-reason').value = '';
-                    m.classList.add('active');
-                    setTimeout(() => document.getElementById('bonus-amount').focus(), 100);
-                }
-            };
-
-            window.closeBonusModal = () => {
-                document.getElementById('bonusModal').classList.remove('active');
-            };
-
-            window.saveBonus = async () => {
-                const id = document.getElementById('bonus-emp-id').value;
-                const name = document.getElementById('bonus-emp-name').value;
-                const amount = document.getElementById('bonus-amount').value;
-                const reason = document.getElementById('bonus-reason').value || 'مكافأة';
-
-                if (!amount || amount <= 0) return DataManager.showToast('⚠️ يرجى إدخال مبلغ صحيح', 'error');
-
-                await DataManager.giveBonus(id, amount, reason);
-                window.closeBonusModal();
-            };
-
-            // --- إدارة مودال الصرفية السريعة ---
-            window.openQuickExpense = (id, name) => {
-                const m = document.getElementById('quickExpenseModal');
-                if (m) {
-                    document.getElementById('qe-emp-id').value = id;
-                    document.getElementById('qe-emp-name').value = name;
-                    document.getElementById('qe-amount').value = '';
-                    document.getElementById('qe-desc').value = '';
-                    document.getElementById('qe-deduct').checked = false; // افتراضياً غير مخصوم
-                    document.getElementById('expenseModalTitle').innerText = `صرفية لـ: ${name} `;
-                    m.classList.add('active');
-                    setTimeout(() => document.getElementById('qe-amount').focus(), 100);
-                }
-            };
-
-            window.closeQuickExpense = () => {
-                document.getElementById('quickExpenseModal').classList.remove('active');
-            };
-
-            window.saveQuickExpense = async () => {
-                const id = document.getElementById('qe-emp-id').value;
-                const name = document.getElementById('qe-emp-name').value;
-                const amount = document.getElementById('qe-amount').value;
-                const desc = document.getElementById('qe-desc').value || 'صرفية سريعة';
-                const deduct = document.getElementById('qe-deduct').checked;
-
-                if (!amount) return DataManager.showToast('⚠️ يرجى إدخال المبلغ', 'error');
-
-                if (deduct) {
-                    // سلفة (خصم من الراتب)
-                    await DataManager.addAdvance(id, amount, desc);
-                } else {
-                    // صرفية عامة (على المحل)
-                    await DataManager.addExpense(amount, `${desc} (بواسطة: ${name})`);
-                }
-                window.closeQuickExpense();
-            };
-
-            // ربط زر الإضافة عند تحميل الصفحة
-            document.addEventListener('DOMContentLoaded', () => {
-                const btn = document.getElementById('btn-add-employee');
-                if (btn) {
-                    btn.addEventListener('click', openEmployeeModal);
-                }
-            });
-
-            // Menu Toggle Logic
-            window.toggleMenu = function () {
-                const nav = document.getElementById('main-nav');
-                const overlay = document.querySelector('.nav-overlay');
-                nav.classList.toggle('active');
-                if (nav.classList.contains('active')) {
-                    document.body.style.overflow = 'hidden';
-                } else {
-                    document.body.style.overflow = '';
-                }
+        // --- إدارة مودال المكافأة ---
+        window.openBonusModal = (id, name) => {
+            const m = document.getElementById('bonusModal');
+            if (m) {
+                document.getElementById('bonus-emp-id').value = id;
+                document.getElementById('bonus-emp-name').value = name;
+                document.getElementById('bonus-emp-display').value = name;
+                document.getElementById('bonus-amount').value = '';
+                document.getElementById('bonus-reason').value = '';
+                m.classList.add('active');
+                setTimeout(() => document.getElementById('bonus-amount').focus(), 100);
             }
-        </script>
+        };
+
+        window.closeBonusModal = () => {
+            document.getElementById('bonusModal').classList.remove('active');
+        };
+
+        window.saveBonus = async () => {
+            const id = document.getElementById('bonus-emp-id').value;
+            const name = document.getElementById('bonus-emp-name').value;
+            const amount = document.getElementById('bonus-amount').value;
+            const reason = document.getElementById('bonus-reason').value || 'مكافأة';
+
+            if (!amount || amount <= 0) return DataManager.showToast('⚠️ يرجى إدخال مبلغ صحيح', 'error');
+
+            await DataManager.giveBonus(id, amount, reason);
+            window.closeBonusModal();
+        };
+
+        // --- إدارة مودال الصرفية السريعة ---
+        window.openQuickExpense = (id, name) => {
+            const m = document.getElementById('quickExpenseModal');
+            if (m) {
+                document.getElementById('qe-emp-id').value = id;
+                document.getElementById('qe-emp-name').value = name;
+                document.getElementById('qe-amount').value = '';
+                document.getElementById('qe-desc').value = '';
+                document.getElementById('qe-deduct').checked = false; // افتراضياً غير مخصوم
+                document.getElementById('expenseModalTitle').innerText = `صرفية لـ: ${name} `;
+                m.classList.add('active');
+                setTimeout(() => document.getElementById('qe-amount').focus(), 100);
+            }
+        };
+
+        window.closeQuickExpense = () => {
+            document.getElementById('quickExpenseModal').classList.remove('active');
+        };
+
+        window.saveQuickExpense = async () => {
+            const id = document.getElementById('qe-emp-id').value;
+            const name = document.getElementById('qe-emp-name').value;
+            const amount = document.getElementById('qe-amount').value;
+            const desc = document.getElementById('qe-desc').value || 'صرفية سريعة';
+            const deduct = document.getElementById('qe-deduct').checked;
+
+            if (!amount) return DataManager.showToast('⚠️ يرجى إدخال المبلغ', 'error');
+
+            if (deduct) {
+                // سلفة (خصم من الراتب)
+                await DataManager.addAdvance(id, amount, desc);
+            } else {
+                // صرفية عامة (على المحل)
+                await DataManager.addExpense(amount, `${desc} (بواسطة: ${name})`);
+            }
+            window.closeQuickExpense();
+        };
+
+        // ربط زر الإضافة عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('btn-add-employee');
+            if (btn) {
+                btn.addEventListener('click', openEmployeeModal);
+            }
+        });
+
+        // Menu Toggle Logic
+        window.toggleMenu = function () {
+            const nav = document.getElementById('main-nav');
+            const overlay = document.querySelector('.nav-overlay');
+            nav.classList.toggle('active');
+            if (nav.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+    </script>
 </body>
 
 </html>

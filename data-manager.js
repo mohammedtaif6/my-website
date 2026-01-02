@@ -429,6 +429,38 @@ export const DataManager = {
         showToast(`تم صرف راتب ${emp.name} بنجاح`);
     },
 
+    // تصفير العدادات وترحيل الحساب (طلب المستخدم)
+    async archiveAndReset(empId) {
+        const emp = this.getEmployee(empId);
+        if (!emp) return;
+
+        const balance = this.calculateEmployeeBalance(empId);
+
+        // التحقق من أن المبلغ يستحق التصفير (ممكن يكون سالب أو موجب)
+        if (balance.net === 0 && balance.advances === 0) {
+            showToast('لا توجد مبالغ أو سلف لتصفيرها', 'warning');
+            return;
+        }
+
+        if (!confirm(`هل أنت متأكد من تصفير العدادات وترحيل الحساب للموظف ${emp.name}؟\nسيتم تسجيل صافي المبلغ (${balance.net.toLocaleString()}) في الصندوق.`)) {
+            return;
+        }
+
+        // 1. تسجيل العملية في الصندوق (سواء صرف أو قبض حسب الإشارة)
+        // إذا كان الصافي موجب (له راتب) -> صرفية
+        // إذا كان الصافي سالب (مطلوب) -> مقبوضات (نظرياً، أو يتم ترحيلها كدين مسدد)
+        // سنعتبرها صرفية بنفس القيمة (موجبة أو سالبة) لضبط الصندوق
+        await this.addExpense(balance.net, `تصفية حساب موظف: ${emp.name}`);
+
+        // 2. تصفير العدادات
+        await updateDoc(doc(db, "employees", emp.firebaseId), {
+            startDate: new Date().toISOString().split('T')[0],
+            advances: 0
+        });
+
+        showToast(`تم تصفير عدادات ${emp.name} وترحيل الحساب بنجاح`);
+    },
+
     // حساب رصيد الموظف الحالي
     calculateEmployeeBalance(empId) {
         const emp = this.getEmployee(empId);
