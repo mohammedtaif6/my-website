@@ -4,239 +4,278 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>الاشتراكات الفعالة - نظام الإدارة</title>
+    <title>الاشتراكات الفعالة - OK Computer</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Kufi+Arabic:wght@400;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=25.0">
     <link rel="stylesheet" href="style-fab.css?v=1.0">
     <link rel="stylesheet" href="style-modal.css?v=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="auth-system.js"></script>
-    <script>AuthSystem.checkSession();</script>
-
-    <!-- نظام التحديث التلقائي -->
-
-
     <script type="module">
         import { DataManager } from './data-manager.js?v=21.0';
         window.DataManager = DataManager;
         DataManager.init();
     </script>
 
+    <style>
+        :root {
+            --active-gradient: linear-gradient(135deg, #0cebeb 0%, #20e3b2 50%, #29ffc6 100%);
+            --glass: rgba(255, 255, 255, 0.9);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+
+        body {
+            font-family: 'Noto Kufi Arabic', 'Outfit', sans-serif;
+            background: #f0f2f5;
+        }
+
+        .header-section {
+            background: var(--active-gradient);
+            padding: 40px 20px 60px;
+            border-radius: 0 0 40px 40px;
+            color: #1a535c;
+            text-align: center;
+            margin-bottom: -40px;
+            box-shadow: 0 10px 20px rgba(32, 227, 178, 0.2);
+        }
+
+        .header-section h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .search-container {
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        .search-input-wrapper {
+            background: white;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            padding: 5px 20px;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .active-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            padding: 60px 20px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .active-card {
+            background: var(--glass);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: var(--glass-shadow);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .active-card:hover {
+            transform: translateY(-8px);
+            background: white;
+        }
+
+        .active-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--active-gradient);
+        }
+
+        .days-badge {
+            background: #ecfdf5;
+            color: #059669;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border: 1px solid #a7f3d0;
+        }
+
+        .days-warning {
+            background: #fffbeb;
+            color: #d97706;
+            border-color: #fde68a;
+        }
+
+        .days-danger {
+            background: #fff5f5;
+            color: #e53e3e;
+            border-color: #feb2b2;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 15px;
+            margin-top: 5px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <!-- Mobile Header & Toggle -->
-    <button class="menu-btn" onclick="toggleMenu()">
-        <i class="fas fa-bars"></i>
-    </button>
+    <script>AuthSystem.checkSession();</script>
 
-    <!-- Sidebar / Drawer Navigation -->
+    <button class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+
     <nav class="navbar" id="main-nav">
         <div class="header-card"
             style="margin: 0; background: none; box-shadow: none; border: none; padding: 0 0 20px 0;">
             <div class="logo" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 0;">
-                <i class="fas fa-chart-line"></i> نظام الإدارة
+                <i class="fas fa-chart-line"></i> OK Computer
             </div>
             <button class="close-menu" onclick="toggleMenu()"
                 style="position: absolute; left: 0; top: 0;">&times;</button>
         </div>
-
         <ul class="nav-links">
             <li><a href="index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
-            <li id="nav-subscribers"><a href="subscribers.html"><i class="fas fa-users"></i> المشتركين</a></li>
+            <li><a href="subscribers.html"><i class="fas fa-users"></i> المشتركين</a></li>
             <li><a href="active_subscribers.html" class="active"><i class="fas fa-signal"></i> الفعالين</a></li>
-            <li id="nav-debts"><a href="debts.html"><i class="fas fa-money-bill-wave"></i> الديون</a></li>
-            <li id="nav-payments"><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> الصندوق</a></li>
-            <li id="nav-reports"><a href="reports.html"><i class="fas fa-chart-bar"></i> التقارير</a></li>
-            <li id="nav-employees"><a href="employees.html"><i class="fas fa-users-cog"></i> الموظفين</a></li>
-
-            <li id="nav-telegram"><a href="telegram-settings.html"><i class="fab fa-telegram"></i> Telegram</a></li>
+            <li><a href="expired.html"><i class="fas fa-clock"></i> المنتهية</a></li>
+            <li><a href="debts.html"><i class="fas fa-money-bill-wave"></i> الديون</a></li>
+            <li><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> الصندوق</a></li>
+            <li><a href="reports.html"><i class="fas fa-chart-bar"></i> التقارير</a></li>
+            <li><a href="employees.html"><i class="fas fa-users-cog"></i> الموظفين</a></li>
             <li><a href="#" onclick="AuthSystem.logout()"><i class="fas fa-sign-out-alt"></i> خروج</a></li>
         </ul>
-
         <div class="nav-overlay" onclick="toggleMenu()"></div>
     </nav>
 
+    <div class="header-section">
+        <h1>الاشتراكات الفعالة</h1>
+        <p>مشتركين لديهم اشتراك ساري المفعول <span id="count-badge">0</span></p>
+    </div>
+
     <div class="container">
-        <!-- Minimal Header -->
-        <div class="header-card">
-            <div>
-                <h1>الاشتراكات الفعالة</h1>
-                <p>قائمة بجميع المشتركين الذين لديهم اشتراك ساري المفعول</p>
-            </div>
-            <div>
-                <span class="badge badge-success" style="font-size: 1rem; padding: 10px 15px;">
-                    العدد: <span id="activeCount">0</span>
-                </span>
-            </div>
-        </div>
-
-        <!-- Search with better visibility -->
         <div class="search-container">
-            <div class="search-box">
-                <input type="text" id="activeSearch" placeholder="ابحث باسم المشترك..." onkeyup="renderActivePage()">
-                <i class="fas fa-search"></i>
+            <div class="search-input-wrapper">
+                <i class="fas fa-search" style="color:#888; margin-left:10px;"></i>
+                <input type="text" id="searchInput" placeholder="بحث باسم المشترك أو الهاتف..." onkeyup="renderPage()"
+                    style="border:none; padding:15px; width:100%; outline:none; background:transparent;">
             </div>
         </div>
 
-        <div class="table-container">
-            <div class="table-header">
-                <h3>جدول الصلاحية</h3>
-            </div>
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>الاسم</th>
-                            <th>تاريخ البدء</th>
-                            <th>تاريخ الانتهاء</th>
-                            <th>الأيام المتبقية</th>
-                            <th>الحالة</th>
-                        </tr>
-                    </thead>
-                    <tbody id="activeTableBody"></tbody>
-                </table>
-            </div>
-        </div>
+        <div id="grid" class="active-grid"></div>
     </div>
 
     <script>
         function calculateDaysRemaining(endDateStr) {
             if (!endDateStr) return -999;
-            const end = new Date(endDateStr); // This works for ISO. For DD/MM/YYYY it might fail in some browsers or default to Invalid.
-            // But we handled conversion in render loop.
-            // Let's rely on parsed ISO for this calculation if passed correctly.
+            let isoDate = endDateStr;
+            if (isoDate.indexOf('/') > 0) {
+                const parts = isoDate.split('/');
+                isoDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
+            const end = new Date(isoDate);
             const now = new Date();
-            // Reset time part specifically for accurate day diff
             now.setHours(0, 0, 0, 0);
             end.setHours(0, 0, 0, 0);
-
-            const diffTime = end - now;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays;
+            return Math.ceil((end - now) / (1000 * 60 * 60 * 24));
         }
 
-        window.renderActivePage = function () {
-            if (typeof DataManager === 'undefined') return;
-
-            const q = document.getElementById('activeSearch').value.toLowerCase();
-            const list = DataManager.subscribers || [];
-            const tbody = document.getElementById('activeTableBody');
-
-            // Helper to parse dates robustly (Handles YYYY-MM-DD or DD/MM/YYYY)
-            function parseDateToISO(dStr) {
-                if (!dStr) return null;
-                // If already ISO YYYY-MM-DD (approx check)
-                if (dStr.indexOf('-') === 4) return dStr;
-                // If DD/MM/YYYY
-                if (dStr.indexOf('/') > 0) {
-                    const parts = dStr.split('/');
-                    if (parts.length === 3) {
-                        // parts[0]=DD, parts[1]=MM, parts[2]=YYYY -> YYYY-MM-DD
-                        return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-                    }
-                }
-                return dStr;
-            }
-
-            // ISO Today string for comparison
+        window.renderPage = function () {
+            if (typeof DataManager === 'undefined' || !DataManager.subscribers) return;
+            const q = document.getElementById('searchInput').value.toLowerCase();
             const todayStr = new Date().toISOString().split('T')[0];
+            const now = new Date();
 
-            // Filter: Must be Active + Search
-            let activeSubs = list.filter(s => {
+            const activeSubs = DataManager.subscribers.filter(s => {
                 const rawDate = s.expiryDate || s.endDate;
-                const isoDate = parseDateToISO(rawDate);
+                if (!rawDate) return false;
 
-                if (!isoDate) return false;
+                let isoDate = rawDate;
+                if (isoDate.indexOf('/') > 0) {
+                    const p = isoDate.split('/');
+                    isoDate = `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+                }
 
-                const isActiveByDate = (() => {
-                    if (isoDate > todayStr) return true;
-                    if (isoDate < todayStr) return false;
-                    // If today is the expiry date, check time (4:00 PM rule)
-                    if (isoDate === todayStr) {
-                        const now = new Date();
-                        // Expiry is at 16:00 (4 PM). If checking at 16:01, it is expired.
-                        return now.getHours() < 16;
-                    }
-                    return false;
-                })();
-
-                const matchesSearch = s.name.toLowerCase().includes(q) || (s.phone && s.phone.includes(q));
-
-                // Only return if active AND matches search
-                return isActiveByDate && matchesSearch;
+                const isActive = isoDate > todayStr || (isoDate === todayStr && now.getHours() < 16);
+                const matches = s.name.toLowerCase().includes(q) || (s.phone && s.phone.includes(q));
+                return isActive && matches;
             });
 
-            // Sort by Date (ASC) -> Expiring soonest first
-            activeSubs.sort((a, b) => {
-                const dA = parseDateToISO(a.expiryDate || a.endDate) || '9999-99-99';
-                const dB = parseDateToISO(b.expiryDate || b.endDate) || '9999-99-99';
-                return dA.localeCompare(dB);
-            });
+            activeSubs.sort((a, b) => (a.expiryDate || '').localeCompare(b.expiryDate || ''));
 
-            document.getElementById('activeCount').innerText = activeSubs.length;
-            tbody.innerHTML = '';
+            document.getElementById('count-badge').innerText = activeSubs.length;
+            const grid = document.getElementById('grid');
 
             if (activeSubs.length === 0) {
-                // Helpful message based on total list size
-                if (list.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--text-sub);">جاري تحميل البيانات...</td></tr>';
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--text-sub);">لا توجد اشتراكات فعالة حالياً</td></tr>';
-                }
+                grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#aaa;"><i class="fas fa-search fa-3x"></i><p>لا يوجد اشتراكات فعالة تطابق البحث</p></div>';
                 return;
             }
 
-            tbody.innerHTML = activeSubs.map(s => {
-                const rawDate = s.expiryDate || s.endDate;
-                const isoDate = parseDateToISO(rawDate);
-
-                // Re-calculate days using the CLEAN ISO date
-                const daysLeft = calculateDaysRemaining(isoDate);
-
-                // Calculate Start Date (Approximate)
-                let startDateDisp = '-';
-                if (isoDate) {
-                    let d = new Date(isoDate);
-                    d.setMonth(d.getMonth() - 1);
-                    startDateDisp = d.toISOString().split('T')[0];
-                }
-
-                let daysClass = daysLeft <= 3 ? 'text-danger' : (daysLeft <= 7 ? 'text-warning' : 'text-success');
-                let daysText = daysLeft + ' يوم';
-                if (daysLeft === 0) daysText = 'اليوم الأخير';
-                if (daysLeft < 0) daysText = 'اليوم الأخير'; // Should not be less than 0 due to filter
+            grid.innerHTML = activeSubs.map(s => {
+                const days = calculateDaysRemaining(s.expiryDate);
+                const badgeClass = days <= 3 ? 'days-danger' : (days <= 7 ? 'days-warning' : '');
+                const dateObj = new Date(s.expiryDate);
+                const readableDate = dateObj.toLocaleDateString('ar-IQ', { day: 'numeric', month: 'long' });
 
                 return `
-                <tr>
-                    <td style="font-weight: bold;">${s.name}</td>
-                    <td dir="ltr" style="text-align:right;">${startDateDisp}</td>
-                    <td dir="ltr" style="text-align:right; font-weight:bold;">${rawDate}</td>
-                    <td class="${daysClass}" style="font-weight:bold;">${daysText}</td>
-                    <td><span class="badge badge-success">فعال</span></td>
-                </tr>
+                    <div class="active-card" onclick="window.location.href='subscribers.html?id=${s.id}'" style="cursor:pointer">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div>
+                                <h3 style="margin:0;">${s.name}</h3>
+                                <p style="margin:5px 0; font-size:0.9rem; color:#666;"><i class="fas fa-phone"></i> ${s.phone || '-'}</p>
+                            </div>
+                            <span class="days-badge ${badgeClass}">${days <= 0 ? 'آخر يوم' : 'متبقي ' + days + ' يوم'}</span>
+                        </div>
+
+                        <div style="background:#f8fafc; padding:15px; border-radius:15px; display:grid; grid-template-columns: 1fr 1fr; gap:10px; font-size:0.85rem;">
+                            <div>
+                                <span style="display:block; color:#94a3b8; font-size:0.7rem; margin-bottom:2px;">ينتهي في</span>
+                                <span style="font-weight:bold; color:#334155;">${readableDate}</span>
+                            </div>
+                            <div style="text-align:left;">
+                                <span style="display:block; color:#94a3b8; font-size:0.7rem; margin-bottom:2px;">الدين</span>
+                                <span style="font-weight:bold; color:${parseInt(s.price) > 0 ? '#ef4444' : '#10b981'};">${(parseInt(s.price) || 0).toLocaleString()} د.ع</span>
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                            <span style="font-size:0.8rem; color:#94a3b8;"><i class="fas fa-id-badge"></i> ID: ${s.id}</span>
+                            <span class="badge badge-success" style="font-size:0.7rem;">نشط الآن</span>
+                        </div>
+                    </div>
                 `;
             }).join('');
         };
 
-        // Run regularly to catch DataManager update
-        setInterval(() => {
-            // تحقق من وجود DataManager وأن subscribers تم تهيئته (حتى لو كان فارغًا)
-            if (typeof DataManager !== 'undefined' && DataManager.subscribers !== undefined) {
-                renderActivePage();
-            }
-        }, 1000);
-        // Menu Toggle Logic
-        window.toggleMenu = function () {
-            const nav = document.getElementById('main-nav');
-            const overlay = document.querySelector('.nav-overlay');
-            nav.classList.toggle('active');
-            if (nav.classList.contains('active')) {
-                document.body.style.overflow = 'hidden';
-            } else {
-                document.body.style.overflow = '';
-            }
-        }
+        window.toggleMenu = () => { document.getElementById('main-nav').classList.toggle('active'); };
+        setInterval(() => { if (typeof DataManager !== 'undefined') renderPage(); }, 3000);
     </script>
 </body>
 

@@ -4,417 +4,300 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>الديون - نظام الإدارة</title>
+    <title>الديون - OK Computer</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Kufi+Arabic:wght@400;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=25.0">
     <link rel="stylesheet" href="style-fab.css?v=1.0">
     <link rel="stylesheet" href="style-modal.css?v=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- إضافة AuthSystem -->
     <script src="auth-system.js"></script>
-    <script>AuthSystem.checkSession();</script>
-
-
     <script type="module">
         import { DataManager } from './data-manager.js?v=21.0';
         window.DataManager = DataManager;
         DataManager.init();
     </script>
+
+    <style>
+        :root {
+            --debt-gradient: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
+            --glass: rgba(255, 255, 255, 0.9);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+
+        body {
+            font-family: 'Noto Kufi Arabic', 'Outfit', sans-serif;
+            background: #f0f2f5;
+        }
+
+        .header-section {
+            background: var(--debt-gradient);
+            padding: 40px 20px 60px;
+            border-radius: 0 0 40px 40px;
+            color: white;
+            text-align: center;
+            margin-bottom: -40px;
+            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.2);
+        }
+
+        .header-section h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .total-debt-box {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: var(--glass-shadow);
+            display: inline-block;
+            margin-top: 15px;
+            border: 2px solid #fee2e2;
+        }
+
+        .debt-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            padding: 60px 20px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .debt-card {
+            background: var(--glass);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: var(--glass-shadow);
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .debt-card:hover {
+            transform: translateY(-5px);
+            background: white;
+        }
+
+        .debt-amount {
+            color: #dc2626;
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .btn-pay {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-wa {
+            background: #25d366;
+            color: white;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .debt-card {
+            animation: fadeIn 0.4s ease-out;
+        }
+    </style>
 </head>
 
 <body>
-    <!-- Mobile Header & Toggle -->
-    <button class="menu-btn" onclick="toggleMenu()">
-        <i class="fas fa-bars"></i>
-    </button>
+    <script>AuthSystem.checkSession();</script>
 
-    <!-- Sidebar / Drawer Navigation -->
+    <button class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+
     <nav class="navbar" id="main-nav">
+        <!-- Reusing Sidebar -->
         <div class="header-card"
             style="margin: 0; background: none; box-shadow: none; border: none; padding: 0 0 20px 0;">
             <div class="logo" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 0;">
-                <i class="fas fa-chart-line"></i> نظام الإدارة
+                <i class="fas fa-chart-line"></i> OK Computer
             </div>
             <button class="close-menu" onclick="toggleMenu()"
                 style="position: absolute; left: 0; top: 0;">&times;</button>
         </div>
-
         <ul class="nav-links">
             <li><a href="index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
-            <li id="nav-subscribers"><a href="subscribers.html"><i class="fas fa-users"></i> المشتركين</a></li>
-            <li id="nav-active"><a href="active_subscribers.html"><i class="fas fa-signal"></i> الفعالين</a></li>
-            <li id="nav-debts"><a href="debts.html" class="active"><i class="fas fa-money-bill-wave"></i> الديون</a>
-            </li>
-            <li id="nav-payments"><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> الصندوق</a></li>
-            <li id="nav-reports"><a href="reports.html"><i class="fas fa-chart-bar"></i> التقارير</a></li>
-            <li id="nav-employees"><a href="employees.html"><i class="fas fa-users-cog"></i> الموظفين</a></li>
-
-            <li id="nav-telegram"><a href="telegram-settings.html"><i class="fab fa-telegram"></i> Telegram</a></li>
+            <li><a href="subscribers.html"><i class="fas fa-users"></i> المشتركين</a></li>
+            <li><a href="active_subscribers.html"><i class="fas fa-signal"></i> الفعالين</a></li>
+            <li><a href="expired.html"><i class="fas fa-clock"></i> المنتهية</a></li>
+            <li><a href="debts.html" class="active"><i class="fas fa-money-bill-wave"></i> الديون</a></li>
+            <li><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> الصندوق</a></li>
+            <li><a href="reports.html"><i class="fas fa-chart-bar"></i> التقارير</a></li>
+            <li><a href="employees.html"><i class="fas fa-users-cog"></i> الموظفين</a></li>
             <li><a href="#" onclick="AuthSystem.logout()"><i class="fas fa-sign-out-alt"></i> خروج</a></li>
         </ul>
-
         <div class="nav-overlay" onclick="toggleMenu()"></div>
     </nav>
 
+    <div class="header-section">
+        <h1>الديون المستحقة</h1>
+        <p>متابعة المبالغ المطلوبة من المشتركين</p>
+        <div class="total-debt-box">
+            <span style="color:#64748b; font-size: 0.8rem; display:block;">المجموع الكلي للديون</span>
+            <span id="totalDebtDisplay" style="color:#dc2626; font-size:1.4rem; font-weight:800;">0 د.ع</span>
+        </div>
+        <br>
+        <button id="adminShareBtn" class="btn btn-sm btn-primary" onclick="window.openShareDebtsModal()"
+            style="display:none; margin-top:15px; background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.3);">
+            <i class="fas fa-share-alt"></i> إرسال الجدول لموظف
+        </button>
+    </div>
+
     <div class="container">
-
-        <div class="header-card">
-            <div>
-                <h1>الديون المستحقة</h1>
-                <p>متابعة المشتركين بنظام الآجل</p>
-            </div>
-            <div id="totalDebtDisplay" class="text-danger" style="font-size:1.5rem; font-weight:bold;">
-                0 د.ع
+        <div class="search-container" style="max-width: 600px; margin: 0 auto; position: relative; z-index: 10;">
+            <div class="search-input-wrapper"
+                style="background:white; border-radius: 20px; display: flex; align-items: center; padding: 5px 20px; box-shadow: 0 8px 32px 0 rgba(31,38,135,0.1);">
+                <i class="fas fa-search" style="color:#888; margin-left:10px;"></i>
+                <input type="text" id="debtSearch" placeholder="بحث باسم المدين..." onkeyup="renderDebts()"
+                    style="border:none; padding:15px; width:100%; outline:none;">
             </div>
         </div>
 
-        <!-- خانة البحث المحسّنة -->
-        <div class="search-container">
-            <div class="search-box">
-                <input type="text" id="debtSearch" placeholder="ابحث بالاسم أو رقم الهاتف..." oninput="renderDebts()">
-                <i class="fas fa-search"></i>
-            </div>
-        </div>
+        <div id="grid" class="debt-grid"></div>
+    </div>
 
-        <div class="table-container">
-            <div class="table-header">
-                <h3>قائمة الديون</h3>
-                <button id="adminShareBtn" class="btn btn-sm btn-primary" onclick="openShareDebtsModal()"
-                    style="display:none; margin-right:auto; background-color: var(--primary);">
-                    <i class="fas fa-share-alt"></i> إرسال للموظف
-                </button>
+    <!-- Modals -->
+    <div id="payDebtModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>تسديد دين - <span id="debtSubName"></span></h3><button class="close-btn"
+                    onclick="closeDebtModal()">&times;</button>
             </div>
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>الاسم</th>
-                            <th>المبلغ المتبقي</th>
-                            <th>تاريخ الاستحقاق</th>
-                            <th>إجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="debtsTableBody">
-                    </tbody>
-                </table>
+            <div class="modal-body">
+                <input type="hidden" id="debtSubId"><input type="hidden" id="debtSubFirebaseId">
+                <div class="form-group"><label>المبلغ المدفوع (المتبقي: <span
+                            id="currentDebtAmount">0</span>)</label><input type="number" id="payDebtAmount"></div>
+                <div style="margin-bottom:15px;"><input type="checkbox" id="send-whatsapp-debt"> <label
+                        for="send-whatsapp-debt">إرسال وصل واتساب</label></div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <button onclick="confirmPayDebt(true)" class="btn btn-success"><i class="fas fa-print"></i> تسديد
+                        وطباعة</button>
+                    <button onclick="confirmPayDebt(false)" class="btn btn-primary"><i class="fas fa-check"></i> تسديد
+                        فقط</button>
+                </div>
             </div>
         </div>
     </div>
 
-
-
-    <!-- Modal: Pay Debt -->
-    <div id="payDebtModal" class="modal-overlay">
+    <div id="shareDebtsModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
-                <h3>تسديد دين - <span id="debtSubName"></span></h3>
-                <button class="close-btn" onclick="closeDebtModal()">&times;</button>
+                <h3>إرسال جدول الديون</h3><button class="close-btn" onclick="closeShareModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <input type="hidden" id="debtSubId">
-                <input type="hidden" id="debtSubFirebaseId">
-
-                <div class="form-group">
-                    <label>المبلغ المدفوع (من أصل <span id="currentDebtAmount"></span>)</label>
-                    <input type="number" inputmode="numeric" id="payDebtAmount" placeholder="0">
-                </div>
-
-                <!-- WhatsApp Option for Debt Payment -->
-                <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                    <input type="checkbox" id="send-whatsapp-debt" style="width: auto;">
-                    <label for="send-whatsapp-debt" style="margin:0; font-weight:normal; cursor:pointer;">إرسال
-                        تفاصيل
-                        الوصل واتساب</label>
-                </div>
-
-                <div class="action-buttons">
-                    <button onclick="confirmPayDebt(true)" class="btn btn-success">
-                        <i class="fas fa-print"></i> تسديد وطباعة
-                    </button>
-                    <button onclick="confirmPayDebt(false)" class="btn btn-primary">
-                        <i class="fas fa-check"></i> تسديد فقط
-                    </button>
-                </div>
+                <div class="form-group"><label>اختر الموظف</label><select id="employeeSelect"
+                        style="width:100%; padding:12px; border-radius:10px; border:2px solid #eee;"></select></div>
+                <button onclick="sendDebtsToEmployee()" class="btn btn-success btn-full"><i class="fab fa-whatsapp"></i>
+                    إرسال عبر واتساب</button>
             </div>
         </div>
-        <!-- Modal: Share Debts (Admin Only) -->
-        <div id="shareDebtsModal" class="modal-overlay">
-            <div class="modal-box">
-                <div class="modal-header">
-                    <h3>إرسال جدول الديون</h3>
-                    <button class="close-btn" onclick="closeShareModal()">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <p>اختر الموظف لإرسال قائمة الديون له عبر واتساب:</p>
-                    <div class="form-group">
-                        <label>الموظف</label>
-                        <select id="employeeSelect" class="form-control" style="width:100%; padding:10px;">
-                            <option value="">-- اختر موظف --</option>
-                        </select>
-                    </div>
-                    <button onclick="sendDebtsToEmployee()" class="btn btn-success btn-full">
-                        <i class="fab fa-whatsapp"></i> إرسال عبر واتساب
-                    </button>
-                </div>
-            </div>
-        </div>
+    </div>
 
-        <script>
-            window.openPayDebtModal = function (id, firebaseId, name, amount) {
-                document.getElementById('debtSubId').value = id;
-                document.getElementById('debtSubFirebaseId').value = firebaseId;
-                document.getElementById('debtSubName').innerText = name;
-                document.getElementById('currentDebtAmount').innerText = amount.toLocaleString();
-                document.getElementById('payDebtAmount').value = '';
-                document.getElementById('payDebtModal').classList.add('active');
-            };
+    <script>
+        window.renderDebts = function () {
+            if (typeof DataManager === 'undefined' || !DataManager.subscribers) return;
+            const q = document.getElementById('debtSearch').value.toLowerCase();
+            let list = DataManager.subscribers.filter(s => parseInt(s.price || 0) > 0);
 
-            window.closeDebtModal = () => document.getElementById('payDebtModal').classList.remove('active');
+            if (q) list = list.filter(s => s.name.toLowerCase().includes(q));
+            list.sort((a, b) => parseInt(b.price) - parseInt(a.price));
 
-            window.confirmPayDebt = async function (print = false) {
-                const subId = document.getElementById('debtSubId').value;
-                const firebaseId = document.getElementById('debtSubFirebaseId').value;
-                const amount = parseInt(document.getElementById('payDebtAmount').value);
-                const sendWhatsapp = document.getElementById('send-whatsapp-debt').checked;
+            const total = list.reduce((sum, s) => sum + parseInt(s.price || 0), 0);
+            document.getElementById('totalDebtDisplay').innerText = total.toLocaleString() + ' د.ع';
 
-                if (!amount || amount <= 0) {
-                    DataManager.showToast('الرجاء إدخال مبلغ صحيح', 'error');
-                    return;
-                }
-
-                try {
-                    // استخدام دالة payDebt الموحدة في DataManager
-                    // الترتيب: firebaseId, subId, amount
-                    await DataManager.payDebt(firebaseId, subId, amount);
-
-                    const sub = DataManager.getSubscriber(subId);
-                    const newPrice = Math.max(0, (parseInt(sub.price) || 0));
-
-                    // 3. الطباعة (إذا طلبت)
-                    if (print && sub) {
-                        const receiptData = {
-                            title: "وصل تسديد دين",
-                            subName: sub.name,
-                            amount: amount,
-                            totalRemaining: newPrice,
-                            date: new Date().toLocaleDateString('ar-IQ'),
-                            type: "تسديد نقد"
-                        };
-                        DataManager.printReceipt(receiptData);
-                    }
-
-                    // 4. واتساب (إذا طلب)
-                    if (sendWhatsapp && sub && sub.phone) {
-                        const msg = `مرحباً ${sub.name}،\n\nتم استلام دفعة تسديد دين بقيمة: ${amount.toLocaleString()} د.ع\nالمتبقي بذمتكم: ${newPrice.toLocaleString()} د.ع\n\nشكراً لكم 🌹`;
-                        let phone = sub.phone.replace(/^0+/, '');
-                        if (!phone.startsWith('964')) phone = '964' + phone;
-
-                        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-                        const url = isMobile
-                            ? `whatsapp://send?phone=${phone}&text=${encodeURIComponent(msg)}`
-                            : `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-
-                        window.open(url, '_blank');
-                    }
-
-                    closeDebtModal();
-                    // DataManager.showToast يظهر داخل payDebt
-                    renderDebts();
-                } catch (error) {
-                    console.error('خطأ في التسديد:', error);
-                    DataManager.showToast('حدث خطأ أثناء التسديد: ' + error.message, 'error');
-                }
-            };
-
-            window.renderDebts = function () {
-                if (typeof DataManager === 'undefined') return;
-
-                // الحصول على قيمة البحث
-                const searchQuery = document.getElementById('debtSearch')?.value.toLowerCase() || '';
-
-                // فلترة المشتركين الذين لديهم ديون وترتيبهم (الأحدث أولاً بناءً على ID وهو وقت الإنشاء)
-                let list = DataManager.getSubscribers()
-                    .filter(s => parseInt(s.price || 0) > 0)
-                    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)); // الترتيب حسب وقت الإضافة
-
-                // تطبيق البحث
-                if (searchQuery) {
-                    list = list.filter(s =>
-                        s.name.toLowerCase().includes(searchQuery) ||
-                        (s.phone && s.phone.includes(searchQuery))
-                    );
-                }
-
-                const tbody = document.getElementById('debtsTableBody');
-
-                // Calculate Total Debt
-                const total = list.reduce((sum, s) => sum + parseInt(s.price || 0), 0);
-                document.getElementById('totalDebtDisplay').innerText = total.toLocaleString() + ' د.ع';
-
-                if (list.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">لا توجد ديون مستحقة</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = list.map(s => {
-                    // Logic for Expiry at 4 PM
-                    const expiryStr = s.expiryDate || s.endDate;
-                    let daysLeft = -999;
-                    let isExpired = false;
-
-                    if (expiryStr) {
-                        // Normalize date strings for comparison
-                        let endStr = expiryStr;
-                        if (expiryStr.indexOf('/') > 0) {
-                            const parts = expiryStr.split('/');
-                            if (parts.length === 3) endStr = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-                        }
-
-                        const todayStr = new Date().toISOString().split('T')[0];
-                        const now = new Date();
-
-                        if (endStr < todayStr) isExpired = true;
-                        else if (endStr === todayStr && now.getHours() >= 16) isExpired = true;
-
-                        // Days calc for badge logic
-                        const endD = new Date(endStr);
-                        const todayD = new Date();
-                        todayD.setHours(0, 0, 0, 0);
-                        endD.setHours(0, 0, 0, 0);
-                        daysLeft = Math.ceil((endD - todayD) / (1000 * 60 * 60 * 24));
-                    }
-
-                    let badge = '';
-
-                    if (isExpired) badge = '<span class="badge badge-danger">منتهية</span>';
-                    else if (daysLeft <= 3 && daysLeft >= 0) badge = '<span class="badge badge-warning">تشارف على الانتهاء</span>';
-
-                    // الهروب من الفواصل العليا في الأسماء (Sanitization)
-                    const safeName = s.name.replace(/'/g, "\\'");
-                    const safePhone = s.phone || '';
-
-                    return `
-                 <tr>
-                    <td data-label="الاسم">${s.name} <br> <small style="color:#666">${s.phone || ''}</small></td>
-                    <td data-label="المبلغ" style="font-weight:bold; color:#d32f2f;">${parseInt(s.price).toLocaleString()}</td>
-                    <td data-label="تاريخ الاستحقاق">${s.expiryDate || s.endDate || '-'} ${badge}</td>
-                    <td data-label="إجراءات">
-                        <button onclick="openPayDebtModal('${s.id}', '${s.firebaseId}', '${safeName}', ${s.price})" class="btn btn-sm btn-success">
-                            <i class="fas fa-hand-holding-usd"></i> تسديد
-                        </button>
-                        <button onclick="notifyDebtor('${safeName}', '${safePhone}', ${s.price})" class="btn btn-sm btn-primary" style="background-color: #25D366; border:none; margin-right:5px;">
-                            <i class="fab fa-whatsapp"></i> تنبيه
-                        </button>
-                    </td>
-                 </tr>
-                 `;
-                }).join('');
-            };
-
-            window.notifyDebtor = function (name, phone, amount) {
-                if (!phone) { DataManager.showToast('لا يوجد رقم هاتف مسجل', 'error'); return; }
-
-                let p = phone.replace(/\D/g, ''); // أرقام فقط
-                if (p.startsWith('0')) p = p.substring(1);
-                if (!p.startsWith('964')) p = '964' + p;
-
-                const msg = `مرحباً ${name}،\nيرجى تسديد الدين المترتب عليكم بقيمة: ${amount.toLocaleString()} د.ع\n\nشكراً لكم 🌹`;
-
-                const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-                const url = isMobile
-                    ? `whatsapp://send?phone=${p}&text=${encodeURIComponent(msg)}`
-                    : `https://wa.me/${p}?text=${encodeURIComponent(msg)}`;
-
-                window.open(url, '_blank');
-            };
-
-            // تأكيد أخير على الصلاحيات
-            // منطق المشاركة للمدير (Admin Only Logic)
-            window.openShareDebtsModal = function () {
-                const employees = DataManager.getEmployees();
-                const select = document.getElementById('employeeSelect');
-                select.innerHTML = '<option value="">-- اختر موظف --</option>';
-
-                employees.forEach(emp => {
-                    const opt = document.createElement('option');
-                    opt.value = emp.phone; // نستخدم الهاتف كقيمة
-                    opt.innerText = emp.name;
-                    select.appendChild(opt);
-                });
-
-                document.getElementById('shareDebtsModal').classList.add('active');
-            };
-
-            window.closeShareModal = () => document.getElementById('shareDebtsModal').classList.remove('active');
-
-            window.sendDebtsToEmployee = function () {
-                const phoneRaw = document.getElementById('employeeSelect').value;
-                if (!phoneRaw) {
-                    DataManager.showToast('يرجى اختيار موظف', 'error');
-                    return;
-                }
-
-                // 1. Gather Debts
-                const debts = DataManager.getSubscribers().filter(s => parseInt(s.price || 0) > 0);
-                if (debts.length === 0) {
-                    DataManager.showToast('لا توجد ديون لإرسالها', 'error');
-                    return;
-                }
-
-                // 2. Build Message
-                const date = new Date().toLocaleDateString('ar-IQ');
-                const total = debts.reduce((sum, s) => sum + parseInt(s.price || 0), 0);
-
-                let msg = `📊 *جدول الديون المعلقة* \n📅 التاريخ: ${date}\n💰 المجموع الكلي: ${total.toLocaleString()} د.ع\n\n`;
-                msg += `------------------\n`;
-
-                const limit = 30;
-                debts.slice(0, limit).forEach(d => {
-                    msg += `👤 *${d.name}*: ${parseInt(d.price).toLocaleString()}\n📞 ${d.phone || 'بدون رقم'}\n\n`;
-                });
-
-                if (debts.length > limit) {
-                    msg += `... وهناك ${debts.length - limit} مشترك آخر.\n`;
-                }
-
-                msg += `------------------\nيرجى المتابعة والتحصيل. 💼`;
-
-                // 3. Open WhatsApp
-                let p = phoneRaw.replace(/\D/g, '');
-                if (p.startsWith('0')) p = p.substring(1);
-                if (!p.startsWith('964')) p = '964' + p;
-
-                const url = `https://wa.me/${p}?text=${encodeURIComponent(msg)}`;
-                window.open(url, '_blank');
-                closeShareModal();
-            };
-
-            // Check Permissions on Load to show Admin Button
-            window.onload = () => {
-                AuthSystem.checkSession();
-
-                // Check if Admin to show Share Button
-                const user = AuthSystem.currentUser;
-                if (user && user.type === 'admin') {
-                    const btn = document.getElementById('adminShareBtn');
-                    if (btn) btn.style.display = 'inline-block';
-                }
-            };
-
-            setInterval(() => window.renderDebts(), 1000);
-
-            // Menu Toggle Logic
-            window.toggleMenu = function () {
-                const nav = document.getElementById('main-nav');
-                const overlay = document.querySelector('.nav-overlay');
-                nav.classList.toggle('active');
-                if (nav.classList.contains('active')) {
-                    document.body.style.overflow = 'hidden';
-                } else {
-                    document.body.style.overflow = '';
-                }
+            const grid = document.getElementById('grid');
+            if (list.length === 0) {
+                grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#aaa;"><i class="fas fa-smile-beam fa-3x"></i><p>لا توجد ديون حالياً</p></div>';
+                return;
             }
-        </script>
+
+            grid.innerHTML = list.map(s => `
+                <div class="debt-card">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div>
+                            <h3 style="margin:0;">${s.name}</h3>
+                            <p style="margin:5px 0; color:#64748b; font-size:0.9rem;">${s.phone || '-'}</p>
+                        </div>
+                        <div class="debt-amount">${parseInt(s.price).toLocaleString()} <small style="font-size:0.6rem;">د.ع</small></div>
+                    </div>
+                    <div style="background:#f8fafc; padding:12px; border-radius:15px; font-size:0.85rem; color:#64748b; display:flex; justify-content:space-between;">
+                        <span>تاريخ الاشتراك:</span>
+                        <span>${s.expiryDate || '-'}</span>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <button onclick="openPayDebtModal('${s.id}', '${s.firebaseId}', '${s.name.replace(/'/g, "")}', ${s.price})" class="btn-action btn-pay" style="padding:12px; border:none; border-radius:14px; font-weight:bold; cursor:pointer;"><i class="fas fa-money-bill-wave"></i> تسديد</button>
+                        <button onclick="notifyDebtor('${s.name.replace(/'/g, "")}', '${s.phone}', ${s.price})" class="btn-action btn-wa" style="padding:12px; border:none; border-radius:14px; font-weight:bold; cursor:pointer;"><i class="fab fa-whatsapp"></i> تنبيه</button>
+                    </div>
+                </div>
+            `).join('');
+        };
+
+        window.openPayDebtModal = (id, fid, name, amt) => {
+            document.getElementById('debtSubId').value = id;
+            document.getElementById('debtSubFirebaseId').value = fid;
+            document.getElementById('debtSubName').innerText = name;
+            document.getElementById('currentDebtAmount').innerText = amt.toLocaleString();
+            document.getElementById('payDebtModal').classList.add('active');
+        };
+        window.closeDebtModal = () => document.getElementById('payDebtModal').classList.remove('active');
+        window.confirmPayDebt = async (p) => {
+            let amt = parseInt(document.getElementById('payDebtAmount').value);
+            if (!amt) return;
+            await DataManager.payDebt(document.getElementById('debtSubFirebaseId').value, document.getElementById('debtSubId').value, amt);
+            if (p) DataManager.printReceipt({ title: "وصل تسديد", subName: document.getElementById('debtSubName').innerText, amount: amt, totalRemaining: 0, date: new Date().toLocaleDateString('ar-IQ'), type: "تسديد" });
+            closeDebtModal();
+        };
+
+        window.notifyDebtor = (name, phone, amt) => {
+            let p = (phone || '').replace(/\D/g, '');
+            if (!p) return DataManager.showToast('لا يوجد هاتف', 'error');
+            if (p.startsWith('0')) p = p.substring(1);
+            if (!p.startsWith('964')) p = '964' + p;
+            window.open(`https://wa.me/${p}?text=${encodeURIComponent('مرحباً ' + name + '، يرجى تسديد الدين المتبقي: ' + amt.toLocaleString() + ' د.ع. شكراً لكم.')}`, '_blank');
+        };
+
+        window.openShareDebtsModal = () => {
+            let select = document.getElementById('employeeSelect');
+            select.innerHTML = '<option value="">-- اختر موظف --</option>';
+            DataManager.getEmployees().forEach(e => select.innerHTML += `<option value="${e.phone}">${e.name}</option>`);
+            document.getElementById('shareDebtsModal').classList.add('active');
+        };
+        window.closeShareModal = () => document.getElementById('shareDebtsModal').classList.remove('active');
+        window.sendDebtsToEmployee = () => {
+            let p = document.getElementById('employeeSelect').value;
+            if (!p) return;
+            let list = DataManager.subscribers.filter(s => parseInt(s.price || 0) > 0);
+            let msg = `📊 جدول الديون:\n` + list.slice(0, 20).map(s => `👤 ${s.name}: ${parseInt(s.price).toLocaleString()}`).join('\n');
+            window.open(`https://wa.me/964${p.replace(/^0/, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+            closeShareModal();
+        };
+
+        window.toggleMenu = () => document.getElementById('main-nav').classList.toggle('active');
+        setInterval(() => { if (typeof DataManager !== 'undefined') renderPage(); }, 3000);
+
+        window.onload = () => {
+            const user = AuthSystem.currentUser;
+            if (user && user.type === 'admin') document.getElementById('adminShareBtn').style.display = 'inline-block';
+        };
+    </script>
 </body>
 
 </html>

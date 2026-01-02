@@ -4,169 +4,262 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>تنبيهات - نظام الإدارة</title>
+    <title>سينتهي قريباً - OK Computer</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Kufi+Arabic:wght@400;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=25.0">
+    <link rel="stylesheet" href="style-fab.css?v=1.0">
+    <link rel="stylesheet" href="style-modal.css?v=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="auth-system.js"></script>
     <script type="module">
-        import { DataManager } from './data-manager.js';
+        import { DataManager } from './data-manager.js?v=21.0';
         window.DataManager = DataManager;
         DataManager.init();
     </script>
+
+    <style>
+        :root {
+            --warning-gradient: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            --glass: rgba(255, 255, 255, 0.9);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+
+        body {
+            font-family: 'Noto Kufi Arabic', 'Outfit', sans-serif;
+            background: #f0f2f5;
+        }
+
+        .header-section {
+            background: var(--warning-gradient);
+            padding: 40px 20px 60px;
+            border-radius: 0 0 40px 40px;
+            color: #5d4037;
+            text-align: center;
+            margin-bottom: -40px;
+            box-shadow: 0 10px 20px rgba(253, 160, 133, 0.2);
+        }
+
+        .search-container {
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        .search-input-wrapper {
+            background: white;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            padding: 5px 20px;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .expiring-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            padding: 60px 20px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .expiring-card {
+            background: var(--glass);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: var(--glass-shadow);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .expiring-card:hover {
+            transform: translateY(-8px);
+            background: white;
+        }
+
+        .expiring-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--warning-gradient);
+        }
+
+        .days-badge {
+            background: #fffbeb;
+            color: #d97706;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border: 1px solid #fde68a;
+        }
+
+        .btn-notify {
+            background: #25d366;
+            color: white;
+            flex: 1;
+        }
+
+        .sent-status {
+            color: #10b981;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            justify-content: center;
+            background: #ecfdf5;
+            padding: 12px;
+            border-radius: 14px;
+            flex: 1;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <!-- Mobile Header & Toggle -->
-    <button class="menu-btn" onclick="toggleMenu()">
-        <i class="fas fa-bars"></i>
-    </button>
+    <script>AuthSystem.checkSession();</script>
 
-    <!-- Sidebar / Drawer Navigation -->
     <nav class="navbar" id="main-nav">
+        <!-- Reusing Sidebar from expired.html -->
         <div class="header-card"
             style="margin: 0; background: none; box-shadow: none; border: none; padding: 0 0 20px 0;">
             <div class="logo" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 0;">
-                <i class="fas fa-chart-line"></i> نظام الإدارة
+                <i class="fas fa-chart-line"></i> OK Computer
             </div>
             <button class="close-menu" onclick="toggleMenu()"
                 style="position: absolute; left: 0; top: 0;">&times;</button>
         </div>
-
         <ul class="nav-links">
             <li><a href="index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
-            <li id="nav-subscribers"><a href="subscribers.html"><i class="fas fa-users"></i> المشتركين</a></li>
-            <li id="nav-active"><a href="active_subscribers.html"><i class="fas fa-signal"></i> الفعالين</a></li>
-            <li id="nav-debts"><a href="debts.html"><i class="fas fa-money-bill-wave"></i> الديون</a></li>
-            <li id="nav-payments"><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> الصندوق</a></li>
-            <li id="nav-reports"><a href="reports.html"><i class="fas fa-chart-bar"></i> التقارير</a></li>
-            <li id="nav-employees"><a href="employees.html"><i class="fas fa-users-cog"></i> الموظفين</a></li>
-
-            <li id="nav-telegram"><a href="telegram-settings.html"><i class="fab fa-telegram"></i> Telegram</a></li>
+            <li><a href="subscribers.html"><i class="fas fa-users"></i> المشتركين</a></li>
+            <li><a href="active_subscribers.html"><i class="fas fa-signal"></i> الفعالين</a></li>
+            <li><a href="expired.html"><i class="fas fa-clock"></i> المنتهية</a></li>
+            <li><a href="debts.html"><i class="fas fa-money-bill-wave"></i> الديون</a></li>
+            <li><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> الصندوق</a></li>
+            <li><a href="reports.html"><i class="fas fa-chart-bar"></i> التقارير</a></li>
+            <li><a href="employees.html"><i class="fas fa-users-cog"></i> الموظفين</a></li>
             <li><a href="#" onclick="AuthSystem.logout()"><i class="fas fa-sign-out-alt"></i> خروج</a></li>
         </ul>
-
         <div class="nav-overlay" onclick="toggleMenu()"></div>
     </nav>
 
+    <button class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+
+    <div class="header-section">
+        <h1>تنتهي قريباً</h1>
+        <p>مشتركين متبقي لهم أقل من 3 أيام <span id="count-badge">0</span></p>
+    </div>
+
     <div class="container">
-
-        <div class="header-card">
-            <div>
-                <h1>تنتهي قريباً</h1>
-                <p>مشتركين سينتهي اشتراكهم خلال 3 أيام</p>
+        <div class="search-container">
+            <div class="search-input-wrapper"
+                style="background:white; border-radius: 20px; display: flex; align-items: center; padding: 5px 20px; box-shadow: 0 8px 32px 0 rgba(31,38,135,0.1);">
+                <i class="fas fa-search" style="color:#888; margin-left:10px;"></i>
+                <input type="text" id="searchInput" placeholder="بحث..." onkeyup="renderPage()"
+                    style="border:none; padding:15px; width:100%; outline:none;">
             </div>
         </div>
 
-        <div class="table-container">
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>الاسم</th>
-                            <th>الهاتف</th>
-                            <th>المتبقي</th>
-                            <th>تاريخ الانتهاء</th>
-                            <th>إجراء</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody"></tbody>
-                </table>
-            </div>
-        </div>
+        <div id="grid" class="expiring-grid"></div>
     </div>
 
     <script>
         window.renderPage = function () {
             if (typeof DataManager === 'undefined') return;
             const subs = DataManager.getSubscribers();
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            const expiring = subs.filter(s => {
+            const list = subs.filter(s => {
                 if (!s.expiryDate) return false;
+                if (searchTerm && !s.name.toLowerCase().includes(searchTerm)) return false;
+
                 const exp = new Date(s.expiryDate);
-                const diffTime = exp - today;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                return diffDays > 0 && diffDays <= 3;
+                const diff = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+                return diff > 0 && diff <= 3;
             });
 
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
+            document.getElementById('count-badge').innerText = list.length;
+            const grid = document.getElementById('grid');
 
-            if (expiring.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--success);">لا توجد اشتراكات قاربت على الانتهاء</td></tr>';
-            } else {
-                expiring.forEach(s => {
-                    const diffTime = new Date(s.expiryDate) - today;
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                    const phone = s.phone ? s.phone.replace(/\D/g, '') : '';
-                    let actionHtml = '';
-
-                    if (!phone) {
-                        actionHtml = '<span style="color:#999; font-size:0.8rem;">لا يوجد رقم</span>';
-                    } else if (s.expiryWarningSent) {
-                        // Already Sent
-                        actionHtml = `
-                            <span class="badge badge-success" style="padding: 8px 12px; font-size: 0.9rem;">
-                                <i class="fas fa-check-double"></i> تم الإرسال
-                            </span>
-                        `;
-                    } else {
-                        // Not sent yet
-                        actionHtml = `
-                            <button onclick="sendWarning('${s.id}', '${s.name}', '${s.expiryDate}', '${s.phone}')" class="btn btn-success btn-sm" style="background:#25D366; border-color:#25D366; color:white; display:inline-flex; align-items:center; gap:5px;">
-                                <i class="fab fa-whatsapp"></i> تنبيه
-                            </button>
-                        `;
-                    }
-
-                    tbody.innerHTML += `
-                        <tr>
-                            <td data-label="الاسم" style="font-weight:bold;">${s.name}</td>
-                            <td data-label="الهاتف" style="direction: ltr;">${s.phone || '-'}</td>
-                            <td data-label="المتبقي"><span class="badge badge-warning">${diffDays} أيام</span></td>
-                            <td data-label="التاريخ">${s.expiryDate}</td>
-                            <td data-label="إجراء">${actionHtml}</td>
-                        </tr>
-                    `;
-                });
+            if (list.length === 0) {
+                grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#aaa;"><i class="fas fa-coffee fa-3x"></i><p>لا يوجد اشتراكات قاربت على الانتهاء</p></div>';
+                return;
             }
+
+            grid.innerHTML = list.map(s => {
+                const exp = new Date(s.expiryDate);
+                const diff = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+
+                return `
+                    <div class="expiring-card">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div>
+                                <h3 style="margin:0;">${s.name}</h3>
+                                <p style="margin:5px 0; font-size:0.9rem; color:#666;">${s.phone || '-'}</p>
+                            </div>
+                            <span class="days-badge">باقي ${diff} يوم</span>
+                        </div>
+                        
+                        <div style="background:#f8fafc; padding:15px; border-radius:15px; display:flex; justify-content:space-between; font-size:0.9rem;">
+                            <span>تاريخ الانتهاء:</span>
+                            <span style="font-weight:bold;">${s.expiryDate}</span>
+                        </div>
+
+                        ${s.expiryWarningSent ? `
+                            <div class="sent-status">
+                                <i class="fas fa-check-double"></i> تم إرسال تنبيه واتساب
+                            </div>
+                        ` : `
+                            <button onclick="sendWarning('${s.id}', '${s.name}', '${s.expiryDate}', '${s.phone}')" class="btn-action btn-notify" style="padding:12px; border:none; border-radius:14px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+                                <i class="fab fa-whatsapp"></i> إرسال تنبيه تجديد
+                            </button>
+                        `}
+                    </div>
+                `;
+            }).join('');
         };
 
-        window.sendWarning = async function (id, name, date, phoneRaw) {
-            // 1. Mark as sent in Database
+        window.sendWarning = async (id, name, date, phoneRaw) => {
             await DataManager.markExpiryWarningSent(id);
-
-            // 2. Prepare WhatsApp Link
-            const msg = `مرحباً ${name}،\nنود تذكيركم بأن اشتراككم سينتهي بتاريخ ${date}.\nيرجى التجديد لضمان استمرار الخدمة.\nشكراً لثقتكم بنا - نظام الإدارة 🌹`;
-
-            let phone = phoneRaw.replace(/\D/g, '');
+            const msg = `مرحباً ${name}، نود تذكيركم بأن اشتراككم سينتهي قريباً بتاريخ ${date}. يرجى التجديد لضمان استمرار الخدمة. شكراً لكم.`;
+            let phone = (phoneRaw || '').replace(/\D/g, '');
             if (phone.startsWith('0')) phone = phone.substring(1);
             if (!phone.startsWith('964')) phone = '964' + phone;
-
-            const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-
-            // 3. Open WhatsApp
-            window.open(url, '_blank');
-
-            // 4. Re-render will happen automatically via DataManager sync or interval
-            renderPage();
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
         };
 
-        window.updatePageData = window.renderPage;
-        setInterval(() => { if (typeof DataManager !== 'undefined') renderPage(); }, 1000);
-
-        // Menu Toggle Logic
-        window.toggleMenu = function () {
+        window.toggleMenu = () => {
             const nav = document.getElementById('main-nav');
-            const overlay = document.querySelector('.nav-overlay');
             nav.classList.toggle('active');
-            if (nav.classList.contains('active')) {
-                document.body.style.overflow = 'hidden';
-            } else {
-                document.body.style.overflow = '';
-            }
-        }
+        };
+
+        setInterval(() => { if (typeof DataManager !== 'undefined') renderPage(); }, 3000);
     </script>
 </body>
 
