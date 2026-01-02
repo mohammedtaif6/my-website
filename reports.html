@@ -275,13 +275,12 @@
 
         window.generateReport = () => {
             const period = document.getElementById('report-period').value;
-            let txs = DataManager.getAllTransactions();
+
+            // جلب البيانات من المسار المناسب (النشط أو الأرشيف الدائم)
+            let txs = isViewArchived ? DataManager.getArchivedTransactions() : DataManager.getAllTransactions();
             const list = document.getElementById('report-list');
 
             if (!txs) return;
-
-            // 1. تصفية حسب الأرشيف (نشط أو مؤرشف)
-            txs = txs.filter(t => isViewArchived ? t.isArchived : !t.isArchived);
 
             // تحديث حالة الزر والعنوان
             const viewLabel = document.getElementById('view-mode-label');
@@ -314,15 +313,17 @@
             }
 
             // --- Debug Info Update ---
-            const allRaw = DataManager.getAllTransactions();
-            const archivedCount = allRaw.filter(t => t.isArchived).length;
-            const activeCount = allRaw.filter(t => !t.isArchived).length;
-            const totalCount = allRaw.length;
+            const activeRaw = DataManager.getAllTransactions();
+            const archivedRaw = DataManager.getArchivedTransactions();
+
+            const archivedCount = archivedRaw.length;
+            const activeCount = activeRaw.length;
+            const totalCount = activeCount + archivedCount;
+
             document.getElementById('debug-info').innerHTML = `
-                Total Loaded: <b>${totalCount}</b> | 
                 Active: <b style="color:green">${activeCount}</b> | 
-                Archived: <b style="color:red">${archivedCount}</b> <br>
-                (Max Limit: 500)
+                Archived (DB): <b style="color:red">${archivedCount}</b> <br>
+                (Total Storage: ${totalCount})
             `;
 
             // 2. تصفية حسب التاريخ (للفترة الحالية فقط أو الأرشيف)
@@ -432,54 +433,26 @@
 
         // دالة الأرشفة
         window.archiveCurrentView = async () => {
-            const period = document.getElementById('report-period').value;
-            if (period !== 'all' && !confirm('أنت تعرض جزءاً من البيانات (يومي/شهري). هل تريد أرشفة كل شيء لفتح فترة جديدة؟')) {
-                // إذا كان المستخدم يفلتر، نبهه أن الأرشفة الأفضل تكون للكل أو نأرشف الظاهر فقط؟
-                // الأفضل: أرشفة كل ما هو "active" حالياً.
-            }
-
-            if (!confirm('⚠️ هل أنت متأكد من إغلاق الفترة المالية الحالية؟\n\n- سيتم تصفير الصندوق والبدء من جديد.\n- الديون المسجلة على المشتركين لن تتأثر.\n- يمكنك العودة للبيانات القديمة من خلال زر "الأرشيف".')) {
-                return;
-            }
-
-            try {
-                const txs = DataManager.getAllTransactions().filter(t => !t.isArchived);
-                if (txs.length === 0) {
-                    DataManager.showToast('⚠️ لا توجد بيانات لأرشفتها!', 'error');
-                    return;
-                }
-
-                // تنفيذ الأرشفة
-                let count = 0;
-                for (const t of txs) {
-                    // تحديث في Firebase (ملاحظة: هذا قد يأخذ وقتاً إذا كانت البيانات كثيرة)
-                    // في بيئة إنتاجية حقيقية يفضل استخدام Batch Write
-                    await DataManager.updateTransaction(t.id, { isArchived: true });
-                    count++;
-                }
-
-                DataManager.showToast(`✅ تم أرشفة ${count} حركة مالية بنجاح`);
-                window.generateReport(); // تحديث العرض
-
-            } catch (e) {
-                console.error(e);
-                DataManager.showToast('خطأ أثناء الأرشفة: ' + e.message, 'error');
-            }
+            await DataManager.archiveAllCurrent();
+            window.generateReport(); // تحديث العرض
         };
 
         // Initial Load
         setInterval(() => {
-            if (typeof DataManager !== 'undefined' && DataManager.getAllTransactions()) {
+            if (typeof DataManager !== 'undefined') {
                 // تحديث دوري فقط إذا لم نكن نعرض الأرشيف (لأن الأرشيف ثابت)
-                if (!isViewArchived) window.generateReport();
+                if (!isViewArchived && DataManager.getAllTransactions()) window.generateReport();
             }
         }, 5000);
 
         // Load once immediately when data is ready
         const checkData = setInterval(() => {
-            if (typeof DataManager !== 'undefined' && DataManager.getAllTransactions && DataManager.getAllTransactions().length > 0) {
-                window.generateReport();
-                clearInterval(checkData);
+            if (typeof DataManager !== 'undefined') {
+                const txs = isViewArchived ? DataManager.getArchivedTransactions() : DataManager.getAllTransactions();
+                if (txs && txs.length > 0) {
+                    window.generateReport();
+                    clearInterval(checkData);
+                }
             }
         }, 500);
 

@@ -30,7 +30,7 @@ console.log('✅ Firebase مُهيأ بالتخزين المحلي المتقد�
 
 
 
-let localData = { subscribers: [], transactions: [], employees: [] };
+let localData = { subscribers: [], transactions: [], archived_transactions: [], employees: [] };
 let isProcessing = false;
 
 // === Toast Logic ===
@@ -66,6 +66,7 @@ export const DataManager = {
 
         this.sync('subscribers');
         this.sync('transactions');
+        this.sync('archived_transactions'); // مجموعة الأرشفة الجديدة
         this.sync('employees'); // مزامنة الموظفين
 
 
@@ -300,14 +301,31 @@ export const DataManager = {
     },
 
     async archiveAllCurrent() {
-        const unarchived = localData.transactions.filter(t => !t.isArchived);
+        const unarchived = localData.transactions; // كل ما في مجموعة transactions نعتبره "حالياً" للفترة النشطة
         if (unarchived.length === 0) return showToast("لا يوجد شيء لترحيله", "error");
 
-        if (!confirm("ترحيل كل السجلات لليوم؟")) return;
+        if (!confirm(`هل أنت متأكد من ترحيل ${unarchived.length} سجل إلى الأرشيف الدائم؟\nسيتم إفراغ الصندوق الحالي.`)) return;
 
-        const batch = unarchived.map(t => updateDoc(doc(db, "transactions", t.firebaseId), { isArchived: true }));
-        await Promise.all(batch);
-        showToast("تم الترحيل بنجاح");
+        try {
+            showToast("جاري الترحيل للأرشيف...");
+
+            for (const t of unarchived) {
+                // 1. نسخ السجل إلى مجموعة الأرشيف
+                await addDoc(collection(db, "archived_transactions"), {
+                    ...t,
+                    isArchived: true,
+                    archivedAt: new Date().toISOString()
+                });
+
+                // 2. حذف السجل من المجموعة النشطة
+                await deleteDoc(doc(db, "transactions", t.firebaseId));
+            }
+
+            showToast("تم ترحيل البيانات للأرشيف الدائم بنجاح ✅");
+        } catch (e) {
+            console.error("Archive Error:", e);
+            showToast("فشل الترحيل: " + e.message, "error");
+        }
     },
 
     async deleteTransaction(id) {
@@ -335,6 +353,7 @@ export const DataManager = {
     },
 
     getAllTransactions() { return localData.transactions; },
+    getArchivedTransactions() { return localData.archived_transactions; },
     getSubscribers() { return localData.subscribers; },
     get subscribers() { return localData.subscribers; }, // إضافة getter للوصول المباشر
     getSubscriber(id) { return localData.subscribers.find(s => s.id == id); },
