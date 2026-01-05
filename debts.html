@@ -298,11 +298,22 @@
         };
 
         window.toggleMenu = () => document.getElementById('main-nav').classList.toggle('active');
-        setInterval(() => { if (typeof DataManager !== 'undefined') renderDebts(); }, 3000);
+
+        // استدعاء renderDebts مرة واحدة عند التحميل
+        // المزامنة التلقائية من Firebase ستحدث البيانات تلقائياً
 
         window.onload = () => {
-            const user = AuthSystem.currentUser;
-            if (user && user.type === 'admin') document.getElementById('adminShareBtn').style.display = 'inline-block';
+            // تأخير صغير للتأكد من تحميل بيانات المستخدم
+            setTimeout(() => {
+                const user = AuthSystem.currentUser;
+                if (user && user.type === 'admin') {
+                    const btn = document.getElementById('adminShareBtn');
+                    if (btn) btn.style.display = 'inline-block';
+                }
+            }, 100);
+
+            // تحديث الصفحة عند تحميل البيانات
+            setTimeout(() => renderDebts(), 500);
         };
     </script>
 </body>
