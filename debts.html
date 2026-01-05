@@ -298,7 +298,7 @@
         };
 
         window.toggleMenu = () => document.getElementById('main-nav').classList.toggle('active');
-        setInterval(() => { if (typeof DataManager !== 'undefined') renderPage(); }, 3000);
+        setInterval(() => { if (typeof DataManager !== 'undefined') renderDebts(); }, 3000);
 
         window.onload = () => {
             const user = AuthSystem.currentUser;
