@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="auth-system.js"></script>
+    <script src="whatsapp-helper.js"></script>
     <script type="module">
         import { DataManager } from './data-manager.js?v=21.0';
         window.DataManager = DataManager;
@@ -247,11 +248,7 @@
 
         window.sendWarning = async (id, name, date, phoneRaw) => {
             await DataManager.markExpiryWarningSent(id);
-            const msg = `مرحباً ${name}، نود تذكيركم بأن اشتراككم سينتهي قريباً بتاريخ ${date}. يرجى التجديد لضمان استمرار الخدمة. شكراً لكم.`;
-            let phone = (phoneRaw || '').replace(/\D/g, '');
-            if (phone.startsWith('0')) phone = phone.substring(1);
-            if (!phone.startsWith('964')) phone = '964' + phone;
-            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+            WhatsAppHelper.sendExpiryWarning(name, phoneRaw, date);
         };
 
         window.toggleMenu = () => {

@@ -26,6 +26,7 @@
 
     <!-- نظام الصلاحيات الجديد -->
     <script src="auth-system.js"></script>
+    <script src="whatsapp-helper.js"></script>
     <script>AuthSystem.checkSession();</script>
 
 
@@ -622,22 +623,7 @@
 
                 // Handle WhatsApp
                 if (sendWA && subPhone) {
-                    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-                    // Clean phone
-                    let cleanPhone = subPhone.replace(/\D/g, '');
-                    if (cleanPhone.startsWith('0')) cleanPhone = cleanPhone.substring(1);
-                    if (!cleanPhone.startsWith('964')) cleanPhone = '964' + cleanPhone;
-
-                    const msg = `مرحباً ${name}،\n\nتم تفعيل اشتراكك بنجاح ✅\n\n📋 التفاصيل:\nالمبلغ: ${parseInt(price).toLocaleString()} د.ع\nنوع الدفع: ${type}\nتاريخ الانتهاء: ${end}\n\nشكراً لثقتكم بنا 🌟`;
-
-                    if (isMobile) {
-                        // On mobile, use whatsapp:// protocol
-                        window.location.href = `whatsapp://send?phone=${cleanPhone}&text=${encodeURIComponent(msg)}`;
-                    } else {
-                        // On desktop, use web.whatsapp.com
-                        window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
-                    }
+                    WhatsAppHelper.sendActivation(name, subPhone, parseInt(price), type, end);
                 }
 
                 // Handle Print

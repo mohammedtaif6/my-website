@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="auth-system.js"></script>
+    <script src="whatsapp-helper.js"></script>
     <script type="module">
         import { DataManager } from './data-manager.js?v=21.0';
         window.DataManager = DataManager;
@@ -274,11 +275,7 @@
         };
 
         window.notifyDebtor = (name, phone, amt) => {
-            let p = (phone || '').replace(/\D/g, '');
-            if (!p) return DataManager.showToast('لا يوجد هاتف', 'error');
-            if (p.startsWith('0')) p = p.substring(1);
-            if (!p.startsWith('964')) p = '964' + p;
-            window.open(`https://wa.me/${p}?text=${encodeURIComponent('مرحباً ' + name + '، يرجى تسديد الدين المتبقي: ' + amt.toLocaleString() + ' د.ع. شكراً لكم.')}`, '_blank');
+            WhatsAppHelper.sendDebtReminder(name, phone, amt);
         };
 
         window.openShareDebtsModal = () => {
@@ -293,7 +290,7 @@
             if (!p) return;
             let list = DataManager.subscribers.filter(s => parseInt(s.price || 0) > 0);
             let msg = `📊 جدول الديون:\n` + list.slice(0, 20).map(s => `👤 ${s.name}: ${parseInt(s.price).toLocaleString()}`).join('\n');
-            window.open(`https://wa.me/964${p.replace(/^0/, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+            WhatsAppHelper.send(p, msg);
             closeShareModal();
         };
 

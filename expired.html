@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="auth-system.js"></script>
+    <script src="whatsapp-helper.js"></script>
     <script type="module">
         import { DataManager } from './data-manager.js?v=21.0';
         window.DataManager = DataManager;
@@ -457,17 +458,7 @@
         window.deleteSub = (id) => DataManager.deleteSubscriber(id);
 
         window.notifyWA = function (phone, name) {
-            if (!phone || phone === '-') {
-                DataManager.showToast('⚠️ لا يوجد رقم هاتف لهذا المشترك', 'error');
-                return;
-            }
-
-            let formattedPhone = phone.replace(/\D/g, '');
-            if (formattedPhone.startsWith('0')) formattedPhone = formattedPhone.substring(1);
-            if (!formattedPhone.startsWith('964')) formattedPhone = '964' + formattedPhone;
-
-            const msg = `مرحباً ${name}، نود إخباركم بأن اشتراككم لدى OK Computer قد انتهى. نرجو منكم زيارتنا لتجديد الاشتراك لضمان استمرار الخدمة. شكراً لكم.`;
-            window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+            WhatsAppHelper.sendExpiredNotification(name, phone);
         };
 
         window.openRenew = function (fid, id) {
