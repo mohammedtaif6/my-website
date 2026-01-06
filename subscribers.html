@@ -398,12 +398,21 @@
         }
 
         window.renderPage = function () {
-            if (typeof DataManager === 'undefined' || !DataManager.subscribers) return;
+            if (typeof DataManager === 'undefined' || !DataManager.subscribers) {
+                console.log('⏳ انتظار تحميل البيانات...');
+                return;
+            }
+
+            console.log(`📊 عدد المشتركين المحملين: ${DataManager.subscribers.length}`);
+
             const q = document.getElementById('searchInput').value.toLowerCase();
             const todayStr = new Date().toISOString().split('T')[0];
             const now = new Date();
 
             let filtered = DataManager.subscribers.filter(s => {
+                // التأكد من وجود الاسم قبل البحث
+                if (!s.name) return false;
+
                 const matchesSearch = s.name.toLowerCase().includes(q) || (s.phone && s.phone.includes(q));
                 if (!matchesSearch) return false;
 
@@ -451,7 +460,7 @@
                     <div class="sub-card" onclick="openActionModal('${s.id}')">
                         <div class="sub-header">
                             <div>
-                                <h3 class="sub-name">${s.name}</h3>
+                                <h3 class="sub-name">${s.name || 'بدون اسم'}</h3>
                                 <div class="sub-phone"><i class="fas fa-phone"></i> ${s.phone || 'بدون هاتف'}</div>
                             </div>
                             <span class="status-badge ${statusClass}">${statusText}</span>
@@ -522,6 +531,8 @@
         };
 
         window.toggleMenu = () => { document.getElementById('main-nav').classList.toggle('active'); };
+
+        // تحديث الصفحة كل 3 ثوانٍ للتأكد من ظهور البيانات
         setInterval(() => { if (typeof DataManager !== 'undefined') renderPage(); }, 3000);
 
         // Handle URL Params for quick find

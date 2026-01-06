@@ -214,6 +214,9 @@
             const now = new Date();
 
             const activeSubs = DataManager.subscribers.filter(s => {
+                // التأكد من وجود الاسم
+                if (!s.name) return false;
+
                 const rawDate = s.expiryDate || s.endDate;
                 if (!rawDate) return false;
 
@@ -248,7 +251,7 @@
                     <div class="active-card" onclick="window.location.href='subscribers.html?id=${s.id}'" style="cursor:pointer">
                         <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                             <div>
-                                <h3 style="margin:0;">${s.name}</h3>
+                                <h3 style="margin:0;">${s.name || 'بدون اسم'}</h3>
                                 <p style="margin:5px 0; font-size:0.9rem; color:#666;"><i class="fas fa-phone"></i> ${s.phone || '-'}</p>
                             </div>
                             <span class="days-badge ${badgeClass}">${days <= 0 ? 'آخر يوم' : 'متبقي ' + days + ' يوم'}</span>

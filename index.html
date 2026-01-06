@@ -729,11 +729,6 @@
         window.renderDashboard = () => {
             if (!DataManager) return;
             const s = DataManager.getStats();
-            document.getElementById('stat-total').innerText = s.totalSubs;
-            document.getElementById('stat-debts').innerText = s.debts.toLocaleString('ar-IQ');
-            document.getElementById('stat-revenue').innerText = s.boxBalance.toLocaleString('ar-IQ');
-            document.getElementById('stat-expired').innerText = s.expired;
-            document.getElementById('stat-expiring').innerText = s.expiring;
 
             // --- حساب الفعالين (Robust Logic) ---
             const subs = DataManager.subscribers || [];
@@ -743,9 +738,19 @@
                 if (!expiry) return false;
                 return expiry >= todayStr;
             }).length;
+
+            // كارت المشتركين = جميع المشتركين
+            document.getElementById('stat-total').innerText = s.totalSubs;
+
+            // كارت الفعالين = الفعالين فقط
             const activeEl = document.getElementById('stat-active');
             if (activeEl) activeEl.innerText = activeCount;
             // ---------------------------
+
+            document.getElementById('stat-debts').innerText = s.debts.toLocaleString('ar-IQ');
+            document.getElementById('stat-revenue').innerText = s.boxBalance.toLocaleString('ar-IQ');
+            document.getElementById('stat-expired').innerText = s.expired;
+            document.getElementById('stat-expiring').innerText = s.expiring;
 
             // --- ملخص حساب الموظف ---
             if (AuthSystem.currentUser && AuthSystem.currentUser.type === 'employee') {

@@ -146,6 +146,10 @@ export const DataManager = {
                 console.log(`📊 Firebase Sync [${colName}]: ${data.length} records loaded.`);
 
                 // تحديث الواجهات إذا كانت الوظائف متاحة
+                if (colName === 'subscribers') {
+                    if (window.renderPage) window.renderPage(); // صفحة المشتركين
+                    if (window.updatePageData) window.updatePageData(); // الداشبورد
+                }
                 if (colName === 'employees' && window.renderEmployees) window.renderEmployees();
                 if (colName === 'transactions' && window.generateReport) window.generateReport();
             },
