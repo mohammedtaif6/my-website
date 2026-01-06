@@ -214,18 +214,34 @@
 
     <script>
         window.renderDebts = function () {
-            if (typeof DataManager === 'undefined' || !DataManager.subscribers) return;
+            if (typeof DataManager === 'undefined' || !DataManager.subscribers) {
+                console.log('⏳ انتظار تحميل البيانات...');
+                return;
+            }
+
             const q = document.getElementById('debtSearch').value.toLowerCase();
 
             console.log('📊 إجمالي المشتركين:', DataManager.subscribers.length);
-            console.log('📊 بيانات المشتركين:', DataManager.subscribers);
 
-            let list = DataManager.subscribers.filter(s => parseInt(s.price || 0) > 0);
+            // فلترة المديونين فقط
+            let list = DataManager.subscribers.filter(s => {
+                const debt = parseInt(s.price || 0);
+                return debt > 0;
+            });
 
-            console.log('💰 عدد الديون:', list.length);
-            console.log('💰 قائمة الديون:', list);
+            console.log('💰 عدد المديونين:', list.length);
 
-            if (q) list = list.filter(s => s.name.toLowerCase().includes(q));
+            // البحث (مع فحص وجود الاسم)
+            if (q) {
+                list = list.filter(s => {
+                    if (!s.name) return false;
+                    const nameMatch = s.name.toLowerCase().includes(q);
+                    const phoneMatch = s.phone && s.phone.includes(q);
+                    return nameMatch || phoneMatch;
+                });
+            }
+
+            // ترتيب حسب قيمة الدين (الأكبر أولاً)
             list.sort((a, b) => parseInt(b.price) - parseInt(a.price));
 
             const total = list.reduce((sum, s) => sum + parseInt(s.price || 0), 0);
@@ -241,7 +257,7 @@
                 <div class="debt-card">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                         <div>
-                            <h3 style="margin:0;">${s.name}</h3>
+                            <h3 style="margin:0;">${s.name || 'بدون اسم'}</h3>
                             <p style="margin:5px 0; color:#64748b; font-size:0.9rem;">${s.phone || '-'}</p>
                         </div>
                         <div class="debt-amount">${parseInt(s.price).toLocaleString()} <small style="font-size:0.6rem;">د.ع</small></div>
@@ -251,8 +267,8 @@
                         <span>${s.expiryDate || '-'}</span>
                     </div>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                        <button onclick="openPayDebtModal('${s.id}', '${s.firebaseId}', '${s.name.replace(/'/g, "")}', ${s.price})" class="btn-action btn-pay" style="padding:12px; border:none; border-radius:14px; font-weight:bold; cursor:pointer;"><i class="fas fa-money-bill-wave"></i> تسديد</button>
-                        <button onclick="notifyDebtor('${s.name.replace(/'/g, "")}', '${s.phone}', ${s.price})" class="btn-action btn-wa" style="padding:12px; border:none; border-radius:14px; font-weight:bold; cursor:pointer;"><i class="fab fa-whatsapp"></i> تنبيه</button>
+                        <button onclick="openPayDebtModal('${s.id}', '${s.firebaseId}', '${(s.name || 'بدون اسم').replace(/'/g, "")}', ${s.price})" class="btn-action btn-pay" style="padding:12px; border:none; border-radius:14px; font-weight:bold; cursor:pointer;"><i class="fas fa-money-bill-wave"></i> تسديد</button>
+                        <button onclick="notifyDebtor('${(s.name || 'بدون اسم').replace(/'/g, "")}', '${s.phone}', ${s.price})" class="btn-action btn-wa" style="padding:12px; border:none; border-radius:14px; font-weight:bold; cursor:pointer;"><i class="fab fa-whatsapp"></i> تنبيه</button>
                     </div>
                 </div>
             `).join('');
@@ -312,6 +328,13 @@
             // تحديث الصفحة عند تحميل البيانات
             setTimeout(() => renderDebts(), 500);
         };
+
+        // تحديث تلقائي كل 3 ثوانٍ
+        setInterval(() => {
+            if (typeof DataManager !== 'undefined' && DataManager.subscribers) {
+                renderDebts();
+            }
+        }, 3000);
     </script>
 </body>
 
