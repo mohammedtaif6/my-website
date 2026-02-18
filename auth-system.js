@@ -203,7 +203,7 @@ const AuthSystem = {
             } else {
                 // قد نحتاج لإعادة إظهار العنصر إذا تغير الإعداد في السحاب من false إلى true
                 // بشرط ألا يكون المستخدم موظفاً ومحروماً من الصلاحية أصلاً
-                if (this.currentUser && this.currentUser.type === 'admin') {
+                if (this.currentUser && (this.currentUser.type === 'admin' || !this.isRestricted(id))) {
                     el.style.display = '';
                 }
             }
@@ -220,7 +220,7 @@ const AuthSystem = {
             if (settings[id] === false) {
                 el.style.display = 'none';
             } else {
-                if (this.currentUser && this.currentUser.type === 'admin') {
+                if (this.currentUser && (this.currentUser.type === 'admin' || !this.isRestricted(id))) {
                     el.style.display = '';
                 }
             }
@@ -230,15 +230,58 @@ const AuthSystem = {
         if (settings.systemName) {
             document.querySelectorAll('.logo').forEach(el => {
                 const icon = el.querySelector('i');
+                const textNode = Array.from(el.childNodes).find(n => n.nodeType === 3); // Find text node
                 if (icon) {
-                    el.innerHTML = '';
-                    el.appendChild(icon);
-                    el.innerHTML += ' ' + settings.systemName;
+                    if (textNode) {
+                        textNode.nodeValue = ' ' + settings.systemName;
+                    } else {
+                        el.innerHTML = '';
+                        el.appendChild(icon);
+                        el.appendChild(document.createTextNode(' ' + settings.systemName));
+                    }
                 } else {
                     el.innerText = settings.systemName;
                 }
             });
+            // تحديث عنوان الصفحة أيضاً
+            if (!window.location.href.includes('login.html')) {
+                const currentTitle = document.title.split(' - ').pop();
+                document.title = settings.systemName + (currentTitle ? ' - ' + currentTitle : '');
+            }
         }
+
+        // 4. تحديث القيم الافتراضية في النماذج (إذا كانت موجودة في الصفحة الحالية)
+        if (settings.defaultPrice) {
+            const priceInputs = ['act-price', 'qa-price', 'new-price', 'set-default-price'];
+            priceInputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && !el.getAttribute('data-user-modified')) {
+                    el.value = settings.defaultPrice;
+                }
+            });
+        }
+
+        return settings;
+    },
+
+    // مساعد لفحص هل العنصر محظور برمجياً (للموظفين)
+    isRestricted(id) {
+        if (!this.currentUser || this.currentUser.type === 'admin') return false;
+        const perms = this.currentUser.permissions || {};
+
+        const map = {
+            'nav-subscribers': 'subscribers', 'card-subscribers': 'subscribers',
+            'nav-debts': 'debts', 'card-debts': 'debts',
+            'nav-payments': 'box', 'card-payments': 'box',
+            'nav-reports': 'reports', 'card-reports': 'reports',
+            'nav-employees': 'admin_only', 'nav-card-employees': 'admin_only',
+            'nav-telegram': 'admin_only', 'nav-card-telegram': 'admin_only'
+        };
+
+        const req = map[id];
+        if (!req) return false;
+        if (req === 'admin_only') return true;
+        return !perms[req];
     },
 
     // ميزة اختصار المبالغ (كتب 30 تصبح 30,000) باستخدام Event Delegation

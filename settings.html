@@ -585,8 +585,8 @@
 
             // 1. الإعدادات العامة
             settings.systemName = document.getElementById('set-system-name').value;
-            settings.defaultPrice = document.getElementById('set-default-price').value;
-            settings.subDuration = document.getElementById('set-sub-duration').value;
+            settings.defaultPrice = parseInt(document.getElementById('set-default-price').value || 35000);
+            settings.subDuration = parseInt(document.getElementById('set-sub-duration').value || 30);
 
             // 2. كروت الداشبورد
             const toggleMap = {
@@ -616,8 +616,14 @@
             });
 
             // إرسال للفايربيس عبر DataManager
+            showSaveToast('⏳ جاري الحفظ سحابياً...');
+
             if (typeof DataManager !== 'undefined' && DataManager.saveAllSystemSettings) {
-                DataManager.saveAllSystemSettings(settings);
+                DataManager.saveAllSystemSettings(settings).then(() => {
+                    // سيتم استدعاء loadSettings تلقائياً عبر الـ Snapshot في DataManager
+                }).catch(err => {
+                    showSaveToast('❌ فشل الحفظ السحابي');
+                });
             } else {
                 localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
                 showSaveToast();

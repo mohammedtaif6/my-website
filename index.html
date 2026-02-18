@@ -687,9 +687,22 @@
 
         // Modals
         window.openActivateModal = () => {
+            const settings = AuthSystem.applyUIConfigs();
+            const duration = parseInt(settings.subDuration || 30);
+            const defaultPrice = settings.defaultPrice || 35000;
+
             document.getElementById('activateModal').classList.add('active');
-            const d = new Date(); document.getElementById('act-start').value = d.toISOString().split('T')[0];
-            d.setDate(d.getDate() + 30); document.getElementById('act-end').value = d.toISOString().split('T')[0];
+
+            // ضبط السعر الافتراضي إذا لم يعدله المستخدم
+            const priceInput = document.getElementById('act-price');
+            if (priceInput && !priceInput.getAttribute('data-user-modified')) {
+                priceInput.value = defaultPrice;
+            }
+
+            const d = new Date();
+            document.getElementById('act-start').value = d.toISOString().split('T')[0];
+            d.setDate(d.getDate() + duration);
+            document.getElementById('act-end').value = d.toISOString().split('T')[0];
         };
         window.closeActivateModal = () => document.getElementById('activateModal').classList.remove('active');
 
@@ -735,10 +748,17 @@
                         targetDate = new Date(currentExpiry);
                     }
                 }
-                targetDate.setDate(targetDate.getDate() + 30);
+                targetDate.setDate(targetDate.getDate() + parseInt(AuthSystem.applyUIConfigs().subDuration || 30));
                 document.getElementById('act-end').value = targetDate.toISOString().split('T')[0];
             }
         };
+
+        // منع تحديث التلقائي للقيم أثناء كتابة المستخدم
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', () => {
+                input.setAttribute('data-user-modified', 'true');
+            });
+        });
 
         // Render Stats
         window.renderDashboard = () => {

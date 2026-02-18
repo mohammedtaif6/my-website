@@ -515,10 +515,20 @@
         window.actionActivate = () => { closeActionModal(); window.openRenew(selectedSubscriber.firebaseId, selectedSubscriber.id); };
 
         window.openRenew = (fid, id) => {
+            const settings = AuthSystem.applyUIConfigs();
+            const duration = parseInt(settings.subDuration || 30);
+            const defaultPrice = settings.defaultPrice || 35000;
+
             selectedSubscriber = DataManager.getSubscriber(id);
-            let today = new Date();
             let target = new Date();
-            target.setDate(target.getDate() + 30);
+
+            // ضبط السعر الافتراضي
+            const priceInput = document.getElementById('qa-price');
+            if (priceInput && !priceInput.getAttribute('data-user-modified')) {
+                priceInput.value = defaultPrice;
+            }
+
+            target.setDate(target.getDate() + duration);
             document.getElementById('qa-id').value = id;
             document.getElementById('qa-fid').value = fid;
             document.getElementById('qa-end').value = target.toISOString().split('T')[0];
@@ -537,13 +547,29 @@
         window.openAddModal = () => document.getElementById('addSubscriberModal').classList.add('active');
         window.closeAddModal = () => document.getElementById('addSubscriberModal').classList.remove('active');
         window.saveNewSubscriber = async () => {
+            const settings = AuthSystem.applyUIConfigs();
             let n = document.getElementById('new-name').value;
             let p = document.getElementById('new-phone').value;
             let pr = document.getElementById('new-price').value;
             if (!n) return;
-            await DataManager.addSubscriber({ name: n, phone: p, initialPrice: parseInt(pr), status: 'نشط', paymentType: parseInt(pr) > 0 ? 'أجل' : 'نقد', expiryDate: '' });
+            await DataManager.addSubscriber({
+                name: n,
+                phone: p,
+                initialPrice: parseInt(pr),
+                status: 'نشط',
+                paymentType: parseInt(pr) > 0 ? 'أجل' : 'نقد',
+                expiryDate: '',
+                subDuration: settings.subDuration || 30 // حفظ المدة أيضاً
+            });
             closeAddModal();
         };
+
+        // منع تحديث التلقائي للقيم أثناء كتابة المستخدم
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', () => {
+                input.setAttribute('data-user-modified', 'true');
+            });
+        });
 
         window.toggleMenu = () => { document.getElementById('main-nav').classList.toggle('active'); };
 
