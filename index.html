@@ -142,6 +142,37 @@
                 transform: rotate(360deg);
             }
         }
+
+        /* Balance Display Custom Styling */
+        .balance-display-modern {
+            position: relative;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .balance-display-modern:hover {
+            transform: translateY(-2px);
+        }
+
+        .topup-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            border: 2px solid #10b981;
+            background: transparent;
+            color: #10b981;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .topup-btn:hover {
+            background: #10b981;
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+        }
     </style>
 
 
@@ -184,16 +215,31 @@
     <div class="container">
 
         <!-- User Header -->
-        <div class="header-card">
+        <div class="header-card" style="padding: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <div id="user-name-display-header"
-                        style="font-size: 1.25rem; font-weight: 600; color: var(--primary); margin-bottom: 5px;"></div>
-                    <p id="currentDate" style="font-size: 0.85rem; color: #666; margin: 0;"></p>
+                        style="font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-circle-user" style="opacity: 0.7;"></i>
+                        <span>تحميل...</span>
+                    </div>
+                    <p id="currentDate" style="font-size: 0.85rem; color: #7f8c8d; margin: 0; font-weight: 500;"></p>
                 </div>
-                <div
-                    style="width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.3rem;">
-                    <i class="fas fa-user"></i>
+
+                <!-- عرض الرصيد المالي المطور -->
+                <div class="balance-display-modern" style="display: flex; align-items: center; gap: 12px;">
+                    <button class="topup-btn" onclick="window.location.href='payments.html'"
+                        title="تعبئة الرصيد / معاملات">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <div class="balance-badge"
+                        style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 10px 18px; border-radius: 16px; color: white; display: flex; flex-direction: column; align-items: flex-end; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25); border: 1px solid rgba(255,255,255,0.1);">
+                        <span style="font-size: 0.7rem; opacity: 0.9; font-weight: 600; letter-spacing: 0.5px;">الرصيد
+                            المتاح</span>
+                        <span id="header-balance-amount"
+                            style="font-size: 1.15rem; font-weight: 800; font-family: 'Outfit', sans-serif;">0
+                            د.ع</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -784,7 +830,12 @@
             // ---------------------------
 
             document.getElementById('stat-debts').innerText = s.debts.toLocaleString('ar-IQ');
-            document.getElementById('stat-revenue').innerText = s.boxBalance.toLocaleString('ar-IQ');
+            const boxBal = s.boxBalance.toLocaleString('ar-IQ');
+            document.getElementById('stat-revenue').innerText = boxBal;
+
+            // تحديث الرصيد في الهيدر
+            const headerBal = document.getElementById('header-balance-amount');
+            if (headerBal) headerBal.innerText = boxBal + ' د.ع';
             document.getElementById('stat-expired').innerText = s.expired;
             document.getElementById('stat-expiring').innerText = s.expiring;
 
@@ -1087,9 +1138,9 @@
 
             if (currentUser && userHeader) {
                 if (currentUser.type === 'admin') {
-                    userHeader.innerHTML = '<i class="fas fa-crown" style="color: #ffd700; margin-left: 5px;"></i> المدير';
+                    userHeader.innerHTML = '<i class="fas fa-crown" style="color: #f59e0b;"></i> <span>المدير العام</span>';
                 } else if (currentUser.type === 'employee') {
-                    userHeader.innerHTML = '<i class="fas fa-user-tie" style="margin-left: 5px;"></i> ' + currentUser.name;
+                    userHeader.innerHTML = '<i class="fas fa-user-tie"></i> <span>' + currentUser.name + '</span>';
                 }
             }
 
@@ -1097,9 +1148,12 @@
             const dateEl = document.getElementById('currentDate');
             if (dateEl) {
                 const now = new Date();
-                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const options = { weekday: 'long', day: 'numeric', month: 'long' };
                 dateEl.textContent = now.toLocaleDateString('ar-IQ', options);
             }
+
+            // تحديث الرصيد فوراً عند التحميل
+            if (window.renderDashboard) window.renderDashboard();
         };
     </script>
 </body>
