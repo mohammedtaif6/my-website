@@ -21,7 +21,7 @@
 
     <!-- Fix: Import DataManager for Employee Login -->
     <script type="module">
-        import { DataManager } from './data-manager.js';
+        import { DataManager } from './data-manager.js?v=28.0';
         window.DataManager = DataManager;
         // We do NOT call DataManager.init() here to avoid heavy sync, 
         // we just need .getEmployees() to work which requires initial sync or at least connection.
@@ -30,7 +30,7 @@
         // For now, let's just init it. It uses local cache so it should be fast.
         DataManager.init();
     </script>
-    <script src="auth-system.js?v=2.1"></script>
+    <script src="auth-system.js?v=3.0"></script>
 
     <style>
         :root {
@@ -423,9 +423,9 @@
         </div>
     </div>
 
-    <script src="auth-system.js?v=2.1"></script>
+    <script src="auth-system.js?v=3.0"></script>
     <script type="module">
-        import { DataManager } from './data-manager.js';
+        import { DataManager } from './data-manager.js?v=28.0';
         window.DataManager = DataManager;
         DataManager.init();
 

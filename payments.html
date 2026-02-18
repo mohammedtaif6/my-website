@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- إضافة AuthSystem -->
-    <script src="auth-system.js?v=2.1"></script>
+    <script src="auth-system.js?v=3.0"></script>
     <script>
         // Anti-Flicker: Apply visibility as fast as possible
         (function () {
@@ -29,7 +29,7 @@
 
 
     <script type="module">
-        import { DataManager } from './data-manager.js?v=21.0';
+        import { DataManager } from './data-manager.js?v=28.0';
         window.DataManager = DataManager;
         DataManager.init();
     </script>
@@ -50,6 +50,7 @@
 </head>
 
 <body>
+    <div id="ptr-indicator"></div>
 
 
     <!-- Mobile Header & Toggle -->
@@ -278,18 +279,18 @@
         });
 
         window.addEventListener('touchmove', e => {
-            if (window.scrollY === 0 && touchStart > 0) {
+            if (window.scrollY === 0 && touchStart > 0 && ptr) {
                 const pull = e.changedTouches[0].screenY - touchStart;
                 if (pull > 0) ptr.style.height = Math.min(pull, 60) + 'px';
             }
         });
 
         window.addEventListener('touchend', e => {
-            if (window.scrollY === 0 && (e.changedTouches[0].screenY - touchStart) > 80) {
+            if (window.scrollY === 0 && (e.changedTouches[0].screenY - touchStart) > 80 && ptr) {
                 ptr.style.height = '60px';
                 ptr.innerHTML = '<i class="fas fa-spinner fa-spin"></i> تحديث...';
                 setTimeout(() => window.location.reload(), 500);
-            } else {
+            } else if (ptr) {
                 ptr.style.height = '0px';
             }
             touchStart = 0;

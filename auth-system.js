@@ -284,35 +284,75 @@ const AuthSystem = {
         return !perms[req];
     },
 
-    // ميزة اختصار المبالغ (كتب 30 تصبح 30,000) باستخدام Event Delegation
+    // ميزة اختصار المبالغ (كتب 30 تصبح 30,000)
     setupAmountShortcuts() {
-        // إزالة الحماية من التكرار مؤقتاً لضمان العمل، أو استخدام علم بسيط في العنصر نفسه
-        // استخدام الـ Capture Phase للتعامل مع حدث Blur الذي لا ينتشر (Bubbles)
-        document.body.addEventListener('focusout', (e) => { // focusout bubbles, blur does not (usually)
-            const input = e.target;
+        if (window.isAmountShortcutsSetup) return;
+        window.isAmountShortcutsSetup = true;
+
+        console.log("💰 Amount shortcuts v2.0 (Type 30 -> 30,000)");
+
+        const processInput = (input) => {
             if (!input || input.tagName !== 'INPUT') return;
 
-            // التحقق من أن الحقل هو حقل رقمي (إما type="number" أو ID/Class يحوي مبلغ)
-            const isNumberType = input.type === 'number';
+            // تنظيف القيمة من الفواصل أو المسافات قبل المعالجة
+            let rawValue = input.value.toString().replace(/,/g, '').trim();
+            if (rawValue === "") return;
+
             const id = (input.id || "").toLowerCase();
             const name = (input.name || "").toLowerCase();
-            const isAmountField = id.includes('amount') || id.includes('price') || id.includes('cost') || id.includes('salary');
+            const classes = (input.className || "").toLowerCase();
 
-            if (isNumberType || isAmountField) {
-                // استثناءات صريحة
-                if (id.includes('phone') || id.includes('duration') || id.includes('code') || id.includes('id') || name.includes('phone')) return;
+            const isAmountField = id.includes('amount') || id.includes('price') || id.includes('cost') ||
+                id.includes('salary') || id.includes('debt') || id.includes('advance') ||
+                id.includes('bonus') || id.includes('revenue') || name.includes('price') ||
+                classes.includes('amount');
 
-                let val = parseFloat(input.value);
-                // التحقق من أن القيمة منطقية للتحويل (بين 1 و 999)
+            const isExcluded = id.includes('phone') || id.includes('duration') || id.includes('code') ||
+                id.includes('id') || id.includes('num') || name.includes('phone') ||
+                name.includes('id');
+
+            if (isAmountField && !isExcluded) {
+                let val = parseFloat(rawValue);
+
+                // 1. منطق إضافة الأصفار (إذا كان بين 1 و 999)
                 if (!isNaN(val) && val > 0 && val < 1000) {
-                    console.log(`💰 Auto-formatting amount: ${val} -> ${val * 1000}`);
-                    input.value = val * 1000;
-                    // إطلاق حدث change للتأكد من أن الأنظمة الأخرى تشعر بالتغيير
+                    val = val * 1000;
+                }
+
+                // 2. تحديث الحقل بالقيمة الجديدة
+                if (!isNaN(val)) {
+                    // إذا كان الحقل من نوع text، نعرض الفواصل للجمالية
+                    // إذا كان number، نضع الرقم الصافي فقط (لأن number لا يدعم الفواصل)
+                    if (input.type === 'number') {
+                        input.value = Math.round(val);
+                    } else {
+                        input.value = Math.round(val).toLocaleString('en-US');
+                    }
+
+                    // إطلاق أحداث التغيير لتنبيه الأنظمة الأخرى
                     input.dispatchEvent(new Event('change', { bubbles: true }));
                     input.dispatchEvent(new Event('input', { bubbles: true }));
                 }
             }
+        };
+
+        // معالجة عند الخروج من الحقل
+        document.body.addEventListener('focusout', (e) => processInput(e.target), true);
+
+        // معالجة عند ضغط Enter
+        document.body.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                processInput(e.target);
+            }
         });
+
+        // تنظيف تلقائي للمبالغ عند التركيز (إزالة الفواصل ليسهل التعديل)
+        document.body.addEventListener('focusin', (e) => {
+            const input = e.target;
+            if (input && input.tagName === 'INPUT' && input.type !== 'number') {
+                input.value = input.value.replace(/,/g, '');
+            }
+        }, true);
     }
 };
 

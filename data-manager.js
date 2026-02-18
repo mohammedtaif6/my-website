@@ -2,7 +2,7 @@
  * DataManager v15.0 - مع دعم Telegram Bot
  */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { initializeFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, limit, getDocs, where, persistentLocalCache, persistentMultipleTabManager } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { initializeFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, limit, getDocs, where, persistentLocalCache, persistentMultipleTabManager, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { telegramBot } from './telegram-bot.js?v=19.1';
 
@@ -30,7 +30,7 @@ console.log('✅ Firebase مُهيأ بالتخزين المحلي المتقد�
 
 
 
-let localData = { subscribers: [], transactions: [], archived_transactions: [], employees: [], system_settings: {} };
+let localData = { subscribers: [], transactions: [], archived_transactions: [], employees: [], settings: {} };
 let isProcessing = false;
 
 // === Toast Logic ===
@@ -68,7 +68,7 @@ export const DataManager = {
         this.sync('transactions');
         this.sync('archived_transactions'); // مجموعة الأرشفة الجديدة
         this.sync('employees'); // مزامنة الموظفين
-        this.sync('system_settings'); // مزامنة الإعدادات العالمية
+        this.sync('settings'); // مزامنة الإعدادات العالمية
 
 
         this.monitorConnection();
@@ -142,13 +142,13 @@ export const DataManager = {
 
                 // بالنسبة للعمليات، قد نرغب في تحديد العدد محلياً فقط إذا كان ضخماً جداً
                 // لكننا سنتركها الآن لضمان ظهور "كل" البيانات القديمة
-                if (colName === 'system_settings') {
+                if (colName === 'settings') {
                     // تحويل المصفوفة إلى كائن واحد. نبدأ بكائن فارغ.
                     // في حالتنا، لدينا وثيقة واحدة 'global'، ولكن هذا الكود مرن.
                     const newSettings = data.reduce((acc, curr) => ({ ...acc, ...curr }), {});
 
                     // التحقق هل هناك تغيير فعلي لتجنب التحديثات المزعجة
-                    const currentStr = JSON.stringify(localData.system_settings || {});
+                    const currentStr = JSON.stringify(localData.settings || {});
                     const newStr = JSON.stringify(newSettings);
 
                     if (currentStr !== newStr) {
@@ -585,24 +585,18 @@ export const DataManager = {
         showToast(`🎁 تم صرف مكافأة ${bonusAmount.toLocaleString()} د.ع لـ ${emp.name}`);
     },
 
-    // --- مزامنة الإعدادات ---
     getSystemSettings() {
-        return localData.system_settings || {};
+        return localData.settings || {};
     },
 
     async saveSystemSetting(key, value) {
         try {
-            // استخدام setDoc مع merge لضمان إنشاء الوثيقة أو تحديث الحقل المحدد فقط
-            const { setDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-            const settingsRef = doc(db, "system_settings", "global");
-
+            const settingsRef = doc(db, "settings", "global");
             await setDoc(settingsRef, { [key]: value }, { merge: true });
 
             // تحديث محلي فوري
-            localData.system_settings[key] = value;
-            localStorage.setItem('sas_settings', JSON.stringify(localData.system_settings));
-
-
+            localData.settings[key] = value;
+            localStorage.setItem('sas_settings', JSON.stringify(localData.settings));
         } catch (e) {
             console.error("Error saving setting:", e);
         }
@@ -610,14 +604,13 @@ export const DataManager = {
 
     async saveAllSystemSettings(settingsObject) {
         try {
-            const { setDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-            const settingsRef = doc(db, "system_settings", "global");
+            const settingsRef = doc(db, "settings", "global");
 
             await setDoc(settingsRef, settingsObject, { merge: true });
 
             // تحديث محلي فوري
-            localData.system_settings = { ...localData.system_settings, ...settingsObject };
-            localStorage.setItem('sas_settings', JSON.stringify(localData.system_settings));
+            localData.settings = { ...localData.settings, ...settingsObject };
+            localStorage.setItem('sas_settings', JSON.stringify(localData.settings));
 
             showToast('✅ تم حفظ جميع الإعدادات بنجاح');
         } catch (e) {
