@@ -638,22 +638,25 @@ export const DataManager = {
 
     async topUpVirtualBalance(amount) {
         try {
-            console.log(`🏦 System: Topping up virtual balance by ${amount}`);
+            console.log(`🏦 System: Adding to virtual funds: ${amount}`);
 
-            // 1. تسجيل عملية خصم من الصندوق (الصرفية)
-            await this.addExpense(amount, "تعبئة رصيد النظام (استقطاع من الصندوق)");
+            // 1. تسجيل عملية خصم من الصندوق (مصروفات)
+            await this.addExpense(amount, "تحويل رصيد للنظام (استقطاع من الصندوق)");
 
-            // 2. تحديث الرصيد الافتراضي في الإعدادات
+            // 2. تحديث الحساب الافتراضي في فايربيس (في وثيقة مخصصة للحسابات)
+            const settingsRef = doc(db, "settings", "global");
             const currentBal = (localData.settings.virtualBalance || 0);
             const newBal = currentBal + amount;
 
-            await this.saveSystemSetting('virtualBalance', newBal);
+            await setDoc(settingsRef, { virtualBalance: newBal }, { merge: true });
 
-            showToast(`✅ تم تعبئة ${amount.toLocaleString()} د.ع بنجاح`);
+            // 3. تسجيل "عملية تعبئة" في سجل منفصل إذا أردت مستقبلاً (اختياري)
+
+            showToast(`✅ تم إضافة ${amount.toLocaleString()} د.ع للرصيد`);
             return newBal;
         } catch (err) {
-            console.error("❌ Top-up Failed:", err);
-            showToast('فشل تعبئة الرصيد', 'error');
+            console.error("❌ Top-up Error:", err);
+            showToast('خطأ في عملية التعبئة', 'error');
             throw err;
         }
     }
