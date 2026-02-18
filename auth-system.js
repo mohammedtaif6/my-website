@@ -243,29 +243,33 @@ const AuthSystem = {
 
     // ميزة اختصار المبالغ (كتب 30 تصبح 30,000) باستخدام Event Delegation
     setupAmountShortcuts() {
-        // حماية من التكرار
-        if (window._shortcutBound) return;
-        window._shortcutBound = true;
-
+        // إزالة الحماية من التكرار مؤقتاً لضمان العمل، أو استخدام علم بسيط في العنصر نفسه
         // استخدام الـ Capture Phase للتعامل مع حدث Blur الذي لا ينتشر (Bubbles)
-        document.body.addEventListener('blur', (e) => {
+        document.body.addEventListener('focusout', (e) => { // focusout bubbles, blur does not (usually)
             const input = e.target;
-            if (input && input.tagName === 'INPUT' && (input.type === 'number' || input.classList.contains('setting-input'))) {
-                // استثناء الحقول التي لا نريد تحويلها
-                const id = (input.id || "").toLowerCase();
-                const name = (input.name || "").toLowerCase();
+            if (!input || input.tagName !== 'INPUT') return;
+
+            // التحقق من أن الحقل هو حقل رقمي (إما type="number" أو ID/Class يحوي مبلغ)
+            const isNumberType = input.type === 'number';
+            const id = (input.id || "").toLowerCase();
+            const name = (input.name || "").toLowerCase();
+            const isAmountField = id.includes('amount') || id.includes('price') || id.includes('cost') || id.includes('salary');
+
+            if (isNumberType || isAmountField) {
+                // استثناءات صريحة
                 if (id.includes('phone') || id.includes('duration') || id.includes('code') || id.includes('id') || name.includes('phone')) return;
 
                 let val = parseFloat(input.value);
-                // التحقق من أن القيمة ليست "اسم النظام" أو نصوص أخرى
+                // التحقق من أن القيمة منطقية للتحويل (بين 1 و 999)
                 if (!isNaN(val) && val > 0 && val < 1000) {
+                    console.log(`💰 Auto-formatting amount: ${val} -> ${val * 1000}`);
                     input.value = val * 1000;
                     // إطلاق حدث change للتأكد من أن الأنظمة الأخرى تشعر بالتغيير
                     input.dispatchEvent(new Event('change', { bubbles: true }));
                     input.dispatchEvent(new Event('input', { bubbles: true }));
                 }
             }
-        }, true);
+        });
     }
 };
 

@@ -587,8 +587,27 @@ export const DataManager = {
             localData.system_settings[key] = value;
             localStorage.setItem('sas_settings', JSON.stringify(localData.system_settings));
 
+
         } catch (e) {
             console.error("Error saving setting:", e);
+        }
+    },
+
+    async saveAllSystemSettings(settingsObject) {
+        try {
+            const { setDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+            const settingsRef = doc(db, "system_settings", "global");
+
+            await setDoc(settingsRef, settingsObject, { merge: true });
+
+            // تحديث محلي فوري
+            localData.system_settings = { ...localData.system_settings, ...settingsObject };
+            localStorage.setItem('sas_settings', JSON.stringify(localData.system_settings));
+
+            showToast('✅ تم حفظ جميع الإعدادات بنجاح');
+        } catch (e) {
+            console.error("Error saving all settings:", e);
+            showToast('❌ حدث خطأ أثناء الحفظ', 'error');
         }
     },
 

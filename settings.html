@@ -521,12 +521,17 @@
                 <span>Telegram</span>
             </div>
             <label class="toggle-switch">
-                <input type="checkbox" id="nav-telegram-toggle" checked
-                    onchange="saveToggle('nav-telegram', this.checked)">
+                <input type="checkbox" id="nav-telegram-toggle" checked>
                 <span class="toggle-slider"></span>
             </label>
         </div>
     </div>
+
+    <!-- زر حفظ الإعدادات (جديد) -->
+    <button class="save-btn" onclick="saveAllSettings()"
+        style="background: var(--primary); color: white; width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);">
+        <i class="fas fa-save"></i> حفظ الإعدادات
+    </button>
 
     <!-- زر إعادة التعيين -->
     <button class="reset-btn" onclick="resetAllSettings()">
@@ -589,29 +594,54 @@
         // جعل loadSettings متاحة عالمياً لـ DataManager
         window.loadSettings = loadSettings;
 
-        // === حفظ toggle ===
-        function saveToggle(key, value) {
-            if (typeof DataManager !== 'undefined' && DataManager.saveSystemSetting) {
-                DataManager.saveSystemSetting(key, value);
-            } else {
-                const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-                settings[key] = value;
-                localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        // === حفظ الكل (الجديد) ===
+        function saveAllSettings() {
+            const settings = {};
+
+            // 1. الإعدادات العامة
+            settings.systemName = document.getElementById('set-system-name').value;
+            settings.defaultPrice = document.getElementById('set-default-price').value;
+            settings.subDuration = document.getElementById('set-sub-duration').value;
+
+            // 2. كروت الداشبورد
+            const toggleMap = {
+                'card-subscribers': 'card-subscribers-toggle',
+                'card-active': 'card-active-toggle',
+                'card-debts': 'card-debts-toggle',
+                'card-payments': 'card-payments-toggle',
+                'card-reports': 'card-reports-toggle',
+                'nav-card-employees': 'card-employees-toggle',
+                'card-expiring': 'card-expiring-toggle',
+                'card-expired': 'card-expired-toggle',
+                'nav-card-telegram': 'card-telegram-toggle'
+            };
+            for (const [key, id] of Object.entries(toggleMap)) {
+                const el = document.getElementById(id);
+                if (el) settings[key] = el.checked;
             }
-            showSaveToast();
+
+            // 3. النافبار
+            const navKeys = [
+                'nav-subscribers', 'nav-active', 'nav-debts', 'nav-payments',
+                'nav-reports', 'nav-employees', 'nav-telegram'
+            ];
+            navKeys.forEach(key => {
+                const el = document.getElementById(key + '-toggle');
+                if (el) settings[key] = el.checked;
+            });
+
+            // إرسال للفايربيس عبر DataManager
+            if (typeof DataManager !== 'undefined' && DataManager.saveAllSystemSettings) {
+                DataManager.saveAllSystemSettings(settings);
+            } else {
+                localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+                showSaveToast();
+            }
         }
 
-        // === حفظ إعداد ===
-        function saveSetting(key, value) {
-            if (typeof DataManager !== 'undefined' && DataManager.saveSystemSetting) {
-                DataManager.saveSystemSetting(key, value);
-            } else {
-                const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-                settings[key] = value;
-                localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-            }
-            showSaveToast();
-        }
+        // دوال الحفظ الفردية (سنبقيها ولكنها ستعمل محلياً فقط أو يمكن إلغاؤها)
+        // سنلغي الـ onchange من الـ HTML لكي لا يحدث تعارض، أو نتركه لتحديث الـ state فقط
+        // الأفضل: إزالة الـ onchange من عناصر HTML واستخدام الزر فقط كما طلب المستخدم
 
         // === إعادة تعيين ===
         function resetAllSettings() {
