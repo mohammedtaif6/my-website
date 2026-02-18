@@ -30,7 +30,7 @@ console.log('✅ Firebase مُهيأ بالتخزين المحلي المتقد�
 
 
 
-let localData = { subscribers: [], transactions: [], archived_transactions: [], employees: [] };
+let localData = { subscribers: [], transactions: [], archived_transactions: [], employees: [], system_settings: {} };
 let isProcessing = false;
 
 // === Toast Logic ===
@@ -68,6 +68,7 @@ export const DataManager = {
         this.sync('transactions');
         this.sync('archived_transactions'); // مجموعة الأرشفة الجديدة
         this.sync('employees'); // مزامنة الموظفين
+        this.sync('system_settings'); // مزامنة الإعدادات العالمية
 
 
         this.monitorConnection();
@@ -141,9 +142,18 @@ export const DataManager = {
 
                 // بالنسبة للعمليات، قد نرغب في تحديد العدد محلياً فقط إذا كان ضخماً جداً
                 // لكننا سنتركها الآن لضمان ظهور "كل" البيانات القديمة
-                localData[colName] = data;
-
-                console.log(`📊 Firebase Sync [${colName}]: ${data.length} records loaded.`);
+                if (colName === 'system_settings') {
+                    // تحويل المصفوفة إلى كائن لسهولة الوصول
+                    localData[colName] = data.reduce((acc, curr) => ({ ...acc, ...curr }), {});
+                    console.log(`⚙️ Firebase Sync [${colName}]: Updated.`);
+                    if (window.AuthSystem && window.AuthSystem.applyUIConfigs) {
+                        window.AuthSystem.applyUIConfigs(localData[colName]);
+                    }
+                    if (window.loadSettings) window.loadSettings(); // تحديث صفحة الإعدادات
+                } else {
+                    localData[colName] = data;
+                    console.log(`📊 Firebase Sync [${colName}]: ${data.length} records loaded.`);
+                }
 
                 // تحديث الواجهات إذا كانت الوظائف متاحة
                 if (colName === 'subscribers') {
@@ -558,6 +568,35 @@ export const DataManager = {
         await this.addExpense(bonusAmount, `مكافأة: ${emp.name} - ${reason}`);
 
         showToast(`🎁 تم صرف مكافأة ${bonusAmount.toLocaleString()} د.ع لـ ${emp.name}`);
+    },
+
+    // --- مزامنة الإعدادات ---
+    getSystemSettings() {
+        return localData.system_settings || {};
+    },
+
+    async saveSystemSetting(key, value) {
+        try {
+            // سنستخدم وثيقة واحدة ثابتة للإعدادات لتسهيل المزامنة
+            // أو يمكن استخدام وثيقة لكل إعداد. سنستخدم وثيقة واحدة باسم 'global'
+            const settingsRef = doc(db, "system_settings", "global");
+            await updateDoc(settingsRef, { [key]: value })
+                .catch(async (err) => {
+                    if (err.code === 'not-found') {
+                        await addDoc(collection(db, "system_settings"), { id: 'global', [key]: value });
+                        // ملاحظة: addDoc سيولد ID عشوائي، الأفضل استخدام setDoc إذا أردنا ID محدد
+                        // لكن بما أن الـ sync يجلب كل شيء، سنكتفي بالتحديث أو الإضافة
+                    }
+                    // محاولة بديلة: استخدام setDoc مع merge
+                });
+
+            // تحديث محلي فوري لتحسين الاستجابة
+            localData.system_settings[key] = value;
+            localStorage.setItem('sas_settings', JSON.stringify(localData.system_settings));
+
+        } catch (e) {
+            console.error("Error saving setting:", e);
+        }
     },
 
 

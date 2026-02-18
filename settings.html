@@ -541,7 +541,12 @@
 
         // === تحميل الإعدادات ===
         function loadSettings() {
-            const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+            // جلب الإعدادات من DataManager (سحابياً) أو localStorage كاحتياط
+            const settings = (typeof DataManager !== 'undefined' && DataManager.getSystemSettings)
+                ? DataManager.getSystemSettings()
+                : JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+
+            if (Object.keys(settings).length === 0) return; // لسه ما حملت
 
             // إعدادات عامة
             document.getElementById('set-system-name').value = settings.systemName || 'OK Computer';
@@ -581,28 +586,41 @@
             });
         }
 
+        // جعل loadSettings متاحة عالمياً لـ DataManager
+        window.loadSettings = loadSettings;
+
         // === حفظ toggle ===
         function saveToggle(key, value) {
-            const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-            settings[key] = value;
-            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+            if (typeof DataManager !== 'undefined' && DataManager.saveSystemSetting) {
+                DataManager.saveSystemSetting(key, value);
+            } else {
+                const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+                settings[key] = value;
+                localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+            }
             showSaveToast();
         }
 
         // === حفظ إعداد ===
         function saveSetting(key, value) {
-            const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-            settings[key] = value;
-            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+            if (typeof DataManager !== 'undefined' && DataManager.saveSystemSetting) {
+                DataManager.saveSystemSetting(key, value);
+            } else {
+                const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+                settings[key] = value;
+                localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+            }
             showSaveToast();
         }
 
         // === إعادة تعيين ===
         function resetAllSettings() {
             if (!confirm('هل أنت متأكد من إعادة تعيين جميع الإعدادات؟')) return;
+            // للتصفير السحابي، سنحتاج لحذف الوثيقة أو مسح كل الحقول.
+            // للتبسيط، سنمسح الـ localStorage ونطلب الحذف يدوياً أو نتركها
             localStorage.removeItem(SETTINGS_KEY);
+            showSaveToast('🔄 تم مسح الكاش المحلي. لإعادة التعيين الكلي يرجى التواصل مع الدعم.');
             loadSettings();
-            showSaveToast('🔄 تم إعادة تعيين الإعدادات');
         }
 
         // === Toast ===

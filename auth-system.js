@@ -179,9 +179,15 @@ const AuthSystem = {
         }
     },
 
-    // تطبيق إعدادات الظهور/الإخفاء المحفوظة في localStorage
-    applyUIConfigs() {
-        const settings = JSON.parse(localStorage.getItem('sas_settings') || '{}');
+    // تطبيق إعدادات الظهور/الإخفاء (من localStorage أو Cloud)
+    applyUIConfigs(cloudSettings = null) {
+        // نستخدم الإعدادات القادمة من السحاب إذا وجدت، وإلا نستخدم المحلي
+        const settings = cloudSettings || JSON.parse(localStorage.getItem('sas_settings') || '{}');
+
+        // حفظ نسخة محلية للتسريع المستقبلي (Anti-flicker)
+        if (cloudSettings) {
+            localStorage.setItem('sas_settings', JSON.stringify(cloudSettings));
+        }
 
         // 1. كروت الداشبورد
         const cardIds = [
@@ -190,9 +196,16 @@ const AuthSystem = {
             'nav-card-telegram'
         ];
         cardIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
             if (settings[id] === false) {
-                const el = document.getElementById(id);
-                if (el) el.style.display = 'none';
+                el.style.display = 'none';
+            } else {
+                // قد نحتاج لإعادة إظهار العنصر إذا تغير الإعداد في السحاب من false إلى true
+                // بشرط ألا يكون المستخدم موظفاً ومحروماً من الصلاحية أصلاً
+                if (this.currentUser && this.currentUser.type === 'admin') {
+                    el.style.display = '';
+                }
             }
         });
 
@@ -202,13 +215,18 @@ const AuthSystem = {
             'nav-reports', 'nav-employees', 'nav-telegram'
         ];
         navIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
             if (settings[id] === false) {
-                const el = document.getElementById(id);
-                if (el) el.style.display = 'none';
+                el.style.display = 'none';
+            } else {
+                if (this.currentUser && this.currentUser.type === 'admin') {
+                    el.style.display = '';
+                }
             }
         });
 
-        // تغيير اسم النظام إذا وجد
+        // 3. تغيير اسم النظام إذا وجد
         if (settings.systemName) {
             document.querySelectorAll('.logo').forEach(el => {
                 const icon = el.querySelector('i');
