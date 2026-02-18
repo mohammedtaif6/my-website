@@ -146,8 +146,15 @@
         </div>
 
         <div class="table-container tx-list-container">
-            <div class="table-header">
-                <h3>سجل العمليات</h3>
+            <div class="table-header" style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0;">سجل العمليات</h3>
+                <div class="filter-tabs"
+                    style="display:flex; gap:5px; background:#f1f5f9; padding:4px; border-radius:10px;">
+                    <button class="filter-btn active" onclick="setTxFilter('today')" id="filter-today">اليوم</button>
+                    <button class="filter-btn" onclick="setTxFilter('week')" id="filter-week">الأسبوع</button>
+                    <button class="filter-btn" onclick="setTxFilter('month')" id="filter-month">الشهر</button>
+                    <button class="filter-btn" onclick="setTxFilter('all')" id="filter-all">الكل</button>
+                </div>
             </div>
             <!-- Transctions List (Cards) -->
             <div id="transactionsList" class="tx-list"></div>
@@ -171,7 +178,7 @@
                 </div>
                 <div class="form-group">
                     <label>المبلغ</label>
-                    <input type="number" inputmode="numeric" id="expAmount">
+                    <input type="text" inputmode="numeric" id="expAmount" placeholder="30 = 30,000">
                 </div>
                 <div class="form-group">
                     <label>خصم من راتب موظف (اختياري)</label>
@@ -199,7 +206,7 @@
                 </div>
                 <div class="form-group">
                     <label>المبلغ</label>
-                    <input type="number" inputmode="numeric" id="editTxAmount">
+                    <input type="text" inputmode="numeric" id="editTxAmount">
                 </div>
                 <button onclick="saveEditTx()" class="btn btn-primary btn-full">حفظ التعديلات</button>
             </div>
@@ -265,6 +272,24 @@
             cursor: pointer;
             padding: 5px;
         }
+
+        .filter-btn {
+            border: none;
+            background: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
     </style>
 
     <!-- Script for Pull to Refresh & Logic -->
@@ -297,20 +322,47 @@
         });
 
         // === Page Logic ===
-        // === Page Logic ===
+        let currentFilter = 'today';
+
+        window.setTxFilter = function (filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('filter-' + filter).classList.add('active');
+            window.renderPage();
+        };
+
         window.renderPage = function () {
             if (typeof DataManager === 'undefined') return;
 
-            // Get All Transactions
-            const allTxs = DataManager.getAllTransactions();
+            // جلب كافة العمليات (النشطة والمؤرشفة)
+            const activeTxs = DataManager.getAllTransactions() || [];
+            const archivedTxs = DataManager.getArchivedTransactions() || [];
+
+            // دمج القائمتين للبحث الشامل
+            let allTxs = [...activeTxs, ...archivedTxs];
+
             const container = document.getElementById('transactionsList');
 
-            // Filter: NOT Archived, Not Debt-Only Record
-            const activeTxs = allTxs.filter(t => !t.isArchived && t.type !== 'subscription_debt');
+            // 1. الأساسي: استبعاد سجلات الديون فقط (لأنها لا تمثل حركة نقد حقيقية في الصندوق)
+            let filteredTxs = allTxs.filter(t => t.type !== 'subscription_debt');
 
-            // Calculate Totals
-            const income = activeTxs.filter(t => t.amount > 0).reduce((a, b) => a + b.amount, 0);
-            const expense = activeTxs.filter(t => t.amount < 0).reduce((a, b) => a + Math.abs(b.amount), 0);
+            // 2. الفلتر الزمني
+            const now = new Date();
+            const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+            if (currentFilter === 'today') {
+                filteredTxs = filteredTxs.filter(t => new Date(t.createdAt) >= startOfToday);
+            } else if (currentFilter === 'week') {
+                const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                filteredTxs = filteredTxs.filter(t => new Date(t.createdAt) >= oneWeekAgo);
+            } else if (currentFilter === 'month') {
+                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                filteredTxs = filteredTxs.filter(t => new Date(t.createdAt) >= startOfMonth);
+            }
+
+            // حساب المجاميع بناءً على الفلتر المختار
+            const income = filteredTxs.filter(t => t.amount > 0).reduce((a, b) => a + b.amount, 0);
+            const expense = filteredTxs.filter(t => t.amount < 0).reduce((a, b) => a + Math.abs(b.amount), 0);
             const net = income - expense;
 
             // Update Header Stats
@@ -319,11 +371,11 @@
             document.getElementById('totalExpenseDisplay').innerText = expense.toLocaleString();
 
             container.innerHTML = '';
-            if (activeTxs.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:30px; opacity:0.6;"><i class="fas fa-receipt fa-2x"></i><br>لا توجد حركات يومية. الكل مرحّل.</div>';
+            if (filteredTxs.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:30px; opacity:0.6;"><i class="fas fa-receipt fa-2x"></i><br>لا توجد حركات لهذه الفترة (${currentFilter}).</div>`;
             } else {
                 // Sort Newest First
-                activeTxs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(t => {
+                filteredTxs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(t => {
                     const isExp = t.amount < 0;
                     const amount = Math.abs(t.amount);
                     const dateTime = new Date(t.createdAt);
@@ -384,22 +436,32 @@
 
 
         window.saveExpense = async function () {
-            const amt = document.getElementById('expAmount').value;
+            const amtRaw = document.getElementById('expAmount').value;
+            const amt = parseInt(amtRaw.replace(/,/g, ''));
             const desc = document.getElementById('expDesc').value;
             const empId = document.getElementById('expEmployee').value;
+
             if (!amt || !desc) return DataManager.showToast('⚠️ يرجى إدخال المبلغ والوصف', 'error');
 
-            if (empId) {
-                // خصم من راتب الموظف + تسجيل صرفية
-                await DataManager.addAdvance(empId, parseInt(amt), desc);
-            } else {
-                // صرفية عادية بدون خصم من موظف
-                await DataManager.addExpense(parseInt(amt), desc);
+            try {
+                if (empId) {
+                    await DataManager.addAdvance(empId, amt, desc);
+                } else {
+                    await DataManager.addExpense(amt, desc);
+                }
+
+                // تنظيف وإغلاق
+                document.getElementById('expAmount').value = '';
+                document.getElementById('expDesc').value = '';
+                document.getElementById('expEmployee').value = '';
+                closeExpenseModal();
+
+                // تحديث الواجهة فوراً
+                window.renderPage();
+            } catch (err) {
+                console.error("Save Expense Error:", err);
+                DataManager.showToast('❌ فشل حفظ الصرفية', 'error');
             }
-            closeExpenseModal();
-            document.getElementById('expAmount').value = '';
-            document.getElementById('expDesc').value = '';
-            document.getElementById('expEmployee').value = '';
         };
 
         // --- Edit Logic ---
@@ -415,16 +477,16 @@
         window.saveEditTx = async function () {
             const id = document.getElementById('editTxId').value;
             const desc = document.getElementById('editTxDesc').value;
-            const amountAbs = parseInt(document.getElementById('editTxAmount').value);
+            const amtRaw = document.getElementById('editTxAmount').value;
+            const amountAbs = parseInt(amtRaw.replace(/,/g, ''));
 
-            if (!id || !amountAbs) return;
+            if (!id || isNaN(amountAbs)) return;
 
-            // نحتاج معرفة هل المبلغ كان سالب أم موجب للحفاظ على الإشارة
             const originalTx = DataManager.getAllTransactions().find(t => t.id == id);
             if (!originalTx) return;
 
             const isNegative = originalTx.amount < 0;
-            const finalAmount = isNegative ? -amountAbs : amountAbs; // نحافظ على الإشارة
+            const finalAmount = isNegative ? -amountAbs : amountAbs;
 
             await DataManager.updateTransaction(id, {
                 description: desc,
@@ -432,6 +494,7 @@
             });
 
             closeEditTxModal();
+            window.renderPage();
         };
 
         window.updatePageData = window.renderPage;
