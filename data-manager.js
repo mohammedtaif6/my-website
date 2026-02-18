@@ -143,13 +143,28 @@ export const DataManager = {
                 // بالنسبة للعمليات، قد نرغب في تحديد العدد محلياً فقط إذا كان ضخماً جداً
                 // لكننا سنتركها الآن لضمان ظهور "كل" البيانات القديمة
                 if (colName === 'system_settings') {
-                    // تحويل المصفوفة إلى كائن لسهولة الوصول
-                    localData[colName] = data.reduce((acc, curr) => ({ ...acc, ...curr }), {});
-                    console.log(`⚙️ Firebase Sync [${colName}]: Updated.`);
-                    if (window.AuthSystem && window.AuthSystem.applyUIConfigs) {
-                        window.AuthSystem.applyUIConfigs(localData[colName]);
+                    // تحويل المصفوفة إلى كائن واحد. نبدأ بكائن فارغ.
+                    // في حالتنا، لدينا وثيقة واحدة 'global'، ولكن هذا الكود مرن.
+                    const newSettings = data.reduce((acc, curr) => ({ ...acc, ...curr }), {});
+
+                    // التحقق هل هناك تغيير فعلي لتجنب التحديثات المزعجة
+                    const currentStr = JSON.stringify(localData.system_settings || {});
+                    const newStr = JSON.stringify(newSettings);
+
+                    if (currentStr !== newStr) {
+                        localData[colName] = newSettings;
+                        console.log(`⚙️ System Settings Updated from Cloud`);
+
+                        // تحديث الكاش المحلي فوراً
+                        localStorage.setItem('sas_settings', JSON.stringify(newSettings));
+
+                        // تطبيق التغييرات فوراً
+                        if (window.AuthSystem && window.AuthSystem.applyUIConfigs) {
+                            window.AuthSystem.applyUIConfigs(newSettings);
+                        }
+                        // إذا كنا في صفحة الإعدادات، نحدث الحقول
+                        if (window.loadSettings) window.loadSettings();
                     }
-                    if (window.loadSettings) window.loadSettings(); // تحديث صفحة الإعدادات
                 } else {
                     localData[colName] = data;
                     console.log(`📊 Firebase Sync [${colName}]: ${data.length} records loaded.`);
