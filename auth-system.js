@@ -243,21 +243,29 @@ const AuthSystem = {
 
     // ميزة اختصار المبالغ (كتب 30 تصبح 30,000) باستخدام Event Delegation
     setupAmountShortcuts() {
-        // نراقب جميع حقول الأرقام في المستند بالكامل (حتى التي تظهر لاحقاً في المودالات)
+        // حماية من التكرار
+        if (window._shortcutBound) return;
+        window._shortcutBound = true;
+
+        // استخدام الـ Capture Phase للتعامل مع حدث Blur الذي لا ينتشر (Bubbles)
         document.body.addEventListener('blur', (e) => {
             const input = e.target;
-            if (input.tagName === 'INPUT' && input.type === 'number') {
-                // استثناء: لا نريد تطبيقها على كود التحقق أو أرقام الهواتف أو المدد القصيرة
-                if (input.id.includes('phone') || input.id.includes('id') || input.id.includes('duration') || input.id.includes('code')) return;
+            if (input && input.tagName === 'INPUT' && (input.type === 'number' || input.classList.contains('setting-input'))) {
+                // استثناء الحقول التي لا نريد تحويلها
+                const id = (input.id || "").toLowerCase();
+                const name = (input.name || "").toLowerCase();
+                if (id.includes('phone') || id.includes('duration') || id.includes('code') || id.includes('id') || name.includes('phone')) return;
 
                 let val = parseFloat(input.value);
+                // التحقق من أن القيمة ليست "اسم النظام" أو نصوص أخرى
                 if (!isNaN(val) && val > 0 && val < 1000) {
                     input.value = val * 1000;
                     // إطلاق حدث change للتأكد من أن الأنظمة الأخرى تشعر بالتغيير
                     input.dispatchEvent(new Event('change', { bubbles: true }));
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
                 }
             }
-        }, true); // استخدام capture لأن blur لا يعمل بـ bubbles عادة
+        }, true);
     }
 };
 

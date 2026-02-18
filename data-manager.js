@@ -577,20 +577,13 @@ export const DataManager = {
 
     async saveSystemSetting(key, value) {
         try {
-            // سنستخدم وثيقة واحدة ثابتة للإعدادات لتسهيل المزامنة
-            // أو يمكن استخدام وثيقة لكل إعداد. سنستخدم وثيقة واحدة باسم 'global'
+            // استخدام setDoc مع merge لضمان إنشاء الوثيقة أو تحديث الحقل المحدد فقط
+            const { setDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
             const settingsRef = doc(db, "system_settings", "global");
-            await updateDoc(settingsRef, { [key]: value })
-                .catch(async (err) => {
-                    if (err.code === 'not-found') {
-                        await addDoc(collection(db, "system_settings"), { id: 'global', [key]: value });
-                        // ملاحظة: addDoc سيولد ID عشوائي، الأفضل استخدام setDoc إذا أردنا ID محدد
-                        // لكن بما أن الـ sync يجلب كل شيء، سنكتفي بالتحديث أو الإضافة
-                    }
-                    // محاولة بديلة: استخدام setDoc مع merge
-                });
 
-            // تحديث محلي فوري لتحسين الاستجابة
+            await setDoc(settingsRef, { [key]: value }, { merge: true });
+
+            // تحديث محلي فوري
             localData.system_settings[key] = value;
             localStorage.setItem('sas_settings', JSON.stringify(localData.system_settings));
 
