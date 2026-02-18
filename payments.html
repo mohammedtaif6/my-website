@@ -373,7 +373,7 @@
             const amt = document.getElementById('expAmount').value;
             const desc = document.getElementById('expDesc').value;
             const empId = document.getElementById('expEmployee').value;
-            if (!amt || !desc) return;
+            if (!amt || !desc) return DataManager.showToast('⚠️ يرجى إدخال المبلغ والوصف', 'error');
 
             if (empId) {
                 // خصم من راتب الموظف + تسجيل صرفية

@@ -166,7 +166,9 @@ const AuthSystem = {
                 if (el) el.style.display = 'none';
             });
 
-
+            // تطبيق إعدادات المستخدم الإضافية (من صفحة الإعدادات)
+            this.applyUIConfigs();
+            this.setupAmountShortcuts();
         };
 
         // التأكد من أن الصفحة محملة قبل التنفيذ
@@ -175,6 +177,67 @@ const AuthSystem = {
         } else {
             executeUpdate();
         }
+    },
+
+    // تطبيق إعدادات الظهور/الإخفاء المحفوظة في localStorage
+    applyUIConfigs() {
+        const settings = JSON.parse(localStorage.getItem('sas_settings') || '{}');
+
+        // 1. كروت الداشبورد
+        const cardIds = [
+            'card-subscribers', 'card-active', 'card-debts', 'card-payments',
+            'card-reports', 'nav-card-employees', 'card-expiring', 'card-expired',
+            'nav-card-telegram'
+        ];
+        cardIds.forEach(id => {
+            if (settings[id] === false) {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            }
+        });
+
+        // 2. صفحات القائمة الجانبية (لجميع الصفحات)
+        const navIds = [
+            'nav-subscribers', 'nav-active', 'nav-debts', 'nav-payments',
+            'nav-reports', 'nav-employees', 'nav-telegram'
+        ];
+        navIds.forEach(id => {
+            if (settings[id] === false) {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            }
+        });
+
+        // تغيير اسم النظام إذا وجد
+        if (settings.systemName) {
+            document.querySelectorAll('.logo').forEach(el => {
+                const icon = el.querySelector('i');
+                if (icon) {
+                    el.innerHTML = '';
+                    el.appendChild(icon);
+                    el.innerHTML += ' ' + settings.systemName;
+                } else {
+                    el.innerText = settings.systemName;
+                }
+            });
+        }
+    },
+
+    // ميزة اختصار المبالغ (كتب 30 تصبح 30,000)
+    setupAmountShortcuts() {
+        // نراقب جميع حقول الأرقام في الصفحة
+        const inputs = document.querySelectorAll('input[type="number"]');
+        inputs.forEach(input => {
+            // استثناء: لا نريد تطبيقها على كود التحقق أو أرقام الهواتف أو المدد القصيرة
+            if (input.id.includes('phone') || input.id.includes('id') || input.id.includes('duration') || input.id.includes('code')) return;
+
+            input.addEventListener('blur', (e) => {
+                let val = parseFloat(e.target.value);
+                if (!isNaN(val) && val > 0 && val < 1000) {
+                    e.target.value = val * 1000;
+                }
+            });
+        });
     }
 };
 

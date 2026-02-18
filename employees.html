@@ -684,10 +684,10 @@
             const id = document.getElementById('qe-emp-id').value;
             const name = document.getElementById('qe-emp-name').value;
             const amount = document.getElementById('qe-amount').value;
-            const desc = document.getElementById('qe-desc').value || 'صرفية سريعة';
+            const desc = document.getElementById('qe-desc').value;
             const deduct = document.getElementById('qe-deduct').checked;
 
-            if (!amount) return DataManager.showToast('⚠️ يرجى إدخال المبلغ', 'error');
+            if (!amount || !desc) return DataManager.showToast('⚠️ يرجى إدخال المبلغ والوصف', 'error');
 
             if (deduct) {
                 // سلفة (خصم من الراتب)

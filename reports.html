@@ -346,6 +346,12 @@
                     <option value="custom">مخصص</option>
                     <option value="all">كل الفترات</option>
                 </select>
+                <div class="search-box" style="flex: 1; min-width: 200px; position: relative;">
+                    <i class="fas fa-search"
+                        style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #888;"></i>
+                    <input type="text" id="report-search" placeholder="بحث في الوصف..." class="date-input"
+                        style="padding-right: 35px; width: 100%;" oninput="updateReport()">
+                </div>
                 <div id="custom-date-range" style="display:none; gap:10px; align-items:center; flex-wrap:wrap;">
                     <label style="color:white; font-weight:600;">من</label>
                     <input type="date" id="report-date-from" class="date-input" onchange="updateReport()">
@@ -458,9 +464,20 @@
             const dateFrom = document.getElementById('report-date-from').value;
             const dateTo = document.getElementById('report-date-to').value;
 
+            // Filter by search term
+            const searchTerm = document.getElementById('report-search').value.toLowerCase();
+
             txs = txs.filter(t => {
                 const date = new Date(t.createdAt);
                 if (t.type === 'subscription_debt') return false;
+
+                // Search filter
+                if (searchTerm) {
+                    const desc = (t.description || '').toLowerCase();
+                    const note = (t.note || '').toLowerCase();
+                    const subName = (t.subscriberName || '').toLowerCase();
+                    if (!desc.includes(searchTerm) && !note.includes(searchTerm) && !subName.includes(searchTerm)) return false;
+                }
 
                 if (period === 'daily') {
                     return date.getDate() === now.getDate() &&

@@ -111,7 +111,7 @@
 <body>
     <!-- Pull to Refresh Spinner -->
     <div id="ptr-spinner"
-        style="position: fixed; top: -60px; left: 50%; transform: translateX(-50%); z-index: 9999; transition: top 0.3s ease;">
+        style="position: fixed; top: -60px; left: 50%; transform: translateX(-50%); z-index: 9999; transition: top 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);">
         <div
             style="width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite;">
         </div>
@@ -328,7 +328,7 @@
         </a>
 
         <!-- 13. تسجيل خروج -->
-        <a href="#" onclick="AuthSystem.logout()" class="dash-card card-red-outline">
+        <a href="#" onclick="AuthSystem.logout()" class="dash-card card-red-outline" style="display: none;">
             <div class="card-icon"><i class="fas fa-sign-out-alt"></i></div>
             <div class="card-content">
                 <h3 style="color:#ef4444">خروج</h3>
@@ -572,25 +572,7 @@
             }
         });
         // === تطبيق إعدادات الإخفاء/الإظهار ===
-        (function applyVisibilitySettings() {
-            const settings = JSON.parse(localStorage.getItem('sas_settings') || '{}');
-            // كروت الداشبورد
-            const cardIds = ['card-subscribers', 'card-active', 'card-debts', 'card-payments', 'card-reports', 'nav-card-employees', 'card-expiring', 'card-expired', 'nav-card-telegram'];
-            cardIds.forEach(id => {
-                if (settings[id] === false) {
-                    const el = document.getElementById(id);
-                    if (el) el.style.display = 'none';
-                }
-            });
-            // صفحات النافبار
-            const navIds = ['nav-subscribers', 'nav-active', 'nav-debts', 'nav-payments', 'nav-reports', 'nav-employees', 'nav-telegram'];
-            navIds.forEach(id => {
-                if (settings[id] === false) {
-                    const el = document.getElementById(id);
-                    if (el) el.style.display = 'none';
-                }
-            });
-        })();
+        // تم الانتقال إلى AuthSystem.applyUIConfigs()
     </script>
 
     <script type="module">
