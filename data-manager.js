@@ -143,27 +143,35 @@ export const DataManager = {
                 // بالنسبة للعمليات، قد نرغب في تحديد العدد محلياً فقط إذا كان ضخماً جداً
                 // لكننا سنتركها الآن لضمان ظهور "كل" البيانات القديمة
                 if (colName === 'settings') {
-                    // تحويل المصفوفة إلى كائن واحد. نبدأ بكائن فارغ.
-                    // في حالتنا، لدينا وثيقة واحدة 'global'، ولكن هذا الكود مرن.
-                    const newSettings = data.reduce((acc, curr) => ({ ...acc, ...curr }), {});
+                    console.log(`📡 Firebase [${colName}] raw data received:`, data);
 
-                    // التحقق هل هناك تغيير فعلي لتجنب التحديثات المزعجة
+                    // تحويل المصفوفة إلى كائن واحد (دمج كافة المستندات في المجموعة)
+                    const newSettings = data.reduce((acc, curr) => ({ ...acc, ...curr }), {});
+                    console.log(`⚙️ Combined Settings Object:`, newSettings);
+
+                    // التحقق هل هناك تغيير فعلي
                     const currentStr = JSON.stringify(localData.settings || {});
                     const newStr = JSON.stringify(newSettings);
 
                     if (currentStr !== newStr) {
-                        localData[colName] = newSettings;
-                        console.log(`⚙️ System Settings Updated from Cloud`);
+                        localData.settings = newSettings;
+                        console.log(`✅ System Settings Synchronized from Cloud`);
 
-                        // تحديث الكاش المحلي فوراً
+                        // تحديث الكاش المحلي فوراً للتسريع
                         localStorage.setItem('sas_settings', JSON.stringify(newSettings));
 
-                        // تطبيق التغييرات فوراً
+                        // تطبيق التغييرات فوراً على الواجهة
                         if (window.AuthSystem && window.AuthSystem.applyUIConfigs) {
                             window.AuthSystem.applyUIConfigs(newSettings);
                         }
-                        // إذا كنا في صفحة الإعدادات، نحدث الحقول
-                        if (window.loadSettings) window.loadSettings();
+
+                        // تحديث حقول الإدخال إذا كنا في صفحة الإعدادات
+                        if (window.loadSettings) {
+                            console.log("🔄 Triggering loadSettings() in UI");
+                            window.loadSettings();
+                        }
+                    } else {
+                        console.log("ℹ️ Settings received are identical to local, skipping UI update.");
                     }
                 } else {
                     localData[colName] = data;
@@ -591,31 +599,39 @@ export const DataManager = {
 
     async saveSystemSetting(key, value) {
         try {
+            console.log(`💾 Attempting to save single setting: ${key} = ${value}`);
             const settingsRef = doc(db, "settings", "global");
             await setDoc(settingsRef, { [key]: value }, { merge: true });
+            console.log(`✅ Setting [${key}] saved successfully to Firebase`);
 
             // تحديث محلي فوري
             localData.settings[key] = value;
             localStorage.setItem('sas_settings', JSON.stringify(localData.settings));
         } catch (e) {
-            console.error("Error saving setting:", e);
+            console.error("❌ Error saving setting to Firebase:", e);
+            showToast('خطأ في الاتصال بالسحاب', 'error');
         }
     },
 
     async saveAllSystemSettings(settingsObject) {
         try {
+            console.log("💾 Cloud Sync: Attempting to save ALL settings to Firebase (Path: settings/global)");
+            console.log("📦 Data to save:", settingsObject);
+
             const settingsRef = doc(db, "settings", "global");
 
             await setDoc(settingsRef, settingsObject, { merge: true });
+            console.log("✅ Cloud Sync Success: All settings persisted to Firebase.");
 
-            // تحديث محلي فوري
+            // تحديث محلي فوري لضمان السرعة قبل وصول الـ Snapshot
             localData.settings = { ...localData.settings, ...settingsObject };
             localStorage.setItem('sas_settings', JSON.stringify(localData.settings));
 
-            showToast('✅ تم حفظ جميع الإعدادات بنجاح');
+            showToast('✅ تم حفظ جميع الإعدادات سحابياً');
         } catch (e) {
-            console.error("Error saving all settings:", e);
-            showToast('❌ حدث خطأ أثناء الحفظ', 'error');
+            console.error("❌ Cloud Sync Failed:", e);
+            showToast('❌ فشل الحفظ السحابي - تأكد من صلاحيات الفايربيس', 'error');
+            throw e; // إعادة الخطأ للصفحة لمعالجته
         }
     },
 
