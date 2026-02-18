@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>الإعدادات - OK Computer</title>
+    <link rel="stylesheet" href="style.css?v=25.0">
+    <link rel="stylesheet" href="style-fab.css?v=1.0">
+    <link rel="stylesheet" href="style-modal.css?v=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="auth-system.js"></script>
+    <script>AuthSystem.checkSession();</script>
+
+    <style>
+        .settings-header {
+            background: linear-gradient(135deg, #475569 0%, #1e293b 100%);
+            padding: 30px 20px;
+            border-radius: 0 0 30px 30px;
+            color: white;
+            text-align: center;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(30, 41, 59, 0.3);
+        }
+
+        .settings-header h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin: 0 0 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .settings-header p {
+            opacity: 0.7;
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .settings-section {
+            background: white;
+            border-radius: 20px;
+            margin: 0 15px 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+        }
+
+        .section-title {
+            background: #f8fafc;
+            padding: 18px 20px;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #1e293b;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .setting-item {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background 0.2s;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-item:hover {
+            background: #f8fafc;
+        }
+
+        .setting-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .setting-label i {
+            width: 35px;
+            height: 35px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .setting-label .icon-blue {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+
+        .setting-label .icon-teal {
+            background: linear-gradient(135deg, #14b8a6, #0d9488);
+        }
+
+        .setting-label .icon-red {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .setting-label .icon-purple {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+
+        .setting-label .icon-indigo {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .setting-label .icon-orange {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+        }
+
+        .setting-label .icon-gray {
+            background: linear-gradient(135deg, #64748b, #475569);
+        }
+
+        .setting-label .icon-dark {
+            background: linear-gradient(135deg, #334155, #1e293b);
+        }
+
+        .setting-label .icon-green {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 52px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            border-radius: 28px;
+            transition: 0.3s;
+        }
+
+        .toggle-slider:before {
+            content: "";
+            position: absolute;
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            border-radius: 50%;
+            transition: 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        .toggle-switch input:checked+.toggle-slider {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+
+        .toggle-switch input:checked+.toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        /* Input fields */
+        .setting-input {
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #334155;
+            width: 160px;
+            text-align: center;
+            transition: border-color 0.2s;
+            direction: rtl;
+        }
+
+        .setting-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* Reset Button */
+        .reset-btn {
+            margin: 0 15px 30px;
+            padding: 16px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: calc(100% - 30px);
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+        }
+
+        .save-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1e293b;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            z-index: 9999;
+            transition: transform 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .save-toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @media (max-width: 600px) {
+            .setting-input {
+                width: 120px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <button class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+
+    <nav class="navbar" id="main-nav">
+        <div class="header-card" style="margin:0; background:none; box-shadow:none; border:none; padding:0 0 20px 0;">
+            <div class="logo" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 0;">
+                <i class="fas fa-chart-line"></i> OK Computer
+            </div>
+            <button class="close-menu" onclick="toggleMenu()"
+                style="position: absolute; left: 0; top: 0;">&times;</button>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
+            <li><a href="subscribers.html"><i class="fas fa-users"></i> المشتركين</a></li>
+            <li><a href="active_subscribers.html"><i class="fas fa-signal"></i> الفعالين</a></li>
+            <li><a href="debts.html"><i class="fas fa-money-bill-wave"></i> الديون</a></li>
+            <li><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> الصندوق</a></li>
+            <li><a href="reports.html"><i class="fas fa-chart-bar"></i> التقارير</a></li>
+            <li><a href="employees.html"><i class="fas fa-users-cog"></i> الموظفين</a></li>
+            <li><a href="telegram-settings.html"><i class="fab fa-telegram"></i> Telegram</a></li>
+            <li><a href="settings.html" class="active"><i class="fas fa-cog"></i> الإعدادات</a></li>
+            <li><a href="#" onclick="AuthSystem.logout()"><i class="fas fa-sign-out-alt"></i> خروج</a></li>
+        </ul>
+        <div class="nav-overlay" onclick="toggleMenu()"></div>
+    </nav>
+
+    <div class="settings-header">
+        <h1><i class="fas fa-cog"></i> الإعدادات</h1>
+        <p>التحكم في إعدادات النظام والعرض</p>
+    </div>
+
+    <!-- إعدادات عامة -->
+    <div class="settings-section">
+        <div class="section-title"><i class="fas fa-sliders-h"></i> إعدادات عامة</div>
+
+        <div class="setting-item">
+            <div class="setting-label">
+                <i class="icon-indigo fas fa-tag"></i>
+                <span>اسم النظام</span>
+            </div>
+            <input type="text" class="setting-input" id="set-system-name" value="OK Computer"
+                onchange="saveSetting('systemName', this.value)">
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-label">
+                <i class="icon-green fas fa-money-bill"></i>
+                <span>السعر الافتراضي</span>
+            </div>
+            <input type="number" class="setting-input" id="set-default-price" value="35000"
+                onchange="saveSetting('defaultPrice', this.value)">
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-label">
+                <i class="icon-blue fas fa-calendar-alt"></i>
+                <span>مدة الاشتراك (أيام)</span>
+            </div>
+            <input type="number" class="setting-input" id="set-sub-duration" value="30"
+                onchange="saveSetting('subDuration', this.value)">
+        </div>
+    </div>
+
+    <!-- كروت الداشبورد -->
+    <div class="settings-section">
+        <div class="section-title"><i class="fas fa-th-large"></i> كروت الصفحة الرئيسية</div>
+
+        <div class="setting-item">
+            <div class="setting-label">
+                <i class="icon-blue fas fa-users"></i>
+                <span>المشتركين</span>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="card-subscribers-toggle" checked
+                    onchange="saveToggle('card-subscribers', this.checked)">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-label">
+                <i class="icon-teal fas fa-signal"></i>
+                <span>الفعالين</span>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="card-active-toggle" checked
+                    onchange="saveToggle('card-active', this.checked)">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-label">
+                <i class="icon-red fas fa-money-bill-wave"></i>
+                <span>الديون</span>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="card-debts-toggle" checked onchange="saveToggle('card-debts', this.checked)">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-label">
+                <i class="icon-purple fas fa-wallet"></i>
+                <span>الصندوق</span>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="card-payments-toggle" checked
+                    onchange="saveToggle('card-payments', this.checked)">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-label">
+                <i class="icon-indigo fas fa-chart-bar"></i>
+                <span>التقارير</span>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="card-reports-toggle" checked
+                    onchange="saveToggle('card-reports', this.checked)">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-label">
+                <i class="icon-orange fas fa-user-tie"></i>
+                <span>الموظفين</span>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="card-employees-toggle" checked
+                    onchange="saveToggle('nav-card-employees', this.checked)">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-label">
+                <i class="icon-orange fas fa-exclamation-triangle"></i>
+                <span>تنتهي قريباً</span>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="card-expiring-toggle" checked
+                    onchange="saveToggle('card-expiring', this.checked)">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-label">
+                <i class="icon-gray fas fa-times-circle"></i>
+                <span>المنتهية</span>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="card-expired-toggle" checked
+                    onchange="saveToggle('card-expired', this.checked)">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-label">
+                <i class="icon-dark fab fa-telegram-plane"></i>
+                <span>بوت التيليجرام</span>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="card-telegram-toggle" checked
+                    onchange="saveToggle('nav-card-telegram', this.checked)">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <!-- صفحات القائمة الجانبية -->
+    <div class="settings-section">
+        <div class="section-title"><i class="fas fa-bars"></i> القائمة الجانبية</div>
+
+        <div class="setting-item">
+            <div class="setting-label">
+                <i class="icon-blue fas fa-users"></i>
+                <span>المشتركين</span>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="nav-subscribers-toggle" checked
+                    onchange="saveToggle('nav-subscribers', this.checked)">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-label">
+                <i class="icon-teal fas fa-signal"></i>
+                <span>الفعالين</span>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="nav-active-toggle" checked onchange="saveToggle('nav-active', this.checked)">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-label">
+                <i class="icon-red fas fa-money-bill-wave"></i>
+                <span>الديون</span>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="nav-debts-toggle" checked onchange="saveToggle('nav-debts', this.checked)">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-label">
+                <i class="icon-purple fas fa-hand-holding-usd"></i>
+                <span>الصندوق</span>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="nav-payments-toggle" checked
+                    onchange="saveToggle('nav-payments', this.checked)">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-label">
+                <i class="icon-indigo fas fa-chart-bar"></i>
+                <span>التقارير</span>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="nav-reports-toggle" checked
+                    onchange="saveToggle('nav-reports', this.checked)">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-label">
+                <i class="icon-orange fas fa-users-cog"></i>
+                <span>الموظفين</span>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="nav-employees-toggle" checked
+                    onchange="saveToggle('nav-employees', this.checked)">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-label">
+                <i class="icon-dark fab fa-telegram"></i>
+                <span>Telegram</span>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="nav-telegram-toggle" checked
+                    onchange="saveToggle('nav-telegram', this.checked)">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <!-- زر إعادة التعيين -->
+    <button class="reset-btn" onclick="resetAllSettings()">
+        <i class="fas fa-undo"></i> إعادة تعيين جميع الإعدادات
+    </button>
+
+    <!-- Toast -->
+    <div class="save-toast" id="saveToast">✅ تم حفظ الإعدادات</div>
+
+    <script>
+        const SETTINGS_KEY = 'sas_settings';
+
+        // === تحميل الإعدادات ===
+        function loadSettings() {
+            const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+
+            // إعدادات عامة
+            document.getElementById('set-system-name').value = settings.systemName || 'OK Computer';
+            document.getElementById('set-default-price').value = settings.defaultPrice || 35000;
+            document.getElementById('set-sub-duration').value = settings.subDuration || 30;
+
+            // كروت الداشبورد
+            const cardKeys = [
+                'card-subscribers', 'card-active', 'card-debts', 'card-payments',
+                'card-reports', 'nav-card-employees', 'card-expiring', 'card-expired', 'nav-card-telegram'
+            ];
+            const toggleMap = {
+                'card-subscribers': 'card-subscribers-toggle',
+                'card-active': 'card-active-toggle',
+                'card-debts': 'card-debts-toggle',
+                'card-payments': 'card-payments-toggle',
+                'card-reports': 'card-reports-toggle',
+                'nav-card-employees': 'card-employees-toggle',
+                'card-expiring': 'card-expiring-toggle',
+                'card-expired': 'card-expired-toggle',
+                'nav-card-telegram': 'card-telegram-toggle'
+            };
+
+            cardKeys.forEach(key => {
+                const el = document.getElementById(toggleMap[key]);
+                if (el) el.checked = settings[key] !== false; // default true
+            });
+
+            // صفحات النافبار
+            const navKeys = [
+                'nav-subscribers', 'nav-active', 'nav-debts', 'nav-payments',
+                'nav-reports', 'nav-employees', 'nav-telegram'
+            ];
+            navKeys.forEach(key => {
+                const el = document.getElementById(key + '-toggle');
+                if (el) el.checked = settings[key] !== false;
+            });
+        }
+
+        // === حفظ toggle ===
+        function saveToggle(key, value) {
+            const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+            settings[key] = value;
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+            showSaveToast();
+        }
+
+        // === حفظ إعداد ===
+        function saveSetting(key, value) {
+            const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+            settings[key] = value;
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+            showSaveToast();
+        }
+
+        // === إعادة تعيين ===
+        function resetAllSettings() {
+            if (!confirm('هل أنت متأكد من إعادة تعيين جميع الإعدادات؟')) return;
+            localStorage.removeItem(SETTINGS_KEY);
+            loadSettings();
+            showSaveToast('🔄 تم إعادة تعيين الإعدادات');
+        }
+
+        // === Toast ===
+        function showSaveToast(msg) {
+            const toast = document.getElementById('saveToast');
+            toast.innerText = msg || '✅ تم حفظ الإعدادات';
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // === Menu Toggle ===
+        window.toggleMenu = function () {
+            const nav = document.getElementById('main-nav');
+            nav.classList.toggle('active');
+            document.body.style.overflow = nav.classList.contains('active') ? 'hidden' : '';
+        };
+
+        // تحميل عند الفتح
+        loadSettings();
+    </script>
+</body>
+
+</html>
