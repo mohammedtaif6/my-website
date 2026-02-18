@@ -151,6 +151,7 @@
                 <div class="filter-tabs"
                     style="display:flex; gap:5px; background:#f1f5f9; padding:4px; border-radius:10px;">
                     <button class="filter-btn active" onclick="setTxFilter('today')" id="filter-today">اليوم</button>
+                    <button class="filter-btn" onclick="setTxFilter('yesterday')" id="filter-yesterday">أمس</button>
                     <button class="filter-btn" onclick="setTxFilter('week')" id="filter-week">الأسبوع</button>
                     <button class="filter-btn" onclick="setTxFilter('month')" id="filter-month">الشهر</button>
                     <button class="filter-btn" onclick="setTxFilter('all')" id="filter-all">الكل</button>
@@ -352,6 +353,9 @@
 
             if (currentFilter === 'today') {
                 filteredTxs = filteredTxs.filter(t => new Date(t.createdAt) >= startOfToday);
+            } else if (currentFilter === 'yesterday') {
+                const startOfYesterday = new Date(startOfToday.getTime() - 24 * 60 * 60 * 1000);
+                filteredTxs = filteredTxs.filter(t => new Date(t.createdAt) >= startOfYesterday);
             } else if (currentFilter === 'week') {
                 const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
                 filteredTxs = filteredTxs.filter(t => new Date(t.createdAt) >= oneWeekAgo);
