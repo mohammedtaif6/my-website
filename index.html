@@ -143,35 +143,35 @@
             }
         }
 
-        /* Balance Display Custom Styling */
+        /* المودال الخاص بتعبئة الرصيد */
+        .topup-modal-box {
+            background: white;
+            padding: 24px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .topup-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            text-align: center;
+            font-weight: bold;
+            margin: 15px 0;
+            outline: none;
+        }
+
+        .topup-input:focus {
+            border-color: #6366f1;
+        }
+
         .balance-display-modern {
-            position: relative;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .balance-display-modern:hover {
-            transform: translateY(-2px);
-        }
-
-        .topup-btn {
-            width: 42px;
-            height: 42px;
-            border-radius: 14px;
-            border: 2px solid #10b981;
-            background: transparent;
-            color: #10b981;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            transition: all 0.2s;
-        }
-
-        .topup-btn:hover {
-            background: #10b981;
-            color: white;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+            order: -1;
+            /* لجعلها تظهر أولاً في اليمين (RTL) */
         }
     </style>
 
@@ -215,31 +215,30 @@
     <div class="container">
 
         <!-- User Header -->
-        <div class="header-card" style="padding: 20px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <div id="user-name-display-header"
-                        style="font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-circle-user" style="opacity: 0.7;"></i>
-                        <span>تحميل...</span>
-                    </div>
-                    <p id="currentDate" style="font-size: 0.85rem; color: #7f8c8d; margin: 0; font-weight: 500;"></p>
-                </div>
+        <div class="header-card" style="padding: 15px 20px; background: white; border-bottom: 1px solid #f1f5f9;">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 15px;">
 
-                <!-- عرض الرصيد المالي المطور -->
-                <div class="balance-display-modern" style="display: flex; align-items: center; gap: 12px;">
-                    <button class="topup-btn" onclick="window.location.href='payments.html'"
-                        title="تعبئة الرصيد / معاملات">
+                <!-- عرض الرصيد المالي المطور (في اليمين) -->
+                <div class="balance-display-modern" style="display: flex; align-items: center; gap: 8px;">
+                    <div class="balance-badge"
+                        style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 8px 15px; border-radius: 14px; color: white; display: flex; flex-direction: column; align-items: flex-start; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);">
+                        <span style="font-size: 0.65rem; opacity: 0.8; font-weight: bold;">رصيد النظام</span>
+                        <span id="header-balance-amount"
+                            style="font-size: 1.1rem; font-weight: 800; letter-spacing: 0.5px;">0 د.ع</span>
+                    </div>
+                    <button class="topup-btn" onclick="openTopUpModal()"
+                        style="border-color: #4f46e5; color: #4f46e5; width: 38px; height: 38px; border-radius: 12px;">
                         <i class="fas fa-plus"></i>
                     </button>
-                    <div class="balance-badge"
-                        style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 10px 18px; border-radius: 16px; color: white; display: flex; flex-direction: column; align-items: flex-end; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25); border: 1px solid rgba(255,255,255,0.1);">
-                        <span style="font-size: 0.7rem; opacity: 0.9; font-weight: 600; letter-spacing: 0.5px;">الرصيد
-                            المتاح</span>
-                        <span id="header-balance-amount"
-                            style="font-size: 1.15rem; font-weight: 800; font-family: 'Outfit', sans-serif;">0
-                            د.ع</span>
+                </div>
+
+                <!-- اسم المستخدم (في اليسار) -->
+                <div style="text-align: left; display: flex; flex-direction: column; align-items: flex-end;">
+                    <div id="user-name-display-header"
+                        style="font-size: 1rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 6px;">
+                        <span>تحميل...</span>
                     </div>
+                    <p id="currentDate" style="font-size: 0.75rem; color: #94a3b8; margin: 0; font-weight: 500;"></p>
                 </div>
             </div>
         </div>
@@ -426,6 +425,30 @@
         </div>
     </div>
 
+    <!-- مودال تعبئة الرصيد المستقل -->
+    <div id="topUpModal" class="modal-overlay">
+        <div class="topup-modal-box">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div
+                    style="width: 60px; height: 60px; background: #e0e7ff; color: #4f46e5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 10px;">
+                    <i class="fas fa-plug"></i>
+                </div>
+                <h3 style="margin:0; color: #1e293b;">تعبئة الرصيد</h3>
+                <p style="font-size: 0.85rem; color: #64748b;">سيتم خصم المبلغ من الصندوق المالي</p>
+            </div>
+
+            <div class="form-group">
+                <label>أدخل المبلغ المراد تحويله</label>
+                <input type="text" id="topup-amount-input" class="topup-input" placeholder="0" inputmode="numeric">
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button onclick="saveTopUp()" class="btn btn-primary" style="flex: 2; background: #4f46e5;">تأكيد
+                    التعبئة</button>
+                <button onclick="closeTopUpModal()" class="btn btn-neutral" style="flex: 1;">إلغاء</button>
+            </div>
+        </div>
+    </div>
     <!-- Modal: Activate Subscriber -->
     <div id="activateModal" class="modal-overlay">
         <div class="modal-box">
@@ -833,9 +856,11 @@
             const boxBal = s.boxBalance.toLocaleString('ar-IQ');
             document.getElementById('stat-revenue').innerText = boxBal;
 
-            // تحديث الرصيد في الهيدر
+            // تحديث الرصيد المستقل في الهيدر (من الإعدادات)
+            const settings = DataManager.getSystemSettings();
+            const virtualBal = (settings.virtualBalance || 0).toLocaleString('ar-IQ');
             const headerBal = document.getElementById('header-balance-amount');
-            if (headerBal) headerBal.innerText = boxBal + ' د.ع';
+            if (headerBal) headerBal.innerText = virtualBal + ' د.ع';
             document.getElementById('stat-expired').innerText = s.expired;
             document.getElementById('stat-expiring').innerText = s.expiring;
 
@@ -1126,6 +1151,49 @@
             if (paymentCard) paymentCard.style.display = 'block';
 
 
+        }
+
+        // === منطق تعبئة الرصيد المستقل ===
+        window.openTopUpModal = () => {
+            document.getElementById('topUpModal').classList.add('active');
+            document.getElementById('topup-amount-input').focus();
+        };
+        window.closeTopUpModal = () => document.getElementById('topUpModal').classList.remove('active');
+
+        window.saveTopUp = async function () {
+            const input = document.getElementById('topup-amount-input');
+            const raw = input.value.replace(/,/g, '');
+            const amount = parseInt(raw);
+
+            if (!amount || amount <= 0) return DataManager.showToast('يرجى إدخال مبلغ صحيح', 'error');
+
+            if (!confirm(`هل أنت متأكد من خصم ${amount.toLocaleString()} من الصندوق وتعبئتها في الرصيد؟`)) return;
+
+            try {
+                await DataManager.topUpVirtualBalance(amount);
+                input.value = '';
+                closeTopUpModal();
+                window.renderDashboard();
+            } catch (e) {
+                console.error(e);
+            }
+        };
+
+        // تفعيل ميزة الأصفار للاختصار في التعبئة
+        const topupInput = document.getElementById('topup-amount-input');
+        if (topupInput) {
+            topupInput.addEventListener('blur', function () {
+                let val = this.value.replace(/,/g, '');
+                if (val && !isNaN(val)) {
+                    if (val.length <= 3 && parseInt(val) < 1000) {
+                        val = val + '000';
+                    }
+                    this.value = parseInt(val).toLocaleString();
+                }
+            });
+            topupInput.addEventListener('focus', function () {
+                this.value = this.value.replace(/,/g, '');
+            });
         }
 
         // تأكيد أخير على الصلاحيات بعد اكتمال التحميل

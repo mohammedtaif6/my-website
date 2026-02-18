@@ -636,5 +636,26 @@ export const DataManager = {
     },
 
 
+    async topUpVirtualBalance(amount) {
+        try {
+            console.log(`🏦 System: Topping up virtual balance by ${amount}`);
+
+            // 1. تسجيل عملية خصم من الصندوق (الصرفية)
+            await this.addExpense(amount, "تعبئة رصيد النظام (استقطاع من الصندوق)");
+
+            // 2. تحديث الرصيد الافتراضي في الإعدادات
+            const currentBal = (localData.settings.virtualBalance || 0);
+            const newBal = currentBal + amount;
+
+            await this.saveSystemSetting('virtualBalance', newBal);
+
+            showToast(`✅ تم تعبئة ${amount.toLocaleString()} د.ع بنجاح`);
+            return newBal;
+        } catch (err) {
+            console.error("❌ Top-up Failed:", err);
+            showToast('فشل تعبئة الرصيد', 'error');
+            throw err;
+        }
+    }
 };
 
