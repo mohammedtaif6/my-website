@@ -158,6 +158,12 @@
                     <label>المبلغ</label>
                     <input type="number" inputmode="numeric" id="expAmount">
                 </div>
+                <div class="form-group">
+                    <label>خصم من راتب موظف (اختياري)</label>
+                    <select id="expEmployee">
+                        <option value="">-- بدون موظف --</option>
+                    </select>
+                </div>
                 <button onclick="saveExpense()" class="btn btn-danger btn-full">خصم من الصندوق</button>
             </div>
         </div>
@@ -305,7 +311,9 @@
                 activeTxs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(t => {
                     const isExp = t.amount < 0;
                     const amount = Math.abs(t.amount);
-                    const time = new Date(t.createdAt).toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' });
+                    const dateTime = new Date(t.createdAt);
+                    const date = dateTime.toLocaleDateString('ar-IQ', { year: 'numeric', month: '2-digit', day: '2-digit' });
+                    const time = dateTime.toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' });
 
                     let desc = t.description;
                     if (!desc) {
@@ -321,7 +329,7 @@
                             <div style="flex: 1;">
                                 <div class="tx-desc">${desc}</div>
                                 <div class="tx-meta">
-                                    <i class="far fa-clock"></i> ${time} 
+                                    <i class="far fa-calendar"></i> ${date} - <i class="far fa-clock"></i> ${time} 
                                     ${t.type === 'subscription_payment' ? '<span class="badge badge-success">اشتراك</span>' : ''}
                                 </div>
                             </div>
@@ -346,7 +354,16 @@
 
 
 
-        window.openExpenseModal = () => document.getElementById('expenseModal').classList.add('active');
+        window.openExpenseModal = () => {
+            // تعبئة قائمة الموظفين
+            const empSelect = document.getElementById('expEmployee');
+            empSelect.innerHTML = '<option value="">-- بدون موظف --</option>';
+            const employees = DataManager.getEmployees();
+            employees.forEach(emp => {
+                empSelect.innerHTML += `<option value="${emp.id}">${emp.name}</option>`;
+            });
+            document.getElementById('expenseModal').classList.add('active');
+        };
         window.closeExpenseModal = () => document.getElementById('expenseModal').classList.remove('active');
 
 
@@ -354,12 +371,20 @@
         window.saveExpense = async function () {
             const amt = document.getElementById('expAmount').value;
             const desc = document.getElementById('expDesc').value;
+            const empId = document.getElementById('expEmployee').value;
             if (!amt || !desc) return;
 
-            await DataManager.addExpense(parseInt(amt), desc);
+            if (empId) {
+                // خصم من راتب الموظف + تسجيل صرفية
+                await DataManager.addAdvance(empId, parseInt(amt), desc);
+            } else {
+                // صرفية عادية بدون خصم من موظف
+                await DataManager.addExpense(parseInt(amt), desc);
+            }
             closeExpenseModal();
             document.getElementById('expAmount').value = '';
             document.getElementById('expDesc').value = '';
+            document.getElementById('expEmployee').value = '';
         };
 
         // --- Edit Logic ---

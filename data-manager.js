@@ -235,7 +235,7 @@ export const DataManager = {
             subscriberId: subscriberDataId,
             amount: parseInt(renewalData.price),
             type: renewalData.type === 'نقد' ? 'subscription_cash' : 'subscription_debt',
-            description: `تجديد (${renewalData.type}) - ${renewalData.dateEnd}`
+            description: `تجديد ${renewalData.type} - ${sub.name}`
         });
 
         await updateDoc(doc(db, "subscribers", subscriberFirebaseId), {
