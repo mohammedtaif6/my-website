@@ -86,6 +86,21 @@
             </div>
         </div>
 
+        <script src="auth-system.js?v=2.1"></script>
+        <script>
+            // Anti-Flicker: Apply visibility as fast as possible
+            (function () {
+                const settings = JSON.parse(localStorage.getItem('sas_settings') || '{}');
+                const style = document.createElement('style');
+                let css = '';
+                ['nav-subscribers', 'nav-active', 'nav-debts', 'nav-payments', 'nav-reports', 'nav-employees', 'nav-telegram'].forEach(id => {
+                    if (settings[id] === false) css += `#${id} { display: none !important; } `;
+                });
+                style.innerHTML = css;
+                document.head.appendChild(style);
+            })();
+            AuthSystem.checkSession();
+        </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
         <script>
             // إنشاء QR Code

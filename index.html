@@ -25,9 +25,25 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- نظام الصلاحيات الجديد -->
-    <script src="auth-system.js"></script>
+    <script src="auth-system.js?v=2.1"></script>
     <script src="whatsapp-helper.js"></script>
-    <script>AuthSystem.checkSession();</script>
+    <script>
+        // Anti-Flicker: Apply visibility as fast as possible
+        (function () {
+            const settings = JSON.parse(localStorage.getItem('sas_settings') || '{}');
+            const style = document.createElement('style');
+            let css = '';
+            ['card-subscribers', 'card-active', 'card-debts', 'card-payments', 'card-reports', 'nav-card-employees', 'card-expiring', 'card-expired', 'nav-card-telegram'].forEach(id => {
+                if (settings[id] === false) css += `#${id} { display: none !important; } `;
+            });
+            ['nav-subscribers', 'nav-active', 'nav-debts', 'nav-payments', 'nav-reports', 'nav-employees', 'nav-telegram'].forEach(id => {
+                if (settings[id] === false) css += `#${id} { display: none !important; } `;
+            });
+            style.innerHTML = css;
+            document.head.appendChild(style);
+        })();
+        AuthSystem.checkSession();
+    </script>
 
 
     <!-- تسجيل Service Worker للصيانة ووضع عدم الاتصال -->
@@ -328,7 +344,7 @@
         </a>
 
         <!-- 13. تسجيل خروج -->
-        <a href="#" onclick="AuthSystem.logout()" class="dash-card card-red-outline" style="display: none;">
+        <a href="#" onclick="AuthSystem.logout()" class="dash-card card-red-outline sas-hidden" id="card-logout">
             <div class="card-icon"><i class="fas fa-sign-out-alt"></i></div>
             <div class="card-content">
                 <h3 style="color:#ef4444">خروج</h3>

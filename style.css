@@ -3,6 +3,10 @@
    Unified Responsive Design
    ============================================ */
 
+.sas-hidden {
+    display: none !important;
+}
+
 /* 1. CSS Variables & Theme */
 :root {
     /* Colors */
