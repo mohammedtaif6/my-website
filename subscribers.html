@@ -283,11 +283,10 @@
         <!-- Reusing Sidebar -->
         <div class="header-card"
             style="margin: 0; background: none; box-shadow: none; border: none; padding: 0 0 20px 0;">
-            <div class="logo" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 0;">
-                <i class="fas fa-chart-line"></i> OK Computer
-            </div>
-            <button class="close-menu" onclick="toggleMenu()"
-                style="position: absolute; left: 0; top: 0;">&times;</button>
+            <i class="fas fa-chart-line"></i> OK Computer <span
+                style="font-size: 0.7rem; background: #e0f2fe; color: #0284c7; padding: 2px 6px; border-radius: 4px;">v4.0</span>
+        </div>
+        <button class="close-menu" onclick="toggleMenu()" style="position: absolute; left: 0; top: 0;">&times;</button>
         </div>
         <ul class="nav-links">
             <li><a href="index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
@@ -299,6 +298,8 @@
             <li><a href="reports.html"><i class="fas fa-chart-bar"></i> التقارير</a></li>
             <li><a href="employees.html"><i class="fas fa-users-cog"></i> الموظفين</a></li>
             <li><a href="settings.html"><i class="fas fa-cog"></i> الإعدادات</a></li>
+            <li><a href="#" onclick="forceUpdateSystem()" style="color: #f59e0b;"><i class="fas fa-sync-alt"></i> تحديث
+                    النظام</a></li>
             <li><a href="#" onclick="AuthSystem.logout()"><i class="fas fa-sign-out-alt"></i> خروج</a></li>
         </ul>
         <div class="nav-overlay" onclick="toggleMenu()"></div>
@@ -771,6 +772,21 @@
                 input.value = val * 1000;
                 // Mark as modified if needed, though simple value change is usually enough
                 input.setAttribute('data-user-modified', 'true');
+            }
+        };
+
+        window.forceUpdateSystem = function () {
+            if (confirm('تحديث النظام ومسح الذاكرة المؤقتة؟')) {
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                        for (let registration of registrations) {
+                            registration.unregister();
+                        }
+                        window.location.reload(true);
+                    });
+                } else {
+                    window.location.reload(true);
+                }
             }
         };
 
