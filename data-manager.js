@@ -66,9 +66,10 @@ export const DataManager = {
 
         this.sync('subscribers');
         this.sync('transactions');
-        this.sync('archived_transactions'); // مجموعة الأرشفة الجديدة
-        this.sync('employees'); // مزامنة الموظفين
-        this.sync('settings'); // مزامنة الإعدادات العالمية
+        this.sync('archived_transactions');
+        this.sync('employees');
+        this.sync('settings');
+        this.sync('accounts'); // المزامنة للحسابات المالية المخصصة
 
 
         this.monitorConnection();
@@ -636,29 +637,37 @@ export const DataManager = {
     },
 
 
+    // الحصول على رصيد الحسابات (النظام)
+    getSystemBalance() {
+        const sysAcc = (localData.accounts || []).find(a => a.firebaseId === 'system');
+        return sysAcc ? (sysAcc.balance || 0) : 0;
+    },
+
     async topUpVirtualBalance(amount) {
         try {
-            console.log(`🏦 System: Adding to virtual funds: ${amount}`);
+            console.log(`🏦 System: Top-up process started for amount: ${amount}`);
 
-            // 1. تسجيل عملية خصم من الصندوق (مصروفات)
-            await this.addExpense(amount, "تحويل رصيد للنظام (استقطاع من الصندوق)");
+            // 1. تسجيل عملية خصم من الصندوق (كصرفية)
+            await this.addExpense(amount, "تعبئة رصيد النظام (استقطاع من الصندوق)");
 
-            // 2. تحديث الحساب الافتراضي في فايربيس (في وثيقة مخصصة للحسابات)
-            const settingsRef = doc(db, "settings", "global");
-            const currentBal = (localData.settings.virtualBalance || 0);
+            // 2. تحديث الرصيد في المسار المخصص (accounts/system)
+            const systemRef = doc(db, "accounts", "system");
+            const currentBal = this.getSystemBalance();
             const newBal = currentBal + amount;
 
-            await setDoc(settingsRef, { virtualBalance: newBal }, { merge: true });
+            await setDoc(systemRef, {
+                balance: newBal,
+                lastUpdated: new Date().toISOString(),
+                type: 'system_funds'
+            }, { merge: true });
 
-            // 3. تسجيل "عملية تعبئة" في سجل منفصل إذا أردت مستقبلاً (اختياري)
-
+            console.log(`✅ Virtual balance updated in Firebase: ${newBal}`);
             showToast(`✅ تم إضافة ${amount.toLocaleString()} د.ع للرصيد`);
             return newBal;
         } catch (err) {
-            console.error("❌ Top-up Error:", err);
-            showToast('خطأ في عملية التعبئة', 'error');
+            console.error("❌ Top-up Error Details:", err);
+            showToast('خطأ في عملية التعبئة: ' + err.message, 'error');
             throw err;
         }
     }
 };
-

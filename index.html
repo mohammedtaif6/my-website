@@ -661,7 +661,7 @@
     </script>
 
     <script type="module">
-        import { DataManager } from './data-manager.js?v=28.0';
+        import { DataManager } from './data-manager.js?v=30.0';
         window.DataManager = DataManager;
         DataManager.init();
         window.saveActivation = async function (print) {
@@ -856,9 +856,8 @@
             const boxBal = s.boxBalance.toLocaleString('ar-IQ');
             document.getElementById('stat-revenue').innerText = boxBal;
 
-            // تحديث الرصيد المستقل في الهيدر (من الإعدادات)
-            const settings = DataManager.getSystemSettings();
-            const virtualBal = (settings.virtualBalance || 0).toLocaleString('ar-IQ');
+            // تحديث الرصيد المستقل في الهيدر (من حسابات النظام)
+            const virtualBal = (DataManager.getSystemBalance() || 0).toLocaleString('ar-IQ');
             const headerBal = document.getElementById('header-balance-amount');
             if (headerBal) headerBal.innerText = virtualBal + ' د.ع';
             document.getElementById('stat-expired').innerText = s.expired;
