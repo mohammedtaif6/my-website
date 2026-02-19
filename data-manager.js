@@ -482,6 +482,11 @@ export const DataManager = {
                         clearInterval(interval);
                         reject(new Error("Request Rejected"));
                     }
+                } else if (Date.now() - startTime > 5000) {
+                    // Transaction is missing after it was definitely created! 
+                    // This happens when it's rejected and deleted immediately.
+                    clearInterval(interval);
+                    reject(new Error("Request Rejected"));
                 }
 
                 if (Date.now() - startTime > 120000) { // 2 mins timeout
@@ -560,12 +565,12 @@ export const DataManager = {
 
             showToast("⛔ تم رفض طلب التعبئة");
 
-            // Delete after 5 seconds to clear from list
+            // Delete after 500ms to clear from list
             setTimeout(async () => {
                 try {
                     await deleteDoc(txRef);
                 } catch (e) { }
-            }, 5000);
+            }, 500);
 
             return true;
         } catch (e) { return false; }

@@ -312,7 +312,7 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
 
         while (this.isPolling) {
             try {
-                const url = `https://api.telegram.org/bot${this.config.botToken}/getUpdates?offset=${lastUpdateId + 1}&timeout=25`;
+                const url = `https://api.telegram.org/bot${this.config.botToken}/getUpdates?offset=${lastUpdateId + 1}&timeout=20`;
                 const response = await fetch(url);
                 const data = await response.json();
 
@@ -344,13 +344,13 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
                                             status: 'rejected',
                                             decidedAt: new Date().toISOString()
                                         });
-                                        // Delete after 5 seconds
+                                        // Delete after 500ms (almost immediate)
                                         setTimeout(async () => {
                                             try {
                                                 await deleteDoc(doc(this.db, "transactions", txId));
                                                 console.log(`🗑️ Rejected TopUp ${txId} deleted.`);
                                             } catch (delErr) { /* ignore deletion errors */ }
-                                        }, 5000);
+                                        }, 500);
                                     } else {
                                         await updateDoc(doc(this.db, "transactions", txId), {
                                             status: 'approved',
@@ -365,9 +365,13 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
                     }
                 }
             } catch (e) {
-                // Network errors are common during sleep/hibernate, don't spam error
-                if (e.name === 'TypeError') {
-                    console.warn("📡 Telegram Polling: Network connection issue, retrying...");
+                // Ignore typical fetch/network errors (common when offline or sleeping)
+                const isNetworkError = e.message?.toLowerCase().includes('network') ||
+                    e.name === 'TypeError' ||
+                    e.message?.toLowerCase().includes('failed to fetch');
+
+                if (isNetworkError) {
+                    console.warn("📡 Telegram Polling: Connection issue, retrying in 15s...");
                 } else {
                     console.error("BG Polling Error:", e);
                 }

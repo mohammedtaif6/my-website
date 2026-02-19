@@ -1246,7 +1246,9 @@
                 }, 1500);
 
             } catch (e) {
-                console.error("TopUp Error:", e);
+                if (e.message !== "Request Rejected") {
+                    console.error("TopUp Error:", e);
+                }
                 // Show Failure/Rejection
                 modalBox.innerHTML = `
                     <div style="text-align:center; padding: 40px;">
