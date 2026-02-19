@@ -60,7 +60,8 @@ export const DataManager = {
 
     init() {
         console.log("========================================");
-        console.log("🚀 System v20.1 - Clean Console Edition");
+        console.log("🚀 SAS System v31.0 - Professional Debug Edition");
+        console.log("🛠️ DataManager Method Check: ", typeof this.topUpVirtualBalance);
         console.log("========================================");
 
 
@@ -644,29 +645,36 @@ export const DataManager = {
     },
 
     async topUpVirtualBalance(amount) {
+        console.group("🏦 [DEBUG] Virtual Balance Top-up Trace");
+        console.log("Step 1: Received Amount:", amount);
         try {
-            console.log(`🏦 System: Top-up process started for amount: ${amount}`);
+            if (!this.addExpense) throw new Error("Method addExpense is missing!");
 
             // 1. تسجيل عملية خصم من الصندوق (كصرفية)
+            console.log("Step 2: Recording expense in Box...");
             await this.addExpense(amount, "تعبئة رصيد النظام (استقطاع من الصندوق)");
 
             // 2. تحديث الرصيد في المسار المخصص (accounts/system)
-            const systemRef = doc(db, "accounts", "system");
+            console.log("Step 3: Calculating new virtual balance...");
             const currentBal = this.getSystemBalance();
             const newBal = currentBal + amount;
 
+            console.log(`Step 4: Syncing to Firebase (Path: accounts/system) -> New Balance: ${newBal}`);
+            const systemRef = doc(db, "accounts", "system");
             await setDoc(systemRef, {
                 balance: newBal,
                 lastUpdated: new Date().toISOString(),
                 type: 'system_funds'
             }, { merge: true });
 
-            console.log(`✅ Virtual balance updated in Firebase: ${newBal}`);
+            console.log("Step 5: Success! Virtual balance updated.");
             showToast(`✅ تم إضافة ${amount.toLocaleString()} د.ع للرصيد`);
+            console.groupEnd();
             return newBal;
         } catch (err) {
-            console.error("❌ Top-up Error Details:", err);
+            console.error("❌ [CRITICAL ERROR] Top-up Trace Failed:", err);
             showToast('خطأ في عملية التعبئة: ' + err.message, 'error');
+            console.groupEnd();
             throw err;
         }
     }

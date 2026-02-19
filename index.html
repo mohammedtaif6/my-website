@@ -661,7 +661,7 @@
     </script>
 
     <script type="module">
-        import { DataManager } from './data-manager.js?v=30.0';
+        import { DataManager } from './data-manager.js?v=31.0';
         window.DataManager = DataManager;
         DataManager.init();
         window.saveActivation = async function (print) {
@@ -1168,13 +1168,21 @@
 
             if (!confirm(`هل أنت متأكد من خصم ${amount.toLocaleString()} من الصندوق وتعبئتها في الرصيد؟`)) return;
 
+            console.log("🛠️ Attempting to call DataManager.topUpVirtualBalance with amount:", amount);
+            if (!DataManager || typeof DataManager.topUpVirtualBalance !== 'function') {
+                console.error("❌ DataManager is not properly loaded or method is missing!");
+                console.log("Current DataManager State:", DataManager);
+                return DataManager.showToast('عذراً، النظام لم يكتمل تحميله بعد. يرجى المحاولة بعد ثوانٍ', 'error');
+            }
+
             try {
                 await DataManager.topUpVirtualBalance(amount);
                 input.value = '';
                 closeTopUpModal();
                 window.renderDashboard();
             } catch (e) {
-                console.error(e);
+                console.error("❌ Component Error in saveTopUp:", e);
+                DataManager.showToast('حدث خطأ تقني: راجع الكونسول', 'error');
             }
         };
 
