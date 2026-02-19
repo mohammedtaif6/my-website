@@ -244,20 +244,21 @@
         }
 
         .balance-label {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             color: #64748b;
             font-weight: 600;
-            margin-bottom: 2px;
+            margin-bottom: 5px;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
         }
 
         .balance-amount {
-            font-size: 1.25rem;
+            font-size: 1.6rem;
             font-weight: 800;
             color: #10b981;
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Outfit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            letter-spacing: 0.5px;
         }
 
         .btn-topup-smart {
@@ -1108,9 +1109,9 @@
             document.getElementById('stat-revenue').innerText = boxBal;
 
             // تحديث الرصيد المستقل في الهيدر (من حسابات النظام)
-            const virtualBal = (DataManager.getSystemBalance() || 0).toLocaleString('ar-IQ');
+            const virtualBal = (DataManager.getSystemBalance() || 0);
             const headerBal = document.getElementById('header-balance-amount');
-            if (headerBal) headerBal.innerText = virtualBal + ' د.ع';
+            if (headerBal) headerBal.innerText = virtualBal.toLocaleString('en-US') + ' IQD';
             document.getElementById('stat-expired').innerText = s.expired;
             document.getElementById('stat-expiring').innerText = s.expiring;
 
@@ -1125,9 +1126,9 @@
                     const emp = DataManager.getEmployee(AuthSystem.currentUser.id);
 
                     if (bal) {
-                        document.getElementById('emp-qs-earned').innerText = (bal.earned || 0).toLocaleString();
-                        document.getElementById('emp-qs-advances').innerText = (bal.advances || 0).toLocaleString();
-                        document.getElementById('emp-qs-net').innerText = (bal.net || 0).toLocaleString() + ' د.ع';
+                        document.getElementById('emp-qs-earned').innerText = (bal.earned || 0).toLocaleString('en-US');
+                        document.getElementById('emp-qs-advances').innerText = (bal.advances || 0).toLocaleString('en-US');
+                        document.getElementById('emp-qs-net').innerText = (bal.net || 0).toLocaleString('en-US') + ' IQD';
                     }
 
                     // المكافآت from employee object
@@ -1136,7 +1137,7 @@
                     const rewardsCard = document.getElementById('emp-qs-rewards-card');
                     if (rewardsCard) {
                         rewardsCard.style.display = 'block'; // تظهر دائماً
-                        document.getElementById('emp-qs-rewards').innerText = rewards.toLocaleString() + ' د.ع';
+                        document.getElementById('emp-qs-rewards').innerText = rewards.toLocaleString('en-US') + ' IQD';
 
                         // تلوين الكارت إذا يوجد مكافأة
                         if (rewards > 0) {
