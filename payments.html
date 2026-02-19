@@ -521,7 +521,7 @@
                                 <button onclick='openEditTxModal(${tJson})' class="btn-icon" style="color:#2196f3;">
                                     <i class="fas fa-pen"></i>
                                 </button>
-                                <button onclick="window.DataManager.deleteTransaction('${t.id}')" class="btn-icon" style="color:#f44336;">
+                                <button onclick="window.confirmDeleteTransaction('${t.id}', '${t.type}')" class="btn-icon" style="color:#f44336;">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -582,6 +582,18 @@
             document.getElementById('editTxDesc').value = tx.description || '';
             document.getElementById('editTxAmount').value = Math.abs(tx.amount);
             document.getElementById('editTxModal').classList.add('active');
+        };
+
+        window.confirmDeleteTransaction = async function (id, type) {
+            // Determine message based on type if needed, or generic
+            const msg = (type === 'system_topup_expense')
+                ? "هل أنت متأكد من حذف تعبئة الرصيد هذه؟ سيتم خصم المبلغ من رصيد النظام."
+                : "هل أنت متأكد من حذف هذا السجل بشكل نهائي؟";
+
+            const confirmed = await DataManager.showConfirmModal("تأكيد الحذف", msg);
+            if (confirmed) {
+                await DataManager.deleteTransaction(id);
+            }
         };
 
         window.closeEditTxModal = () => document.getElementById('editTxModal').classList.remove('active');

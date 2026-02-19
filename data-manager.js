@@ -70,16 +70,68 @@ function showToast(message, type = 'success') {
     msg.innerText = message;
     alertModal.classList.add('active');
 
-    // Auto close after 2.5 seconds for success, keep open for error until clicked
+    // Auto close after 8 seconds for success, keep open for error until clicked
     if (type !== 'error') {
         setTimeout(() => {
             alertModal.classList.remove('active');
-        }, 2500);
+        }, 8000);
     }
+}
+
+function showConfirmModal(title, message) {
+    return new Promise((resolve) => {
+        let confirmModal = document.getElementById('sas-confirm-modal');
+        if (!confirmModal) {
+            confirmModal = document.createElement('div');
+            confirmModal.id = 'sas-confirm-modal';
+            confirmModal.className = 'modal-overlay';
+            confirmModal.style.zIndex = '9999999';
+            confirmModal.innerHTML = `
+                <div class="modal-box" style="text-align: center; width: 350px; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+                    <div style="font-size: 3rem; margin-bottom: 15px; color: #f59e0b;"><i class="fas fa-exclamation-triangle"></i></div>
+                    <h3 id="sas-confirm-title" style="margin-bottom: 10px; font-size: 1.3rem; color: #333;"></h3>
+                    <p id="sas-confirm-msg" style="color: #666; margin-bottom: 25px; font-size: 1rem; line-height: 1.5;"></p>
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <button id="sas-confirm-yes" class="btn btn-danger" style="flex: 1; padding: 10px;">نعم، احذف</button>
+                        <button id="sas-confirm-no" class="btn btn-secondary" style="flex: 1; padding: 10px;">إلغاء</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(confirmModal);
+        }
+
+        const titleEl = document.getElementById('sas-confirm-title');
+        const msgEl = document.getElementById('sas-confirm-msg');
+        const yesBtn = document.getElementById('sas-confirm-yes');
+        const noBtn = document.getElementById('sas-confirm-no');
+        const modal = document.getElementById('sas-confirm-modal');
+
+        titleEl.innerText = title;
+        msgEl.innerText = message;
+
+        // Remove old event listeners by cloning
+        const newYes = yesBtn.cloneNode(true);
+        const newNo = noBtn.cloneNode(true);
+        yesBtn.parentNode.replaceChild(newYes, yesBtn);
+        noBtn.parentNode.replaceChild(newNo, noBtn);
+
+        newYes.onclick = () => {
+            modal.classList.remove('active');
+            resolve(true);
+        };
+
+        newNo.onclick = () => {
+            modal.classList.remove('active');
+            resolve(false);
+        };
+
+        modal.classList.add('active');
+    });
 }
 
 export const DataManager = {
     showToast: showToast,
+    showConfirmModal: showConfirmModal,
     db: db,
     get subscribers() { return localData.subscribers || []; },
     get transactions() { return localData.transactions || []; },
@@ -280,7 +332,7 @@ export const DataManager = {
     },
 
     async deleteTransaction(id) {
-        if (!confirm("حذف السجل؟ إذا كان تعبئة تفعيل سيتم خصمه من الرصيد.")) return;
+        // Confirmation is handled by UI now
         const t = localData.transactions.find(tx => tx.id == id);
         if (t) {
             // Check if this is a top-up transaction to reverse it
