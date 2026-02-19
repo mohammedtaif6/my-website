@@ -273,9 +273,13 @@ export const DataManager = {
     getSystemSettings() { return localData.settings || {}; },
     getSubscribers() { return localData.subscribers; },
     getSubscriber(id) { return localData.subscribers.find(s => s.id == id); },
+    getAllTransactions() { return localData.transactions || []; },
+    getArchivedTransactions() { return localData.archived_transactions || []; },
+
     getDailyBalance() {
         return localData.transactions.filter(t => !t.isArchived && t.type !== 'subscription_debt').reduce((a, b) => a + b.amount, 0);
     },
+
     getSystemBalance() {
         const sysAcc = (localData.accounts || []).find(a => a.firebaseId === 'system');
         return sysAcc ? (sysAcc.balance || 0) : 0;
@@ -286,86 +290,88 @@ export const DataManager = {
         const newBal = currentBal - amount;
         await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString() }, { merge: true });
     },
+    await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString() }, { merge: true });
+        },
 
     async topUpVirtualBalance(amount) {
-        // We use a special type 'system_topup_expense' to identify this specific kind of expense
-        await this.logTransaction({ subscriberId: null, amount: -Math.abs(amount), type: 'system_topup_expense', description: "تعبئة رصيد النظام" });
-        telegramBot.notifyExpense("تعبئة رصيد النظام", Math.abs(amount));
+    // We use a special type 'system_topup_expense' to identify this specific kind of expense
+    await this.logTransaction({ subscriberId: null, amount: -Math.abs(amount), type: 'system_topup_expense', description: "تعبئة رصيد النظام" });
+    telegramBot.notifyExpense("تعبئة رصيد النظام", Math.abs(amount));
 
-        const currentBal = this.getSystemBalance();
-        const newBal = currentBal + amount;
-        await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString(), type: 'system_funds' }, { merge: true });
-        showToast(`✅ تم إضافة ${amount.toLocaleString()} د.ع للرصيد`);
-    },
+    const currentBal = this.getSystemBalance();
+    const newBal = currentBal + amount;
+    await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString(), type: 'system_funds' }, { merge: true });
+    showToast(`✅ تم إضافة ${amount.toLocaleString()} د.ع للرصيد`);
+},
 
-    // --- إدارة الموظفين ---
-    getEmployees() { return localData.employees || []; },
-    getEmployee(id) { return (localData.employees || []).find(e => e.id == id); },
+// --- إدارة الموظفين ---
+getEmployees() { return localData.employees || []; },
+getEmployee(id) { return (localData.employees || []).find(e => e.id == id); },
     async addEmployee(data) {
-        await addDoc(collection(db, "employees"), { id: Date.now(), createdAt: new Date().toISOString(), startDate: new Date().toISOString().split('T')[0], advances: 0, ...data });
-    },
+    await addDoc(collection(db, "employees"), { id: Date.now(), createdAt: new Date().toISOString(), startDate: new Date().toISOString().split('T')[0], advances: 0, ...data });
+},
     async updateEmployee(id, newData) {
-        const emp = this.getEmployee(id);
-        if (emp) await updateDoc(doc(db, "employees", emp.firebaseId), newData);
-    },
+    const emp = this.getEmployee(id);
+    if (emp) await updateDoc(doc(db, "employees", emp.firebaseId), newData);
+},
     async deleteEmployee(id) {
-        const emp = this.getEmployee(id);
-        if (emp && confirm("حذف الموظف؟")) await deleteDoc(doc(db, "employees", emp.firebaseId));
-    },
+    const emp = this.getEmployee(id);
+    if (emp && confirm("حذف الموظف؟")) await deleteDoc(doc(db, "employees", emp.firebaseId));
+},
     async addAdvance(empId, amount, note) {
-        const emp = this.getEmployee(empId);
-        if (!emp) return;
-        await this.addExpense(amount, `سلفة موظف: ${emp.name} - ${note}`);
-        const currentAdvances = parseFloat(emp.advances || 0);
-        await updateDoc(doc(db, "employees", emp.firebaseId), { advances: currentAdvances + parseFloat(amount) });
-    },
+    const emp = this.getEmployee(empId);
+    if (!emp) return;
+    await this.addExpense(amount, `سلفة موظف: ${emp.name} - ${note}`);
+    const currentAdvances = parseFloat(emp.advances || 0);
+    await updateDoc(doc(db, "employees", emp.firebaseId), { advances: currentAdvances + parseFloat(amount) });
+},
     async paySalary(empId) {
-        const emp = this.getEmployee(empId);
-        const bal = this.calculateEmployeeBalance(empId);
-        if (bal.net > 0 && confirm(`صرف راتب ${emp.name} بمبلغ ${bal.net.toLocaleString()}؟`)) {
-            await this.addExpense(bal.net, `راتب موظف: ${emp.name}`);
-            await updateDoc(doc(db, "employees", emp.firebaseId), { startDate: new Date().toISOString().split('T')[0], advances: 0 });
-        }
-    },
-    calculateEmployeeBalance(empId) {
-        const emp = this.getEmployee(empId);
-        if (!emp || !emp.dailySalary) return { earned: 0, net: 0, advances: 0, days: 0 };
-        const start = new Date(emp.startDate || emp.createdAt);
-        const now = new Date();
-        let diffDays = Math.max(0, Math.ceil((now - start) / (1000 * 60 * 60 * 24)));
-        if (now.getHours() < 18) diffDays = Math.max(0, diffDays - 1);
-        const earned = diffDays * parseFloat(emp.dailySalary);
-        const advances = parseFloat(emp.advances || 0);
-        return { earned, net: earned - advances, advances, days: diffDays };
-    },
-    getStats() {
-        const subs = localData.subscribers;
-        const today = new Date(); today.setHours(0, 0, 0, 0);
-        return {
-            totalSubs: subs.length,
-            debts: subs.reduce((sum, s) => sum + (parseInt(s.price) || 0), 0),
-            boxBalance: this.getDailyBalance(),
-            expired: subs.filter(s => s.expiryDate && new Date(s.expiryDate) < today).length,
-            expiring: subs.filter(s => {
-                if (!s.expiryDate) return false;
-                const d = new Date(s.expiryDate);
-                const diffTime = d - today;
-                const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                return days > 0 && days <= 3;
-            }).length
-        };
-    },
-    async saveSystemSetting(key, value) {
-        const settingsRef = doc(db, "settings", "global");
-        await setDoc(settingsRef, { [key]: value }, { merge: true });
-    },
-    async saveAllSystemSettings(settingsObject) {
-        const settingsRef = doc(db, "settings", "global");
-        await setDoc(settingsRef, settingsObject, { merge: true });
-        showToast('✅ تم حفظ جميع الإعدادات سحابياً');
-    },
-    searchSubscribers(q) {
-        if (!q) return localData.subscribers;
-        return localData.subscribers.filter(s => s.name?.toLowerCase().includes(q.toLowerCase()) || s.phone?.includes(q));
+    const emp = this.getEmployee(empId);
+    const bal = this.calculateEmployeeBalance(empId);
+    if (bal.net > 0 && confirm(`صرف راتب ${emp.name} بمبلغ ${bal.net.toLocaleString()}؟`)) {
+        await this.addExpense(bal.net, `راتب موظف: ${emp.name}`);
+        await updateDoc(doc(db, "employees", emp.firebaseId), { startDate: new Date().toISOString().split('T')[0], advances: 0 });
     }
-};
+},
+calculateEmployeeBalance(empId) {
+    const emp = this.getEmployee(empId);
+    if (!emp || !emp.dailySalary) return { earned: 0, net: 0, advances: 0, days: 0 };
+    const start = new Date(emp.startDate || emp.createdAt);
+    const now = new Date();
+    let diffDays = Math.max(0, Math.ceil((now - start) / (1000 * 60 * 60 * 24)));
+    if (now.getHours() < 18) diffDays = Math.max(0, diffDays - 1);
+    const earned = diffDays * parseFloat(emp.dailySalary);
+    const advances = parseFloat(emp.advances || 0);
+    return { earned, net: earned - advances, advances, days: diffDays };
+},
+getStats() {
+    const subs = localData.subscribers;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    return {
+        totalSubs: subs.length,
+        debts: subs.reduce((sum, s) => sum + (parseInt(s.price) || 0), 0),
+        boxBalance: this.getDailyBalance(),
+        expired: subs.filter(s => s.expiryDate && new Date(s.expiryDate) < today).length,
+        expiring: subs.filter(s => {
+            if (!s.expiryDate) return false;
+            const d = new Date(s.expiryDate);
+            const diffTime = d - today;
+            const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return days > 0 && days <= 3;
+        }).length
+    };
+},
+    async saveSystemSetting(key, value) {
+    const settingsRef = doc(db, "settings", "global");
+    await setDoc(settingsRef, { [key]: value }, { merge: true });
+},
+    async saveAllSystemSettings(settingsObject) {
+    const settingsRef = doc(db, "settings", "global");
+    await setDoc(settingsRef, settingsObject, { merge: true });
+    showToast('✅ تم حفظ جميع الإعدادات سحابياً');
+},
+searchSubscribers(q) {
+    if (!q) return localData.subscribers;
+    return localData.subscribers.filter(s => s.name?.toLowerCase().includes(q.toLowerCase()) || s.phone?.includes(q));
+}
+    };
