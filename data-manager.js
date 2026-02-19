@@ -117,9 +117,9 @@ export const DataManager = {
 
     async bootstrapPackages() {
         const defaults = [
-            { id: 'pkg_norm', name: 'نورمال (Normal)', costPrice: 22000, salePrice: 35000 },
-            { id: 'pkg_super', name: 'سوبر (Super)', costPrice: 24000, salePrice: 40000 },
-            { id: 'pkg_gold', name: 'جولد (Gold)', costPrice: 28000, salePrice: 50000 },
+            { id: 'pkg_norm', name: 'نورمال (Normal)', costPrice: 22000, salePrice: 0 },
+            { id: 'pkg_super', name: 'سوبر (Super)', costPrice: 24000, salePrice: 0 },
+            { id: 'pkg_gold', name: 'جولد (Gold)', costPrice: 28000, salePrice: 0 },
             { id: 'pkg_private', name: 'خاصة (Private)', costPrice: 2000, salePrice: 0 }
         ];
         try {

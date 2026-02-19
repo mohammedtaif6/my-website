@@ -782,7 +782,7 @@ tbody tr:hover {
     padding: 1rem 1.5rem;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-xl);
-    z-index: 10000;
+    z-index: 999999;
     animation: slideUp 0.3s ease;
 }
 
