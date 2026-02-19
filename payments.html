@@ -380,11 +380,17 @@
             // استبعاد سجلات الديون فقط (لأنها لا تمثل حركة نقد حقيقية في الصندوق)
             let filteredTxs = allTxs.filter(t => t.type !== 'subscription_debt');
 
-            // حساب المجاميع بناءً على الفلتر المختار (استبعاد الطلبات المعلقة/المرفوضة)
-            const statsTxs = filteredTxs.filter(t => !(t.type && t.type.includes('topup_request')) || t.status === 'approved');
-            const income = statsTxs.filter(t => t.amount > 0).reduce((a, b) => a + (b.amount || 0), 0);
-            const expense = statsTxs.filter(t => t.amount < 0).reduce((a, b) => a + Math.abs(b.amount || 0), 0);
-            const net = income - expense;
+            // ✅ الصافي = نفس حساب كارت الرئيسية بالضبط (فقط العمليات غير المؤرشفة)
+            const net = DataManager.getDailyBalance();
+
+            // حساب المقبوضات والمصروفات من العمليات النشطة فقط (ليتطابق مع الكارت)
+            const activeFiltered = activeTxs.filter(t => {
+                if (t.type === 'subscription_debt') return false;
+                if (t.type && t.type.includes('topup_request') && t.status !== 'approved') return false;
+                return true;
+            });
+            const income = activeFiltered.filter(t => t.amount > 0).reduce((a, b) => a + (b.amount || 0), 0);
+            const expense = activeFiltered.filter(t => t.amount < 0).reduce((a, b) => a + Math.abs(b.amount || 0), 0);
 
             // Update Header Stats
             document.getElementById('netBalanceDisplay').innerText = net.toLocaleString() + ' د.ع';

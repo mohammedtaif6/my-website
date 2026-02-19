@@ -339,11 +339,6 @@
                 <button class="close-btn" onclick="closeAddModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <div
-                    style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; padding: 12px; margin-bottom: 15px; font-size: 0.8rem; color: #0369a1;">
-                    <i class="fas fa-info-circle"></i> سيتم تعيين باقة <strong>نورمال</strong> تلقائياً. يمكنك تغييرها
-                    لاحقاً من التعديلات، ثم تفعيل الاشتراك من زر "تجديد".
-                </div>
                 <div class="form-group">
                     <label><i class="fas fa-user" style="margin-left:5px; color:#2563eb;"></i> الاسم الكامل</label>
                     <input type="text" id="new-name" placeholder="اسم المشترك">
@@ -351,6 +346,11 @@
                 <div class="form-group">
                     <label><i class="fas fa-phone" style="margin-left:5px; color:#2563eb;"></i> رقم الهاتف</label>
                     <input type="tel" id="new-phone" placeholder="07...">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-box" style="margin-left:5px; color:#8b5cf6;"></i> الباقة</label>
+                    <select id="new-package">
+                    </select>
                 </div>
                 <button onclick="saveNewSubscriber()" class="btn btn-primary btn-full" id="saveSubBtn">
                     <i class="fas fa-save" style="margin-left:5px;"></i> حفظ المشترك
@@ -739,22 +739,30 @@
             document.getElementById('addSubscriberModal').classList.add('active');
             document.getElementById('new-name').value = '';
             document.getElementById('new-phone').value = '';
+
+            // تعبئة قائمة الباقات
+            const pkgSelect = document.getElementById('new-package');
+            const packages = DataManager.getSystemSettings().packages || [];
+            if (pkgSelect) {
+                pkgSelect.innerHTML = packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString()} د.ع)</option>`).join('');
+            }
         };
 
         window.closeAddModal = () => document.getElementById('addSubscriberModal').classList.remove('active');
         window.saveNewSubscriber = async () => {
             const name = document.getElementById('new-name').value.trim();
             const phone = document.getElementById('new-phone').value.trim();
+            const packageId = document.getElementById('new-package').value;
 
             if (!name) return DataManager.showToast('الاسم مطلوب', 'error');
+            if (!packageId) return DataManager.showToast('يرجى اختيار الباقة', 'error');
 
-            // ✅ تعيين باقة نورمال تلقائياً - لا يوجد مشترك بدون باقة
             const subData = {
                 name,
                 phone,
                 initialPrice: 0,
                 paymentType: 'نقد',
-                packageId: 'pkg_norm'
+                packageId: packageId
             };
 
             await DataManager.addSubscriber(subData);
