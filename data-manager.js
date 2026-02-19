@@ -370,14 +370,17 @@ export const DataManager = {
     },
 
     async archiveAllCurrent() {
-        const unarchived = localData.transactions;
-        if (unarchived.length === 0) return showToast("لا يوجد شيء لترحيله", "error");
-        if (!confirm(`هل أنت متأكد من ترحيل ${unarchived.length} سجل إلى الأرشيف؟`)) return;
+        // EXCLUDE pending topup requests from archiving - they must be resolved first
+        const toArchive = localData.transactions.filter(t => t.type !== 'topup_request' || t.status !== 'pending');
+
+        if (toArchive.length === 0) return showToast("لا يوجد عمليات قابلة للترحيل حالياً", "info");
+        if (!confirm(`سيتم ترحيل ${toArchive.length} عملية. هل أنت متأكد؟ (الطلبات المعلقة لن تُرحل)`)) return;
 
         try {
-            for (const t of unarchived) {
-                await addDoc(collection(db, "archived_transactions"), { ...t, isArchived: true, archivedAt: new Date().toISOString() });
-                await deleteDoc(doc(db, "transactions", t.firebaseId));
+            for (const t of toArchive) {
+                const { firebaseId, ...archData } = t;
+                await addDoc(collection(db, "archived_transactions"), { ...archData, isArchived: true, archivedAt: new Date().toISOString() });
+                await deleteDoc(doc(db, "transactions", firebaseId));
             }
             showToast("تم الترحيل للأرشيف بنجاح ✅");
         } catch (e) {
@@ -386,28 +389,32 @@ export const DataManager = {
     },
 
     async deleteTransaction(id) {
-        // Confirmation is handled by UI now
-        const t = localData.transactions.find(tx => tx.id == id);
+        // Search in active then archived
+        let t = localData.transactions.find(tx => tx.id == id || tx.firebaseId === id);
+        let col = "transactions";
+
+        if (!t) {
+            t = (localData.archived_transactions || []).find(tx => tx.id == id || tx.firebaseId === id);
+            col = "archived_transactions";
+        }
+
         if (t) {
             // Check if this is a finished top-up transaction or request to reverse it
             const isApprovedTopUp = t.type === 'system_topup_expense' || (t.type === 'topup_request' && t.status === 'approved' && t.processedBySystem);
 
             if (isApprovedTopUp) {
                 const currentBal = this.getSystemBalance();
-                // Logic: User deletes the log "Top Up 100k".
-                // Action: Remove 100k from system balance to undo.
                 const storedAmount = Math.abs(t.amount);
                 const newBal = Math.max(0, currentBal - storedAmount);
                 await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString() }, { merge: true });
                 showToast(`تم استرجاع مبلغ التعبئة (${storedAmount}) من رصيد النظام`);
             } else if (t.costPrice && t.costPrice > 0) {
-                // Smart Refund: If we delete an activation log, we should refund the cost involved.
                 const currentBal = this.getSystemBalance();
                 const newBal = currentBal + t.costPrice;
                 await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString() }, { merge: true });
                 showToast(`تم استرجاع تكلفة الباقة (${t.costPrice}) إلى رصيد النظام`);
             }
-            await deleteDoc(doc(db, "transactions", t.firebaseId));
+            await deleteDoc(doc(db, col, t.firebaseId));
         }
     },
 

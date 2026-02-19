@@ -604,8 +604,9 @@
         };
 
         window.confirmDeleteTransaction = async function (id, type) {
-            // Determine message based on type
-            const t = DataManager.getAllTransactions().find(tx => (tx.firebaseId === id || tx.id == id));
+            // Search in both active and archived to show correct message
+            const allTxs = [...DataManager.getAllTransactions(), ...DataManager.getArchivedTransactions()];
+            const t = allTxs.find(tx => (tx.firebaseId === id || tx.id == id));
 
             let msg = "هل أنت متأكد من حذف هذا السجل بشكل نهائي؟";
 
