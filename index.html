@@ -169,8 +169,177 @@
             border-color: #6366f1;
         }
 
-        .balance-display-modern {
-            /*  order removed to respect HTML structure */
+        /* --- Smart Premium Header Styles --- */
+        .dashboard-header-modern {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            padding: 70px 20px 60px;
+            /* Top padding to account for menu button */
+            border-radius: 0 0 45px 45px;
+            color: white;
+            position: relative;
+            margin-bottom: -30px;
+            /* Overlap with grid below */
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.2);
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        .dashboard-header-modern::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .dashboard-header-modern::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            left: -50px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .dashboard-header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            position: relative;
+            z-index: 2;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .user-greeting {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            color: white;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .greeting-text .date-text {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin: 0 0 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+
+        .greeting-text .name-text {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin: 0;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .balance-card-smart {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 20px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .balance-card-smart:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .balance-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            text-align: left;
+        }
+
+        .balance-label {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            font-weight: 600;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .balance-amount {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #34d399;
+            /* Emerald text */
+            font-family: 'Outfit', sans-serif;
+            text-shadow: 0 2px 10px rgba(16, 185, 129, 0.2);
+            letter-spacing: 0.5px;
+        }
+
+        .btn-topup-smart {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .btn-topup-smart:hover {
+            background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn-topup-smart:active {
+            transform: scale(0.95);
+        }
+
+        .menu-btn {
+            background: rgba(255, 255, 255, 0.1) !important;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+
+        .menu-btn:hover {
+            background: rgba(255, 255, 255, 0.2) !important;
         }
     </style>
 
@@ -211,190 +380,189 @@
     </nav>
 
 
-    <div class="container">
-
-        <!-- User Header -->
-        <div class="header-card" style="padding: 15px 20px; background: white; border-bottom: 1px solid #f1f5f9;">
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: 15px;">
-
-                <!-- اسم المستخدم (في اليمين) -->
-                <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-start;">
-                    <div id="user-name-display-header"
-                        style="font-size: 1rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 6px;">
+    <div class="dashboard-header-modern">
+        <div class="dashboard-header-content">
+            <!-- معلومات المستخدم والتاريخ -->
+            <div class="user-greeting">
+                <div class="user-avatar">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div class="greeting-text">
+                    <p class="date-text"><i class="far fa-calendar-alt"></i> <span id="currentDate">جاري
+                            التحميل...</span></p>
+                    <div id="user-name-display-header" class="name-text">
                         <span>تحميل...</span>
                     </div>
-                    <p id="currentDate" style="font-size: 0.75rem; color: #94a3b8; margin: 0; font-weight: 500;"></p>
                 </div>
+            </div>
 
-                <!-- عرض الرصيد المالي المطور (في الكـتف الأيسر) -->
-                <div class="balance-display-modern" style="display: flex; align-items: center; gap: 8px;">
-                    <div class="balance-badge"
-                        style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 8px 15px; border-radius: 14px; color: white; display: flex; flex-direction: column; align-items: flex-start; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);">
-                        <span style="font-size: 0.65rem; opacity: 0.8; font-weight: bold;">رصيد النظام</span>
-                        <span id="header-balance-amount"
-                            style="font-size: 1.1rem; font-weight: 800; letter-spacing: 0.5px;">0 د.ع</span>
-                    </div>
-                    <button class="topup-btn" onclick="openTopUpModal()"
-                        style="border-color: #4f46e5; color: #4f46e5; width: 38px; height: 38px; border-radius: 12px;">
+            <!-- بطاقة الرصيد المالي -->
+            <div class="balance-card-smart">
+                <div class="balance-info">
+                    <span class="balance-label">رصيد النظام <i class="fas fa-wallet" style="color: #6366f1;"></i></span>
+                    <span id="header-balance-amount" class="balance-amount">0 د.ع</span>
+                </div>
+                <div class="balance-action">
+                    <button class="btn-topup-smart" onclick="openTopUpModal()" title="تعبئة الرصيد">
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
             </div>
         </div>
-
-
     </div>
 
-    <!-- مؤشر حالة الحضور المباشر (يعمل في الخلفية) -->
+    <div class="container" style="position: relative; z-index: 11; padding-top: 10px;">
+
+        <!-- مؤشر حالة الحضور المباشر (يعمل في الخلفية) -->
 
 
-    <!-- ملخص الموظف (يظهر للموظفين فقط) -->
-    <div id="employee-dashboard-stats" style="display:none; margin-bottom: 20px;">
-        <div class="employee-interface-card">
-            <div class="employee-stats-header">
-                <h3><i class="fas fa-wallet"></i> ملخص حسابي</h3>
-                <div id="shift-date-display" style="font-size: 0.85rem; color: var(--text-sub);"></div>
-            </div>
-
-            <div class="employee-summary-grid">
-                <div onclick="showEmpSalaryDetails()" class="summary-item">
-                    <small>الراتب المستحق</small>
-                    <div id="emp-qs-earned" class="value">0</div>
+        <!-- ملخص الموظف (يظهر للموظفين فقط) -->
+        <div id="employee-dashboard-stats" style="display:none; margin-bottom: 20px;">
+            <div class="employee-interface-card">
+                <div class="employee-stats-header">
+                    <h3><i class="fas fa-wallet"></i> ملخص حسابي</h3>
+                    <div id="shift-date-display" style="font-size: 0.85rem; color: var(--text-sub);"></div>
                 </div>
 
-                <div onclick="showEmpAdvancesDetails()" class="summary-item danger">
-                    <small>السلف المسحوبة</small>
-                    <div id="emp-qs-advances" class="value">0</div>
+                <div class="employee-summary-grid">
+                    <div onclick="showEmpSalaryDetails()" class="summary-item">
+                        <small>الراتب المستحق</small>
+                        <div id="emp-qs-earned" class="value">0</div>
+                    </div>
+
+                    <div onclick="showEmpAdvancesDetails()" class="summary-item danger">
+                        <small>السلف المسحوبة</small>
+                        <div id="emp-qs-advances" class="value">0</div>
+                    </div>
                 </div>
-            </div>
 
-            <!-- كارت المكافآت -->
-            <div id="emp-qs-rewards-card" class="employee-rewards-banner" style="display: none;">
-                <strong style="color: #e65100; font-size: 0.95rem;">🎁 إجمالي المكافآت:</strong>
-                <span id="emp-qs-rewards" style="font-weight: bold; font-size: 1.1rem; color: #e65100;">0</span>
-            </div>
+                <!-- كارت المكافآت -->
+                <div id="emp-qs-rewards-card" class="employee-rewards-banner" style="display: none;">
+                    <strong style="color: #e65100; font-size: 0.95rem;">🎁 إجمالي المكافآت:</strong>
+                    <span id="emp-qs-rewards" style="font-weight: bold; font-size: 1.1rem; color: #e65100;">0</span>
+                </div>
 
-            <div class="employee-net-footer">
-                <strong>الصافي للدفع:</strong>
-                <span id="emp-qs-net" class="net-value">0</span>
+                <div class="employee-net-footer">
+                    <strong>الصافي للدفع:</strong>
+                    <span id="emp-qs-net" class="net-value">0</span>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="main-menu-grid">
-        <!-- 1. المشتركين -->
-        <a href="subscribers.html" class="dash-card card-blue" id="card-subscribers">
-            <div class="card-icon"><i class="fas fa-users"></i></div>
-            <div class="card-content">
-                <h3>المشتركين</h3>
-                <p id="stat-total">0</p>
-            </div>
-            <div class="card-arrow"><i class="fas fa-chevron-left"></i></div>
-        </a>
+        <div class="main-menu-grid">
+            <!-- 1. المشتركين -->
+            <a href="subscribers.html" class="dash-card card-blue" id="card-subscribers">
+                <div class="card-icon"><i class="fas fa-users"></i></div>
+                <div class="card-content">
+                    <h3>المشتركين</h3>
+                    <p id="stat-total">0</p>
+                </div>
+                <div class="card-arrow"><i class="fas fa-chevron-left"></i></div>
+            </a>
 
-        <!-- 2. الفعالين (جديد) -->
-        <a href="active_subscribers.html" class="dash-card card-teal" id="card-active">
-            <div class="card-icon"><i class="fas fa-signal"></i></div>
-            <div class="card-content">
-                <h3>الفعالين</h3>
-                <p id="stat-active">0</p>
-            </div>
-            <div class="card-arrow"><i class="fas fa-chevron-left"></i></div>
-        </a>
+            <!-- 2. الفعالين (جديد) -->
+            <a href="active_subscribers.html" class="dash-card card-teal" id="card-active">
+                <div class="card-icon"><i class="fas fa-signal"></i></div>
+                <div class="card-content">
+                    <h3>الفعالين</h3>
+                    <p id="stat-active">0</p>
+                </div>
+                <div class="card-arrow"><i class="fas fa-chevron-left"></i></div>
+            </a>
 
-        <!-- 3. الديون -->
-        <a href="debts.html" class="dash-card card-red" id="card-debts">
-            <div class="card-icon"><i class="fas fa-money-bill-wave"></i></div>
-            <div class="card-content">
-                <h3>الديون</h3>
-                <p id="stat-debts">0</p>
-            </div>
-            <div class="card-arrow"><i class="fas fa-chevron-left"></i></div>
-        </a>
+            <!-- 3. الديون -->
+            <a href="debts.html" class="dash-card card-red" id="card-debts">
+                <div class="card-icon"><i class="fas fa-money-bill-wave"></i></div>
+                <div class="card-content">
+                    <h3>الديون</h3>
+                    <p id="stat-debts">0</p>
+                </div>
+                <div class="card-arrow"><i class="fas fa-chevron-left"></i></div>
+            </a>
 
-        <!-- 4. الصندوق -->
-        <a href="payments.html" class="dash-card card-purple" id="card-payments">
-            <div class="card-icon"><i class="fas fa-wallet"></i></div>
-            <div class="card-content">
-                <h3>الصندوق</h3>
-                <p id="stat-revenue" style="font-size:1.5rem">0</p>
-            </div>
-            <div class="card-arrow"><i class="fas fa-chevron-left"></i></div>
-        </a>
+            <!-- 4. الصندوق -->
+            <a href="payments.html" class="dash-card card-purple" id="card-payments">
+                <div class="card-icon"><i class="fas fa-wallet"></i></div>
+                <div class="card-content">
+                    <h3>الصندوق</h3>
+                    <p id="stat-revenue" style="font-size:1.5rem">0</p>
+                </div>
+                <div class="card-arrow"><i class="fas fa-chevron-left"></i></div>
+            </a>
 
-        <!-- 5. التقارير -->
-        <a href="reports.html" class="dash-card card-indigo" id="card-reports">
-            <div class="card-icon"><i class="fas fa-chart-bar"></i></div>
-            <div class="card-content">
-                <h3>التقارير</h3>
-                <small>إحصائيات شهرية</small>
-            </div>
-            <div class="card-arrow"><i class="fas fa-chevron-left"></i></div>
-        </a>
+            <!-- 5. التقارير -->
+            <a href="reports.html" class="dash-card card-indigo" id="card-reports">
+                <div class="card-icon"><i class="fas fa-chart-bar"></i></div>
+                <div class="card-content">
+                    <h3>التقارير</h3>
+                    <small>إحصائيات شهرية</small>
+                </div>
+                <div class="card-arrow"><i class="fas fa-chevron-left"></i></div>
+            </a>
 
-        <!-- 6. الموظفين -->
-        <a href="employees.html" class="dash-card card-orange" id="nav-card-employees">
-            <div class="card-icon"><i class="fas fa-user-tie"></i></div>
-            <div class="card-content">
-                <h3>الموظفين</h3>
-                <small>إدارة الرواتب</small>
-            </div>
-            <div class="card-arrow"><i class="fas fa-chevron-left"></i></div>
-        </a>
-
-
-
-        <!-- 8. تنتهي قريباً (تحذير) -->
-        <a href="expiring.html" class="dash-card card-orange" id="card-expiring">
-            <div class="card-icon"><i class="fas fa-exclamation-triangle"></i></div>
-            <div class="card-content">
-                <h3>تنتهي قريباً</h3>
-                <p id="stat-expiring">0</p>
-            </div>
-        </a>
-
-        <!-- 9. اشتراكات منتهية -->
-        <a href="expired.html" class="dash-card card-gray">
-            <div class="card-icon"><i class="fas fa-times-circle"></i></div>
-            <div class="card-content">
-                <h3>منتهية</h3>
-                <p id="stat-expired">0</p>
-            </div>
-        </a>
+            <!-- 6. الموظفين -->
+            <a href="employees.html" class="dash-card card-orange" id="nav-card-employees">
+                <div class="card-icon"><i class="fas fa-user-tie"></i></div>
+                <div class="card-content">
+                    <h3>الموظفين</h3>
+                    <small>إدارة الرواتب</small>
+                </div>
+                <div class="card-arrow"><i class="fas fa-chevron-left"></i></div>
+            </a>
 
 
 
-        <!-- 10.5 تسجيل قبض (للموظفين) -->
+            <!-- 8. تنتهي قريباً (تحذير) -->
+            <a href="expiring.html" class="dash-card card-orange" id="card-expiring">
+                <div class="card-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="card-content">
+                    <h3>تنتهي قريباً</h3>
+                    <p id="stat-expiring">0</p>
+                </div>
+            </a>
+
+            <!-- 9. اشتراكات منتهية -->
+            <a href="expired.html" class="dash-card card-gray">
+                <div class="card-icon"><i class="fas fa-times-circle"></i></div>
+                <div class="card-content">
+                    <h3>منتهية</h3>
+                    <p id="stat-expired">0</p>
+                </div>
+            </a>
 
 
-        <!-- 11. إعدادات Telegram -->
-        <a href="telegram-settings.html" class="dash-card card-dark" id="nav-card-telegram">
-            <div class="card-icon"><i class="fab fa-telegram-plane"></i></div>
-            <div class="card-content">
-                <h3>بوت التيليجرام</h3>
-                <small>إعدادات</small>
-            </div>
-            <div class="card-arrow"><i class="fas fa-chevron-left"></i></div>
-        </a>
 
-        <!-- 12. الإعدادات -->
-        <a href="settings.html" class="dash-card card-gray" id="card-settings">
-            <div class="card-icon"><i class="fas fa-cog"></i></div>
-            <div class="card-content">
-                <h3>الإعدادات</h3>
-                <small>إعدادات النظام</small>
-            </div>
-            <div class="card-arrow"><i class="fas fa-chevron-left"></i></div>
-        </a>
+            <!-- 10.5 تسجيل قبض (للموظفين) -->
 
-        <!-- 13. تسجيل خروج -->
-        <a href="#" onclick="AuthSystem.logout()" class="dash-card card-red-outline sas-hidden" id="card-logout">
-            <div class="card-icon"><i class="fas fa-sign-out-alt"></i></div>
-            <div class="card-content">
-                <h3 style="color:#ef4444">خروج</h3>
-            </div>
-        </a>
-    </div>
+
+            <!-- 11. إعدادات Telegram -->
+            <a href="telegram-settings.html" class="dash-card card-dark" id="nav-card-telegram">
+                <div class="card-icon"><i class="fab fa-telegram-plane"></i></div>
+                <div class="card-content">
+                    <h3>بوت التيليجرام</h3>
+                    <small>إعدادات</small>
+                </div>
+                <div class="card-arrow"><i class="fas fa-chevron-left"></i></div>
+            </a>
+
+            <!-- 12. الإعدادات -->
+            <a href="settings.html" class="dash-card card-gray" id="card-settings">
+                <div class="card-icon"><i class="fas fa-cog"></i></div>
+                <div class="card-content">
+                    <h3>الإعدادات</h3>
+                    <small>إعدادات النظام</small>
+                </div>
+                <div class="card-arrow"><i class="fas fa-chevron-left"></i></div>
+            </a>
+
+            <!-- 13. تسجيل خروج -->
+            <a href="#" onclick="AuthSystem.logout()" class="dash-card card-red-outline sas-hidden" id="card-logout">
+                <div class="card-icon"><i class="fas fa-sign-out-alt"></i></div>
+                <div class="card-content">
+                    <h3 style="color:#ef4444">خروج</h3>
+                </div>
+            </a>
+        </div>
     </div>
 
     <!-- Floating Action Buttons -->

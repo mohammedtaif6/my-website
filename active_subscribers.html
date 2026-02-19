@@ -247,12 +247,20 @@
                 return isActive && matches;
             });
 
-            activeSubs.sort((a, b) => (a.expiryDate || '').localeCompare(b.expiryDate || ''));
+            activeSubs.sort((a, b) => {
+                const dateA = a.expiryDate || a.endDate || '';
+                const dateB = b.expiryDate || b.endDate || '';
+                const dateCompare = dateA.localeCompare(dateB);
+                if (dateCompare === 0) {
+                    return (a.id || '').localeCompare(b.id || '');
+                }
+                return dateCompare;
+            });
 
             document.getElementById('count-badge').innerText = activeSubs.length;
 
             // ✅ بصمة البيانات - لمنع الوميض
-            const dataHash = activeSubs.map(s => s.id + '|' + (s.expiryDate || '') + '|' + (s.price || 0)).join('||') + '||q:' + q;
+            const dataHash = activeSubs.map(s => s.id + '|' + (s.expiryDate || s.endDate || '') + '|' + (s.price || 0) + '|' + (s.name || '') + '|' + (s.packageName || '') + '|' + (s.phone || '')).join('||') + '||q:' + q;
             if (window.lastActiveHash === dataHash) return;
             window.lastActiveHash = dataHash;
 
@@ -264,10 +272,17 @@
             }
 
             grid.innerHTML = activeSubs.map(s => {
-                const days = calculateDaysRemaining(s.expiryDate);
+                const rawDate = s.expiryDate || s.endDate || '';
+                const days = calculateDaysRemaining(rawDate);
                 const badgeClass = days <= 3 ? 'days-danger' : (days <= 7 ? 'days-warning' : '');
-                const dateObj = new Date(s.expiryDate);
-                const readableDate = dateObj.toLocaleDateString('ar-IQ', { day: 'numeric', month: 'long' });
+
+                let isoDate = rawDate;
+                if (isoDate && isoDate.indexOf('/') > 0) {
+                    const p = isoDate.split('/');
+                    isoDate = `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+                }
+                const dateObj = new Date(isoDate);
+                const readableDate = !isNaN(dateObj) ? dateObj.toLocaleDateString('ar-IQ', { day: 'numeric', month: 'long', year: 'numeric' }) : (rawDate || '-');
 
                 let pkgIcon = 'fa-box';
                 let pkgColor = '#64748b';
