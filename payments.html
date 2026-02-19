@@ -147,40 +147,8 @@
 
         <div class="table-container tx-list-container">
             <div class="table-header" style="display:flex; justify-content:space-between; align-items:center;">
-                <h3 style="margin:0;">سجل العمليات</h3>
-                <div class="filter-tabs"
-                    style="display:flex; gap:5px; background:#f1f5f9; padding:4px; border-radius:10px;">
-                    <button class="filter-btn active" onclick="setTxFilter('today')" id="filter-today">اليوم</button>
-                    <button class="filter-btn" onclick="setTxFilter('yesterday')" id="filter-yesterday">أمس</button>
-                    <button class="filter-btn" onclick="setTxFilter('week')" id="filter-week">الأسبوع</button>
-                    <button class="filter-btn" onclick="setTxFilter('month')" id="filter-month">الشهر</button>
-                    <button class="filter-btn" onclick="toggleCustomDate()" id="filter-custom"
-                        title="بحث مخصص بالتاريخ">
-                        <i class="fas fa-calendar-alt"></i>
-                    </button>
-                    <button class="filter-btn" onclick="setTxFilter('all')" id="filter-all">الكل</button>
-                </div>
-            </div>
-
-            <!-- Custom Date Picker Row (Hidden by default) -->
-            <div id="custom-date-row"
-                style="display:none; padding:15px; background:#f8fafc; border-bottom:1px solid #e2e8f0; animation: fadeIn 0.3s ease;">
-                <div style="display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap;">
-                    <div class="date-input-group">
-                        <label style="font-size:0.8rem; color:#64748b; margin-bottom:4px; display:block;">من
-                            تاريخ</label>
-                        <input type="date" id="date-from" class="sleek-date-input" onchange="runCustomFilter()">
-                    </div>
-                    <div class="date-input-group">
-                        <label style="font-size:0.8rem; color:#64748b; margin-bottom:4px; display:block;">إلى
-                            تاريخ</label>
-                        <input type="date" id="date-to" class="sleek-date-input" onchange="runCustomFilter()">
-                    </div>
-                    <button onclick="setTxFilter('today'); toggleCustomDate();" class="btn-close-date"
-                        style="margin-top:20px;">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
+                <h3 style="margin:0;"><i class="fas fa-receipt" style="margin-left:8px; color:#6366f1;"></i> سجل
+                    العمليات</h3>
             </div>
 
             <!-- Transactions List (Cards) -->
@@ -397,36 +365,6 @@
         });
 
         // === Page Logic ===
-        let currentFilter = 'today';
-
-        window.toggleCustomDate = function () {
-            const row = document.getElementById('custom-date-row');
-            const isHidden = row.style.display === 'none';
-            row.style.display = isHidden ? 'block' : 'none';
-
-            if (isHidden) {
-                setTxFilter('custom');
-            }
-        };
-
-        window.runCustomFilter = function () {
-            if (currentFilter === 'custom') window.renderPage();
-        };
-
-        window.setTxFilter = function (filter) {
-            currentFilter = filter;
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            const activeBtn = document.getElementById('filter-' + filter);
-            if (activeBtn) activeBtn.classList.add('active');
-
-            // إخفاء شريط التاريخ إذا اخترنا أي فلتر آخر غير custom
-            if (filter !== 'custom') {
-                document.getElementById('custom-date-row').style.display = 'none';
-            }
-
-            window.renderPage();
-        };
-
         window.renderPage = function () {
             if (typeof DataManager === 'undefined') return;
 
@@ -434,43 +372,13 @@
             const activeTxs = DataManager.getAllTransactions() || [];
             const archivedTxs = DataManager.getArchivedTransactions() || [];
 
-            // دمج القائمتين للبحث الشامل
+            // دمج القائمتين
             let allTxs = [...activeTxs, ...archivedTxs];
 
             const container = document.getElementById('transactionsList');
 
-            // 1. الأساسي: استبعاد سجلات الديون فقط (لأنها لا تمثل حركة نقد حقيقية في الصندوق)
+            // استبعاد سجلات الديون فقط (لأنها لا تمثل حركة نقد حقيقية في الصندوق)
             let filteredTxs = allTxs.filter(t => t.type !== 'subscription_debt');
-
-            // 2. الفلتر الزمني
-            const now = new Date();
-            const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-            if (currentFilter === 'today') {
-                filteredTxs = filteredTxs.filter(t => new Date(t.createdAt) >= startOfToday);
-            } else if (currentFilter === 'yesterday') {
-                const startOfYesterday = new Date(startOfToday.getTime() - 24 * 60 * 60 * 1000);
-                filteredTxs = filteredTxs.filter(t => new Date(t.createdAt) >= startOfYesterday);
-            } else if (currentFilter === 'week') {
-                const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-                filteredTxs = filteredTxs.filter(t => new Date(t.createdAt) >= oneWeekAgo);
-            } else if (currentFilter === 'month') {
-                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-                filteredTxs = filteredTxs.filter(t => new Date(t.createdAt) >= startOfMonth);
-            } else if (currentFilter === 'custom') {
-                const fromStr = document.getElementById('date-from').value;
-                const toStr = document.getElementById('date-to').value;
-                if (fromStr) {
-                    const fromDate = new Date(fromStr);
-                    fromDate.setHours(0, 0, 0, 0);
-                    filteredTxs = filteredTxs.filter(t => new Date(t.createdAt) >= fromDate);
-                }
-                if (toStr) {
-                    const toDate = new Date(toStr);
-                    toDate.setHours(23, 59, 59, 999);
-                    filteredTxs = filteredTxs.filter(t => new Date(t.createdAt) <= toDate);
-                }
-            }
 
             // حساب المجاميع بناءً على الفلتر المختار (استبعاد الطلبات المعلقة/المرفوضة)
             const statsTxs = filteredTxs.filter(t => !(t.type && t.type.includes('topup_request')) || t.status === 'approved');
@@ -485,7 +393,7 @@
 
             container.innerHTML = '';
             if (filteredTxs.length === 0) {
-                container.innerHTML = `<div style="text-align:center; padding:30px; opacity:0.6;"><i class="fas fa-receipt fa-2x"></i><br>لا توجد حركات لهذه الفترة (${currentFilter}).</div>`;
+                container.innerHTML = `<div style="text-align:center; padding:30px; opacity:0.6;"><i class="fas fa-receipt fa-2x"></i><br>لا توجد حركات مالية حالياً.</div>`;
             } else {
                 // Sort Newest First
                 filteredTxs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(t => {

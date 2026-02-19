@@ -452,74 +452,85 @@
     <div id="activateModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
-                <h3>تفعيل اشتراك جديد</h3>
+                <h3><i class="fas fa-wifi" style="margin-left:8px; color:#0ea5e9;"></i> تفعيل اشتراك</h3>
                 <button onclick="window.closeActivateModal()" class="close-btn">&times;</button>
             </div>
             <div class="modal-body">
+                <!-- رصيد النظام المتاح -->
+                <div id="act-balance-info"
+                    style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 12px; padding: 10px 15px; margin-bottom: 15px; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.8rem; color:#0369a1;"><i class="fas fa-wallet"></i> رصيد النظام</span>
+                    <strong id="act-balance-value" style="color:#0369a1; font-size:1rem;">0</strong>
+                </div>
+
                 <div class="form-group">
                     <label>اسم المشترك</label>
-                    <input type="text" id="act-name" placeholder="ابحث..." oninput="window.searchSub(this.value)"
-                        autocomplete="off">
+                    <input type="text" id="act-name" placeholder="ابحث عن المشترك..."
+                        oninput="window.searchSub(this.value)" autocomplete="off">
                     <div id="search-results"
                         style="display:none; border:1px solid #ddd; max-height:100px; overflow-y:auto; margin-top:5px; border-radius:5px;">
                     </div>
                 </div>
-            </div>
-            <!-- اختيار الباقة -->
-            <div class="form-group">
-                <label>اختيار الباقة</label>
-                <select id="act-package" onchange="window.onPackageChange(this.value)"
-                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
-                    <option value="">-- تفعيل يدوي (بدون باقة) --</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>السعر</label>
-                <input type="number" inputmode="numeric" id="act-price" value="35000">
-            </div>
-            <div class="form-group">
-                <label>نوع الدفع</label>
-                <select id="act-type">
-                    <option value="نقد">نقد (واصل)</option>
-                    <option value="أجل">أجل (دين)</option>
-                </select>
-            </div>
-            <div style="display: flex; gap: 15px;">
-                <div class="form-group" style="flex:1"><label>من</label><input type="date" id="act-start"></div>
-                <div class="form-group" style="flex:1"><label>إلى</label><input type="date" id="act-end"></div>
-            </div>
 
-            <!-- WhatsApp Option -->
-            <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                <input type="checkbox" id="send-whatsapp" style="width: auto;">
-                <label for="send-whatsapp" style="margin:0; font-weight:normal; cursor:pointer;">إرسال تفاصيل الوصل
-                    واتساب</label>
-            </div>
+                <!-- اختيار الباقة -->
+                <div class="form-group">
+                    <label><i class="fas fa-box" style="margin-left:5px; color:#8b5cf6;"></i> الباقة</label>
+                    <select id="act-package" onchange="window.onPackageChange(this.value)"
+                        style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                    </select>
+                </div>
 
-            <div style="display: flex; gap: 10px;">
-                <button onclick="window.saveActivation(true)" class="btn btn-success" style="flex: 1;"><i
-                        class="fas fa-print"></i> طباعة</button>
-                <button onclick="window.saveActivation(false)" class="btn btn-primary" style="flex: 1;"><i
-                        class="fas fa-check"></i> تفعيل</button>
+                <div class="form-group">
+                    <label><i class="fas fa-money-bill" style="margin-left:5px; color:#059669;"></i> السعر</label>
+                    <input type="number" inputmode="numeric" id="act-price" value="35000">
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-credit-card" style="margin-left:5px; color:#f59e0b;"></i> نوع الدفع</label>
+                    <select id="act-type">
+                        <option value="نقد">نقد (واصل)</option>
+                        <option value="أجل">أجل (دين)</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex:1"><label>من</label><input type="date" id="act-start"></div>
+                    <div class="form-group" style="flex:1"><label>إلى</label><input type="date" id="act-end"></div>
+                </div>
+
+                <!-- WhatsApp Option -->
+                <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="send-whatsapp" style="width: auto;">
+                    <label for="send-whatsapp" style="margin:0; font-weight:normal; cursor:pointer;">إرسال تفاصيل الوصل
+                        واتساب</label>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="window.saveActivation(true)" class="btn btn-success" style="flex: 1;"><i
+                            class="fas fa-print"></i> طباعة</button>
+                    <button onclick="window.saveActivation(false)" class="btn btn-primary" style="flex: 1;"><i
+                            class="fas fa-check"></i> تفعيل</button>
+                </div>
             </div>
         </div>
-    </div>
-    </div>
-
     </div>
 
     <!-- Quick Expense Modal -->
     <div id="expenseModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
-                <h3>إضافة صرفية سريعة</h3><button class="close-btn"
-                    onclick="window.closeExpenseModal()">&times;</button>
+                <h3><i class="fas fa-minus-circle" style="margin-left:8px; color:#ef4444;"></i> صرفية سريعة</h3>
+                <button class="close-btn" onclick="window.closeExpenseModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="form-group"><label>الوصف</label><input type="text" id="exp-desc"
-                        placeholder="سبب الصرفية..."></div>
-                <div class="form-group"><label>المبلغ</label><input type="number" inputmode="numeric" id="exp-amount"
-                        placeholder="0"></div>
+                <div class="form-group">
+                    <label><i class="fas fa-pen" style="margin-left:5px; color:#6366f1;"></i> الوصف</label>
+                    <input type="text" id="exp-desc" placeholder="سبب الصرفية...">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-money-bill" style="margin-left:5px; color:#ef4444;"></i> المبلغ</label>
+                    <input type="number" inputmode="numeric" id="exp-amount" placeholder="0">
+                </div>
 
                 <!-- خيار خصم من الراتب (يظهر للموظفين فقط) -->
                 <div class="form-group" id="salary-deduct-option"
@@ -531,7 +542,9 @@
                     </label>
                 </div>
 
-                <button onclick="window.saveExpense()" class="btn btn-danger btn-full">حفظ</button>
+                <button onclick="window.saveExpense()" class="btn btn-danger btn-full">
+                    <i class="fas fa-save" style="margin-left:5px;"></i> حفظ الصرفية
+                </button>
             </div>
         </div>
     </div>
@@ -693,6 +706,7 @@
             const sendWA = document.getElementById('send-whatsapp').checked;
 
             if (!name) return DataManager.showToast('اسم المشترك مطلوب', 'error');
+            if (!packageId) return DataManager.showToast('⚠️ يرجى اختيار الباقة', 'error');
 
             try {
                 const subs = DataManager.getSubscribers();
@@ -757,23 +771,28 @@
         };
 
         window.saveExpense = async function () {
-            const d = document.getElementById('exp-desc').value;
+            const d = document.getElementById('exp-desc').value.trim();
             const a = document.getElementById('exp-amount').value;
             const isSalary = document.getElementById('exp-is-salary').checked;
 
-            if (!d || !a) return;
+            if (!d) return DataManager.showToast('⚠️ أدخل وصف الصرفية', 'error');
+            if (!a || parseInt(a) <= 0) return DataManager.showToast('⚠️ أدخل مبلغ صحيح', 'error');
 
-            // إذا كان موظفاً واختار سلفة
-            if (isSalary && AuthSystem.currentUser && AuthSystem.currentUser.type === 'employee') {
-                await DataManager.addAdvance(AuthSystem.currentUser.id, parseInt(a), d);
-            } else {
-                await DataManager.addExpense(parseInt(a), d);
+            try {
+                // إذا كان موظفاً واختار سلفة
+                if (isSalary && AuthSystem.currentUser && AuthSystem.currentUser.type === 'employee') {
+                    await DataManager.addAdvance(AuthSystem.currentUser.id, parseInt(a), d);
+                } else {
+                    await DataManager.addExpense(parseInt(a), d);
+                }
+
+                window.closeExpenseModal();
+                document.getElementById('exp-desc').value = '';
+                document.getElementById('exp-amount').value = '';
+                document.getElementById('exp-is-salary').checked = false;
+            } catch (e) {
+                DataManager.showToast('❌ ' + e.message, 'error');
             }
-
-            window.closeExpenseModal();
-            document.getElementById('exp-desc').value = '';
-            document.getElementById('exp-amount').value = '';
-            document.getElementById('exp-is-salary').checked = false;
         }
 
         // Modals
@@ -784,25 +803,48 @@
 
             document.getElementById('activateModal').classList.add('active');
 
-            // تحديث قائمة الباقات مع الأسعار
+            // ✅ عرض رصيد النظام
+            const balance = DataManager.getSystemBalance();
+            const balEl = document.getElementById('act-balance-value');
+            const balInfo = document.getElementById('act-balance-info');
+            if (balEl) {
+                balEl.textContent = balance.toLocaleString() + ' د.ع';
+                if (balance <= 0) {
+                    balInfo.style.background = 'linear-gradient(135deg, #fee2e2, #fecaca)';
+                    balInfo.style.borderColor = '#fca5a5';
+                    balEl.style.color = '#dc2626';
+                } else {
+                    balInfo.style.background = 'linear-gradient(135deg, #f0f9ff, #e0f2fe)';
+                    balInfo.style.borderColor = '#7dd3fc';
+                    balEl.style.color = '#0369a1';
+                }
+            }
+
+            // تحديث قائمة الباقات
             const pkgSelect = document.getElementById('act-package');
             const packages = DataManager.getSystemSettings().packages || [];
             if (pkgSelect) {
-                pkgSelect.innerHTML = '<option value="">-- تفعيل يدوي (بدون باقة) --</option>' +
+                pkgSelect.innerHTML =
                     packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString()} د.ع)</option>`).join('');
 
-                // جعل الخيار الأول (Normal) هو الافتراضي بدلاً من اليدوي
+                // الافتراضي: أول باقة (نورمال)
                 if (packages.length > 0 && !pkgSelect.value) {
                     pkgSelect.value = packages[0].id;
                     window.onPackageChange(packages[0].id);
                 }
             }
 
-            // ضبط السعر الافتراضي إذا لم يعدله المستخدم
+            // ضبط السعر الافتراضي
             const priceInput = document.getElementById('act-price');
-            if (priceInput && !priceInput.getAttribute('data-user-modified')) {
+            if (priceInput) {
                 priceInput.value = defaultPrice;
+                priceInput.removeAttribute('data-user-modified');
             }
+
+            // Reset form
+            document.getElementById('act-name').value = '';
+            document.getElementById('search-results').style.display = 'none';
+            document.getElementById('send-whatsapp').checked = false;
 
             const d = new Date();
             document.getElementById('act-start').value = d.toISOString().split('T')[0];
@@ -836,7 +878,7 @@
             document.getElementById('act-name').value = n;
             document.getElementById('search-results').style.display = 'none';
 
-            // تحديث التاريخ بناءً على المشترك المختار
+            // تحديث التاريخ والباقة بناءً على المشترك المختار
             const subs = DataManager.getSubscribers();
             const selected = subs.find(s => s.name === n);
             if (selected) {
@@ -855,6 +897,13 @@
                 }
                 targetDate.setDate(targetDate.getDate() + parseInt(AuthSystem.applyUIConfigs().subDuration || 30));
                 document.getElementById('act-end').value = targetDate.toISOString().split('T')[0];
+
+                // ✅ اختيار باقة المشترك المثبتة تلقائياً
+                const pkgSelect = document.getElementById('act-package');
+                if (selected.packageId && pkgSelect) {
+                    pkgSelect.value = selected.packageId;
+                    window.onPackageChange(selected.packageId);
+                }
             }
         };
 

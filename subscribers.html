@@ -335,38 +335,26 @@
     <div id="addSubscriberModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
-                <h3>إضافة مشترك جديد</h3>
+                <h3><i class="fas fa-user-plus" style="margin-left:8px;"></i> إضافة مشترك جديد</h3>
                 <button class="close-btn" onclick="closeAddModal()">&times;</button>
             </div>
             <div class="modal-body">
+                <div
+                    style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; padding: 12px; margin-bottom: 15px; font-size: 0.8rem; color: #0369a1;">
+                    <i class="fas fa-info-circle"></i> سيتم تعيين باقة <strong>نورمال</strong> تلقائياً. يمكنك تغييرها
+                    لاحقاً من التعديلات، ثم تفعيل الاشتراك من زر "تجديد".
+                </div>
                 <div class="form-group">
-                    <label>الاسم الكامل</label>
+                    <label><i class="fas fa-user" style="margin-left:5px; color:#2563eb;"></i> الاسم الكامل</label>
                     <input type="text" id="new-name" placeholder="اسم المشترك">
                 </div>
                 <div class="form-group">
-                    <label>رقم الهاتف</label>
+                    <label><i class="fas fa-phone" style="margin-left:5px; color:#2563eb;"></i> رقم الهاتف</label>
                     <input type="tel" id="new-phone" placeholder="07...">
                 </div>
-                <div class="form-group">
-                    <label>الباقة (اختياري)</label>
-                    <select id="new-package" onchange="window.onNewSubPackageChange(this.value)">
-                        <option value="">-- بدون تفعيل --</option>
-                    </select>
-                </div>
-                <!-- Dynamic Price Field -->
-                <div class="form-group">
-                    <label id="new-price-label">المبلغ واصل / دين</label>
-                    <input type="number" id="new-price" value="0" onblur="window.autoFormatPrice(this)">
-                </div>
-                <div class="form-group">
-                    <label>نوع الدفع</label>
-                    <select id="new-payment-type">
-                        <option value="نقد">نقد (واصل)</option>
-                        <option value="أجل">أجل (دين)</option>
-                    </select>
-                </div>
-                <button onclick="saveNewSubscriber()" class="btn btn-primary btn-full" id="saveSubBtn">حفظ
-                    وتفعيل</button>
+                <button onclick="saveNewSubscriber()" class="btn btn-primary btn-full" id="saveSubBtn">
+                    <i class="fas fa-save" style="margin-left:5px;"></i> حفظ المشترك
+                </button>
             </div>
         </div>
     </div>
@@ -397,28 +385,42 @@
     <div id="quickActivateModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
-                <h3>تفعيل اشتراك</h3>
+                <h3><i class="fas fa-sync-alt" style="margin-left:8px; color:#0ea5e9;"></i> تفعيل اشتراك</h3>
                 <button class="close-btn" onclick="closeQuickActivate()">&times;</button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="qa-id"><input type="hidden" id="qa-fid">
+
+                <!-- رصيد النظام -->
+                <div id="qa-balance-info"
+                    style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 12px; padding: 10px 15px; margin-bottom: 15px; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.8rem; color:#0369a1;"><i class="fas fa-wallet"></i> رصيد النظام</span>
+                    <strong id="qa-balance-value" style="color:#0369a1; font-size:1rem;">0</strong>
+                </div>
+
                 <div class="form-group">
-                    <label>الباقة</label>
+                    <label><i class="fas fa-box" style="margin-left:5px; color:#8b5cf6;"></i> الباقة</label>
                     <select id="qa-package" onchange="window.onPackageChange(this.value)">
-                        <option value="">-- يدوي --</option>
                     </select>
                 </div>
-                <div class="form-group"><label>المبلغ</label><input type="number" id="qa-price" value="35000"
-                        onblur="window.autoFormatPrice(this)"></div>
                 <div class="form-group">
-                    <label>الدفع</label>
+                    <label><i class="fas fa-money-bill" style="margin-left:5px; color:#059669;"></i> المبلغ</label>
+                    <input type="number" id="qa-price" value="35000" onblur="window.autoFormatPrice(this)">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-credit-card" style="margin-left:5px; color:#f59e0b;"></i> الدفع</label>
                     <select id="qa-type">
                         <option value="نقد">نقد (واصل)</option>
-                        <option value="أجل">دين (مؤجل)</option>
+                        <option value="أجل">أجل (دين)</option>
                     </select>
                 </div>
-                <div class="form-group"><label>ينتهي في</label><input type="date" id="qa-end"></div>
-                <button onclick="saveQuickActivate()" class="btn btn-success btn-full">تفعيل الآن</button>
+                <div class="form-group">
+                    <label><i class="fas fa-calendar" style="margin-left:5px; color:#ef4444;"></i> ينتهي في</label>
+                    <input type="date" id="qa-end">
+                </div>
+                <button onclick="saveQuickActivate()" class="btn btn-success btn-full">
+                    <i class="fas fa-check-circle" style="margin-left:5px;"></i> تفعيل الآن
+                </button>
             </div>
         </div>
     </div>
@@ -442,7 +444,6 @@
                 <div class="form-group">
                     <label>الباقة الأساسية</label>
                     <select id="edit-package">
-                        <option value="">-- بدون باقة --</option>
                     </select>
                 </div>
                 <button onclick="saveEditSubscriber()" class="btn btn-primary btn-full">حفظ التعديلات</button>
@@ -605,10 +606,10 @@
 
             const pkgSelect = document.getElementById('edit-package');
             const packages = DataManager.getSystemSettings().packages || [];
-            pkgSelect.innerHTML = '<option value="">-- بدون باقة --</option>' +
-                packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString()} د.ع)</option>`).join('');
+            pkgSelect.innerHTML = packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString()} د.ع)</option>`).join('');
 
-            if (selectedSubscriber.packageId) pkgSelect.value = selectedSubscriber.packageId;
+            // اختيار باقة المشترك الحالية أو نورمال كافتراضي
+            pkgSelect.value = selectedSubscriber.packageId || 'pkg_norm';
             document.getElementById('editSubscriberModal').classList.add('active');
         };
 
@@ -630,18 +631,17 @@
             const phone = document.getElementById('edit-phone').value;
             const packageId = document.getElementById('edit-package').value;
 
-            if (!name) return;
+            if (!name) return DataManager.showToast('الاسم مطلوب', 'error');
+            if (!packageId) return DataManager.showToast('⚠️ يجب اختيار باقة للمشترك', 'error');
 
-            const updateData = { name, phone };
-            if (packageId) {
-                updateData.packageId = packageId;
-                const pkg = (DataManager.getSystemSettings().packages || []).find(p => p.id === packageId);
-                updateData.packageName = pkg ? pkg.name : 'Unknown';
-            } else {
-                updateData.packageId = null;
-                updateData.packageName = 'بدون باقة';
-            }
-            // If phone/name changed, force update
+            const pkg = (DataManager.getSystemSettings().packages || []).find(p => p.id === packageId);
+            const updateData = {
+                name,
+                phone,
+                packageId: packageId,
+                packageName: pkg ? pkg.name : 'نورمال'
+            };
+
             await DataManager.updateSubscriber(selectedSubscriber.id, updateData);
             closeEditModal();
         };
@@ -660,24 +660,42 @@
             selectedSubscriber = DataManager.getSubscriber(id);
             let target = new Date();
 
-            // ضبط السعر الافتراضي
-            const priceInput = document.getElementById('qa-price');
-            if (priceInput && !priceInput.getAttribute('data-user-modified')) {
-                priceInput.value = defaultPrice;
+            // ✅ عرض رصيد النظام
+            const balance = DataManager.getSystemBalance();
+            const balEl = document.getElementById('qa-balance-value');
+            const balInfo = document.getElementById('qa-balance-info');
+            if (balEl) {
+                balEl.textContent = balance.toLocaleString() + ' د.ع';
+                if (balance <= 0) {
+                    balInfo.style.background = 'linear-gradient(135deg, #fee2e2, #fecaca)';
+                    balInfo.style.borderColor = '#fca5a5';
+                    balEl.style.color = '#dc2626';
+                } else {
+                    balInfo.style.background = 'linear-gradient(135deg, #f0f9ff, #e0f2fe)';
+                    balInfo.style.borderColor = '#7dd3fc';
+                    balEl.style.color = '#0369a1';
+                }
             }
 
             target.setDate(target.getDate() + duration);
             document.getElementById('qa-id').value = id;
             document.getElementById('qa-fid').value = fid;
             document.getElementById('qa-end').value = target.toISOString().split('T')[0];
-            // تحديث قائمة الباقات مع الأسعار
+
+            // ضبط السعر الافتراضي
+            const priceInput = document.getElementById('qa-price');
+            if (priceInput) {
+                priceInput.removeAttribute('data-user-modified');
+            }
+
+            // تحديث قائمة الباقات
             const pkgSelect = document.getElementById('qa-package');
             const packages = DataManager.getSystemSettings().packages || [];
             if (pkgSelect) {
-                pkgSelect.innerHTML = '<option value="">-- تفعيل يدوي --</option>' +
+                pkgSelect.innerHTML =
                     packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString()} د.ع)</option>`).join('');
 
-                // اختيار الباقة الحالية للمشترك، أو أول باقة كافتراضي
+                // اختيار باقة المشترك المثبتة تلقائياً
                 if (selectedSubscriber.packageId) {
                     pkgSelect.value = selectedSubscriber.packageId;
                     window.onPackageChange(selectedSubscriber.packageId);
@@ -700,69 +718,47 @@
 
         window.closeQuickActivate = () => document.getElementById('quickActivateModal').classList.remove('active');
         window.saveQuickActivate = async () => {
-            await DataManager.renewSubscription(document.getElementById('qa-fid').value, document.getElementById('qa-id').value, {
-                price: parseInt(document.getElementById('qa-price').value),
-                type: document.getElementById('qa-type').value,
-                dateEnd: document.getElementById('qa-end').value,
-                packageId: document.getElementById('qa-package').value
-            });
-            closeQuickActivate();
+            const packageId = document.getElementById('qa-package').value;
+            if (!packageId) {
+                return DataManager.showToast('⚠️ يرجى اختيار الباقة', 'error');
+            }
+            try {
+                await DataManager.renewSubscription(document.getElementById('qa-fid').value, document.getElementById('qa-id').value, {
+                    price: parseInt(document.getElementById('qa-price').value),
+                    type: document.getElementById('qa-type').value,
+                    dateEnd: document.getElementById('qa-end').value,
+                    packageId: packageId
+                });
+                closeQuickActivate();
+            } catch (e) {
+                DataManager.showToast('❌ ' + e.message, 'error');
+            }
         };
 
         window.openAddModal = () => {
             document.getElementById('addSubscriberModal').classList.add('active');
-            // Populate Packages
-            const pkgSelect = document.getElementById('new-package');
-            const packages = DataManager.getSystemSettings().packages || [];
-            pkgSelect.innerHTML = '<option value="">-- بدون تفعيل --</option>' +
-                packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString()})</option>`).join('');
-            document.getElementById('new-price').value = 0;
-        };
-
-        window.onNewSubPackageChange = (pkgId) => {
-            const pkgs = DataManager.getSystemSettings().packages || [];
-            const selected = pkgs.find(p => p.id === pkgId);
-            if (selected) {
-                // If salePrice is 0 (like Private pkg), let user type. Otherwise fill it.
-                if (selected.salePrice > 0) document.getElementById('new-price').value = selected.salePrice;
-                else document.getElementById('new-price').value = 0;
-            } else {
-                document.getElementById('new-price').value = 0;
-            }
+            document.getElementById('new-name').value = '';
+            document.getElementById('new-phone').value = '';
         };
 
         window.closeAddModal = () => document.getElementById('addSubscriberModal').classList.remove('active');
         window.saveNewSubscriber = async () => {
-            const name = document.getElementById('new-name').value;
-            const phone = document.getElementById('new-phone').value;
-            const packageId = document.getElementById('new-package').value;
-            const price = parseInt(document.getElementById('new-price').value) || 0;
-            const paymentType = document.getElementById('new-payment-type').value;
+            const name = document.getElementById('new-name').value.trim();
+            const phone = document.getElementById('new-phone').value.trim();
 
-            if (!name) return alert('الاسم مطلوب');
+            if (!name) return DataManager.showToast('الاسم مطلوب', 'error');
 
-            // Prepare Data
+            // ✅ تعيين باقة نورمال تلقائياً - لا يوجد مشترك بدون باقة
             const subData = {
                 name,
                 phone,
-                initialPrice: price,
-                paymentType
+                initialPrice: 0,
+                paymentType: 'نقد',
+                packageId: 'pkg_norm'
             };
-
-            if (packageId) {
-                subData.packageId = packageId;
-                // Set expiry if package selected
-                const settings = AuthSystem.applyUIConfigs();
-                const duration = parseInt(settings.subDuration || 30);
-                const d = new Date(); d.setDate(d.getDate() + duration);
-                subData.expiryDate = d.toISOString().split('T')[0];
-            }
 
             await DataManager.addSubscriber(subData);
             closeAddModal();
-            // Reset form
-            document.getElementById('new-name').value = '';
-            document.getElementById('new-phone').value = '';
         };
 
 

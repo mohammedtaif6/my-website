@@ -349,28 +349,45 @@
     <div id="quickActivateModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
-                <h3>تجديد الاشتراك</h3>
+                <h3><i class="fas fa-sync-alt" style="margin-left:8px; color:#0ea5e9;"></i> تجديد الاشتراك</h3>
                 <button class="close-btn" onclick="closeQuickActivate()">&times;</button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="qa-id">
                 <input type="hidden" id="qa-fid">
+
+                <!-- رصيد النظام -->
+                <div id="qa-balance-info"
+                    style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 12px; padding: 10px 15px; margin-bottom: 15px; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.8rem; color:#0369a1;"><i class="fas fa-wallet"></i> رصيد النظام</span>
+                    <strong id="qa-balance-value" style="color:#0369a1; font-size:1rem;">0</strong>
+                </div>
+
                 <div class="form-group">
-                    <label>المبلة المطلوب</label>
+                    <label><i class="fas fa-box" style="margin-left:5px; color:#8b5cf6;"></i> الباقة</label>
+                    <select id="qa-package" onchange="window.onPackageChange(this.value)">
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-money-bill" style="margin-left:5px; color:#059669;"></i> المبلغ</label>
                     <input type="number" id="qa-price" value="35000">
                 </div>
                 <div class="form-group">
-                    <label>طريقة الدفع</label>
+                    <label><i class="fas fa-credit-card" style="margin-left:5px; color:#f59e0b;"></i> طريقة
+                        الدفع</label>
                     <select id="qa-type">
                         <option value="نقد">نقد (واصل)</option>
                         <option value="أجل">أجل (دين)</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>تاريخ الانتهاء القادم</label>
+                    <label><i class="fas fa-calendar" style="margin-left:5px; color:#ef4444;"></i> تاريخ الانتهاء
+                        القادم</label>
                     <input type="date" id="qa-end">
                 </div>
-                <button onclick="saveQuickActivate()" class="btn btn-success btn-full">تأكيد التجديد</button>
+                <button onclick="saveQuickActivate()" class="btn btn-success btn-full">
+                    <i class="fas fa-check-circle" style="margin-left:5px;"></i> تأكيد التجديد
+                </button>
             </div>
         </div>
     </div>
@@ -476,6 +493,14 @@
             WhatsAppHelper.sendExpiredNotification(name, phone);
         };
 
+        window.onPackageChange = function (pkgId) {
+            const pkgs = DataManager.getSystemSettings().packages || [];
+            const selected = pkgs.find(p => p.id === pkgId);
+            if (selected) {
+                document.getElementById('qa-price').value = selected.salePrice;
+            }
+        };
+
         window.openRenew = function (fid, id) {
             const subs = DataManager.getSubscribers();
             const sub = subs.find(s => s.id == id);
@@ -484,9 +509,43 @@
             let targetDate = new Date();
             targetDate.setDate(targetDate.getDate() + 30);
 
+            // ✅ عرض رصيد النظام
+            const balance = DataManager.getSystemBalance();
+            const balEl = document.getElementById('qa-balance-value');
+            const balInfo = document.getElementById('qa-balance-info');
+            if (balEl) {
+                balEl.textContent = balance.toLocaleString() + ' د.ع';
+                if (balance <= 0) {
+                    balInfo.style.background = 'linear-gradient(135deg, #fee2e2, #fecaca)';
+                    balInfo.style.borderColor = '#fca5a5';
+                    balEl.style.color = '#dc2626';
+                } else {
+                    balInfo.style.background = 'linear-gradient(135deg, #f0f9ff, #e0f2fe)';
+                    balInfo.style.borderColor = '#7dd3fc';
+                    balEl.style.color = '#0369a1';
+                }
+            }
+
             document.getElementById('qa-id').value = id;
             document.getElementById('qa-fid').value = fid;
             document.getElementById('qa-end').value = targetDate.toISOString().split('T')[0];
+
+            // تحديث قائمة الباقات
+            const pkgSelect = document.getElementById('qa-package');
+            const packages = DataManager.getSystemSettings().packages || [];
+            if (pkgSelect) {
+                pkgSelect.innerHTML = packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString()} د.ع)</option>`).join('');
+
+                // اختيار باقة المشترك المثبتة تلقائياً
+                if (sub && sub.packageId) {
+                    pkgSelect.value = sub.packageId;
+                    window.onPackageChange(sub.packageId);
+                } else if (packages.length > 0) {
+                    pkgSelect.value = packages[0].id;
+                    window.onPackageChange(packages[0].id);
+                }
+            }
+
             document.getElementById('quickActivateModal').classList.add('active');
         };
 
@@ -498,9 +557,15 @@
             const price = document.getElementById('qa-price').value;
             const type = document.getElementById('qa-type').value;
             const end = document.getElementById('qa-end').value;
+            const packageId = document.getElementById('qa-package').value;
 
             if (!price || !end) {
                 DataManager.showToast('⚠️ يرجى إكمال البيانات', 'error');
+                return;
+            }
+
+            if (!packageId) {
+                DataManager.showToast('⚠️ يرجى اختيار الباقة', 'error');
                 return;
             }
 
@@ -508,12 +573,12 @@
                 await DataManager.renewSubscription(fid, id, {
                     price: parseInt(price),
                     type: type,
-                    dateEnd: end
+                    dateEnd: end,
+                    packageId: packageId
                 });
                 closeQuickActivate();
-                // DataManager will show toast
             } catch (e) {
-                DataManager.showToast('❌ فشل تجديد الاشتراك', 'error');
+                DataManager.showToast('❌ فشل تجديد الاشتراك: ' + e.message, 'error');
             }
         };
 
