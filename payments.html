@@ -45,6 +45,42 @@
             align-items: center;
             justify-content: center;
         }
+
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px 15px;
+            scrollbar-width: none;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .filter-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .filter-tab {
+            padding: 8px 16px;
+            background: white;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .filter-tab:hover {
+            border-color: #cbd5e1;
+        }
+
+        .filter-tab.active {
+            background: var(--primary);
+            color: white;
+        }
     </style>
 
 </head>
@@ -149,6 +185,15 @@
             <div class="table-header" style="display:flex; justify-content:space-between; align-items:center;">
                 <h3 style="margin:0;"><i class="fas fa-receipt" style="margin-left:8px; color:#6366f1;"></i> سجل
                     العمليات</h3>
+            </div>
+
+            <!-- Filter Tabs -->
+            <div class="filter-tabs">
+                <div class="filter-tab active" onclick="setTxFilter('all')">الكل (غير مؤرشف)</div>
+                <div class="filter-tab" onclick="setTxFilter('today')">اليوم</div>
+                <div class="filter-tab" onclick="setTxFilter('yesterday')">أمس</div>
+                <div class="filter-tab" onclick="setTxFilter('week')">الاسبوع</div>
+                <div class="filter-tab" onclick="setTxFilter('month')">الشهر</div>
             </div>
 
             <!-- Transactions List (Cards) -->
@@ -364,21 +409,51 @@
             touchStart = 0;
         });
 
+        let currentTxFilter = 'all';
+        window.setTxFilter = function (filter) {
+            currentTxFilter = filter;
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            window.renderPage();
+        }
+
         // === Page Logic ===
         window.renderPage = function () {
             if (typeof DataManager === 'undefined') return;
 
-            // جلب كافة العمليات (النشطة والمؤرشفة)
+            // جلب كافة العمليات النشطة فقط (الطلب كان استبعاد المؤرشفة)
             const activeTxs = DataManager.getAllTransactions() || [];
-            const archivedTxs = DataManager.getArchivedTransactions() || [];
-
-            // دمج القائمتين
-            let allTxs = [...activeTxs, ...archivedTxs];
 
             const container = document.getElementById('transactionsList');
 
             // استبعاد سجلات الديون فقط (لأنها لا تمثل حركة نقد حقيقية في الصندوق)
-            let filteredTxs = allTxs.filter(t => t.type !== 'subscription_debt');
+            let filteredTxs = activeTxs.filter(t => t.type !== 'subscription_debt');
+
+            // تطبيق فلتر التاريخ (اليوم، أمس، الاسبوع، الشهر)
+            if (currentTxFilter !== 'all') {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+
+                filteredTxs = filteredTxs.filter(t => {
+                    const txDate = new Date(t.createdAt);
+                    txDate.setHours(0, 0, 0, 0);
+
+                    if (currentTxFilter === 'today') return txDate.getTime() === today.getTime();
+                    if (currentTxFilter === 'yesterday') return txDate.getTime() === yesterday.getTime();
+                    if (currentTxFilter === 'week') {
+                        const weekAgo = new Date(today);
+                        weekAgo.setDate(weekAgo.getDate() - 7);
+                        return txDate >= weekAgo;
+                    }
+                    if (currentTxFilter === 'month') {
+                        return txDate.getMonth() === today.getMonth() && txDate.getFullYear() === today.getFullYear();
+                    }
+                    return true;
+                });
+            }
 
             // ✅ الصافي = نفس حساب كارت الرئيسية بالضبط (فقط العمليات غير المؤرشفة)
             const net = DataManager.getDailyBalance();

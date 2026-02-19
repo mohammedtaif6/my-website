@@ -642,33 +642,52 @@
 
     <!-- Quick Expense Modal -->
     <div id="expenseModal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3><i class="fas fa-minus-circle" style="margin-left:8px; color:#ef4444;"></i> صرفية سريعة</h3>
-                <button class="close-btn" onclick="window.closeExpenseModal()">&times;</button>
+        <div class="modal-box"
+            style="max-width:400px; border-radius: 20px; overflow: hidden; background: white; padding:0;">
+            <div class="modal-header"
+                style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 20px; border-bottom: 2px solid #e2e8f0; border-radius: 20px 20px 0 0;">
+                <h3 style="margin:0; color:#1e293b; font-size:1.2rem; display:flex; align-items:center;">
+                    <i class="fas fa-minus-circle" style="margin-left:8px; color:#ef4444; font-size:1.4rem;"></i> صرفية
+                    سريعة
+                </h3>
+                <button class="close-btn" onclick="window.closeExpenseModal()"
+                    style="color:#64748b; background:white; width:30px; height:30px; border-radius:50%; box-shadow:0 2px 4px rgba(0,0,0,0.05);">&times;</button>
             </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label><i class="fas fa-pen" style="margin-left:5px; color:#6366f1;"></i> الوصف</label>
-                    <input type="text" id="exp-desc" placeholder="سبب الصرفية...">
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-money-bill" style="margin-left:5px; color:#ef4444;"></i> المبلغ</label>
-                    <input type="number" inputmode="numeric" id="exp-amount" placeholder="0">
-                </div>
-
-                <!-- خيار خصم من الراتب (يظهر للموظفين فقط) -->
-                <div class="form-group" id="salary-deduct-option"
-                    style="display:none; background:#fff3e0; padding:10px; border-radius:8px; border:1px solid #ffe0b2;">
-                    <label
-                        style="display:flex; align-items:center; gap:10px; cursor:pointer; color:#e65100; font-weight:bold;">
-                        <input type="checkbox" id="exp-is-salary" style="width:20px; height:20px;">
-                        خصم من راتبي (سلفة)
+            <div class="modal-body" style="padding: 24px;">
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="color:#475569; font-weight:700; font-size:0.95rem; margin-bottom:8px; display:block;">
+                        <i class="fas fa-pen" style="margin-left:5px; color:#6366f1;"></i> وصف الصرفية
                     </label>
+                    <input type="text" id="exp-desc" placeholder="مثال: شراء قرطاسية، صيانة، الخ..."
+                        style="width:100%; padding: 12px 15px; border-radius: 12px; border: 2px solid #e2e8f0; font-size:1rem; outline:none; transition: border-color 0.2s; background:#f8fafc;">
+                </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="color:#475569; font-weight:700; font-size:0.95rem; margin-bottom:8px; display:block;">
+                        <i class="fas fa-money-bill-wave" style="margin-left:5px; color:#10b981;"></i> المبلغ
+                    </label>
+                    <div style="position:relative;">
+                        <input type="text" inputmode="numeric" id="exp-amount" placeholder="30 = 30,000"
+                            style="width:100%; padding: 12px 15px; padding-left:45px; border-radius: 12px; border: 2px solid #e2e8f0; font-size:1.1rem; font-weight:bold; outline:none; transition: border-color 0.2s; background:#f8fafc; color:#0f172a;">
+                        <span
+                            style="position:absolute; left:15px; top:50%; transform:translateY(-50%); color:#94a3b8; font-weight:bold;">د.ع</span>
+                    </div>
                 </div>
 
-                <button onclick="window.saveExpense()" class="btn btn-danger btn-full">
-                    <i class="fas fa-save" style="margin-left:5px;"></i> حفظ الصرفية
+                <!-- خيار خصم من الراتب -->
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label style="color:#475569; font-weight:700; font-size:0.95rem; margin-bottom:8px; display:block;">
+                        <i class="fas fa-user-tag" style="margin-left:5px; color:#f59e0b;"></i> سلفة / خصم من موظف
+                        (اختياري)
+                    </label>
+                    <select id="exp-employee"
+                        style="width:100%; padding: 12px 15px; border-radius: 12px; border: 2px solid #e2e8f0; font-size:1rem; outline:none; transition: border-color 0.2s; background:#f8fafc; color:#0f172a; cursor:pointer;">
+                        <option value="">-- بدون موظف (مباشر من الصندوق) --</option>
+                    </select>
+                </div>
+
+                <button onclick="window.saveExpense()" class="btn"
+                    style="width:100%; padding:14px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color:white; font-size:1.1rem; font-weight:bold; border:none; border-radius:12px; box-shadow:0 4px 15px rgba(239, 68, 68, 0.3); transition: transform 0.2s, box-shadow 0.2s;">
+                    <i class="fas fa-check-circle" style="margin-left:8px;"></i> حفظ وإتمام الصرفية
                 </button>
             </div>
         </div>
@@ -897,24 +916,26 @@
 
         window.saveExpense = async function () {
             const d = document.getElementById('exp-desc').value.trim();
-            const a = document.getElementById('exp-amount').value;
-            const isSalary = document.getElementById('exp-is-salary').checked;
+            const aRaw = document.getElementById('exp-amount').value;
+            const a = parseInt(aRaw.replace(/,/g, ''));
+            const empId = document.getElementById('exp-employee').value;
 
             if (!d) return DataManager.showToast('⚠️ أدخل وصف الصرفية', 'error');
-            if (!a || parseInt(a) <= 0) return DataManager.showToast('⚠️ أدخل مبلغ صحيح', 'error');
+            if (isNaN(a) || a <= 0) return DataManager.showToast('⚠️ أدخل مبلغ صحيح', 'error');
 
             try {
-                // إذا كان موظفاً واختار سلفة
-                if (isSalary && AuthSystem.currentUser && AuthSystem.currentUser.type === 'employee') {
-                    await DataManager.addAdvance(AuthSystem.currentUser.id, parseInt(a), d);
+                // إذا تم تحديد موظف
+                if (empId) {
+                    await DataManager.addAdvance(empId, a, d);
                 } else {
-                    await DataManager.addExpense(parseInt(a), d);
+                    await DataManager.addExpense(a, d);
                 }
 
                 window.closeExpenseModal();
                 document.getElementById('exp-desc').value = '';
                 document.getElementById('exp-amount').value = '';
-                document.getElementById('exp-is-salary').checked = false;
+                document.getElementById('exp-employee').value = '';
+                window.renderDashboard();
             } catch (e) {
                 DataManager.showToast('❌ ' + e.message, 'error');
             }
@@ -979,13 +1000,34 @@
         window.closeActivateModal = () => document.getElementById('activateModal').classList.remove('active');
 
         window.openExpenseModal = () => {
-            document.getElementById('expenseModal').classList.add('active');
-            // إظهار خيار الراتب فقط للموظفين
-            if (AuthSystem.currentUser && AuthSystem.currentUser.type === 'employee') {
-                document.getElementById('salary-deduct-option').style.display = 'block';
-            } else {
-                document.getElementById('salary-deduct-option').style.display = 'none';
+            const empSelect = document.getElementById('exp-employee');
+            empSelect.innerHTML = '<option value="">-- بدون موظف (مباشر من الصندوق) --</option>';
+
+            const employees = DataManager.getEmployees();
+
+            // إذا كان شخصاً عادياً أو مدير، نعرض كل الموظفين
+            if (!AuthSystem.currentUser || AuthSystem.currentUser.type === 'admin') {
+                employees.forEach(emp => {
+                    empSelect.innerHTML += `<option value="${emp.id}">${emp.name}</option>`;
+                });
+            } else if (AuthSystem.currentUser.type === 'employee') {
+                // الموظف لا يرى سوى نفسه ليأخذ سلفة
+                empSelect.innerHTML += `<option value="${AuthSystem.currentUser.id}">خصم من راتبي (سلفة)</option>`;
+
+                // إضافة الموظفين الآخرين إذا كان الموظف يملك صلاحية admin_only، أو فقط يعرض نفسه
             }
+
+            // إضافة CSS لتجميل التركيز والحقول داخل المودال
+            const style = document.createElement('style');
+            style.innerHTML = `
+                #expenseModal input:focus, #expenseModal select:focus {
+                    border-color: #ef4444 !important;
+                    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+                }
+            `;
+            document.head.appendChild(style);
+
+            document.getElementById('expenseModal').classList.add('active');
         };
         window.closeExpenseModal = () => document.getElementById('expenseModal').classList.remove('active');
 
