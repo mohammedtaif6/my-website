@@ -749,22 +749,7 @@
             document.getElementById('new-name').value = '';
             document.getElementById('new-phone').value = '';
         };
-        const settings = AuthSystem.applyUIConfigs();
-        let n = document.getElementById('new-name').value;
-        let p = document.getElementById('new-phone').value;
-        let pr = document.getElementById('new-price').value;
-        if (!n) return;
-        await DataManager.addSubscriber({
-            name: n,
-            phone: p,
-            initialPrice: parseInt(pr),
-            status: 'نشط',
-            paymentType: parseInt(pr) > 0 ? 'أجل' : 'نقد',
-            expiryDate: '',
-            subDuration: settings.subDuration || 30 // حفظ المدة أيضاً
-        });
-        closeAddModal();
-        };
+
 
         // منع تحديث التلقائي للقيم أثناء كتابة المستخدم
         document.querySelectorAll('input').forEach(input => {
