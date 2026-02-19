@@ -56,7 +56,7 @@ export const DataManager = {
         console.log("🚀 SAS System Initializing...");
         this.sync('subscribers');
         this.sync('transactions');
-        this.sync('archived_transactions');
+        // this.sync('archived_transactions'); // Disabled for performance - load only in reports if needed
         this.sync('employees');
         this.sync('settings');
         this.sync('accounts');
@@ -119,7 +119,8 @@ export const DataManager = {
         const defaults = [
             { id: 'pkg_norm', name: 'نورمال (Normal)', costPrice: 22000, salePrice: 35000 },
             { id: 'pkg_super', name: 'سوبر (Super)', costPrice: 24000, salePrice: 40000 },
-            { id: 'pkg_gold', name: 'جولد (Gold)', costPrice: 28000, salePrice: 50000 }
+            { id: 'pkg_gold', name: 'جولد (Gold)', costPrice: 28000, salePrice: 50000 },
+            { id: 'pkg_private', name: 'خاصة (Private)', costPrice: 2000, salePrice: 0 }
         ];
         try {
             await setDoc(doc(db, "settings", "global"), { packages: defaults }, { merge: true });
@@ -141,6 +142,10 @@ export const DataManager = {
         if (data.packageId) {
             const pkg = (this.getSystemSettings().packages || []).find(p => p.id === data.packageId);
             if (pkg) {
+                if (this.getSystemBalance() < pkg.costPrice) {
+                    showToast(`❌ رصيد التفعيلات غير كافي! (${this.getSystemBalance().toLocaleString()})`, 'error');
+                    throw new Error("Insufficient Balance");
+                }
                 subData.packageId = data.packageId;
                 subData.packageName = pkg.name;
                 await this.deductFromVirtualBalance(pkg.costPrice, `تفعيل باقة ${pkg.name} للمشترك ${data.name}`);
@@ -174,6 +179,10 @@ export const DataManager = {
         if (renewalData.packageId) {
             const pkg = (this.getSystemSettings().packages || []).find(p => p.id === renewalData.packageId);
             if (pkg) {
+                if (this.getSystemBalance() < pkg.costPrice) {
+                    showToast(`❌ رصيد التفعيلات غير كافي! (${this.getSystemBalance().toLocaleString()})`, 'error');
+                    throw new Error("Insufficient Balance");
+                }
                 updateObj.packageId = renewalData.packageId;
                 updateObj.packageName = pkg.name;
                 await this.deductFromVirtualBalance(pkg.costPrice, `تجديد باقة ${pkg.name} للمشترك ${sub.name}`);
@@ -233,9 +242,26 @@ export const DataManager = {
     },
 
     async deleteTransaction(id) {
-        if (!confirm("حذف؟")) return;
+        if (!confirm("حذف السجل؟ إذا كان تعبئة تفعيل سيتم خصمه من الرصيد.")) return;
         const t = localData.transactions.find(tx => tx.id == id);
-        if (t) await deleteDoc(doc(db, "transactions", t.firebaseId));
+        if (t) {
+            // Check if this is a top-up transaction to reverse it
+            if (t.type === 'system_topup_expense') {
+                const currentBal = this.getSystemBalance();
+                // The amount was negative in the transaction (expense), but here we want the absolute value added to the system balance
+                // Wait, topUpVirtualBalance adds to system balance AND adds a negative expense to drawer.
+                // If we delete the expense (negative from drawer), we are essentially putting money back in the drawer (undoing the expense).
+                // But the user ALSO wants the money removed from the system balance (undoing the top-up).
+
+                // logic: User deletes the log "Top Up 100k".
+                // Action: Remove 100k from system balance.
+                const storedAmount = Math.abs(t.amount);
+                const newBal = Math.max(0, currentBal - storedAmount);
+                await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString() }, { merge: true });
+                showToast(`تم استرجاع مبلغ التعبئة (${storedAmount}) من رصيد النظام`);
+            }
+            await deleteDoc(doc(db, "transactions", t.firebaseId));
+        }
     },
 
     async deleteSubscriber(id) {
@@ -262,7 +288,10 @@ export const DataManager = {
     },
 
     async topUpVirtualBalance(amount) {
-        await this.addExpense(amount, "تعبئة رصيد النظام");
+        // We use a special type 'system_topup_expense' to identify this specific kind of expense
+        await this.logTransaction({ subscriberId: null, amount: -Math.abs(amount), type: 'system_topup_expense', description: "تعبئة رصيد النظام" });
+        telegramBot.notifyExpense("تعبئة رصيد النظام", Math.abs(amount));
+
         const currentBal = this.getSystemBalance();
         const newBal = currentBal + amount;
         await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString(), type: 'system_funds' }, { merge: true });

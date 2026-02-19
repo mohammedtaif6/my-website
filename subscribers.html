@@ -340,18 +340,32 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label>الاسم الكامل</label>
-                    <input type="text" id="new-name" placeholder="محمد علي...">
+                    <input type="text" id="new-name" placeholder="اسم المشترك">
                 </div>
                 <div class="form-group">
                     <label>رقم الهاتف</label>
-                    <input type="tel" id="new-phone" placeholder="07XXXXXXXXX">
+                    <input type="tel" id="new-phone" placeholder="07...">
                 </div>
                 <div class="form-group">
-                    <label>دين سابق عى المشترك</label>
+                    <label>الباقة (اختياري)</label>
+                    <select id="new-package" onchange="window.onNewSubPackageChange(this.value)">
+                        <option value="">-- بدون تفعيل --</option>
+                    </select>
+                </div>
+                <!-- Dynamic Price Field -->
+                <div class="form-group">
+                    <label id="new-price-label">المبلغ واصل / دين</label>
                     <input type="number" id="new-price" value="0">
                 </div>
+                <div class="form-group">
+                    <label>نوع الدفع</label>
+                    <select id="new-payment-type">
+                        <option value="نقد">نقد (واصل)</option>
+                        <option value="أجل">أجل (دين)</option>
+                    </select>
+                </div>
                 <button onclick="saveNewSubscriber()" class="btn btn-primary btn-full" id="saveSubBtn">حفظ
-                    البيانات</button>
+                    وتفعيل</button>
             </div>
         </div>
     </div>
@@ -607,16 +621,21 @@
             if (packageId) {
                 updateData.packageId = packageId;
                 const pkg = (DataManager.getSystemSettings().packages || []).find(p => p.id === packageId);
-                if (pkg) updateData.packageName = pkg.name;
+                updateData.packageName = pkg ? pkg.name : 'Unknown';
             } else {
-                updateData.packageId = "";
-                updateData.packageName = 'تفعيل يدوي';
+                updateData.packageId = null;
+                updateData.packageName = 'بدون باقة';
             }
-
+            // If phone/name changed, force update
             await DataManager.updateSubscriber(selectedSubscriber.id, updateData);
             closeEditModal();
         };
-        window.actionActivate = () => { closeActionModal(); window.openRenew(selectedSubscriber.firebaseId, selectedSubscriber.id); };
+
+        window.actionActivate = () => {
+            closeActionModal();
+            if (selectedSubscriber) window.openRenew(selectedSubscriber.firebaseId, selectedSubscriber.id);
+        };
+
 
         window.openRenew = (fid, id) => {
             const settings = AuthSystem.applyUIConfigs();
@@ -675,24 +694,76 @@
             closeQuickActivate();
         };
 
-        window.openAddModal = () => document.getElementById('addSubscriberModal').classList.add('active');
+        window.openAddModal = () => {
+            document.getElementById('addSubscriberModal').classList.add('active');
+            // Populate Packages
+            const pkgSelect = document.getElementById('new-package');
+            const packages = DataManager.getSystemSettings().packages || [];
+            pkgSelect.innerHTML = '<option value="">-- بدون تفعيل --</option>' +
+                packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString()})</option>`).join('');
+            document.getElementById('new-price').value = 0;
+        };
+
+        window.onNewSubPackageChange = (pkgId) => {
+            const pkgs = DataManager.getSystemSettings().packages || [];
+            const selected = pkgs.find(p => p.id === pkgId);
+            if (selected) {
+                // If salePrice is 0 (like Private pkg), let user type. Otherwise fill it.
+                if (selected.salePrice > 0) document.getElementById('new-price').value = selected.salePrice;
+                else document.getElementById('new-price').value = 0;
+            } else {
+                document.getElementById('new-price').value = 0;
+            }
+        };
+
         window.closeAddModal = () => document.getElementById('addSubscriberModal').classList.remove('active');
         window.saveNewSubscriber = async () => {
-            const settings = AuthSystem.applyUIConfigs();
-            let n = document.getElementById('new-name').value;
-            let p = document.getElementById('new-phone').value;
-            let pr = document.getElementById('new-price').value;
-            if (!n) return;
-            await DataManager.addSubscriber({
-                name: n,
-                phone: p,
-                initialPrice: parseInt(pr),
-                status: 'نشط',
-                paymentType: parseInt(pr) > 0 ? 'أجل' : 'نقد',
-                expiryDate: '',
-                subDuration: settings.subDuration || 30 // حفظ المدة أيضاً
-            });
+            const name = document.getElementById('new-name').value;
+            const phone = document.getElementById('new-phone').value;
+            const packageId = document.getElementById('new-package').value;
+            const price = parseInt(document.getElementById('new-price').value) || 0;
+            const paymentType = document.getElementById('new-payment-type').value;
+
+            if (!name) return alert('الاسم مطلوب');
+
+            // Prepare Data
+            const subData = {
+                name,
+                phone,
+                initialPrice: price,
+                paymentType
+            };
+
+            if (packageId) {
+                subData.packageId = packageId;
+                // Set expiry if package selected
+                const settings = AuthSystem.applyUIConfigs();
+                const duration = parseInt(settings.subDuration || 30);
+                const d = new Date(); d.setDate(d.getDate() + duration);
+                subData.expiryDate = d.toISOString().split('T')[0];
+            }
+
+            await DataManager.addSubscriber(subData);
             closeAddModal();
+            // Reset form
+            document.getElementById('new-name').value = '';
+            document.getElementById('new-phone').value = '';
+        };
+        const settings = AuthSystem.applyUIConfigs();
+        let n = document.getElementById('new-name').value;
+        let p = document.getElementById('new-phone').value;
+        let pr = document.getElementById('new-price').value;
+        if (!n) return;
+        await DataManager.addSubscriber({
+            name: n,
+            phone: p,
+            initialPrice: parseInt(pr),
+            status: 'نشط',
+            paymentType: parseInt(pr) > 0 ? 'أجل' : 'نقد',
+            expiryDate: '',
+            subDuration: settings.subDuration || 30 // حفظ المدة أيضاً
+        });
+        closeAddModal();
         };
 
         // منع تحديث التلقائي للقيم أثناء كتابة المستخدم
