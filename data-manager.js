@@ -389,16 +389,13 @@ export const DataManager = {
         // Confirmation is handled by UI now
         const t = localData.transactions.find(tx => tx.id == id);
         if (t) {
-            // Check if this is a top-up transaction to reverse it
-            if (t.type === 'system_topup_expense') {
-                const currentBal = this.getSystemBalance();
-                // The amount was negative in the transaction (expense), but here we want the absolute value added to the system balance
-                // Wait, topUpVirtualBalance adds to system balance AND adds a negative expense to drawer.
-                // If we delete the expense (negative from drawer), we are essentially putting money back in the drawer (undoing the expense).
-                // But the user ALSO wants the money removed from the system balance (undoing the top-up).
+            // Check if this is a finished top-up transaction or request to reverse it
+            const isApprovedTopUp = t.type === 'system_topup_expense' || (t.type === 'topup_request' && t.status === 'approved' && t.processedBySystem);
 
-                // logic: User deletes the log "Top Up 100k".
-                // Action: Remove 100k from system balance.
+            if (isApprovedTopUp) {
+                const currentBal = this.getSystemBalance();
+                // Logic: User deletes the log "Top Up 100k".
+                // Action: Remove 100k from system balance to undo.
                 const storedAmount = Math.abs(t.amount);
                 const newBal = Math.max(0, currentBal - storedAmount);
                 await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString() }, { merge: true });
@@ -427,7 +424,19 @@ export const DataManager = {
     getArchivedTransactions() { return localData.archived_transactions || []; },
 
     getDailyBalance() {
-        return localData.transactions.filter(t => !t.isArchived && t.type !== 'subscription_debt').reduce((a, b) => a + b.amount, 0);
+        return (localData.transactions || [])
+            .filter(t => {
+                if (t.isArchived) return false;
+                if (t.type === 'subscription_debt') return false;
+
+                // قوانين طلبات التعبئة:
+                // لا تحسب ضمن رصيد الصندوق إلا إذا كانت "مقبولة" (Approved)
+                // هذا يمنع الطلبات "المعلقة" أو "المرفوضة" من التأثير على الصندوق
+                if (t.type && t.type.includes('topup_request') && t.status !== 'approved') return false;
+
+                return true;
+            })
+            .reduce((a, b) => a + (b.amount || 0), 0);
     },
 
     getSystemBalance() {

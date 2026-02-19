@@ -472,9 +472,10 @@
                 }
             }
 
-            // حساب المجاميع بناءً على الفلتر المختار
-            const income = filteredTxs.filter(t => t.amount > 0).reduce((a, b) => a + b.amount, 0);
-            const expense = filteredTxs.filter(t => t.amount < 0).reduce((a, b) => a + Math.abs(b.amount), 0);
+            // حساب المجاميع بناءً على الفلتر المختار (استبعاد الطلبات المعلقة/المرفوضة)
+            const statsTxs = filteredTxs.filter(t => !(t.type && t.type.includes('topup_request')) || t.status === 'approved');
+            const income = statsTxs.filter(t => t.amount > 0).reduce((a, b) => a + (b.amount || 0), 0);
+            const expense = statsTxs.filter(t => t.amount < 0).reduce((a, b) => a + Math.abs(b.amount || 0), 0);
             const net = income - expense;
 
             // Update Header Stats
@@ -503,17 +504,35 @@
                     // Escape JSON for onclick
                     const tJson = JSON.stringify(t).replace(/'/g, "&#39;");
 
+                    let statusBadge = '';
+                    let opacity = 1;
+                    let amountColorClass = isExp ? 'exp' : 'inc';
+
+                    if (t.type && t.type.includes('topup_request')) {
+                        if (t.status === 'pending') {
+                            statusBadge = '<span style="background:#fef3c7; color:#92400e; padding:2px 6px; border-radius:6px; font-size:0.6rem; margin-right:5px;">بانتظار الموافقة</span>';
+                            opacity = 0.7;
+                            amountColorClass = ''; // Neutral color
+                        } else if (t.status === 'rejected' || t.type.includes('rejected')) {
+                            statusBadge = '<span style="background:#fee2e2; color:#b91c1c; padding:2px 6px; border-radius:6px; font-size:0.6rem; margin-right:5px;">مرفوض</span>';
+                            opacity = 0.5;
+                            amountColorClass = '';
+                        } else if (t.status === 'approved') {
+                            statusBadge = '<span style="background:#d1fae5; color:#065f46; padding:2px 6px; border-radius:6px; font-size:0.6rem; margin-right:5px;">تمت التعبئة</span>';
+                        }
+                    }
+
                     container.innerHTML += `
-                        <div class="tx-card" style="border-right: 4px solid ${isExp ? '#ff3d00' : '#00c853'}">
+                        <div class="tx-card" style="border-right: 4px solid ${isExp ? '#ff3d00' : '#00c853'}; opacity: ${opacity}">
                             <div style="flex: 1;">
-                                <div class="tx-desc">${desc}</div>
+                                <div class="tx-desc">${statusBadge}${desc}</div>
                                 <div class="tx-meta">
                                     <i class="far fa-calendar"></i> ${date} - <i class="far fa-clock"></i> ${time} 
                                     ${t.type === 'subscription_payment' ? '<span class="badge badge-success">اشتراك</span>' : ''}
                                 </div>
                             </div>
                             <div style="text-align: left; margin-left: 10px;">
-                                <div class="tx-amount ${isExp ? 'exp' : 'inc'}">
+                                <div class="tx-amount ${amountColorClass}">
                                     ${isExp ? '-' : '+'} ${amount.toLocaleString()}
                                 </div>
                             </div>
@@ -521,7 +540,7 @@
                                 <button onclick='openEditTxModal(${tJson})' class="btn-icon" style="color:#2196f3;">
                                     <i class="fas fa-pen"></i>
                                 </button>
-                                <button onclick="window.confirmDeleteTransaction('${t.id}', '${t.type}')" class="btn-icon" style="color:#f44336;">
+                                <button onclick="window.confirmDeleteTransaction('${t.fbId || t.firebaseId || t.id}', '${t.type}')" class="btn-icon" style="color:#f44336;">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -585,14 +604,19 @@
         };
 
         window.confirmDeleteTransaction = async function (id, type) {
-            // Determine message based on type if needed, or generic
-            const msg = (type === 'system_topup_expense')
-                ? "هل أنت متأكد من حذف تعبئة الرصيد هذه؟ سيتم خصم المبلغ من رصيد النظام."
-                : "هل أنت متأكد من حذف هذا السجل بشكل نهائي؟";
+            // Determine message based on type
+            const t = DataManager.getAllTransactions().find(tx => (tx.firebaseId === id || tx.id == id));
+
+            let msg = "هل أنت متأكد من حذف هذا السجل بشكل نهائي؟";
+
+            if (type === 'system_topup_expense' || (type === 'topup_request' && t && t.status === 'approved')) {
+                msg = "هل أنت متأكد من حذف تعبئة الرصيد هذه؟ سيتم استرجاع المبلغ وخصمه من رصيد النظام.";
+            }
 
             const confirmed = await DataManager.showConfirmModal("تأكيد الحذف", msg);
             if (confirmed) {
                 await DataManager.deleteTransaction(id);
+                window.renderPage();
             }
         };
 
