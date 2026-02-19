@@ -151,7 +151,9 @@ export const DataManager = {
         signInAnonymously(auth).catch(err => console.warn('Auth Error:', err));
 
         if (typeof telegramBot !== 'undefined' && telegramBot) {
-            telegramBot.initFirebase(db).catch(err => console.warn('Telegram init failed:', err));
+            telegramBot.initFirebase(db).then(() => {
+                telegramBot.startBackgroundPolling();
+            }).catch(err => console.warn('Telegram init failed:', err));
         }
     },
 
@@ -198,7 +200,16 @@ export const DataManager = {
                     if (window.updatePageData) window.updatePageData();
                 }
                 if (colName === 'employees' && window.renderEmployees) window.renderEmployees();
-                if (colName === 'transactions' && window.generateReport) window.generateReport();
+                if (colName === 'transactions') {
+                    if (window.generateReport) window.generateReport();
+
+                    // Smart Processor for Background Top-ups
+                    data.forEach(tx => {
+                        if (tx.type === 'topup_request' && tx.status === 'approved' && !tx.processedBySystem) {
+                            this.finalizeApprovedTopUp(tx);
+                        }
+                    });
+                }
             }
         }, (error) => {
             console.error(`❌ Sync [${colName}] error:`, error);
@@ -329,6 +340,10 @@ export const DataManager = {
             description: `خدمة دايني: ${sub.name} (يومين هدية)`
         });
 
+        if (telegramBot && telegramBot.notifyDayniUsed) {
+            telegramBot.notifyDayniUsed(sub.name);
+        }
+
         showToast(`تم تفعيل خدمة دايني للمشترك ${sub.name} بنجاح`);
     },
 
@@ -444,22 +459,28 @@ export const DataManager = {
             await telegramBot.notifyTopUpRequest(Math.abs(amount), docRef.id);
         }
 
-        // Wait for decision (Blocking)
-        if (telegramBot && telegramBot.waitForDecision) {
-            const decision = await telegramBot.waitForDecision(docRef.id);
 
-            if (decision === 'approve') {
-                await this.approveTopUp(docRef.id);
-                return 'approved';
-            } else if (decision === 'reject') {
-                await this.rejectTopUp(docRef.id);
-                throw new Error("Request Rejected");
-            } else {
-                // Timeout
-                showToast("انتهت مهلة انتظار الموافقة", "error");
-                throw new Error("Request Timed Out");
-            }
-        }
+        // Wait for decision (Blocking via Local Data Sync)
+        return new Promise((resolve, reject) => {
+            const startTime = Date.now();
+            const interval = setInterval(() => {
+                const updatedTx = localData.transactions.find(tx => tx.firebaseId === docRef.id);
+                if (updatedTx) {
+                    if (updatedTx.status === 'approved' || updatedTx.processedBySystem) {
+                        clearInterval(interval);
+                        resolve('approved');
+                    } else if (updatedTx.status === 'rejected') {
+                        clearInterval(interval);
+                        reject(new Error("Request Rejected"));
+                    }
+                }
+
+                if (Date.now() - startTime > 120000) { // 2 mins timeout
+                    clearInterval(interval);
+                    reject(new Error("Request Timed Out"));
+                }
+            }, 2000);
+        });
     },
 
     async approveTopUp(docId) {
@@ -492,6 +513,30 @@ export const DataManager = {
             console.error("Approval Error:", e);
             showToast("فشلت عملية الموافقة", 'error');
             return false;
+        }
+    },
+
+    async finalizeApprovedTopUp(tx) {
+        // Double check flag to avoid race conditions
+        if (tx.processedBySystem) return;
+
+        try {
+            const amount = Math.abs(tx.amount);
+
+            // 1. Mark as processed in DB immediately to prevent double-spend
+            await updateDoc(doc(db, "transactions", tx.firebaseId), {
+                processedBySystem: true,
+                finalizedAt: new Date().toISOString()
+            });
+
+            // 2. Add to System Balance
+            const currentBal = this.getSystemBalance();
+            const newBal = currentBal + amount;
+            await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString() }, { merge: true });
+
+            console.log(`✅ Smart System finalized top-up: ${amount}`);
+        } catch (e) {
+            console.error("Finalization Error:", e);
         }
     },
 

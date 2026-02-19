@@ -302,52 +302,75 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
         return await this.sendMessage(message, options);
     }
 
-    async waitForDecision(topUpId) {
-        if (!this.config || !this.config.botToken) return null;
-        let lastUpdateId = 0;
-        const startTime = Date.now();
+    async startBackgroundPolling() {
+        if (this.isPolling) return;
+        if (!this.config || !this.config.botToken) return;
+        this.isPolling = true;
 
-        // Poll for 60 seconds max
-        while (Date.now() - startTime < 60000) {
+        let lastUpdateId = 0;
+        console.log("📡 Telegram Background Polling Started...");
+
+        while (this.isPolling) {
             try {
-                const url = `https://api.telegram.org/bot${this.config.botToken}/getUpdates?offset=${lastUpdateId + 1}&timeout=5`;
+                const url = `https://api.telegram.org/bot${this.config.botToken}/getUpdates?offset=${lastUpdateId + 1}&timeout=30`;
                 const response = await fetch(url);
                 const data = await response.json();
 
                 if (data.ok && data.result.length > 0) {
+                    const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+
                     for (const update of data.result) {
                         lastUpdateId = update.update_id;
 
                         if (update.callback_query) {
                             const cb = update.callback_query;
-                            const action = cb.data; // approve_12345
+                            const [action, txId] = cb.data.split('_');
 
-                            if (action === `approve_${topUpId}` || action === `reject_${topUpId}`) {
-                                // Answer callback to stop loading animation on button
-                                await this.answerCallback(cb.id, action.includes('approve') ? "تمت الموافقة" : "تم الرفض");
+                            if (action === 'approve' || action === 'reject') {
+                                // 1. Answer Telegram
+                                await this.answerCallback(cb.id, action === 'approve' ? "تمت الموافقة" : "تم الرفض");
 
-                                // Update message text
-                                const newText = action.includes('approve')
+                                // 2. Update Telegram Message
+                                const newText = action === 'approve'
                                     ? `✅ <b>تمت العملية</b>\n تمت الموافقة على طلب التعبئة.`
                                     : `❌ <b>تمت العملية</b>\n تم رفض طلب التعبئة.`;
-
                                 await this.editMessage(cb.message.chat.id, cb.message.message_id, newText);
 
-                                return action.split('_')[0]; // 'approve' or 'reject'
+                                // 3. IMPORTANT: Update Firestore to trigger DataManager logic
+                                try {
+                                    await updateDoc(doc(this.db, "transactions", txId), {
+                                        status: action === 'approve' ? 'approved' : 'rejected',
+                                        decidedAt: new Date().toISOString()
+                                    });
+                                } catch (dbErr) {
+                                    console.error("DB Update Error from Telegram Poll:", dbErr);
+                                }
                             }
                         }
                     }
                 }
-                // Small delay to prevent hammering if response is fast
-                await new Promise(r => setTimeout(r, 1000));
-
             } catch (e) {
-                console.error("Polling Error:", e);
-                await new Promise(r => setTimeout(r, 2000));
+                console.error("BG Polling Error:", e);
+                await new Promise(r => setTimeout(r, 10000)); // wait 10s on error
             }
+            await new Promise(r => setTimeout(r, 1000));
         }
-        return 'timeout';
-    }
+    },
+
+    // إشعار استخدام خدمة دايني
+    async notifyDayniUsed(subscriberName) {
+        const message = `
+🎁 <b>استخدام خدمة دايني</b>
+
+👤 المشترك: <b>${subscriberName}</b>
+🎁 الهدية: <b>تمديد يومين (48 ساعة)</b>
+📅 التاريخ: ${new Date().toLocaleString('ar-IQ')}
+
+⏰ ${new Date().toLocaleString('ar-IQ')}
+        `.trim();
+
+        return await this.sendMessage(message);
+    },
 
     async answerCallback(callbackId, text) {
         const url = `https://api.telegram.org/bot${this.config.botToken}/answerCallbackQuery`;
