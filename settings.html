@@ -29,29 +29,31 @@
 
     <style>
         .settings-header {
-            background: linear-gradient(135deg, #475569 0%, #1e293b 100%);
-            padding: 30px 20px;
-            border-radius: 0 0 30px 30px;
-            color: white;
+            background: white;
+            padding: 40px 20px 30px;
+            border-radius: 20px;
+            color: #0f172a;
             text-align: center;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(30, 41, 59, 0.3);
+            margin: 15px 15px 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            border: 1px solid #f1f5f9;
         }
 
         .settings-header h1 {
             font-size: 1.8rem;
             font-weight: 800;
-            margin: 0 0 5px;
+            margin: 0 0 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
+            color: #1e293b;
         }
 
         .settings-header p {
-            opacity: 0.7;
+            color: #64748b;
             margin: 0;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
         .settings-section {
@@ -111,39 +113,48 @@
         }
 
         .setting-label .icon-blue {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            background: #eff6ff;
+            color: #3b82f6;
         }
 
         .setting-label .icon-teal {
-            background: linear-gradient(135deg, #14b8a6, #0d9488);
+            background: #f0fdfa;
+            color: #0d9488;
         }
 
         .setting-label .icon-red {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
+            background: #fef2f2;
+            color: #ef4444;
         }
 
         .setting-label .icon-purple {
-            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            background: #f5f3ff;
+            color: #8b5cf6;
         }
 
         .setting-label .icon-indigo {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: #eef2ff;
+            color: #6366f1;
         }
 
         .setting-label .icon-orange {
-            background: linear-gradient(135deg, #f97316, #ea580c);
+            background: #fff7ed;
+            color: #f97316;
         }
 
         .setting-label .icon-gray {
-            background: linear-gradient(135deg, #64748b, #475569);
+            background: #f1f5f9;
+            color: #64748b;
         }
 
         .setting-label .icon-dark {
-            background: linear-gradient(135deg, #334155, #1e293b);
+            background: #f8fafc;
+            color: #334155;
         }
 
         .setting-label .icon-green {
-            background: linear-gradient(135deg, #22c55e, #16a34a);
+            background: #f0fdf4;
+            color: #22c55e;
         }
 
         /* Toggle Switch */
@@ -468,15 +479,25 @@
             const localSettings = JSON.parse(localStorage.getItem('sas_settings') || '{}');
             const settings = Object.keys(cloudSettings).length > 0 ? cloudSettings : localSettings;
 
-            if (settings && settings.pinCode) {
+            if (settings && settings.pinCode !== undefined) {
                 storedPin = settings.pinCode;
+            } else if (settings && settings.pinCode === "") {
+                storedPin = "";
             }
 
-            if (enteredPin === storedPin) {
+            if (enteredPin === storedPin || storedPin === "") {
                 sessionStorage.setItem('settings_unlocked', 'true');
                 document.getElementById('pin-lock-overlay').style.opacity = '0';
                 setTimeout(() => {
                     document.getElementById('pin-lock-overlay').style.display = 'none';
+                    // Trigger UI render setup once pin succeeds to be safe
+                    setInterval(() => {
+                        if (typeof DataManager !== 'undefined' && DataManager.getSystemBalance) {
+                            const balance = DataManager.getSystemBalance() || 0;
+                            const balEl = document.getElementById('display-system-balance');
+                            if (balEl) balEl.innerText = balance.toLocaleString('en-US') + ' IQD';
+                        }
+                    }, 1000);
                 }, 300);
             } else {
                 error.innerText = 'رمز الدخول غير صحيح!';
@@ -525,11 +546,11 @@
     </nav>
 
     <div class="settings-header">
-        <h1><i class="fas fa-cog"></i> الإعدادات</h1>
-        <p>التحكم في إعدادات النظام والعرض</p>
+        <h1><i class="fas fa-cog" style="color:#6366f1;"></i> الإعدادات والتخصيص</h1>
+        <p>تحكم بإعدادات النظام ومظهر الواجهة بسهولة تامة</p>
         <button onclick="forceUpdateSystem()"
-            style="margin-top: 15px; background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);">
-            <i class="fas fa-sync-alt"></i> تحديث قسري للموقع
+            style="margin-top: 20px; background: white; color: #ef4444; border: 1px solid #ef4444; padding: 10px 20px; border-radius: 12px; font-size: 0.9rem; cursor: pointer; font-weight: bold; transition: 0.2s;">
+            <i class="fas fa-sync-alt"></i> مسح الكاش وتحديث الموقع
         </button>
     </div>
 
@@ -563,40 +584,34 @@
         <div class="section-content" onclick="event.stopPropagation()">
             <div style="padding: 25px;">
                 <div
-                    style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; padding: 30px 20px; border-radius: 24px; text-align: center; margin-bottom: 25px; box-shadow: 0 15px 35px rgba(15, 23, 42, 0.2); position:relative; overflow:hidden;">
-                    <!-- Decorations -->
-                    <div
-                        style="position:absolute; top:-30%; right:-10%; width:150px; height:150px; background:radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 70%); border-radius:50%;">
-                    </div>
-                    <div
-                        style="position:absolute; bottom:-30%; left:-10%; width:150px; height:150px; background:radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%); border-radius:50%;">
-                    </div>
+                    style="background: white; border: 2px solid #f1f5f9; padding: 30px 20px; border-radius: 24px; text-align: center; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.02); position:relative; overflow:hidden;">
 
                     <div
-                        style="font-size: 0.9rem; color: #94a3b8; font-weight:600; margin-bottom: 5px; position:relative; z-index:2;">
-                        <i class="fas fa-coins" style="color:#10b981;"></i> الرصيد المتوفر للبيع والإدارة</div>
+                        style="font-size: 0.95rem; color: #64748b; font-weight:700; margin-bottom: 8px; position:relative; z-index:2;">
+                        <i class="fas fa-coins" style="color:#10b981;"></i> الرصيد المتوفر للبيع والإدارة
+                    </div>
                     <div id="display-system-balance"
-                        style="font-size: 2.8rem; font-weight: 800; font-family:'Outfit', sans-serif; letter-spacing:1px; color:#10b981; position:relative; z-index:2; text-shadow:0 4px 10px rgba(16,185,129,0.3);">
+                        style="font-size: 3rem; font-weight: 800; font-family:'Outfit', sans-serif; letter-spacing:1px; color:#0f172a; position:relative; z-index:2;">
                         0 IQD</div>
                 </div>
 
                 <!-- أدوات التعديل السريع -->
                 <div style="margin-bottom:20px; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                     <button onclick="adjustSystemBalance(22000)"
-                        style="background: rgba(16,185,129,0.1); border: 1.5px solid #10b981; color: #10b981; font-weight: bold; border-radius: 14px; padding: 12px; cursor: pointer; transition: 0.2s; font-size:1rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;">
-                        <i class="fas fa-plus-circle"></i> إضافة نورمال (22k)
+                        style="background: #f0fdf4; border: 1.5px solid #bbf7d0; color: #16a34a; font-weight: bold; border-radius: 14px; padding: 12px; cursor: pointer; transition: 0.2s; font-size:0.95rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;">
+                        <i class="fas fa-plus-circle"></i> نورمال (+22k)
                     </button>
                     <button onclick="adjustSystemBalance(-22000)"
-                        style="background: rgba(239,68,68,0.1); border: 1.5px solid #ef4444; color: #ef4444; font-weight: bold; border-radius: 14px; padding: 12px; cursor: pointer; transition: 0.2s; font-size:1rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;">
-                        <i class="fas fa-minus-circle"></i> خصم نورمال (-22k)
+                        style="background: #fef2f2; border: 1.5px solid #fecaca; color: #ef4444; font-weight: bold; border-radius: 14px; padding: 12px; cursor: pointer; transition: 0.2s; font-size:0.95rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;">
+                        <i class="fas fa-minus-circle"></i> نورمال (-22k)
                     </button>
                     <button onclick="adjustSystemBalance(24000)"
-                        style="background: rgba(16,185,129,0.1); border: 1.5px solid #10b981; color: #10b981; font-weight: bold; border-radius: 14px; padding: 12px; cursor: pointer; transition: 0.2s; font-size:1rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;">
-                        <i class="fas fa-plus-circle"></i> إضافة سوبر (24k)
+                        style="background: #f0fdf4; border: 1.5px solid #bbf7d0; color: #16a34a; font-weight: bold; border-radius: 14px; padding: 12px; cursor: pointer; transition: 0.2s; font-size:0.95rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;">
+                        <i class="fas fa-plus-circle"></i> سوبر (+24k)
                     </button>
                     <button onclick="adjustSystemBalance(-24000)"
-                        style="background: rgba(239,68,68,0.1); border: 1.5px solid #ef4444; color: #ef4444; font-weight: bold; border-radius: 14px; padding: 12px; cursor: pointer; transition: 0.2s; font-size:1rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;">
-                        <i class="fas fa-minus-circle"></i> خصم سوبر (-24k)
+                        style="background: #fef2f2; border: 1.5px solid #fecaca; color: #ef4444; font-weight: bold; border-radius: 14px; padding: 12px; cursor: pointer; transition: 0.2s; font-size:0.95rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;">
+                        <i class="fas fa-minus-circle"></i> سوبر (-24k)
                     </button>
                 </div>
 
