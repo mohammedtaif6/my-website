@@ -422,6 +422,12 @@
             });
 
             document.getElementById('expired-count-badge').innerText = expired.length;
+
+            // ✅ بصمة البيانات - لمنع الوميض
+            const dataHash = expired.map(s => s.id + '|' + (s.expiryDate || '') + '|' + (s.price || 0)).join('||') + '||q:' + searchTerm;
+            if (window.lastExpiredHash === dataHash) return;
+            window.lastExpiredHash = dataHash;
+
             const grid = document.getElementById('expiredGrid');
 
             if (expired.length === 0) {
@@ -486,6 +492,8 @@
                 `;
             }).join('');
         };
+
+        window.lastExpiredHash = '';
 
         window.deleteSub = (id) => DataManager.deleteSubscriber(id);
 

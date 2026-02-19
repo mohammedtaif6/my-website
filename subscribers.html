@@ -498,6 +498,15 @@
             });
 
             document.getElementById('count-badge').innerText = filtered.length;
+
+            // ✅ بصمة البيانات - لمنع الوميض
+            // نستخدم معرفات، وتواريخ الانتهاء، والأسعار، وفلتر البحث الحالي لتوليد البصمة
+            const dataHash = filtered.map(s => s.id + '|' + (s.expiryDate || '') + '|' + (s.price || 0)).join('||') + '||q:' + q + '||f:' + currentFilter;
+
+            // إذا لم تتغير البيانات، لا تعيد بناء الشبكة
+            if (window.lastSubscribersHash === dataHash) return;
+            window.lastSubscribersHash = dataHash;
+
             const grid = document.getElementById('grid');
 
             if (filtered.length === 0) {
@@ -582,6 +591,9 @@
                 `;
             }).join('');
         };
+
+        // متغير لمتابعة آخر تحديث ومنع الوميض
+        window.lastSubscribersHash = '';
 
         window.activateDayni = async (fid, name) => {
             if (confirm(`تفعيل خدمة دايني (يومين هدية) للمشترك ${name}؟`)) {

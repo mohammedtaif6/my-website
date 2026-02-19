@@ -250,6 +250,12 @@
             activeSubs.sort((a, b) => (a.expiryDate || '').localeCompare(b.expiryDate || ''));
 
             document.getElementById('count-badge').innerText = activeSubs.length;
+
+            // ✅ بصمة البيانات - لمنع الوميض
+            const dataHash = activeSubs.map(s => s.id + '|' + (s.expiryDate || '') + '|' + (s.price || 0)).join('||') + '||q:' + q;
+            if (window.lastActiveHash === dataHash) return;
+            window.lastActiveHash = dataHash;
+
             const grid = document.getElementById('grid');
 
             if (activeSubs.length === 0) {
@@ -299,6 +305,8 @@
                 `;
             }).join('');
         };
+
+        window.lastActiveHash = '';
 
         window.toggleMenu = () => { document.getElementById('main-nav').classList.toggle('active'); };
         setInterval(() => { if (typeof DataManager !== 'undefined') renderPage(); }, 3000);
