@@ -620,12 +620,14 @@
 
         // ===== Sort Logic =====
         let currentSort = 'newest'; // 'newest' or 'highest'
+        let lastDataHash = ''; // لمنع الوميض
 
         window.toggleSort = function () {
             currentSort = currentSort === 'newest' ? 'highest' : 'newest';
             document.getElementById('sortLabel').textContent = currentSort === 'newest' ? 'الأحدث' : 'الأعلى';
             const btn = document.getElementById('sortToggle');
             btn.querySelector('i').className = currentSort === 'newest' ? 'fas fa-sort-amount-down' : 'fas fa-sort-numeric-down';
+            lastDataHash = ''; // فرض إعادة رسم
             renderDebts();
         };
 
@@ -660,7 +662,7 @@
                 list.sort((a, b) => parseInt(b.price) - parseInt(a.price));
             }
 
-            // حساب الإحصائيات
+            // حساب الإحصائيات (هذه تُحدّث دائماً - لا تسبب وميض)
             const total = list.reduce((sum, s) => sum + parseInt(s.price || 0), 0);
             const avg = list.length > 0 ? Math.round(total / list.length) : 0;
             const max = list.length > 0 ? Math.max(...list.map(s => parseInt(s.price || 0))) : 0;
@@ -669,6 +671,11 @@
             document.getElementById('debtorsCount').innerText = list.length;
             document.getElementById('avgDebt').innerText = avg.toLocaleString();
             document.getElementById('maxDebt').innerText = max.toLocaleString();
+
+            // ✅ بصمة البيانات - لا نعيد البناء إلا عند التغيير الفعلي
+            const dataHash = list.map(s => s.id + ':' + s.price + ':' + (s.name || '')).join('|') + '|sort:' + currentSort + '|q:' + q;
+            if (dataHash === lastDataHash) return; // لا تغيير = لا وميض
+            lastDataHash = dataHash;
 
             const grid = document.getElementById('grid');
 
@@ -686,10 +693,9 @@
                 else if (pName.includes('gold')) { pkgIcon = 'fa-crown'; pkgColor = '#eab308'; }
 
                 const safeName = (s.name || 'بدون اسم').replace(/'/g, "");
-                const delay = Math.min(idx * 0.05, 0.5);
 
                 return `
-                    <div class="debt-card" style="animation-delay: ${delay}s;">
+                    <div class="debt-card">
                         <div class="card-top">
                             <div class="card-info">
                                 <h3>${s.name || 'بدون اسم'}</h3>
