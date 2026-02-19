@@ -268,14 +268,15 @@
                 return;
             }
 
-            let pkgIcon = 'fa-box';
-            let pkgColor = '#64748b';
-            const pName = (s.packageName || '').toLowerCase();
-            if (pName.includes('norm')) { pkgIcon = 'fa-star'; pkgColor = '#0ea5e9'; }
-            else if (pName.includes('sup')) { pkgIcon = 'fa-bolt'; pkgColor = '#f59e0b'; }
-            else if (pName.includes('gold')) { pkgIcon = 'fa-crown'; pkgColor = '#eab308'; }
+            grid.innerHTML = list.map(s => {
+                let pkgIcon = 'fa-box';
+                let pkgColor = '#64748b';
+                const pName = (s.packageName || '').toLowerCase();
+                if (pName.includes('norm')) { pkgIcon = 'fa-star'; pkgColor = '#0ea5e9'; }
+                else if (pName.includes('sup')) { pkgIcon = 'fa-bolt'; pkgColor = '#f59e0b'; }
+                else if (pName.includes('gold')) { pkgIcon = 'fa-crown'; pkgColor = '#eab308'; }
 
-            return `
+                return `
                     <div class="debt-card" style="border-right: 4px solid #e11d48;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div style="flex:1;">
@@ -299,6 +300,7 @@
                         </div>
                     </div>
                 `;
+            }).join('');
         };
 
         window.openPayDebtModal = (id, fid, name, amt) => {
