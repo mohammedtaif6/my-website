@@ -292,7 +292,38 @@ export const DataManager = {
         await updateDoc(doc(db, "subscribers", subscriberFirebaseId), updateObj);
 
         telegramBot.notifyRenewal(sub.name, parseInt(renewalData.price), renewalData.type, renewalData.dateEnd);
+        telegramBot.notifyRenewal(sub.name, parseInt(renewalData.price), renewalData.type, renewalData.dateEnd);
         showToast("تم التجديد بنجاح");
+    },
+
+    // خدمة دايني (يومين هدية)
+    async activateDayni(subscriberFirebaseId) {
+        const sub = localData.subscribers.find(s => s.firebaseId === subscriberFirebaseId);
+        if (!sub) return showToast('المشترك غير موجود', 'error');
+
+        if (!sub.phone || sub.phone.trim().length === 0) {
+            return showToast('لا يمكن تفعيل خدمة دايني: رقم الهاتف غير متوفر', 'error');
+        }
+
+        // Calculate 2 days from NOW
+        const today = new Date();
+        today.setDate(today.getDate() + 2);
+        const newExpiry = today.toISOString().split('T')[0]; // YYYY-MM-DD
+
+        await updateDoc(doc(db, "subscribers", subscriberFirebaseId), {
+            expiryDate: newExpiry,
+            status: 'نشط',
+            expiryWarningSent: false
+        });
+
+        await this.logTransaction({
+            subscriberId: sub.id,
+            amount: 0,
+            type: 'gift_dayni',
+            description: `خدمة دايني: ${sub.name} (يومين هدية)`
+        });
+
+        showToast(`تم تفعيل خدمة دايني للمشترك ${sub.name} بنجاح`);
     },
 
     async updateSubscriber(id, data) {
