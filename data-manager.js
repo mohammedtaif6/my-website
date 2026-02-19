@@ -296,13 +296,18 @@ export const DataManager = {
         showToast("تم التجديد بنجاح");
     },
 
-    // خدمة دايني (يومين هدية)
+    // خدمة دايني (يومين هدية) - مرة واحدة شهرياً
     async activateDayni(subscriberFirebaseId) {
         const sub = localData.subscribers.find(s => s.firebaseId === subscriberFirebaseId);
         if (!sub) return showToast('المشترك غير موجود', 'error');
 
         if (!sub.phone || sub.phone.trim().length === 0) {
             return showToast('لا يمكن تفعيل خدمة دايني: رقم الهاتف غير متوفر', 'error');
+        }
+
+        const currentMonth = new Date().toISOString().slice(0, 7); // "2024-02"
+        if (sub.lastDayniMonth === currentMonth) {
+            return showToast('⛔ عذراً، هذا المشترك استفاد من خدمة دايني هذا الشهر مسبقاً', 'error');
         }
 
         // Calculate 2 days from NOW
@@ -313,7 +318,8 @@ export const DataManager = {
         await updateDoc(doc(db, "subscribers", subscriberFirebaseId), {
             expiryDate: newExpiry,
             status: 'نشط',
-            expiryWarningSent: false
+            expiryWarningSent: false,
+            lastDayniMonth: currentMonth
         });
 
         await this.logTransaction({

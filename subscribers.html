@@ -527,6 +527,8 @@
                 else if (pName.includes('sup')) { pkgIcon = 'fa-bolt'; pkgColor = '#f59e0b'; }
                 else if (pName.includes('gold')) { pkgIcon = 'fa-crown'; pkgColor = '#eab308'; }
 
+                const isDayniUsed = (s.lastDayniMonth === new Date().toISOString().slice(0, 7));
+
                 return `
                     <div class="sub-card" style="border-right: 4px solid ${parseInt(s.price || 0) > 0 ? '#e11d48' : '#0ea5e9'};">
                         <!-- معلومات المشترك الأساسية -->
@@ -566,8 +568,10 @@
                             <button onclick="window.customActionEdit('${s.id}')" style="background:#f1f5f9; color:#475569; border:none; padding:8px; border-radius:10px; font-size:0.75rem; cursor:pointer;">
                                 <i class="fas fa-edit"></i> تعديل
                             </button>
-                            <button onclick="window.activateDayni('${s.firebaseId}', '${s.name}')" style="background:#8b5cf6; color:white; border:none; padding:8px; border-radius:10px; font-size:0.75rem; cursor:pointer; font-weight:bold; display:${s.phone ? 'block' : 'none'}">
-                                <i class="fas fa-hand-holding-heart"></i> دايني
+                            <button onclick="window.activateDayni('${s.firebaseId}', '${s.name}')" 
+                                ${isDayniUsed ? 'disabled' : ''}
+                                style="background:${isDayniUsed ? '#cbd5e1' : '#8b5cf6'}; color:${isDayniUsed ? '#94a3b8' : 'white'}; border:none; padding:8px; border-radius:10px; font-size:0.75rem; cursor:${isDayniUsed ? 'not-allowed' : 'pointer'}; font-weight:bold; display:${s.phone ? 'block' : 'none'}">
+                                <i class="fas fa-hand-holding-heart"></i> ${isDayniUsed ? 'تم الاستخدام' : 'دايني'}
                             </button>
                             <button onclick="window.customActionDelete('${s.id}')" style="background:#fff1f2; color:#e11d48; border:none; padding:8px; border-radius:10px; font-size:0.75rem; cursor:pointer;">
                                 <i class="fas fa-trash"></i> حذف
