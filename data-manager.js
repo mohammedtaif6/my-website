@@ -238,6 +238,19 @@ export const DataManager = {
         } finally { isProcessing = false; }
     },
 
+    async updateTransaction(id, newData) {
+        const tx = localData.transactions.find(t => t.id == id || t.firebaseId === id);
+        if (tx) {
+            await updateDoc(doc(db, "transactions", tx.firebaseId), newData);
+        } else {
+            // Check archived just in case
+            const archTx = (localData.archived_transactions || []).find(t => t.id == id || t.firebaseId === id);
+            if (archTx) {
+                await updateDoc(doc(db, "archived_transactions", archTx.firebaseId), newData);
+            }
+        }
+    },
+
     async addSubscriber(data) {
         const subData = { id: Date.now(), createdAt: new Date().toISOString(), ...data };
         if (data.packageId) {
@@ -449,6 +462,19 @@ export const DataManager = {
     getSystemBalance() {
         const sysAcc = (localData.accounts || []).find(a => a.firebaseId === 'system');
         return sysAcc ? (sysAcc.balance || 0) : 0;
+    },
+
+    async setSystemBalance(amount) {
+        try {
+            await setDoc(doc(db, "accounts", "system"), {
+                balance: parseFloat(amount),
+                lastUpdated: new Date().toISOString()
+            }, { merge: true });
+            return true;
+        } catch (e) {
+            console.error("Set balance error:", e);
+            return false;
+        }
     },
 
     async deductFromVirtualBalance(amount, reason = "استقطاع رصيد") {

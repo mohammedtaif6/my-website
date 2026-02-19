@@ -5,12 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>الإعدادات - OK Computer</title>
-    <link rel="stylesheet" href="style.css?v=27.0">
-    <link rel="stylesheet" href="style-fab.css?v=1.0">
-    <link rel="stylesheet" href="style-modal.css?v=1.0">
+    <link rel="stylesheet" href="style.css?v=28.0">
+    <link rel="stylesheet" href="style-fab.css?v=2.0">
+    <link rel="stylesheet" href="style-modal.css?v=2.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Telegram 409 error: This is likely due to an invalid bot token or webhook URL. Please check your Telegram bot settings. -->
 
-    <script src="auth-system.js?v=3.0"></script>
+    <script src="auth-system.js?v=4.0"></script>
     <script>
         // Anti-Flicker: Apply visibility as fast as possible
         (function () {
@@ -334,6 +335,59 @@
             border-radius: 8px;
             font-size: 0.9rem;
         }
+
+        /* Collapsible Styling */
+        .section-title {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: "\f078";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            left: 20px;
+            transition: transform 0.3s;
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        .settings-section.active .section-title::after {
+            transform: rotate(180deg);
+        }
+
+        .section-content {
+            display: none;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .settings-section.active .section-content {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .balance-card {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 
@@ -366,166 +420,222 @@
     <div class="settings-header">
         <h1><i class="fas fa-cog"></i> الإعدادات</h1>
         <p>التحكم في إعدادات النظام والعرض</p>
+        <button onclick="forceUpdateSystem()"
+            style="margin-top: 15px; background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);">
+            <i class="fas fa-sync-alt"></i> تحديث قسري للموقع
+        </button>
     </div>
 
     <!-- إدارة الباقات (في الأعلى) -->
-    <div class="settings-section">
+    <div class="settings-section active" onclick="toggleSection(this)">
         <div class="section-title"><i class="fas fa-box-open"></i> إدارة باقات الاشتراك</div>
-        <div id="packages-container" class="packages-list">
-            <!-- سيتم تحميل الباقات هنا -->
-        </div>
-
-        <div class="add-package-form">
-            <h4 style="margin: 0 0 15px 0; font-size: 0.95rem; color: #475569;">إضافة باقة جديدة</h4>
-            <div class="package-inputs">
-                <input type="text" id="pkg-name" class="pkg-input" placeholder="اسم الباقة (مثلاً: نورمال)">
-                <input type="number" id="pkg-cost" class="pkg-input" placeholder="سعر الشراء (رصيد)">
-                <input type="number" id="pkg-sale" class="pkg-input" placeholder="سعر المبيع (صندوق)">
+        <div class="section-content" onclick="event.stopPropagation()">
+            <div id="packages-container" class="packages-list">
+                <!-- سيتم تحميل الباقات هنا -->
             </div>
-            <button onclick="addNewPackage()" class="btn-primary"
-                style="width: 100%; padding: 10px; border-radius: 8px; border: none; background: #4f46e5; color: white; font-weight: bold; cursor: pointer;">
-                <i class="fas fa-plus"></i> إضافة الباقة للقائمة
-            </button>
+
+            <div class="add-package-form">
+                <h4 style="margin: 0 0 15px 0; font-size: 0.95rem; color: #475569;">إضافة باقة جديدة</h4>
+                <div class="package-inputs">
+                    <input type="text" id="pkg-name" class="pkg-input" placeholder="اسم الباقة (مثلاً: نورمال)">
+                    <input type="number" id="pkg-cost" class="pkg-input" placeholder="سعر الشراء (رصيد)">
+                    <input type="number" id="pkg-sale" class="pkg-input" placeholder="سعر المبيع (صندوق)">
+                </div>
+                <button onclick="addNewPackage()" class="btn-primary"
+                    style="width: 100%; padding: 12px; border-radius: 8px; border: none; background: #4f46e5; color: white; font-weight: bold; cursor: pointer;">
+                    <i class="fas fa-plus"></i> إضافة الباقة للقائمة
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- إدارة رصيد النظام (التفعيلات) -->
+    <div class="settings-section" onclick="toggleSection(this)">
+        <div class="section-title"><i class="fas fa-wallet"></i> رصيد النظام (التفعيلات)</div>
+        <div class="section-content" onclick="event.stopPropagation()">
+            <div style="padding: 20px;">
+                <div class="balance-card">
+                    <div style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 8px;">الرصيد المتوفر حالياً</div>
+                    <div id="display-system-balance" style="font-size: 2.2rem; font-weight: 800;">0 د.ع</div>
+                </div>
+
+                <div style="background: #f1f5f9; padding: 15px; border-radius: 12px;">
+                    <label
+                        style="display: block; font-size: 0.85rem; color: #475569; margin-bottom: 8px; font-weight: bold;">تعديل
+                        الرصيد يدوياً</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" id="input-system-balance" class="pkg-input"
+                            style="flex: 1; text-align: center; font-weight: bold;" placeholder="أدخل الرصيد الجديد">
+                        <button onclick="updateSystemBalanceDirectly()" class="btn-primary"
+                            style="background: #10b981; color: white; border: none; padding: 0 20px; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                            تحديث
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- إعدادات الصندوق والتحكم -->
+    <div class="settings-section" onclick="toggleSection(this)">
+        <div class="section-title"><i class="fas fa-cash-register"></i> إعدادات الصندوق والأمان</div>
+        <div class="section-content" onclick="event.stopPropagation()">
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="icon-red fas fa-trash-alt"></i>
+                    <div>
+                        <span>تفعيل حذف العمليات</span>
+                        <p style="font-size:0.7rem; color:#64748b; margin:0;">السماح بحذف المقبوضات والصرفيات من الصندوق
+                        </p>
+                    </div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="set-allow-box-deletion">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
         </div>
     </div>
 
     <!-- إعدادات عامة -->
-    <div class="settings-section">
+    <div class="settings-section" onclick="toggleSection(this)">
         <div class="section-title"><i class="fas fa-sliders-h"></i> إعدادات عامة</div>
-
-        <div class="setting-item">
-            <div class="setting-label">
-                <i class="icon-indigo fas fa-tag"></i>
-                <span>اسم النظام</span>
+        <div class="section-content" onclick="event.stopPropagation()">
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="icon-indigo fas fa-tag"></i>
+                    <span>اسم النظام</span>
+                </div>
+                <input type="text" class="setting-input" id="set-system-name" value="OK Computer">
             </div>
-            <input type="text" class="setting-input" id="set-system-name" value="OK Computer">
-        </div>
 
-        <div class="setting-item">
-            <div class="setting-label">
-                <i class="icon-green fas fa-money-bill"></i>
-                <span>السعر الافتراضي</span>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="icon-green fas fa-money-bill"></i>
+                    <span>السعر الافتراضي</span>
+                </div>
+                <input type="number" class="setting-input" id="set-default-price" value="35000">
             </div>
-            <input type="number" class="setting-input" id="set-default-price" value="35000">
-        </div>
 
-        <div class="setting-item">
-            <div class="setting-label">
-                <i class="icon-blue fas fa-calendar-alt"></i>
-                <span>مدة الاشتراك (أيام)</span>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="icon-blue fas fa-calendar-alt"></i>
+                    <span>مدة الاشتراك (أيام)</span>
+                </div>
+                <input type="number" class="setting-input" id="set-sub-duration" value="30">
             </div>
-            <input type="number" class="setting-input" id="set-sub-duration" value="30">
         </div>
     </div>
 
     <!-- كروت الداشبورد -->
-    <div class="settings-section">
+    <div class="settings-section" onclick="toggleSection(this)">
         <div class="section-title"><i class="fas fa-th-large"></i> كروت الصفحة الرئيسية</div>
-
-        <div class="setting-item">
-            <div class="setting-label">
-                <i class="icon-blue fas fa-users"></i>
-                <span>المشتركين</span>
+        <div class="section-content" onclick="event.stopPropagation()">
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="icon-blue fas fa-users"></i>
+                    <span>المشتركين</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="card-subscribers-toggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
             </div>
-            <label class="toggle-switch">
-                <input type="checkbox" id="card-subscribers-toggle" checked>
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
 
-        <div class="setting-item">
-            <div class="setting-label">
-                <i class="icon-teal fas fa-signal"></i>
-                <span>الفعالين</span>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="icon-teal fas fa-signal"></i>
+                    <span>الفعالين</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="card-active-toggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
             </div>
-            <label class="toggle-switch">
-                <input type="checkbox" id="card-active-toggle" checked>
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
 
-        <div class="setting-item">
-            <div class="setting-label">
-                <i class="icon-red fas fa-money-bill-wave"></i>
-                <span>الديون</span>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="icon-red fas fa-money-bill-wave"></i>
+                    <span>الديون</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="card-debts-toggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
             </div>
-            <label class="toggle-switch">
-                <input type="checkbox" id="card-debts-toggle" checked>
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
 
-        <div class="setting-item">
-            <div class="setting-label">
-                <i class="icon-purple fas fa-wallet"></i>
-                <span>الصندوق</span>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="icon-purple fas fa-wallet"></i>
+                    <span>الصندوق</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="card-payments-toggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
             </div>
-            <label class="toggle-switch">
-                <input type="checkbox" id="card-payments-toggle" checked>
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
 
-        <div class="setting-item">
-            <div class="setting-label">
-                <i class="icon-indigo fas fa-chart-bar"></i>
-                <span>التقارير</span>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="icon-indigo fas fa-chart-bar"></i>
+                    <span>التقارير</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="card-reports-toggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
             </div>
-            <label class="toggle-switch">
-                <input type="checkbox" id="card-reports-toggle" checked>
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
 
-        <div class="setting-item">
-            <div class="setting-label">
-                <i class="icon-orange fas fa-user-tie"></i>
-                <span>الموظفين</span>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="icon-orange fas fa-user-tie"></i>
+                    <span>الموظفين</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="card-employees-toggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
             </div>
-            <label class="toggle-switch">
-                <input type="checkbox" id="card-employees-toggle" checked>
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
 
-        <div class="setting-item">
-            <div class="setting-label">
-                <i class="icon-orange fas fa-exclamation-triangle"></i>
-                <span>تنتهي قريباً</span>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="icon-orange fas fa-exclamation-triangle"></i>
+                    <span>تنتهي قريباً</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="card-expiring-toggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
             </div>
-            <label class="toggle-switch">
-                <input type="checkbox" id="card-expiring-toggle" checked>
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
 
-        <div class="setting-item">
-            <div class="setting-label">
-                <i class="icon-gray fas fa-times-circle"></i>
-                <span>المنتهية</span>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="icon-gray fas fa-times-circle"></i>
+                    <span>المنتهية</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="card-expired-toggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
             </div>
-            <label class="toggle-switch">
-                <input type="checkbox" id="card-expired-toggle" checked>
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
 
-        <div class="setting-item">
-            <div class="setting-label">
-                <i class="icon-dark fab fa-telegram-plane"></i>
-                <span>بوت التيليجرام</span>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="icon-dark fab fa-telegram-plane"></i>
+                    <span>بوت التيليجرام</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="card-telegram-toggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
             </div>
-            <label class="toggle-switch">
-                <input type="checkbox" id="card-telegram-toggle" checked>
-                <span class="toggle-slider"></span>
-            </label>
         </div>
+    </div>
 
-
-        <!-- صفحات القائمة الجانبية -->
-        <div class="settings-section">
-            <div class="section-title"><i class="fas fa-bars"></i> القائمة الجانبية</div>
-
+    <!-- صفحات القائمة الجانبية -->
+    <div class="settings-section" onclick="toggleSection(this)">
+        <div class="section-title"><i class="fas fa-bars"></i> القائمة الجانبية</div>
+        <div class="section-content" onclick="event.stopPropagation()">
             <div class="setting-item">
                 <div class="setting-label">
                     <i class="icon-blue fas fa-users"></i>
@@ -603,105 +713,111 @@
                 </label>
             </div>
         </div>
+    </div> <!-- زر حفظ الإعدادات (جديد) -->
+    <button class="save-btn" onclick="saveAllSettings()"
+        style="background: var(--primary); color: white; width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);">
+        <i class="fas fa-save"></i> حفظ الإعدادات
+    </button>
 
-        <!-- زر حفظ الإعدادات (جديد) -->
-        <button class="save-btn" onclick="saveAllSettings()"
-            style="background: var(--primary); color: white; width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);">
-            <i class="fas fa-save"></i> حفظ الإعدادات
-        </button>
+    <!-- زر إعادة التعيين -->
+    <button class="reset-btn" onclick="resetAllSettings()">
+        <i class="fas fa-undo"></i> إعادة تعيين جميع الإعدادات
+    </button>
 
-        <!-- زر إعادة التعيين -->
-        <button class="reset-btn" onclick="resetAllSettings()">
-            <i class="fas fa-undo"></i> إعادة تعيين جميع الإعدادات
-        </button>
+    <!-- Toast -->
+    <div class="save-toast" id="saveToast">✅ تم حفظ الإعدادات</div>
 
-        <!-- Toast -->
-        <div class="save-toast" id="saveToast">✅ تم حفظ الإعدادات</div>
+    <script>
+        const SETTINGS_KEY = 'sas_settings';
 
-        <script>
-            const SETTINGS_KEY = 'sas_settings';
+        // === تحميل الإعدادات ===
+        function loadSettings() {
+            console.log("🛠️ UI: loadSettings() triggered");
 
-            // === تحميل الإعدادات ===
-            function loadSettings() {
-                console.log("🛠️ UI: loadSettings() triggered");
+            // جلب الإعدادات من DataManager (سحابياً) مع تفضيل الكاش المحلي إذا كان السحاب فارغاً في البداية
+            const cloudSettings = (typeof DataManager !== 'undefined' && DataManager.getSystemSettings)
+                ? DataManager.getSystemSettings() : {};
+            const localSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
 
-                // جلب الإعدادات من DataManager (سحابياً) مع تفضيل الكاش المحلي إذا كان السحاب فارغاً في البداية
-                const cloudSettings = (typeof DataManager !== 'undefined' && DataManager.getSystemSettings)
-                    ? DataManager.getSystemSettings() : {};
-                const localSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+            // دمج الخيارات (تفضيل السحاب إذا كان يحتوي على بيانات)
+            const settings = Object.keys(cloudSettings).length > 0 ? cloudSettings : localSettings;
 
-                // دمج الخيارات (تفضيل السحاب إذا كان يحتوي على بيانات)
-                const settings = Object.keys(cloudSettings).length > 0 ? cloudSettings : localSettings;
+            console.log("📦 UI: Applying settings to fields:", settings);
 
-                console.log("📦 UI: Applying settings to fields:", settings);
-
-                if (Object.keys(settings).length === 0) {
-                    console.log("ℹ️ No settings found in Cloud or LocalStorage.");
-                    return;
-                }
-
-                // إعدادات عامة
-                if (settings.systemName) document.getElementById('set-system-name').value = settings.systemName;
-                if (settings.defaultPrice) document.getElementById('set-default-price').value = settings.defaultPrice;
-                if (settings.subDuration) document.getElementById('set-sub-duration').value = settings.subDuration;
-
-                // كروت الداشبورد
-                const toggleMap = {
-                    'card-subscribers': 'card-subscribers-toggle',
-                    'card-active': 'card-active-toggle',
-                    'card-debts': 'card-debts-toggle',
-                    'card-payments': 'card-payments-toggle',
-                    'card-reports': 'card-reports-toggle',
-                    'nav-card-employees': 'card-employees-toggle',
-                    'card-expiring': 'card-expiring-toggle',
-                    'card-expired': 'card-expired-toggle',
-                    'nav-card-telegram': 'card-telegram-toggle'
-                };
-
-                for (const [key, id] of Object.entries(toggleMap)) {
-                    const el = document.getElementById(id);
-                    if (el) {
-                        // إذا كان الخيار غير موجود (undefined)، نعتبره true افتراضياً
-                        el.checked = settings[key] !== false;
-                    }
-                }
-
-                // صفحات النافبار
-                const navKeys = ['nav-subscribers', 'nav-active', 'nav-debts', 'nav-payments', 'nav-reports', 'nav-employees', 'nav-telegram'];
-                navKeys.forEach(key => {
-                    const el = document.getElementById(key + '-toggle');
-                    if (el) el.checked = settings[key] !== false;
-                });
-
-                // الباقات (إضافة الباقات الثلاث الافتراضية إذا كانت القائمة فارغة)
-                window.currentPackages = settings.packages || [];
-                if (window.currentPackages.length === 0) {
-                    window.currentPackages = [
-                        { id: 'pkg_norm', name: 'نورمال (Normal)', costPrice: 22000, salePrice: 35000 },
-                        { id: 'pkg_super', name: 'سوبر (Super)', costPrice: 24000, salePrice: 40000 },
-                        { id: 'pkg_gold', name: 'جولد (Gold)', costPrice: 28000, salePrice: 50000 }
-                    ];
-                }
-                renderPackagesList();
+            if (Object.keys(settings).length === 0) {
+                console.log("ℹ️ No settings found in Cloud or LocalStorage.");
+                return;
             }
 
-            function renderPackagesList() {
-                const container = document.getElementById('packages-container');
-                if (!container) return;
+            // إعدادات عامة
+            if (settings.systemName) document.getElementById('set-system-name').value = settings.systemName;
+            if (settings.defaultPrice) document.getElementById('set-default-price').value = settings.defaultPrice;
+            if (settings.subDuration) document.getElementById('set-sub-duration').value = settings.subDuration;
+            if (settings.allowBoxDeletion !== undefined) document.getElementById('set-allow-box-deletion').checked = settings.allowBoxDeletion;
 
-                if (window.currentPackages.length === 0) {
-                    container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">لا توجد باقات مضافة حالياً</p>';
-                    return;
+            // تحديث عرض رصيد النظام
+            if (typeof DataManager !== 'undefined') {
+                const balance = DataManager.getSystemBalance();
+                document.getElementById('display-system-balance').innerText = balance.toLocaleString() + ' د.ع';
+            }
+
+            // كروت الداشبورد
+            const toggleMap = {
+                'card-subscribers': 'card-subscribers-toggle',
+                'card-active': 'card-active-toggle',
+                'card-debts': 'card-debts-toggle',
+                'card-payments': 'card-payments-toggle',
+                'card-reports': 'card-reports-toggle',
+                'nav-card-employees': 'card-employees-toggle',
+                'card-expiring': 'card-expiring-toggle',
+                'card-expired': 'card-expired-toggle',
+                'nav-card-telegram': 'card-telegram-toggle'
+            };
+
+            for (const [key, id] of Object.entries(toggleMap)) {
+                const el = document.getElementById(id);
+                if (el) {
+                    // إذا كان الخيار غير موجود (undefined)، نعتبره true افتراضياً
+                    el.checked = settings[key] !== false;
                 }
+            }
 
-                container.innerHTML = window.currentPackages.map(pkg => {
-                    let icon = 'fa-box';
-                    let color = '#64748b';
-                    if (pkg.name.toLowerCase().includes('norm')) { icon = 'fa-star'; color = '#3b82f6'; }
-                    if (pkg.name.toLowerCase().includes('sup')) { icon = 'fa-bolt'; color = '#f59e0b'; }
-                    if (pkg.name.toLowerCase().includes('gold')) { icon = 'fa-crown'; color = '#eab308'; }
+            // صفحات النافبار
+            const navKeys = ['nav-subscribers', 'nav-active', 'nav-debts', 'nav-payments', 'nav-reports', 'nav-employees', 'nav-telegram'];
+            navKeys.forEach(key => {
+                const el = document.getElementById(key + '-toggle');
+                if (el) el.checked = settings[key] !== false;
+            });
 
-                    return `
+            // الباقات (إضافة الباقات الثلاث الافتراضية إذا كانت القائمة فارغة)
+            window.currentPackages = settings.packages || [];
+            if (window.currentPackages.length === 0) {
+                window.currentPackages = [
+                    { id: 'pkg_norm', name: 'نورمال (Normal)', costPrice: 22000, salePrice: 35000 },
+                    { id: 'pkg_super', name: 'سوبر (Super)', costPrice: 24000, salePrice: 40000 },
+                    { id: 'pkg_gold', name: 'جولد (Gold)', costPrice: 28000, salePrice: 50000 }
+                ];
+            }
+            renderPackagesList();
+        }
+
+        function renderPackagesList() {
+            const container = document.getElementById('packages-container');
+            if (!container) return;
+
+            if (window.currentPackages.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">لا توجد باقات مضافة حالياً</p>';
+                return;
+            }
+
+            container.innerHTML = window.currentPackages.map(pkg => {
+                let icon = 'fa-box';
+                let color = '#64748b';
+                if (pkg.name.toLowerCase().includes('norm')) { icon = 'fa-star'; color = '#3b82f6'; }
+                if (pkg.name.toLowerCase().includes('sup')) { icon = 'fa-bolt'; color = '#f59e0b'; }
+                if (pkg.name.toLowerCase().includes('gold')) { icon = 'fa-crown'; color = '#eab308'; }
+
+                return `
                     <div class="package-card" style="border-right: 5px solid ${color};">
                         <div class="package-info">
                             <h4 style="display:flex; align-items:center; gap:8px;">
@@ -715,133 +831,181 @@
                         </div>
                     </div>
                     `;
-                }).join('');
+            }).join('');
+        }
+
+        window.addNewPackage = function () {
+            const name = document.getElementById('pkg-name').value;
+            const cost = parseInt(document.getElementById('pkg-cost').value);
+            const sale = parseInt(document.getElementById('pkg-sale').value);
+
+            if (!name || isNaN(cost) || isNaN(sale)) {
+                return alert('يرجى ملء جميع حقول الباقة بشكل صحيح');
             }
 
-            window.addNewPackage = function () {
-                const name = document.getElementById('pkg-name').value;
-                const cost = parseInt(document.getElementById('pkg-cost').value);
-                const sale = parseInt(document.getElementById('pkg-sale').value);
-
-                if (!name || isNaN(cost) || isNaN(sale)) {
-                    return alert('يرجى ملء جميع حقول الباقة بشكل صحيح');
-                }
-
-                const newPkg = {
-                    id: 'pkg_' + Date.now(),
-                    name,
-                    costPrice: cost,
-                    salePrice: sale
-                };
-
-                window.currentPackages.push(newPkg);
-                renderPackagesList();
-
-                // مسح الحقول
-                document.getElementById('pkg-name').value = '';
-                document.getElementById('pkg-cost').value = '';
-                document.getElementById('pkg-sale').value = '';
-            }
-
-            window.removePackage = function (id) {
-                if (!confirm('هل تريد حذف هذه الباقة؟')) return;
-                window.currentPackages = window.currentPackages.filter(p => p.id !== id);
-                renderPackagesList();
-            }
-
-            // جعل loadSettings متاحة عالمياً لـ DataManager
-            window.loadSettings = loadSettings;
-
-            // === حفظ الكل ===
-            async function saveAllSettings() {
-                console.log("🚀 UI: saveAllSettings() started");
-                const settings = {};
-
-                // 1. الإعدادات العامة
-                settings.systemName = document.getElementById('set-system-name').value;
-                settings.defaultPrice = parseInt(document.getElementById('set-default-price').value || 35000);
-                settings.subDuration = parseInt(document.getElementById('set-sub-duration').value || 30);
-
-                // 2. كروت الداشبورد
-                const toggleMap = {
-                    'card-subscribers': 'card-subscribers-toggle',
-                    'card-active': 'card-active-toggle',
-                    'card-debts': 'card-debts-toggle',
-                    'card-payments': 'card-payments-toggle',
-                    'card-reports': 'card-reports-toggle',
-                    'nav-card-employees': 'card-employees-toggle',
-                    'card-expiring': 'card-expiring-toggle',
-                    'card-expired': 'card-expired-toggle',
-                    'nav-card-telegram': 'card-telegram-toggle'
-                };
-                for (const [key, id] of Object.entries(toggleMap)) {
-                    const el = document.getElementById(id);
-                    if (el) settings[key] = el.checked;
-                }
-
-                // 3. النافبار
-                const navKeys = ['nav-subscribers', 'nav-active', 'nav-debts', 'nav-payments', 'nav-reports', 'nav-employees', 'nav-telegram'];
-                navKeys.forEach(key => {
-                    const el = document.getElementById(key + '-toggle');
-                    if (el) settings[key] = el.checked;
-                });
-
-                // 4. الباقات
-                settings.packages = window.currentPackages || [];
-
-                console.log("📤 UI: Sending data to DataManager:", settings);
-
-                if (typeof DataManager !== 'undefined' && DataManager.saveAllSystemSettings) {
-                    try {
-                        await DataManager.saveAllSystemSettings(settings);
-                        console.log("✅ UI: Remote save successful");
-                        showSaveToast('✅ تم الحفظ سحابياً بنجاح');
-                    } catch (err) {
-                        console.error("❌ UI: Remote save failed:", err);
-                        showSaveToast('❌ فشل الحفظ السحابي - تفقد الكونسل');
-                    }
-                } else {
-                    console.warn("⚠️ UI: DataManager not found, falling back to LocalStorage");
-                    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-                    showSaveToast('⚠️ تم الحفظ محلياً فقط');
-                }
-            }
-
-
-
-            // === إعادة تعيين ===
-            function resetAllSettings() {
-                if (!confirm('هل أنت متأكد من إعادة تعيين جميع الإعدادات؟')) return;
-                // للتصفير السحابي، سنحتاج لحذف الوثيقة أو مسح كل الحقول.
-                // للتبسيط، سنمسح الـ localStorage ونطلب الحذف يدوياً أو نتركها
-                localStorage.removeItem(SETTINGS_KEY);
-                showSaveToast('🔄 تم مسح الكاش المحلي. لإعادة التعيين الكلي يرجى التواصل مع الدعم.');
-                loadSettings();
-            }
-
-            // === Toast ===
-            function showSaveToast(msg) {
-                const toast = document.getElementById('saveToast');
-                toast.innerText = msg || '✅ تم حفظ الإعدادات';
-                toast.classList.add('show');
-                setTimeout(() => toast.classList.remove('show'), 2000);
-            }
-
-            // === Menu Toggle ===
-            window.toggleMenu = function () {
-                const nav = document.getElementById('main-nav');
-                nav.classList.toggle('active');
-                document.body.style.overflow = nav.classList.contains('active') ? 'hidden' : '';
+            const newPkg = {
+                id: 'pkg_' + Date.now(),
+                name,
+                costPrice: cost,
+                salePrice: sale
             };
 
-            // تحميل عند الفتح
+            window.currentPackages.push(newPkg);
+            renderPackagesList();
+
+            // مسح الحقول
+            document.getElementById('pkg-name').value = '';
+            document.getElementById('pkg-cost').value = '';
+            document.getElementById('pkg-sale').value = '';
+        }
+
+        window.removePackage = function (id) {
+            if (!confirm('هل تريد حذف هذه الباقة؟')) return;
+            window.currentPackages = window.currentPackages.filter(p => p.id !== id);
+            renderPackagesList();
+        }
+
+        // جعل loadSettings متاحة عالمياً لـ DataManager
+        window.loadSettings = loadSettings;
+
+        // === حفظ الكل ===
+        async function saveAllSettings() {
+            console.log("🚀 UI: saveAllSettings() started");
+            const settings = {};
+
+            // 1. الإعدادات العامة
+            settings.systemName = document.getElementById('set-system-name').value;
+            settings.defaultPrice = parseInt(document.getElementById('set-default-price').value || 35000);
+            settings.subDuration = parseInt(document.getElementById('set-sub-duration').value || 30);
+
+            // 2. كروت الداشبورد
+            const toggleMap = {
+                'card-subscribers': 'card-subscribers-toggle',
+                'card-active': 'card-active-toggle',
+                'card-debts': 'card-debts-toggle',
+                'card-payments': 'card-payments-toggle',
+                'card-reports': 'card-reports-toggle',
+                'nav-card-employees': 'card-employees-toggle',
+                'card-expiring': 'card-expiring-toggle',
+                'card-expired': 'card-expired-toggle',
+                'nav-card-telegram': 'card-telegram-toggle'
+            };
+            for (const [key, id] of Object.entries(toggleMap)) {
+                const el = document.getElementById(id);
+                if (el) settings[key] = el.checked;
+            }
+
+            // 3. النافبار
+            const navKeys = ['nav-subscribers', 'nav-active', 'nav-debts', 'nav-payments', 'nav-reports', 'nav-employees', 'nav-telegram'];
+            navKeys.forEach(key => {
+                const el = document.getElementById(key + '-toggle');
+                if (el) settings[key] = el.checked;
+            });
+
+            // 4. إعدادات إضافية
+            settings.allowBoxDeletion = document.getElementById('set-allow-box-deletion').checked;
+
+            // 5. الباقات
+            settings.packages = window.currentPackages || [];
+
+            console.log("📤 UI: Sending data to DataManager:", settings);
+
+            if (typeof DataManager !== 'undefined' && DataManager.saveAllSystemSettings) {
+                try {
+                    await DataManager.saveAllSystemSettings(settings);
+                    console.log("✅ UI: Remote save successful");
+                    showSaveToast('✅ تم الحفظ سحابياً بنجاح');
+                } catch (err) {
+                    console.error("❌ UI: Remote save failed:", err);
+                    showSaveToast('❌ فشل الحفظ السحابي - تفقد الكونسل');
+                }
+            } else {
+                console.warn("⚠️ UI: DataManager not found, falling back to LocalStorage");
+                localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+                showSaveToast('⚠️ تم الحفظ محلياً فقط');
+            }
+        }
+
+        window.updateSystemBalanceDirectly = async function () {
+            const newBalanceStr = document.getElementById('input-system-balance').value;
+            if (newBalanceStr === '') return alert('يرجى إدخال مبلغ الرصيد');
+
+            const newBalance = parseFloat(newBalanceStr);
+            if (confirm(`هل أنت متأكد من تعديل رصيد النظام يدوياً إلى ${newBalance.toLocaleString()} د.ع؟`)) {
+                if (typeof DataManager !== 'undefined' && DataManager.setSystemBalance) {
+                    const success = await DataManager.setSystemBalance(newBalance);
+                    if (success) {
+                        document.getElementById('display-system-balance').innerText = newBalance.toLocaleString() + ' د.ع';
+                        document.getElementById('input-system-balance').value = '';
+                        showSaveToast('✅ تم تحديث الرصيد بنجاح');
+                    }
+                }
+            }
+        }
+
+        window.toggleSection = function (el) {
+            el.classList.toggle('active');
+        }
+
+        window.forceUpdateSystem = async function () {
+            if (!confirm("سيتم مسح الذاكرة المؤقتة وتحديث الموقع بالكامل. هل تريد الاستمرار؟")) return;
+
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let registration of registrations) {
+                    await registration.unregister();
+                }
+            }
+
+            if ('caches' in window) {
+                const keys = await caches.keys();
+                for (let key of keys) {
+                    await caches.delete(key);
+                }
+            }
+
+            localStorage.clear(); // Safe as most data is cloud-synced, but optional. 
+            // Better only clear specific keys if we want to keep login.
+            // localStorage.removeItem('sas_settings'); 
+
+            location.reload(true);
+        }
+
+
+
+        // === إعادة تعيين ===
+        function resetAllSettings() {
+            if (!confirm('هل أنت متأكد من إعادة تعيين جميع الإعدادات؟')) return;
+            // للتصفير السحابي، سنحتاج لحذف الوثيقة أو مسح كل الحقول.
+            // للتبسيط، سنمسح الـ localStorage ونطلب الحذف يدوياً أو نتركها
+            localStorage.removeItem(SETTINGS_KEY);
+            showSaveToast('🔄 تم مسح الكاش المحلي. لإعادة التعيين الكلي يرجى التواصل مع الدعم.');
             loadSettings();
-        </script>
-        <script type="module">
-            import { DataManager } from './data-manager.js?v=33.0';
-            window.DataManager = DataManager;
-            DataManager.init();
-        </script>
+        }
+
+        // === Toast ===
+        function showSaveToast(msg) {
+            const toast = document.getElementById('saveToast');
+            toast.innerText = msg || '✅ تم حفظ الإعدادات';
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // === Menu Toggle ===
+        window.toggleMenu = function () {
+            const nav = document.getElementById('main-nav');
+            nav.classList.toggle('active');
+            document.body.style.overflow = nav.classList.contains('active') ? 'hidden' : '';
+        };
+
+        // تحميل عند الفتح
+        loadSettings();
+    </script>
+    <script type="module">
+        import { DataManager } from './data-manager.js?v=34.0';
+        window.DataManager = DataManager;
+        DataManager.init();
+    </script>
 </body>
 
 </html>

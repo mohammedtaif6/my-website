@@ -5,13 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>الصندوق المالي - نظام الإدارة</title>
-    <link rel="stylesheet" href="style.css?v=27.0">
-    <link rel="stylesheet" href="style-fab.css?v=1.0">
-    <link rel="stylesheet" href="style-modal.css?v=1.0">
+    <link rel="stylesheet" href="style.css?v=28.0">
+    <link rel="stylesheet" href="style-fab.css?v=2.0">
+    <link rel="stylesheet" href="style-modal.css?v=2.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- إضافة AuthSystem -->
-    <script src="auth-system.js?v=3.0"></script>
+    <script src="auth-system.js?v=4.0"></script>
     <script>
         // Anti-Flicker: Apply visibility as fast as possible
         (function () {
@@ -29,7 +29,7 @@
 
 
     <script type="module">
-        import { DataManager } from './data-manager.js?v=33.0';
+        import { DataManager } from './data-manager.js?v=34.0';
         window.DataManager = DataManager;
         DataManager.init();
     </script>
@@ -522,6 +522,9 @@
                         }
                     }
 
+                    const settings = DataManager.getSystemSettings();
+                    const canDelete = settings.allowBoxDeletion !== false; // Default true if not set yet
+
                     container.innerHTML += `
                         <div class="tx-card" style="border-right: 4px solid ${isExp ? '#ff3d00' : '#00c853'}; opacity: ${opacity}">
                             <div style="flex: 1;">
@@ -540,9 +543,11 @@
                                 <button onclick='openEditTxModal(${tJson})' class="btn-icon" style="color:#2196f3;">
                                     <i class="fas fa-pen"></i>
                                 </button>
+                                ${canDelete ? `
                                 <button onclick="window.confirmDeleteTransaction('${t.fbId || t.firebaseId || t.id}', '${t.type}')" class="btn-icon" style="color:#f44336;">
                                     <i class="fas fa-trash"></i>
                                 </button>
+                                ` : ''}
                             </div>
                         </div>
                     `;
