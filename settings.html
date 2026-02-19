@@ -368,6 +368,27 @@
         <p>التحكم في إعدادات النظام والعرض</p>
     </div>
 
+    <!-- إدارة الباقات (في الأعلى) -->
+    <div class="settings-section">
+        <div class="section-title"><i class="fas fa-box-open"></i> إدارة باقات الاشتراك</div>
+        <div id="packages-container" class="packages-list">
+            <!-- سيتم تحميل الباقات هنا -->
+        </div>
+
+        <div class="add-package-form">
+            <h4 style="margin: 0 0 15px 0; font-size: 0.95rem; color: #475569;">إضافة باقة جديدة</h4>
+            <div class="package-inputs">
+                <input type="text" id="pkg-name" class="pkg-input" placeholder="اسم الباقة (مثلاً: نورمال)">
+                <input type="number" id="pkg-cost" class="pkg-input" placeholder="سعر الشراء (رصيد)">
+                <input type="number" id="pkg-sale" class="pkg-input" placeholder="سعر المبيع (صندوق)">
+            </div>
+            <button onclick="addNewPackage()" class="btn-primary"
+                style="width: 100%; padding: 10px; border-radius: 8px; border: none; background: #4f46e5; color: white; font-weight: bold; cursor: pointer;">
+                <i class="fas fa-plus"></i> إضافة الباقة للقائمة
+            </button>
+        </div>
+    </div>
+
     <!-- إعدادات عامة -->
     <div class="settings-section">
         <div class="section-title"><i class="fas fa-sliders-h"></i> إعدادات عامة</div>
@@ -499,26 +520,7 @@
                 <span class="toggle-slider"></span>
             </label>
         </div>
-        <!-- إدارة الباقات -->
-        <div class="settings-section">
-            <div class="section-title"><i class="fas fa-box-open"></i> إدارة باقات الاشتراك</div>
-            <div id="packages-container" class="packages-list">
-                <!-- سيتم تحميل الباقات هنا -->
-            </div>
 
-            <div class="add-package-form">
-                <h4 style="margin: 0 0 15px 0; font-size: 0.95rem; color: #475569;">إضافة باقة جديدة</h4>
-                <div class="package-inputs">
-                    <input type="text" id="pkg-name" class="pkg-input" placeholder="اسم الباقة (مثلاً: نورمال)">
-                    <input type="number" id="pkg-cost" class="pkg-input" placeholder="سعر الشراء (رصيد)">
-                    <input type="number" id="pkg-sale" class="pkg-input" placeholder="سعر المبيع (صندوق)">
-                </div>
-                <button onclick="addNewPackage()" class="btn-primary"
-                    style="width: 100%; padding: 10px; border-radius: 8px; border: none; background: #4f46e5; color: white; font-weight: bold; cursor: pointer;">
-                    <i class="fas fa-plus"></i> إضافة الباقة للقائمة
-                </button>
-            </div>
-        </div>
 
         <!-- صفحات القائمة الجانبية -->
         <div class="settings-section">
@@ -671,8 +673,15 @@
                     if (el) el.checked = settings[key] !== false;
                 });
 
-                // الباقات
+                // الباقات (إضافة الباقات الثلاث الافتراضية إذا كانت القائمة فارغة)
                 window.currentPackages = settings.packages || [];
+                if (window.currentPackages.length === 0) {
+                    window.currentPackages = [
+                        { id: 'pkg_norm', name: 'نورمال (Normal)', costPrice: 22000, salePrice: 35000 },
+                        { id: 'pkg_super', name: 'سوبر (Super)', costPrice: 24000, salePrice: 40000 },
+                        { id: 'pkg_gold', name: 'جولد (Gold)', costPrice: 28000, salePrice: 50000 }
+                    ];
+                }
                 renderPackagesList();
             }
 
@@ -685,17 +694,28 @@
                     return;
                 }
 
-                container.innerHTML = window.currentPackages.map(pkg => `
-                <div class="package-card">
-                    <div class="package-info">
-                        <h4>${pkg.name}</h4>
-                        <p>شراء: <b>${pkg.costPrice.toLocaleString()}</b> | مبيع: <b>${pkg.salePrice.toLocaleString()}</b></p>
+                container.innerHTML = window.currentPackages.map(pkg => {
+                    let icon = 'fa-box';
+                    let color = '#64748b';
+                    if (pkg.name.toLowerCase().includes('norm')) { icon = 'fa-star'; color = '#3b82f6'; }
+                    if (pkg.name.toLowerCase().includes('sup')) { icon = 'fa-bolt'; color = '#f59e0b'; }
+                    if (pkg.name.toLowerCase().includes('gold')) { icon = 'fa-crown'; color = '#eab308'; }
+
+                    return `
+                    <div class="package-card" style="border-right: 5px solid ${color};">
+                        <div class="package-info">
+                            <h4 style="display:flex; align-items:center; gap:8px;">
+                                <i class="fas ${icon}" style="color:${color}"></i>
+                                ${pkg.name}
+                            </h4>
+                            <p>خصم من الرصيد: <b style="color:#ef4444;">${pkg.costPrice.toLocaleString()}</b> | سعر المبيع: <b style="color:#10b981;">${pkg.salePrice.toLocaleString()}</b></p>
+                        </div>
+                        <div class="package-actions">
+                            <button onclick="removePackage('${pkg.id}')" class="btn-icon-danger"><i class="fas fa-trash"></i></button>
+                        </div>
                     </div>
-                    <div class="package-actions">
-                        <button onclick="removePackage('${pkg.id}')" class="btn-icon-danger"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>
-            `).join('');
+                    `;
+                }).join('');
             }
 
             window.addNewPackage = function () {

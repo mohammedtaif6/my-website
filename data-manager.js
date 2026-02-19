@@ -242,9 +242,13 @@ export const DataManager = {
             const pkg = (localData.settings.packages || []).find(p => p.id === data.packageId);
             if (pkg) {
                 console.log(`📦 Applying Package: ${pkg.name} | Cost: ${pkg.costPrice}`);
+                subData.packageId = data.packageId;
+                subData.packageName = pkg.name;
                 // خصم سعر الشراء من الرصيد المعبأ
                 await this.deductFromVirtualBalance(pkg.costPrice, `تفعيل باقة ${pkg.name} للمشترك ${data.name}`);
             }
+        } else {
+            subData.packageName = 'تفعيل يدوي';
         }
 
         const subRef = await addDoc(collection(db, "subscribers"), subData);
@@ -272,31 +276,35 @@ export const DataManager = {
     async renewSubscription(subscriberFirebaseId, subscriberDataId, renewalData) {
         const sub = localData.subscribers.find(s => s.firebaseId === subscriberFirebaseId);
 
-        // التعامل مع الباقة في التجديد
-        if (renewalData.packageId) {
-            const pkg = (localData.settings.packages || []).find(p => p.id === renewalData.packageId);
-            if (pkg) {
-                await this.deductFromVirtualBalance(pkg.costPrice, `تجديد باقة ${pkg.name} للمشترك ${sub.name}`);
-            }
-        }
-
         let newDebt = parseInt(sub.price || 0);
         if (renewalData.type === 'أجل') newDebt += parseInt(renewalData.price);
 
-        await this.logTransaction({
-            subscriberId: subscriberDataId,
-            amount: parseInt(renewalData.price),
-            type: renewalData.type === 'نقد' ? 'subscription_cash' : 'subscription_debt',
-            description: `تجديد ${renewalData.type} - ${sub.name}`
-        });
-
-        await updateDoc(doc(db, "subscribers", subscriberFirebaseId), {
+        const updateObj = {
             status: 'نشط',
             expiryDate: renewalData.dateEnd,
             paymentType: renewalData.type,
             price: newDebt,
             expiryWarningSent: false
+        };
+
+        // التعامل مع الباقة في التجديد
+        if (renewalData.packageId) {
+            const pkg = (localData.settings.packages || []).find(p => p.id === renewalData.packageId);
+            if (pkg) {
+                updateObj.packageId = renewalData.packageId;
+                updateObj.packageName = pkg.name;
+                await this.deductFromVirtualBalance(pkg.costPrice, `تجديد باقة ${pkg.name} للمشترك ${sub.name}`);
+            }
+        }
+
+        await this.logTransaction({
+            subscriberId: subscriberDataId,
+            amount: parseInt(renewalData.price),
+            type: renewalData.type === 'نقد' ? 'subscription_cash' : 'subscription_debt',
+            description: `تجديد ${renewalData.type} [${updateObj.packageName || sub.packageName || 'بدون باقة'}] - ${sub.name}`
         });
+
+        await updateDoc(doc(db, "subscribers", subscriberFirebaseId), updateObj);
 
         telegramBot.notifyRenewal(
             sub.name,
