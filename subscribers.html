@@ -116,25 +116,25 @@
         .subs-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
-            padding: 30px 20px 100px;
+            gap: 12px;
+            padding: 15px 12px 100px;
             max-width: 1400px;
             margin: 0 auto;
         }
 
         .sub-card {
-            background: var(--glass);
-            border-radius: 24px;
-            padding: 24px;
-            box-shadow: var(--glass-shadow);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: white;
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 8px;
             position: relative;
             overflow: hidden;
             animation: fadeIn 0.4s ease-out forwards;
-            border: 1px solid rgba(255, 255, 255, 0.18);
+            border: 1px solid #f1f5f9;
         }
 
         .sub-card:hover {
@@ -148,12 +148,12 @@
             font-family: "Font Awesome 5 Free";
             font-weight: 900;
             position: absolute;
-            top: 20px;
-            left: 20px;
-            color: #f1f5f9;
-            font-size: 2.5rem;
+            top: 10px;
+            left: 10px;
+            color: #f8fafc;
+            font-size: 1.8rem;
             z-index: 0;
-            opacity: 0.5;
+            opacity: 0.3;
         }
 
         .sub-header {
@@ -204,11 +204,11 @@
 
         .card-body {
             background: #f8fafc;
-            border-radius: 16px;
-            padding: 15px;
+            border-radius: 12px;
+            padding: 10px 12px;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 10px;
             position: relative;
             z-index: 1;
         }
@@ -407,6 +407,33 @@
         </div>
     </div>
 
+    <!-- Edit Modal -->
+    <div id="editSubscriberModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>تعديل بيانات المشترك</h3>
+                <button class="close-btn" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>الاسم</label>
+                    <input type="text" id="edit-name">
+                </div>
+                <div class="form-group">
+                    <label>الهاتف</label>
+                    <input type="tel" id="edit-phone">
+                </div>
+                <div class="form-group">
+                    <label>الباقة الأساسية</label>
+                    <select id="edit-package">
+                        <option value="">-- بدون باقة --</option>
+                    </select>
+                </div>
+                <button onclick="saveEditSubscriber()" class="btn btn-primary btn-full">حفظ التعديلات</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let currentFilter = 'all';
         let selectedSubscriber = null;
@@ -477,34 +504,55 @@
                     statusText = isActive ? 'فعال' : 'منتهي';
                 }
 
+                let pkgIcon = 'fa-box';
+                let pkgColor = '#64748b';
+                const pName = (s.packageName || '').toLowerCase();
+                if (pName.includes('norm')) { pkgIcon = 'fa-star'; pkgColor = '#3b82f6'; }
+                else if (pName.includes('sup')) { pkgIcon = 'fa-bolt'; pkgColor = '#f59e0b'; }
+                else if (pName.includes('gold')) { pkgIcon = 'fa-crown'; pkgColor = '#eab308'; }
+
                 return `
-                    <div class="sub-card" onclick="openActionModal('${s.id}')">
-                        <div class="sub-header">
-                            <div>
+                    <div class="sub-card" style="border-right: 4px solid ${parseInt(s.price || 0) > 0 ? '#e11d48' : '#0ea5e9'};">
+                        <!-- معلومات المشترك الأساسية -->
+                        <div class="sub-header" style="margin-bottom: 5px;">
+                            <div style="flex:1;">
                                 <h3 class="sub-name">${s.name || 'بدون اسم'}</h3>
                                 <div class="sub-phone"><i class="fas fa-phone"></i> ${s.phone || 'بدون هاتف'}</div>
                             </div>
-                                <span class="status-badge ${statusClass}">${statusText}</span>
-                            </div>
-                            <div style="font-size:0.8rem; color:var(--primary); font-weight:bold; margin-top:5px;">
-                                <i class="fas fa-box-open"></i> ${s.packageName || 'نورمال (Default)'}
-                            </div>
-                        </div>
-
-                        <div class="card-body">
-                            <div class="body-item">
-                                <span>تاريخ الانتهاء</span>
-                                <strong>${expiry || '-'}</strong>
-                            </div>
-                            <div class="body-item" style="text-align:left;">
-                                <span>الدين الحالي</span>
-                                <strong style="color:${parseInt(s.price || 0) > 0 ? '#e11d48' : '#059669'};">${(parseInt(s.price || 0)).toLocaleString()} د.ع</strong>
+                            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:3px;">
+                                <span class="status-badge ${statusClass}" style="padding:2px 8px; font-size:0.6rem;">${statusText}</span>
+                                <span style="color:${pkgColor}; font-size:0.7rem; font-weight:bold;">
+                                    <i class="fas ${pkgIcon}"></i> ${s.packageName || 'نورمال'}
+                                </span>
                             </div>
                         </div>
 
-                        <div style="font-size:0.7rem; color:#94a3b8; display:flex; justify-content:space-between; align-items:center;">
-                            <span>#ID: ${s.id}</span>
-                            <span style="opacity:0.5;"><i class="fas fa-user-circle"></i> عرض الخيارات</span>
+                        <!-- تفاصيل الاشتراك والدين -->
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; background:#f8fafc; padding:8px 12px; border-radius:12px; margin-bottom:8px;">
+                            <div>
+                                <span style="display:block; font-size:0.6rem; color:#94a3b8;">ينتهي في</span>
+                                <strong style="font-size:0.8rem; color:#334155;">${expiry || '-'}</strong>
+                            </div>
+                            <div style="text-align:left;">
+                                <span style="display:block; font-size:0.6rem; color:#94a3b8;">الدين</span>
+                                <strong style="font-size:0.8rem; color:${parseInt(s.price || 0) > 0 ? '#e11d48' : '#059669'};">${(parseInt(s.price || 0)).toLocaleString()} <small>د.ع</small></strong>
+                            </div>
+                            <div style="grid-column: span 2; border-top: 1px dashed #e2e8f0; padding-top: 5px; margin-top: 2px; font-size: 0.6rem; color: #94a3b8;">
+                                <i class="fas fa-fingerprint"></i> ID: ${s.id}
+                            </div>
+                        </div>
+
+                        <!-- أزرار الخيارات المجموعة -->
+                        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px;">
+                            <button onclick="window.openRenew('${s.firebaseId}', '${s.id}')" style="background:#0ea5e9; color:white; border:none; padding:8px; border-radius:10px; font-size:0.75rem; cursor:pointer; font-weight:bold;">
+                                <i class="fas fa-sync-alt"></i> تجديد
+                            </button>
+                            <button onclick="window.customActionEdit('${s.id}')" style="background:#f1f5f9; color:#475569; border:none; padding:8px; border-radius:10px; font-size:0.75rem; cursor:pointer;">
+                                <i class="fas fa-edit"></i> تعديل
+                            </button>
+                            <button onclick="window.customActionDelete('${s.id}')" style="background:#fff1f2; color:#e11d48; border:none; padding:8px; border-radius:10px; font-size:0.75rem; cursor:pointer;">
+                                <i class="fas fa-trash"></i> حذف
+                            </button>
                         </div>
                     </div>
                 `;
@@ -521,7 +569,53 @@
         window.closeActionModal = () => document.getElementById('actionModal').classList.remove('active');
         window.actionCall = () => { if (selectedSubscriber.phone) window.location.href = 'tel:' + selectedSubscriber.phone; };
         window.actionDelete = async () => { if (confirm('حذف؟')) { await DataManager.deleteSubscriber(selectedSubscriber.id); closeActionModal(); } };
-        window.actionEdit = () => { let n = prompt('الاسم', selectedSubscriber.name); let p = prompt('الهاتف', selectedSubscriber.phone); if (n) DataManager.updateSubscriber(selectedSubscriber.id, { name: n, phone: p }); closeActionModal(); };
+        window.customActionEdit = (id) => {
+            selectedSubscriber = DataManager.getSubscriber(id);
+            document.getElementById('edit-name').value = selectedSubscriber.name;
+            document.getElementById('edit-phone').value = selectedSubscriber.phone || '';
+
+            const pkgSelect = document.getElementById('edit-package');
+            const packages = DataManager.getSystemSettings().packages || [];
+            pkgSelect.innerHTML = '<option value="">-- بدون باقة --</option>' +
+                packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString()} د.ع)</option>`).join('');
+
+            if (selectedSubscriber.packageId) pkgSelect.value = selectedSubscriber.packageId;
+            document.getElementById('editSubscriberModal').classList.add('active');
+        };
+
+        window.customActionDelete = async (id) => {
+            if (confirm('هل أنت متأكد من حذف هذا المشترك نهائياً؟')) {
+                await DataManager.deleteSubscriber(id);
+            }
+        };
+
+        window.actionEdit = () => {
+            closeActionModal();
+            window.customActionEdit(selectedSubscriber.id);
+        };
+
+        window.closeEditModal = () => document.getElementById('editSubscriberModal').classList.remove('active');
+
+        window.saveEditSubscriber = async () => {
+            const name = document.getElementById('edit-name').value;
+            const phone = document.getElementById('edit-phone').value;
+            const packageId = document.getElementById('edit-package').value;
+
+            if (!name) return;
+
+            const updateData = { name, phone };
+            if (packageId) {
+                updateData.packageId = packageId;
+                const pkg = (DataManager.getSystemSettings().packages || []).find(p => p.id === packageId);
+                if (pkg) updateData.packageName = pkg.name;
+            } else {
+                updateData.packageId = "";
+                updateData.packageName = 'تفعيل يدوي';
+            }
+
+            await DataManager.updateSubscriber(selectedSubscriber.id, updateData);
+            closeEditModal();
+        };
         window.actionActivate = () => { closeActionModal(); window.openRenew(selectedSubscriber.firebaseId, selectedSubscriber.id); };
 
         window.openRenew = (fid, id) => {
@@ -542,14 +636,22 @@
             document.getElementById('qa-id').value = id;
             document.getElementById('qa-fid').value = fid;
             document.getElementById('qa-end').value = target.toISOString().split('T')[0];
-            // تحديث قائمة الباقات
+            // تحديث قائمة الباقات مع الأسعار
             const pkgSelect = document.getElementById('qa-package');
             const packages = DataManager.getSystemSettings().packages || [];
-            pkgSelect.innerHTML = '<option value="">-- تفعيل يدوي --</option>' +
-                packages.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            if (pkgSelect) {
+                pkgSelect.innerHTML = '<option value="">-- تفعيل يدوي --</option>' +
+                    packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString()} د.ع)</option>`).join('');
 
-            // إذا كان المشترك لديه باقة سابقة، اخترها تلقائياً
-            if (selectedSubscriber.packageId) pkgSelect.value = selectedSubscriber.packageId;
+                // اختيار الباقة الحالية للمشترك، أو أول باقة كافتراضي
+                if (selectedSubscriber.packageId) {
+                    pkgSelect.value = selectedSubscriber.packageId;
+                    window.onPackageChange(selectedSubscriber.packageId);
+                } else if (packages.length > 0) {
+                    pkgSelect.value = packages[0].id;
+                    window.onPackageChange(packages[0].id);
+                }
+            }
 
             document.getElementById('quickActivateModal').classList.add('active');
         };

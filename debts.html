@@ -76,22 +76,22 @@
         .debt-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
-            padding: 60px 20px 20px;
+            gap: 12px;
+            padding: 50px 12px 20px;
             max-width: 1200px;
             margin: 0 auto;
         }
 
         .debt-card {
-            background: var(--glass);
-            border-radius: 24px;
-            padding: 24px;
-            box-shadow: var(--glass-shadow);
+            background: white;
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             transition: all 0.3s;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.18);
+            gap: 10px;
+            border: 1px solid #fee2e2;
         }
 
         .debt-card:hover {
@@ -268,25 +268,37 @@
                 return;
             }
 
-            grid.innerHTML = list.map(s => `
-                <div class="debt-card">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <div>
-                            <h3 style="margin:0;">${s.name || 'بدون اسم'}</h3>
-                            <p style="margin:5px 0; color:#64748b; font-size:0.9rem;">${s.phone || '-'}</p>
+            let pkgIcon = 'fa-box';
+            let pkgColor = '#64748b';
+            const pName = (s.packageName || '').toLowerCase();
+            if (pName.includes('norm')) { pkgIcon = 'fa-star'; pkgColor = '#0ea5e9'; }
+            else if (pName.includes('sup')) { pkgIcon = 'fa-bolt'; pkgColor = '#f59e0b'; }
+            else if (pName.includes('gold')) { pkgIcon = 'fa-crown'; pkgColor = '#eab308'; }
+
+            return `
+                    <div class="debt-card" style="border-right: 4px solid #e11d48;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="flex:1;">
+                                <h3 style="margin:0; font-size:1.1rem; color:#1e293b;">${s.name || 'بدون اسم'}</h3>
+                                <div style="display:flex; gap:10px; font-size:0.75rem; color:#64748b; margin-top:4px;">
+                                    <span><i class="fas fa-phone"></i> ${s.phone || '-'}</span>
+                                    <span style="color:${pkgColor}; font-weight:bold;"><i class="fas ${pkgIcon}"></i> ${s.packageName || 'نورمال'}</span>
+                                </div>
+                            </div>
+                            <div class="debt-amount" style="font-size:1.1rem;">${parseInt(s.price).toLocaleString()} <small style="font-size:0.6rem;">د.ع</small></div>
                         </div>
-                        <div class="debt-amount">${parseInt(s.price).toLocaleString()} <small style="font-size:0.6rem;">د.ع</small></div>
+
+                        <div style="background:#f8fafc; padding:8px 12px; border-radius:10px; font-size:0.75rem; color:#64748b; display:flex; justify-content:space-between; margin-top:5px;">
+                            <span>تاريخ الاشتراك:</span>
+                            <span style="font-weight:bold; color:#334155;">${s.expiryDate || '-'}</span>
+                        </div>
+                        
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:5px;">
+                            <button onclick="openPayDebtModal('${s.id}', '${s.firebaseId}', '${(s.name || 'بدون اسم').replace(/'/g, "")}', ${s.price})" class="btn-action btn-pay" style="padding:8px; border:none; border-radius:10px; font-weight:bold; cursor:pointer; font-size:0.8rem;"><i class="fas fa-money-bill-wave"></i> تسديد</button>
+                            <button onclick="notifyDebtor('${(s.name || 'بدون اسم').replace(/'/g, "")}', '${s.phone}', ${s.price})" class="btn-action btn-wa" style="padding:8px; border:none; border-radius:10px; font-weight:bold; cursor:pointer; font-size:0.8rem;"><i class="fab fa-whatsapp"></i> تنبيه</button>
+                        </div>
                     </div>
-                    <div style="background:#f8fafc; padding:12px; border-radius:15px; font-size:0.85rem; color:#64748b; display:flex; justify-content:space-between;">
-                        <span>تاريخ الاشتراك:</span>
-                        <span>${s.expiryDate || '-'}</span>
-                    </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                        <button onclick="openPayDebtModal('${s.id}', '${s.firebaseId}', '${(s.name || 'بدون اسم').replace(/'/g, "")}', ${s.price})" class="btn-action btn-pay" style="padding:12px; border:none; border-radius:14px; font-weight:bold; cursor:pointer;"><i class="fas fa-money-bill-wave"></i> تسديد</button>
-                        <button onclick="notifyDebtor('${(s.name || 'بدون اسم').replace(/'/g, "")}', '${s.phone}', ${s.price})" class="btn-action btn-wa" style="padding:12px; border:none; border-radius:14px; font-weight:bold; cursor:pointer;"><i class="fab fa-whatsapp"></i> تنبيه</button>
-                    </div>
-                </div>
-            `).join('');
+                `;
         };
 
         window.openPayDebtModal = (id, fid, name, amt) => {

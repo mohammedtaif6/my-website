@@ -81,24 +81,25 @@
         .active-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
-            padding: 60px 20px 20px;
+            gap: 12px;
+            padding: 50px 12px 20px;
             max-width: 1200px;
             margin: 0 auto;
         }
 
         .active-card {
-            background: var(--glass);
-            border-radius: 24px;
-            padding: 24px;
-            box-shadow: var(--glass-shadow);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: white;
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 10px;
             position: relative;
             overflow: hidden;
             animation: fadeIn 0.4s ease-out forwards;
+            border: 1px solid #f1f5f9;
         }
 
         .active-card:hover {
@@ -262,30 +263,37 @@
                 const dateObj = new Date(s.expiryDate);
                 const readableDate = dateObj.toLocaleDateString('ar-IQ', { day: 'numeric', month: 'long' });
 
-                return `
-                    <div class="active-card" onclick="window.location.href='subscribers.html?id=${s.id}'" style="cursor:pointer">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                            <div>
-                                <h3 style="margin:0;">${s.name || 'بدون اسم'}</h3>
-                                <p style="margin:5px 0; font-size:0.9rem; color:#666;"><i class="fas fa-phone"></i> ${s.phone || '-'}</p>
-                            </div>
-                            <span class="days-badge ${badgeClass}">${days <= 0 ? 'آخر يوم' : 'متبقي ' + days + ' يوم'}</span>
-                        </div>
+                let pkgIcon = 'fa-box';
+                let pkgColor = '#64748b';
+                const pName = (s.packageName || '').toLowerCase();
+                if (pName.includes('norm')) { pkgIcon = 'fa-star'; pkgColor = '#0ea5e9'; }
+                else if (pName.includes('sup')) { pkgIcon = 'fa-bolt'; pkgColor = '#f59e0b'; }
+                else if (pName.includes('gold')) { pkgIcon = 'fa-crown'; pkgColor = '#eab308'; }
 
-                        <div style="background:#f8fafc; padding:15px; border-radius:15px; display:grid; grid-template-columns: 1fr 1fr; gap:10px; font-size:0.85rem;">
-                            <div>
-                                <span style="display:block; color:#94a3b8; font-size:0.7rem; margin-bottom:2px;">ينتهي في</span>
-                                <span style="font-weight:bold; color:#334155;">${readableDate}</span>
+                return `
+                    <div class="active-card" onclick="window.location.href='subscribers.html?id=${s.id}'" style="border-right: 4px solid #10b981;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="flex:1;">
+                                <h3 style="margin:0; font-size: 1.1rem; color: #1e293b;">${s.name || 'بدون اسم'}</h3>
+                                <div style="display:flex; gap:10px; font-size:0.75rem; color:#64748b; margin-top:4px;">
+                                    <span><i class="fas fa-phone"></i> ${s.phone || '-'}</span>
+                                    <span style="color:${pkgColor}; font-weight:bold;"><i class="fas ${pkgIcon}"></i> ${s.packageName || 'نورمال'}</span>
+                                </div>
                             </div>
                             <div style="text-align:left;">
-                                <span style="display:block; color:#94a3b8; font-size:0.7rem; margin-bottom:2px;">الدين</span>
-                                <span style="font-weight:bold; color:${parseInt(s.price) > 0 ? '#ef4444' : '#10b981'};">${(parseInt(s.price) || 0).toLocaleString()} د.ع</span>
+                                <span class="days-badge ${badgeClass}" style="font-size: 0.6rem; padding: 2px 8px;">${days <= 0 ? 'آخر يوم' : 'متبقي ' + days}</span>
                             </div>
                         </div>
 
-                        <div class="card-footer">
-                            <span style="font-size:0.8rem; color:#94a3b8;"><i class="fas fa-id-badge"></i> ID: ${s.id}</span>
-                            <span class="badge badge-success" style="font-size:0.7rem;">نشط الآن</span>
+                        <div style="background:#f8fafc; padding:10px; border-radius:12px; display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:5px;">
+                            <div>
+                                <span style="display:block; color:#94a3b8; font-size:0.6rem;">ينتهي في</span>
+                                <span style="font-weight:bold; color:#334155; font-size: 0.8rem;">${readableDate}</span>
+                            </div>
+                            <div style="text-align:left;">
+                                <span style="display:block; color:#94a3b8; font-size:0.6rem;">الدين</span>
+                                <span style="font-weight:bold; color:${parseInt(s.price) > 0 ? '#ef4444' : '#10b981'}; font-size: 0.8rem;">${(parseInt(s.price) || 0).toLocaleString()} د.ع</span>
+                            </div>
                         </div>
                     </div>
                 `;

@@ -785,12 +785,18 @@
 
             document.getElementById('activateModal').classList.add('active');
 
-            // تحديث قائمة الباقات
+            // تحديث قائمة الباقات مع الأسعار
             const pkgSelect = document.getElementById('act-package');
             const packages = DataManager.getSystemSettings().packages || [];
             if (pkgSelect) {
                 pkgSelect.innerHTML = '<option value="">-- تفعيل يدوي (بدون باقة) --</option>' +
                     packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString()} د.ع)</option>`).join('');
+
+                // جعل الخيار الأول (Normal) هو الافتراضي بدلاً من اليدوي
+                if (packages.length > 0 && !pkgSelect.value) {
+                    pkgSelect.value = packages[0].id;
+                    window.onPackageChange(packages[0].id);
+                }
             }
 
             // ضبط السعر الافتراضي إذا لم يعدله المستخدم

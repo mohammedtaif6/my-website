@@ -1,5 +1,5 @@
 /**
- * DataManager v15.0 - مع دعم Telegram Bot
+ * DataManager v31.1 - مع نظام الباقات السحابي المتقدم ودعم التنبيهات
  */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { initializeFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, limit, getDocs, where, persistentLocalCache, persistentMultipleTabManager, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -16,37 +16,27 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-
-// الطريقة الصحيحة: استخدام initializeFirestore مع localCache
 const db = initializeFirestore(app, {
     localCache: persistentLocalCache({
         tabManager: persistentMultipleTabManager()
     })
 });
-
 const auth = getAuth(app);
-
-console.log('✅ Firebase مُهيأ بالتخزين المحلي المتقدم - جاهز للعمل!');
-
-
 
 let localData = { subscribers: [], transactions: [], archived_transactions: [], employees: [], settings: {}, accounts: [] };
 let isProcessing = false;
 
-// === Toast Logic ===
 function showToast(message, type = 'success') {
     let container = document.getElementById('toast-container');
     if (!container) {
         container = document.createElement('div');
         container.id = 'toast-container';
-        document.body.appendChild(container); // Relies on CSS for styling
+        document.body.appendChild(container);
     }
-
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.innerHTML = type === 'error' ? `<i class="fas fa-exclamation-circle"></i> ${message}` : `<i class="fas fa-check-circle"></i> ${message}`;
     container.appendChild(toast);
-
     setTimeout(() => {
         toast.style.opacity = '0';
         toast.style.transform = 'translateY(20px)';
@@ -55,196 +45,100 @@ function showToast(message, type = 'success') {
 }
 
 export const DataManager = {
-    showToast: showToast, // تصدير دالة التنبيهات
-    db: db, // تصدير قاعدة البيانات للاستخدام الخارجي (مثل صفحة الإعدادات)
+    showToast: showToast,
+    db: db,
 
     init() {
-        console.log("========================================");
-        console.log("🚀 SAS System v31.0 - Professional Debug Edition");
-        console.log("🛠️ DataManager Method Check: ", typeof this.topUpVirtualBalance);
-        console.log("========================================");
-
-
+        console.log("🚀 SAS System Initializing...");
         this.sync('subscribers');
         this.sync('transactions');
         this.sync('archived_transactions');
         this.sync('employees');
         this.sync('settings');
-        this.sync('accounts'); // المزامنة للحسابات المالية المخصصة
-
-
+        this.sync('accounts');
         this.monitorConnection();
 
-        // تسجيل الدخول المجهول (لحل مشاكل Security Rules)
-        signInAnonymously(auth)
-            .then(() => {
-                console.log('✅ Signed in anonymously');
-            })
-            .catch((error) => {
-                if (error.code === 'auth/configuration-not-found') {
-                    console.warn('⚠️ تنبيه: خدمة "Anonymous Auth" غير مفعلة في لوحة تحكم Firebase.');
-                } else {
-                    console.warn('⚠️ Auth Error (may cause permission issues):', error);
-                }
-            });
+        signInAnonymously(auth).catch(err => console.warn('Auth Error:', err));
 
-        // تهيئة Telegram Bot مع Firebase (إذا كان موجوداً)
-        try {
-            if (typeof telegramBot !== 'undefined' && telegramBot) {
-                telegramBot.initFirebase(db).then(() => {
-                    console.log('✅ Telegram Bot initialized with Firebase');
-                }).catch(err => {
-                    console.warn('⚠️ Telegram Bot init failed (non-critical):', err);
-                });
-            }
-        } catch (err) {
-            console.warn('⚠️ Telegram Bot not available (non-critical):', err);
+        if (typeof telegramBot !== 'undefined' && telegramBot) {
+            telegramBot.initFirebase(db).catch(err => console.warn('Telegram init failed:', err));
         }
-
-
     },
 
-    // مراقبة حالة الاتصال بـ Firebase
     monitorConnection() {
-        // استماع لأي أخطاء في الاتصال
-        window.addEventListener('online', () => {
-            console.log('✅ الإنترنت متصل - البيانات ستتزامن الآن');
-            showToast('تم الاتصال بالإنترنت', 'success');
-        });
-
-        window.addEventListener('offline', () => {
-            console.log('❌ الإنترنت منقطع - النظام يعمل من التخزين المحلي');
-            showToast('الإنترنت منقطع - تعمل من البيانات المحلية', 'error');
-        });
-
-        // فحص الاتصال الأولي
-        if (!navigator.onLine) {
-            console.warn('⚠️ لا يوجد اتصال بالإنترنت');
-        }
+        window.addEventListener('online', () => showToast('تم الاتصال بالإنترنت', 'success'));
+        window.addEventListener('offline', () => showToast('الإنترنت منقطع - تعمل محلياً', 'error'));
     },
 
-    // === المزامنة مع الفايربيس ===
     sync(colName) {
         if (!localData[colName]) localData[colName] = [];
-
-        // جلب البيانات بدون فلاتر معقدة لضمان عدم فشل الاستعلام بسبب الفهارس (Indexes)
-        // سنقوم بالترتيب والحد (Limit) محلياً لضمان ظهور كل شيء
         const q = query(collection(db, colName));
 
-        onSnapshot(q,
-            (snapshot) => {
-                let data = snapshot.docs.map(d => ({ ...d.data(), firebaseId: d.id }));
+        onSnapshot(q, (snapshot) => {
+            let data = snapshot.docs.map(d => ({ ...d.data(), firebaseId: d.id }));
 
-                // ترتيب البيانات محلياً حسب التاريخ (تنازلي)
-                data.sort((a, b) => {
-                    const dateA = new Date(a.createdAt || 0);
-                    const dateB = new Date(b.createdAt || 0);
-                    return dateB - dateA;
-                });
+            if (colName === 'settings') {
+                const newSettings = data.reduce((acc, curr) => ({ ...acc, ...curr }), {});
+                const currentStr = JSON.stringify(localData.settings || {});
+                const newStr = JSON.stringify(newSettings);
 
-                // بالنسبة للعمليات، قد نرغب في تحديد العدد محلياً فقط إذا كان ضخماً جداً
-                // لكننا سنتركها الآن لضمان ظهور "كل" البيانات القديمة
-                if (colName === 'settings') {
-                    console.log(`📡 Firebase [${colName}] raw data received:`, data);
+                if (currentStr !== newStr) {
+                    localData.settings = newSettings;
+                    localStorage.setItem('sas_settings', JSON.stringify(newSettings));
+                    if (window.AuthSystem && window.AuthSystem.applyUIConfigs) window.AuthSystem.applyUIConfigs(newSettings);
+                    if (window.loadSettings) window.loadSettings();
 
-                    // تحويل المصفوفة إلى كائن واحد (دمج كافة المستندات في المجموعة)
-                    const newSettings = data.reduce((acc, curr) => ({ ...acc, ...curr }), {});
-                    console.log(`⚙️ Combined Settings Object:`, newSettings);
-
-                    // التحقق هل هناك تغيير فعلي
-                    const currentStr = JSON.stringify(localData.settings || {});
-                    const newStr = JSON.stringify(newSettings);
-
-                    if (currentStr !== newStr) {
-                        localData.settings = newSettings;
-                        console.log(`✅ System Settings Synchronized from Cloud`);
-
-                        // تحديث الكاش المحلي فوراً للتسريع
-                        localStorage.setItem('sas_settings', JSON.stringify(newSettings));
-
-                        // تطبيق التغييرات فوراً على الواجهة
-                        if (window.AuthSystem && window.AuthSystem.applyUIConfigs) {
-                            window.AuthSystem.applyUIConfigs(newSettings);
-                        }
-
-                        // تحديث حقول الإدخال إذا كنا في صفحة الإعدادات
-                        if (window.loadSettings) {
-                            console.log("🔄 Triggering loadSettings() in UI");
-                            window.loadSettings();
-                        }
-                    } else {
-                        console.log("ℹ️ Settings received are identical to local, skipping UI update.");
+                    if (!newSettings.packages || newSettings.packages.length === 0) {
+                        this.bootstrapPackages();
                     }
-                } else {
-                    localData[colName] = data;
-                    console.log(`📊 Firebase Sync [${colName}]: ${data.length} records loaded.`);
+                }
+            } else {
+                localData[colName] = data;
+                // ترتيب محلي
+                if (colName !== 'settings') {
+                    localData[colName].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
                 }
 
-                // تحديث الواجهات إذا كانت الوظائف متاحة
                 if (colName === 'subscribers') {
-                    if (window.renderPage) window.renderPage(); // صفحة المشتركين
-                    if (window.updatePageData) window.updatePageData(); // الداشبورد
+                    if (window.renderPage) window.renderPage();
+                    if (window.updatePageData) window.updatePageData();
                 }
                 if (colName === 'employees' && window.renderEmployees) window.renderEmployees();
                 if (colName === 'transactions' && window.generateReport) window.generateReport();
-            },
-            (error) => {
-                console.error(`❌ Firebase Error (${colName}):`, error);
-                showToast(`خطأ في جلب ${colName}: ` + error.message, 'error');
             }
-        );
+        }, (error) => {
+            console.error(`❌ Sync [${colName}] error:`, error);
+        });
+    },
+
+    async bootstrapPackages() {
+        const defaults = [
+            { id: 'pkg_norm', name: 'نورمال (Normal)', costPrice: 22000, salePrice: 35000 },
+            { id: 'pkg_super', name: 'سوبر (Super)', costPrice: 24000, salePrice: 40000 },
+            { id: 'pkg_gold', name: 'جولد (Gold)', costPrice: 28000, salePrice: 50000 }
+        ];
+        try {
+            await setDoc(doc(db, "settings", "global"), { packages: defaults }, { merge: true });
+        } catch (e) {
+            console.error("❌ Bootstrap failed:", e);
+        }
     },
 
     async logTransaction(data) {
-        if (isProcessing) return; isProcessing = true;
+        if (isProcessing) return;
+        isProcessing = true;
         try {
-            await addDoc(collection(db, "transactions"), {
-                id: Date.now(),
-                createdAt: new Date().toISOString(),
-                isArchived: false,
-                ...data
-            });
-        } catch (e) {
-            console.error('❌ Transaction Error:', e);
-            // لا نعرض رسالة خطأ للمستخدم - فقط نسجل في الكونسول
-        }
-        finally { isProcessing = false; }
-    },
-
-    // WhatsApp Helper
-    sendWhatsApp(sub, amount, type, endDate) {
-        if (!sub.phone) return;
-        // Clean phone number (Iraq format)
-        let phone = sub.phone.replace(/\D/g, ''); // Remove non-digits
-        if (phone.startsWith('0')) phone = phone.substring(1);
-        if (!phone.startsWith('964')) phone = '964' + phone;
-
-        const msg = `مرحباً ${sub.name}،
-تم ${type === 'تجديد' ? 'تجديد اشتراكك' : 'تفعيل اشتراكك'} بنجاح.
-المبلغ: ${amount.toLocaleString()} د.ع
-تاريخ الانتهاء: ${endDate}
-شكراً لثقتكم بنا - OK Computer`;
-
-        // Encode and open
-        const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-        window.open(url, '_blank');
+            await addDoc(collection(db, "transactions"), { id: Date.now(), createdAt: new Date().toISOString(), isArchived: false, ...data });
+        } finally { isProcessing = false; }
     },
 
     async addSubscriber(data) {
-        const subData = {
-            id: Date.now(),
-            createdAt: new Date().toISOString(),
-            ...data
-        };
-
-        // التعامل مع الباقة إذا وجدت (نظام الخصم الاحترافي)
+        const subData = { id: Date.now(), createdAt: new Date().toISOString(), ...data };
         if (data.packageId) {
-            const pkg = (localData.settings.packages || []).find(p => p.id === data.packageId);
+            const pkg = (this.getSystemSettings().packages || []).find(p => p.id === data.packageId);
             if (pkg) {
-                console.log(`📦 Applying Package: ${pkg.name} | Cost: ${pkg.costPrice}`);
                 subData.packageId = data.packageId;
                 subData.packageName = pkg.name;
-                // خصم سعر الشراء من الرصيد المعبأ
                 await this.deductFromVirtualBalance(pkg.costPrice, `تفعيل باقة ${pkg.name} للمشترك ${data.name}`);
             }
         } else {
@@ -253,140 +147,83 @@ export const DataManager = {
 
         const subRef = await addDoc(collection(db, "subscribers"), subData);
 
-        const initialAmount = data.initialPrice || 0;
-        if (initialAmount > 0) {
+        if (data.initialPrice > 0) {
             await this.logTransaction({
-                subscriberId: subData.id,
-                amount: parseInt(initialAmount),
+                subscriberId: subData.id, amount: parseInt(data.initialPrice),
                 type: data.paymentType === 'نقد' ? 'subscription_cash' : 'subscription_debt',
-                description: `اشتراك جديد (${data.paymentType}): ${subData.name}`
+                description: `اشتراك جديد: ${subData.name}`
             });
             if (data.paymentType === 'نقد') await updateDoc(doc(db, "subscribers", subRef.id), { price: 0 });
 
-            telegramBot.notifyNewActivation(
-                subData.name,
-                parseInt(initialAmount),
-                data.paymentType,
-                data.expiryDate || 'غير محدد'
-            );
+            telegramBot.notifyNewActivation(subData.name, parseInt(data.initialPrice), data.paymentType, data.expiryDate || 'غير محدد');
         }
         showToast("تمت الإضافة بنجاح");
     },
 
     async renewSubscription(subscriberFirebaseId, subscriberDataId, renewalData) {
         const sub = localData.subscribers.find(s => s.firebaseId === subscriberFirebaseId);
-
         let newDebt = parseInt(sub.price || 0);
         if (renewalData.type === 'أجل') newDebt += parseInt(renewalData.price);
 
-        const updateObj = {
-            status: 'نشط',
-            expiryDate: renewalData.dateEnd,
-            paymentType: renewalData.type,
-            price: newDebt,
-            expiryWarningSent: false
-        };
+        const updateObj = { status: 'نشط', expiryDate: renewalData.dateEnd, paymentType: renewalData.type, price: newDebt, expiryWarningSent: false };
 
-        // التعامل مع الباقة في التجديد
         if (renewalData.packageId) {
-            const pkg = (localData.settings.packages || []).find(p => p.id === renewalData.packageId);
+            const pkg = (this.getSystemSettings().packages || []).find(p => p.id === renewalData.packageId);
             if (pkg) {
                 updateObj.packageId = renewalData.packageId;
                 updateObj.packageName = pkg.name;
                 await this.deductFromVirtualBalance(pkg.costPrice, `تجديد باقة ${pkg.name} للمشترك ${sub.name}`);
             }
+        } else {
+            updateObj.packageName = 'تفعيل يدوي';
         }
 
         await this.logTransaction({
-            subscriberId: subscriberDataId,
-            amount: parseInt(renewalData.price),
+            subscriberId: subscriberDataId, amount: parseInt(renewalData.price),
             type: renewalData.type === 'نقد' ? 'subscription_cash' : 'subscription_debt',
-            description: `تجديد ${renewalData.type} [${updateObj.packageName || sub.packageName || 'بدون باقة'}] - ${sub.name}`
+            description: `تجديد: ${sub.name}`
         });
 
         await updateDoc(doc(db, "subscribers", subscriberFirebaseId), updateObj);
 
-        telegramBot.notifyRenewal(
-            sub.name,
-            parseInt(renewalData.price),
-            renewalData.type,
-            renewalData.dateEnd
-        );
-
+        telegramBot.notifyRenewal(sub.name, parseInt(renewalData.price), renewalData.type, renewalData.dateEnd);
         showToast("تم التجديد بنجاح");
     },
 
     async updateSubscriber(id, data) {
         const sub = localData.subscribers.find(s => s.id == id);
-        if (sub) { await updateDoc(doc(db, "subscribers", sub.firebaseId), data); showToast("تم الحفظ"); }
-    },
-
-    async markExpiryWarningSent(id) {
-        const sub = localData.subscribers.find(s => s.id == id);
-        if (sub) {
-            await updateDoc(doc(db, "subscribers", sub.firebaseId), { expiryWarningSent: true });
-        }
+        if (sub) await updateDoc(doc(db, "subscribers", sub.firebaseId), data);
     },
 
     async payDebt(fid, did, amount) {
         const sub = localData.subscribers.find(s => s.firebaseId === fid);
         const newDebt = Math.max(0, (parseInt(sub.price) || 0) - amount);
 
-        await this.logTransaction({
-            subscriberId: did, amount: parseInt(amount), type: 'debt_payment',
-            description: `تسديد دين من ${sub.name}`
-        });
-
+        await this.logTransaction({ subscriberId: did, amount: parseInt(amount), type: 'debt_payment', description: `تسديد دين: ${sub.name}` });
         await updateDoc(doc(db, "subscribers", fid), { price: newDebt, paymentType: newDebt === 0 ? 'نقد' : 'أجل' });
 
-        // إشعار Telegram
-        telegramBot.notifyDebtPaid(
-            sub.name,
-            parseInt(amount),
-            newDebt
-        );
-
+        telegramBot.notifyDebtPaid(sub.name, parseInt(amount), newDebt);
         showToast("تم التسديد");
     },
 
     async addExpense(amount, description) {
         await this.logTransaction({ subscriberId: null, amount: -Math.abs(amount), type: 'expense', description });
-
-        // إشعار Telegram
         telegramBot.notifyExpense(description, Math.abs(amount));
-
         showToast("تم حفظ الصرفية");
     },
 
-    async recordTransaction(sid, amt, desc, type) {
-        await this.logTransaction({ subscriberId: sid, amount: amt, description: desc, type });
-        showToast("تم الحفظ");
-    },
-
     async archiveAllCurrent() {
-        const unarchived = localData.transactions; // كل ما في مجموعة transactions نعتبره "حالياً" للفترة النشطة
+        const unarchived = localData.transactions;
         if (unarchived.length === 0) return showToast("لا يوجد شيء لترحيله", "error");
-
-        if (!confirm(`هل أنت متأكد من ترحيل ${unarchived.length} سجل إلى الأرشيف الدائم؟\nسيتم إفراغ الصندوق الحالي.`)) return;
+        if (!confirm(`هل أنت متأكد من ترحيل ${unarchived.length} سجل إلى الأرشيف؟`)) return;
 
         try {
-            showToast("جاري الترحيل للأرشيف...");
-
             for (const t of unarchived) {
-                // 1. نسخ السجل إلى مجموعة الأرشيف
-                await addDoc(collection(db, "archived_transactions"), {
-                    ...t,
-                    isArchived: true,
-                    archivedAt: new Date().toISOString()
-                });
-
-                // 2. حذف السجل من المجموعة النشطة
+                await addDoc(collection(db, "archived_transactions"), { ...t, isArchived: true, archivedAt: new Date().toISOString() });
                 await deleteDoc(doc(db, "transactions", t.firebaseId));
             }
-
-            showToast("تم ترحيل البيانات للأرشيف الدائم بنجاح ✅");
+            showToast("تم الترحيل للأرشيف بنجاح ✅");
         } catch (e) {
-            console.error("Archive Error:", e);
             showToast("فشل الترحيل: " + e.message, "error");
         }
     },
@@ -394,197 +231,86 @@ export const DataManager = {
     async deleteTransaction(id) {
         if (!confirm("حذف؟")) return;
         const t = localData.transactions.find(tx => tx.id == id);
-        if (t) { await deleteDoc(doc(db, "transactions", t.firebaseId)); showToast("تم الحذف"); }
-    },
-
-    async updateTransaction(id, newData) {
-        const t = localData.transactions.find(tx => tx.id == id);
-        if (t) { await updateDoc(doc(db, "transactions", t.firebaseId), newData); showToast("تم التعديل"); }
+        if (t) await deleteDoc(doc(db, "transactions", t.firebaseId));
     },
 
     async deleteSubscriber(id) {
         if (!confirm("حذف المشترك نهائياً؟")) return;
         const sub = localData.subscribers.find(s => s.id == id);
-        if (sub) { await deleteDoc(doc(db, "subscribers", sub.firebaseId)); showToast("تم الحذف"); }
+        if (sub) await deleteDoc(doc(db, "subscribers", sub.firebaseId));
     },
 
-    getDailyBalance() {
-        const txs = localData.transactions.filter(t => !t.isArchived && t.type !== 'subscription_debt');
-        const inc = txs.filter(t => t.amount > 0).reduce((a, b) => a + b.amount, 0);
-        const exp = txs.filter(t => t.amount < 0).reduce((a, b) => a + Math.abs(b.amount), 0);
-        return inc - exp;
-    },
-
-    getAllTransactions() { return localData.transactions; },
-    getArchivedTransactions() { return localData.archived_transactions; },
+    getSystemSettings() { return localData.settings || {}; },
     getSubscribers() { return localData.subscribers; },
-    get subscribers() { return localData.subscribers; }, // إضافة getter للوصول المباشر
     getSubscriber(id) { return localData.subscribers.find(s => s.id == id); },
-    searchSubscribers(q) {
-        if (!q) return localData.subscribers;
-        return localData.subscribers.filter(s => s.name?.toLowerCase().includes(q.toLowerCase()) || s.phone?.includes(q));
+    getDailyBalance() {
+        return localData.transactions.filter(t => !t.isArchived && t.type !== 'subscription_debt').reduce((a, b) => a + b.amount, 0);
+    },
+    getSystemBalance() {
+        const sysAcc = (localData.accounts || []).find(a => a.firebaseId === 'system');
+        return sysAcc ? (sysAcc.balance || 0) : 0;
     },
 
-    // --- إدارة الموظفين والرواتب ---
+    async deductFromVirtualBalance(amount, reason = "استقطاع رصيد") {
+        const currentBal = this.getSystemBalance();
+        const newBal = currentBal - amount;
+        await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString() }, { merge: true });
+    },
+
+    async topUpVirtualBalance(amount) {
+        await this.addExpense(amount, "تعبئة رصيد النظام");
+        const currentBal = this.getSystemBalance();
+        const newBal = currentBal + amount;
+        await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString(), type: 'system_funds' }, { merge: true });
+        showToast(`✅ تم إضافة ${amount.toLocaleString()} د.ع للرصيد`);
+    },
+
+    // --- إدارة الموظفين ---
     getEmployees() { return localData.employees || []; },
-
     getEmployee(id) { return (localData.employees || []).find(e => e.id == id); },
-
     async addEmployee(data) {
-        // نحدد تاريخ التعيين لليوم بشكل افتراضي لبدء حساب الراتب
-        const emp = {
-            id: Date.now(),
-            createdAt: new Date().toISOString(),
-            startDate: new Date().toISOString().split('T')[0], // تاريخ بدء الحساب
-            advances: 0, // مجموع السلف
-            ...data
-        };
-
-        try {
-            // نرسل البيانات للسيرفر فقط، وننتظر عودتها عبر الـ Sync
-            await addDoc(collection(db, "employees"), emp);
-            showToast("تم إرسال بيانات الموظف للسيرفر...");
-        } catch (e) {
-            console.error("Error adding employee:", e);
-            showToast("فشل الحفظ في قاعدة البيانات: " + e.message, "error");
-        }
+        await addDoc(collection(db, "employees"), { id: Date.now(), createdAt: new Date().toISOString(), startDate: new Date().toISOString().split('T')[0], advances: 0, ...data });
     },
-
     async updateEmployee(id, newData) {
         const emp = this.getEmployee(id);
-        if (emp) {
-            await updateDoc(doc(db, "employees", emp.firebaseId), newData);
-            showToast("تم تحديث بيانات الموظف");
-        }
+        if (emp) await updateDoc(doc(db, "employees", emp.firebaseId), newData);
     },
-
     async deleteEmployee(id) {
-        if (!confirm("هل أنت متأكد من حذف الموظف؟")) return;
         const emp = this.getEmployee(id);
-        if (emp) {
-            await deleteDoc(doc(db, "employees", emp.firebaseId));
-            showToast("تم حذف الموظف");
-        }
+        if (emp && confirm("حذف الموظف؟")) await deleteDoc(doc(db, "employees", emp.firebaseId));
     },
-
-    // تسجيل سلفة (خصم من الراتب)
     async addAdvance(empId, amount, note) {
         const emp = this.getEmployee(empId);
         if (!emp) return;
-
-        // 1. تسجيلها كصرفية عامة في النظام
         await this.addExpense(amount, `سلفة موظف: ${emp.name} - ${note}`);
-
-        // 2. تحديث مجموع السلف للموظف
         const currentAdvances = parseFloat(emp.advances || 0);
-        await updateDoc(doc(db, "employees", emp.firebaseId), {
-            advances: currentAdvances + parseFloat(amount)
-        });
+        await updateDoc(doc(db, "employees", emp.firebaseId), { advances: currentAdvances + parseFloat(amount) });
     },
-
-    // صرف راتب الموظف (يصفر الرصيد ويسجل صرفية)
     async paySalary(empId) {
         const emp = this.getEmployee(empId);
-        if (!emp) return;
-
-        const balance = this.calculateEmployeeBalance(empId);
-
-        if (balance.net <= 0) {
-            showToast('لا يوجد راتب مستحق للصرف', 'error');
-            return;
+        const bal = this.calculateEmployeeBalance(empId);
+        if (bal.net > 0 && confirm(`صرف راتب ${emp.name} بمبلغ ${bal.net.toLocaleString()}؟`)) {
+            await this.addExpense(bal.net, `راتب موظف: ${emp.name}`);
+            await updateDoc(doc(db, "employees", emp.firebaseId), { startDate: new Date().toISOString().split('T')[0], advances: 0 });
         }
-
-        if (!confirm(`هل تريد صرف راتب ${emp.name}؟\nالمبلغ: ${balance.net.toLocaleString()} د.ع`)) {
-            return;
-        }
-
-        // 1. تسجيل الصرفية من الصندوق
-        await this.addExpense(balance.net, `راتب موظف: ${emp.name}`);
-
-        // 2. تصفير الرصيد (نعيد ضبط تاريخ البداية لليوم ونصفر السلف)
-        await updateDoc(doc(db, "employees", emp.firebaseId), {
-            startDate: new Date().toISOString().split('T')[0],
-            advances: 0
-        });
-
-        showToast(`تم صرف راتب ${emp.name} بنجاح`);
     },
-
-    // تصفير العدادات وترحيل الحساب (طلب المستخدم)
-    async archiveAndReset(empId) {
-        const emp = this.getEmployee(empId);
-        if (!emp) return;
-
-        const balance = this.calculateEmployeeBalance(empId);
-
-        // التحقق من أن المبلغ يستحق التصفير (ممكن يكون سالب أو موجب)
-        if (balance.net === 0 && balance.advances === 0) {
-            showToast('لا توجد مبالغ أو سلف لتصفيرها', 'warning');
-            return;
-        }
-
-        if (!confirm(`هل أنت متأكد من تصفير العدادات وترحيل الحساب للموظف ${emp.name}؟\nسيتم تسجيل صافي المبلغ (${balance.net.toLocaleString()}) في الصندوق.`)) {
-            return;
-        }
-
-        // 1. تسجيل العملية في الصندوق (سواء صرف أو قبض حسب الإشارة)
-        // إذا كان الصافي موجب (له راتب) -> صرفية
-        // إذا كان الصافي سالب (مطلوب) -> مقبوضات (نظرياً، أو يتم ترحيلها كدين مسدد)
-        // سنعتبرها صرفية بنفس القيمة (موجبة أو سالبة) لضبط الصندوق
-        await this.addExpense(balance.net, `تصفية حساب موظف: ${emp.name}`);
-
-        // 2. تصفير العدادات
-        await updateDoc(doc(db, "employees", emp.firebaseId), {
-            startDate: new Date().toISOString().split('T')[0],
-            advances: 0
-        });
-
-        showToast(`تم تصفير عدادات ${emp.name} وترحيل الحساب بنجاح`);
-    },
-
-    // حساب رصيد الموظف الحالي
     calculateEmployeeBalance(empId) {
         const emp = this.getEmployee(empId);
-        // ندعم dailySalary (حسب الهيكلة القديمة والجديدة)
-        // الراتب المخزن هو "اليومي" (الأسبوعي / 7)
-        if (!emp || !emp.dailySalary) return 0;
-
+        if (!emp || !emp.dailySalary) return { earned: 0, net: 0, advances: 0, days: 0 };
         const start = new Date(emp.startDate || emp.createdAt);
         const now = new Date();
-
-        // حساب عدد الأيام (الفرق بالملي ثانية / ملي ثانية اليوم)
-        const diffTime = Math.abs(now - start);
-        let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        // --- تعديل (طلب المستخدم): الدوام من 6 مساءً (18:00) ---
-        // إذا كان الوقت الحالي قبل الساعة 18:00، لا نحسب "اليوم الحالي" ضمن الأيام المستحقة
-        // هذا يعني أن الراتب "ينزل" أو يُضاف لحساب الموظف عند حلول الساعة 6 مساءً
-        if (now.getHours() < 18) {
-            diffDays = Math.max(0, diffDays - 1);
-        }
-
-        // الراتب المستحق = الأيام * الراتب اليومي
-        const totalEarned = diffDays * parseFloat(emp.dailySalary);
-
-        // الراتب الصافي = المستحق - السلف
-        const netBalance = totalEarned - (parseFloat(emp.advances) || 0);
-
-        return {
-            days: diffDays,
-            earned: totalEarned,
-            advances: (parseFloat(emp.advances) || 0),
-            net: netBalance
-        };
+        let diffDays = Math.max(0, Math.ceil((now - start) / (1000 * 60 * 60 * 24)));
+        if (now.getHours() < 18) diffDays = Math.max(0, diffDays - 1);
+        const earned = diffDays * parseFloat(emp.dailySalary);
+        const advances = parseFloat(emp.advances || 0);
+        return { earned, net: earned - advances, advances, days: diffDays };
     },
-
     getStats() {
         const subs = localData.subscribers;
-        const totalDebts = subs.reduce((sum, s) => sum + (parseInt(s.price) || 0), 0);
         const today = new Date(); today.setHours(0, 0, 0, 0);
-
         return {
             totalSubs: subs.length,
-            debts: totalDebts,
+            debts: subs.reduce((sum, s) => sum + (parseInt(s.price) || 0), 0),
             boxBalance: this.getDailyBalance(),
             expired: subs.filter(s => s.expiryDate && new Date(s.expiryDate) < today).length,
             expiring: subs.filter(s => {
@@ -596,129 +322,17 @@ export const DataManager = {
             }).length
         };
     },
-
-
-
-    // إعطاء مكافأة مباشرة للموظف
-    async giveBonus(empId, amount, reason = 'مكافأة') {
-        const emp = this.getEmployee(empId);
-        if (!emp) return;
-
-        const bonusAmount = parseFloat(amount);
-        if (bonusAmount <= 0) return;
-
-        // 1. إضافة المكافأة لسجل الموظف
-        const currentRewards = parseFloat(emp.rewards || 0);
-        await updateDoc(doc(db, "employees", emp.firebaseId), {
-            rewards: currentRewards + bonusAmount
-        });
-
-        // 2. تسجيل الصرفية من الصندوق
-        await this.addExpense(bonusAmount, `مكافأة: ${emp.name} - ${reason}`);
-
-        showToast(`🎁 تم صرف مكافأة ${bonusAmount.toLocaleString()} د.ع لـ ${emp.name}`);
-    },
-
-    getSystemSettings() {
-        return localData.settings || {};
-    },
-
     async saveSystemSetting(key, value) {
-        try {
-            console.log(`💾 Attempting to save single setting: ${key} = ${value}`);
-            const settingsRef = doc(db, "settings", "global");
-            await setDoc(settingsRef, { [key]: value }, { merge: true });
-            console.log(`✅ Setting [${key}] saved successfully to Firebase`);
-
-            // تحديث محلي فوري
-            localData.settings[key] = value;
-            localStorage.setItem('sas_settings', JSON.stringify(localData.settings));
-        } catch (e) {
-            console.error("❌ Error saving setting to Firebase:", e);
-            showToast('خطأ في الاتصال بالسحاب', 'error');
-        }
+        const settingsRef = doc(db, "settings", "global");
+        await setDoc(settingsRef, { [key]: value }, { merge: true });
     },
-
     async saveAllSystemSettings(settingsObject) {
-        try {
-            console.log("💾 Cloud Sync: Attempting to save ALL settings to Firebase (Path: settings/global)");
-            console.log("📦 Data to save:", settingsObject);
-
-            const settingsRef = doc(db, "settings", "global");
-
-            await setDoc(settingsRef, settingsObject, { merge: true });
-            console.log("✅ Cloud Sync Success: All settings persisted to Firebase.");
-
-            // تحديث محلي فوري لضمان السرعة قبل وصول الـ Snapshot
-            localData.settings = { ...localData.settings, ...settingsObject };
-            localStorage.setItem('sas_settings', JSON.stringify(localData.settings));
-
-            showToast('✅ تم حفظ جميع الإعدادات سحابياً');
-        } catch (e) {
-            console.error("❌ Cloud Sync Failed:", e);
-            showToast('❌ فشل الحفظ السحابي - تأكد من صلاحيات الفايربيس', 'error');
-            throw e; // إعادة الخطأ للصفحة لمعالجته
-        }
+        const settingsRef = doc(db, "settings", "global");
+        await setDoc(settingsRef, settingsObject, { merge: true });
+        showToast('✅ تم حفظ جميع الإعدادات سحابياً');
     },
-
-
-    // الحصول على رصيد الحسابات (النظام)
-    getSystemBalance() {
-        const sysAcc = (localData.accounts || []).find(a => a.firebaseId === 'system');
-        return sysAcc ? (sysAcc.balance || 0) : 0;
-    },
-
-    async topUpVirtualBalance(amount) {
-        console.group("🏦 [DEBUG] Virtual Balance Top-up Trace");
-        console.log("Step 1: Received Amount:", amount);
-        try {
-            if (!this.addExpense) throw new Error("Method addExpense is missing!");
-
-            // 1. تسجيل عملية خصم من الصندوق (كصرفية)
-            console.log("Step 2: Recording expense in Box...");
-            await this.addExpense(amount, "تعبئة رصيد النظام (استقطاع من الصندوق)");
-
-            // 2. تحديث الرصيد في المسار المخصص (accounts/system)
-            console.log("Step 3: Calculating new virtual balance...");
-            const currentBal = this.getSystemBalance();
-            const newBal = currentBal + amount;
-
-            console.log(`Step 4: Syncing to Firebase (Path: accounts/system) -> New Balance: ${newBal}`);
-            const systemRef = doc(db, "accounts", "system");
-            await setDoc(systemRef, {
-                balance: newBal,
-                lastUpdated: new Date().toISOString(),
-                type: 'system_funds'
-            }, { merge: true });
-
-            console.log("Step 5: Success! Virtual balance updated.");
-            showToast(`✅ تم إضافة ${amount.toLocaleString()} د.ع للرصيد`);
-            console.groupEnd();
-            return newBal;
-        } catch (err) {
-            console.error("❌ [CRITICAL ERROR] Top-up Trace Failed:", err);
-            showToast('خطأ في عملية التعبئة: ' + err.message, 'error');
-            console.groupEnd();
-            throw err;
-        }
-    },
-    async deductFromVirtualBalance(amount, reason = "استقطاع رصيد") {
-        try {
-            const currentBal = this.getSystemBalance();
-            if (currentBal < amount) {
-                showToast("⚠️ تحذير: رصيد النظام غير كافٍ لهذه العملية", "error");
-            }
-
-            const newBal = currentBal - amount;
-            const systemRef = doc(db, "accounts", "system");
-            await setDoc(systemRef, {
-                balance: newBal,
-                lastUpdated: new Date().toISOString()
-            }, { merge: true });
-
-            console.log(`📉 Virtual Balance Deducted: -${amount} | New: ${newBal} | Reason: ${reason}`);
-        } catch (err) {
-            console.error("❌ Deduction Failed:", err);
-        }
+    searchSubscribers(q) {
+        if (!q) return localData.subscribers;
+        return localData.subscribers.filter(s => s.name?.toLowerCase().includes(q.toLowerCase()) || s.phone?.includes(q));
     }
 };
