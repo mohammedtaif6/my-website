@@ -392,6 +392,83 @@
 </head>
 
 <body>
+    <!-- PIN Lock Overlay -->
+    <div id="pin-lock-overlay"
+        style="position: fixed; inset: 0; background: #0f172a; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
+        <div
+            style="background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; text-align: center; backdrop-filter: blur(10px); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+            <div style="font-size: 3rem; margin-bottom: 20px;">🔒</div>
+            <h2 style="margin: 0 0 10px 0; font-size: 1.5rem;">حماية الإعدادات</h2>
+            <p style="color: #94a3b8; margin-bottom: 30px;">الرجاء إدخال رمز الدخول للمتابعة</p>
+
+            <div style="margin-bottom: 20px; position: relative;">
+                <input type="password" id="pin-input" maxlength="4" inputmode="numeric"
+                    style="font-size: 2rem; letter-spacing: 15px; width: 200px; text-align: center; padding: 15px; border-radius: 12px; border: 2px solid #334155; background: #1e293b; color: white; outline: none; transition: 0.3s;"
+                    placeholder="••••">
+            </div>
+
+            <div id="pin-error" style="color: #ef4444; height: 25px; font-size: 0.9rem; margin-bottom: 15px;"></div>
+
+            <button onclick="checkPin()"
+                style="background: #4f46e5; color: white; border: none; padding: 12px 40px; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s;">
+                دخول النظام
+            </button>
+
+            <button onclick="window.location.href='index.html'"
+                style="background: transparent; color: #64748b; border: none; margin-top: 15px; font-size: 0.9rem; cursor: pointer; text-decoration: underline;">
+                العودة للرئيسية
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // PIN Security Logic
+        (function () {
+            // Check if already unlocked in this session
+            if (sessionStorage.getItem('settings_unlocked') === 'true') {
+                document.getElementById('pin-lock-overlay').style.display = 'none';
+            } else {
+                // Focus input automatically
+                setTimeout(() => document.getElementById('pin-input').focus(), 500);
+            }
+
+            // Enter key support
+            document.getElementById('pin-input').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') checkPin();
+            });
+
+            // Auto-submit on 4 digits
+            document.getElementById('pin-input').addEventListener('input', function (e) {
+                if (this.value.length === 4) checkPin();
+            });
+        })();
+
+        window.checkPin = function () {
+            const input = document.getElementById('pin-input');
+            const error = document.getElementById('pin-error');
+            const enteredPin = input.value;
+
+            // Get stored PIN or default to '0000'
+            const settings = JSON.parse(localStorage.getItem('sas_settings') || '{}');
+            const storedPin = settings.pinCode || '0000';
+
+            if (enteredPin === storedPin) {
+                sessionStorage.setItem('settings_unlocked', 'true');
+                document.getElementById('pin-lock-overlay').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('pin-lock-overlay').style.display = 'none';
+                }, 300);
+            } else {
+                error.innerText = 'رمز الدخول غير صحيح!';
+                input.style.borderColor = '#ef4444';
+                input.value = '';
+                setTimeout(() => {
+                    input.style.borderColor = '#334155';
+                    error.innerText = '';
+                }, 2000);
+            }
+        }
+    </script>
     <button class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
 
     <nav class="navbar" id="main-nav">
@@ -523,6 +600,15 @@
                     <span>مدة الاشتراك (أيام)</span>
                 </div>
                 <input type="number" class="setting-input" id="set-sub-duration" value="30">
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="icon-red fas fa-lock"></i>
+                    <span>رمز الحماية (4 أرقام)</span>
+                </div>
+                <input type="text" class="setting-input" id="set-pin-code" placeholder="0000" maxlength="4"
+                    inputmode="numeric">
             </div>
         </div>
     </div>
@@ -753,6 +839,7 @@
             if (settings.systemName) document.getElementById('set-system-name').value = settings.systemName;
             if (settings.defaultPrice) document.getElementById('set-default-price').value = settings.defaultPrice;
             if (settings.subDuration) document.getElementById('set-sub-duration').value = settings.subDuration;
+            if (settings.pinCode) document.getElementById('set-pin-code').value = settings.pinCode;
             if (settings.allowBoxDeletion !== undefined) document.getElementById('set-allow-box-deletion').checked = settings.allowBoxDeletion;
 
             // تحديث عرض رصيد النظام
@@ -877,6 +964,7 @@
             settings.systemName = document.getElementById('set-system-name').value;
             settings.defaultPrice = parseInt(document.getElementById('set-default-price').value || 35000);
             settings.subDuration = parseInt(document.getElementById('set-sub-duration').value || 30);
+            settings.pinCode = document.getElementById('set-pin-code').value || '0000';
 
             // 2. كروت الداشبورد
             const toggleMap = {
