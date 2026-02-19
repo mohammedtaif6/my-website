@@ -232,10 +232,8 @@ export const DataManager = {
         if (data.packageId) {
             const pkg = (this.getSystemSettings().packages || []).find(p => p.id === data.packageId);
             if (pkg) {
-                if (this.getSystemBalance() < pkg.costPrice) {
-                    showToast(`❌ رصيد التفعيلات غير كافي! (${this.getSystemBalance().toLocaleString()})`, 'error');
-                    throw new Error("Insufficient Balance");
-                }
+                // Balance check removed as per user request to unblock operations
+                // if (this.getSystemBalance() < pkg.costPrice) { ... }
                 subData.packageId = data.packageId;
                 subData.packageName = pkg.name;
                 await this.deductFromVirtualBalance(pkg.costPrice, `تفعيل باقة ${pkg.name} للمشترك ${data.name}`);
@@ -269,10 +267,8 @@ export const DataManager = {
         if (renewalData.packageId) {
             const pkg = (this.getSystemSettings().packages || []).find(p => p.id === renewalData.packageId);
             if (pkg) {
-                if (this.getSystemBalance() < pkg.costPrice) {
-                    showToast(`❌ رصيد التفعيلات غير كافي! (${this.getSystemBalance().toLocaleString()})`, 'error');
-                    throw new Error("Insufficient Balance");
-                }
+                // Balance check removed as per user request to unblock operations
+                // if (this.getSystemBalance() < pkg.costPrice) { ... }
                 updateObj.packageId = renewalData.packageId;
                 updateObj.packageName = pkg.name;
                 await this.deductFromVirtualBalance(pkg.costPrice, `تجديد باقة ${pkg.name} للمشترك ${sub.name}`);
