@@ -472,15 +472,25 @@
                     </div>
                 </div>
 
-                <!-- الباقة المثبتة (عرض فقط) -->
+                <!-- اختيار الباقة -->
                 <div class="form-group">
                     <label><i class="fas fa-box" style="margin-left:5px; color:#8b5cf6;"></i> الباقة</label>
-                    <div id="act-package-display"
-                        style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 15px; font-weight:600; color:#334155;">
-                        نورمال</div>
-                    <input type="hidden" id="act-package" value="">
-                    <input type="hidden" id="act-price" value="35000">
-                    <input type="hidden" id="act-type" value="نقد">
+                    <select id="act-package" onchange="window.onPackageChange(this.value)"
+                        style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-money-bill" style="margin-left:5px; color:#059669;"></i> السعر</label>
+                    <input type="number" inputmode="numeric" id="act-price" value="35000">
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-credit-card" style="margin-left:5px; color:#f59e0b;"></i> نوع الدفع</label>
+                    <select id="act-type">
+                        <option value="نقد">نقد (واصل)</option>
+                        <option value="أجل">أجل (دين)</option>
+                    </select>
                 </div>
 
                 <div style="display: flex; gap: 15px;">
@@ -810,17 +820,25 @@
                 }
             }
 
-            // عرض الباقة الافتراضية (نورمال) بدون قائمة منسدلة
+            // تحديث قائمة الباقات
+            const pkgSelect = document.getElementById('act-package');
             const packages = DataManager.getSystemSettings().packages || [];
-            const defaultPkg = packages.length > 0 ? packages[0] : null;
-            const pkgDisplay = document.getElementById('act-package-display');
-            const pkgInput = document.getElementById('act-package');
-            const priceInput = document.getElementById('act-price');
+            if (pkgSelect) {
+                pkgSelect.innerHTML =
+                    packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString()} د.ع)</option>`).join('');
 
-            if (defaultPkg) {
-                pkgDisplay.textContent = defaultPkg.name + ' (' + defaultPkg.salePrice.toLocaleString() + ' د.ع)';
-                pkgInput.value = defaultPkg.id;
-                priceInput.value = defaultPkg.salePrice;
+                // الافتراضي: أول باقة (نورمال)
+                if (packages.length > 0 && !pkgSelect.value) {
+                    pkgSelect.value = packages[0].id;
+                    window.onPackageChange(packages[0].id);
+                }
+            }
+
+            // ضبط السعر الافتراضي
+            const priceInput = document.getElementById('act-price');
+            if (priceInput) {
+                priceInput.value = defaultPrice;
+                priceInput.removeAttribute('data-user-modified');
             }
 
             // Reset form
@@ -880,15 +898,11 @@
                 targetDate.setDate(targetDate.getDate() + parseInt(AuthSystem.applyUIConfigs().subDuration || 30));
                 document.getElementById('act-end').value = targetDate.toISOString().split('T')[0];
 
-                // ✅ عرض باقة المشترك المثبتة تلقائياً
-                if (selected.packageId) {
-                    const packages = DataManager.getSystemSettings().packages || [];
-                    const pkg = packages.find(p => p.id === selected.packageId);
-                    if (pkg) {
-                        document.getElementById('act-package-display').textContent = pkg.name + ' (' + pkg.salePrice.toLocaleString() + ' د.ع)';
-                        document.getElementById('act-package').value = pkg.id;
-                        document.getElementById('act-price').value = pkg.salePrice;
-                    }
+                // ✅ اختيار باقة المشترك المثبتة تلقائياً
+                const pkgSelect = document.getElementById('act-package');
+                if (selected.packageId && pkgSelect) {
+                    pkgSelect.value = selected.packageId;
+                    window.onPackageChange(selected.packageId);
                 }
             }
         };
