@@ -8,14 +8,13 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Kufi+Arabic:wght@400;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=27.0">
-    <link rel="stylesheet" href="style-fab.css?v=1.0">
-    <link rel="stylesheet" href="style-modal.css?v=1.0">
+    <link rel="stylesheet" href="style.css?v=28.0">
+    <link rel="stylesheet" href="style-fab.css?v=2.0">
+    <link rel="stylesheet" href="style-modal.css?v=2.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <script src="auth-system.js?v=3.0"></script>
+    <script src="auth-system.js?v=4.0"></script>
     <script>
-        // Anti-Flicker: Apply visibility as fast as possible
         (function () {
             const settings = JSON.parse(localStorage.getItem('sas_settings') || '{}');
             const style = document.createElement('style');
@@ -30,95 +29,297 @@
     </script>
     <script src="whatsapp-helper.js"></script>
     <script type="module">
-        import { DataManager } from './data-manager.js?v=33.0';
+        import { DataManager } from './data-manager.js?v=34.0';
         window.DataManager = DataManager;
         DataManager.init();
     </script>
 
     <style>
         :root {
-            --debt-gradient: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
-            --glass: rgba(255, 255, 255, 0.9);
-            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            --debt-red: #ef4444;
+            --debt-dark: #991b1b;
+            --debt-gradient: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
         }
 
         body {
             font-family: 'Noto Kufi Arabic', 'Outfit', sans-serif;
             background: #f0f2f5;
+            overflow-x: hidden;
         }
 
+        /* ===== Pull-to-Refresh ===== */
+        .ptr-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .ptr-spinner {
+            width: 42px;
+            height: 42px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: translateY(-60px);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--debt-red);
+            font-size: 1.1rem;
+        }
+
+        .ptr-spinner.visible {
+            transform: translateY(15px);
+        }
+
+        .ptr-spinner.refreshing {
+            transform: translateY(15px);
+            animation: ptr-pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes ptr-pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 4px 20px rgba(239, 68, 68, 0.15);
+            }
+
+            50% {
+                box-shadow: 0 4px 30px rgba(239, 68, 68, 0.4);
+            }
+        }
+
+        @keyframes ptr-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .ptr-spinner.refreshing i {
+            animation: ptr-spin 0.8s linear infinite;
+        }
+
+        /* ===== Header ===== */
         .header-section {
             background: var(--debt-gradient);
-            padding: 40px 20px 60px;
-            border-radius: 0 0 40px 40px;
+            padding: 40px 20px 65px;
+            border-radius: 0 0 32px 32px;
             color: white;
             text-align: center;
-            margin-bottom: -40px;
-            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.2);
+            margin-bottom: -35px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+        }
+
+        .header-section::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 50%;
         }
 
         .header-section h1 {
-            font-size: 2rem;
+            font-size: 1.6rem;
             font-weight: 800;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
+        }
+
+        .header-section p {
+            opacity: 0.85;
+            font-size: 0.85rem;
         }
 
         .total-debt-box {
-            background: white;
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: var(--glass-shadow);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 14px 28px;
+            border-radius: 16px;
             display: inline-block;
-            margin-top: 15px;
-            border: 2px solid #fee2e2;
+            margin-top: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
         }
 
+        .total-debt-box .label {
+            font-size: 0.75rem;
+            opacity: 0.85;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .total-debt-box .amount {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        /* ===== Stats Bar ===== */
+        .stats-bar {
+            display: flex;
+            gap: 10px;
+            padding: 0 15px;
+            margin-top: 45px;
+            margin-bottom: 15px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .stat-chip {
+            flex: 1;
+            background: white;
+            border-radius: 14px;
+            padding: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border: 1px solid #f1f5f9;
+        }
+
+        .stat-chip .stat-number {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #1e293b;
+        }
+
+        .stat-chip .stat-label {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        /* ===== Search & Sort ===== */
+        .search-sort-bar {
+            max-width: 700px;
+            margin: 0 auto 15px;
+            padding: 0 15px;
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+        }
+
+        .search-box {
+            flex: 1;
+            background: white;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border: 1px solid #f1f5f9;
+            transition: border-color 0.2s;
+        }
+
+        .search-box:focus-within {
+            border-color: var(--debt-red);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
+        }
+
+        .search-box i {
+            color: #94a3b8;
+            margin-left: 10px;
+        }
+
+        .search-box input {
+            border: none;
+            padding: 12px 0;
+            width: 100%;
+            outline: none;
+            font-family: inherit;
+            font-size: 0.9rem;
+            background: transparent;
+        }
+
+        .sort-btn {
+            background: white;
+            border: 1px solid #f1f5f9;
+            border-radius: 14px;
+            padding: 0 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #64748b;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .sort-btn:active {
+            transform: scale(0.96);
+        }
+
+        .sort-btn.active {
+            background: var(--debt-red);
+            color: white;
+            border-color: var(--debt-red);
+        }
+
+        /* ===== Debt Grid ===== */
         .debt-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 12px;
-            padding: 50px 12px 20px;
-            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 0 15px 30px;
+            max-width: 700px;
             margin: 0 auto;
         }
 
         .debt-card {
             background: white;
-            border-radius: 20px;
-            padding: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s;
+            border-radius: 16px;
+            padding: 14px 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             display: flex;
             flex-direction: column;
             gap: 10px;
-            border: 1px solid #fee2e2;
+            border: 1px solid #f8f8f8;
+            position: relative;
+            overflow: hidden;
+            animation: cardSlideIn 0.4s ease-out both;
         }
 
-        .debt-card:hover {
-            transform: translateY(-5px);
-            background: white;
+        .debt-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--debt-gradient);
+            border-radius: 0 4px 4px 0;
         }
 
-        .debt-amount {
-            color: #dc2626;
-            font-size: 1.5rem;
-            font-weight: 800;
+        .debt-card:active {
+            transform: scale(0.985);
         }
 
-        .btn-pay {
-            background: #10b981;
-            color: white;
-        }
-
-        .btn-wa {
-            background: #25d366;
-            color: white;
-        }
-
-        @keyframes fadeIn {
+        @keyframes cardSlideIn {
             from {
                 opacity: 0;
-                transform: translateY(20px);
+                transform: translateY(15px);
             }
 
             to {
@@ -127,8 +328,121 @@
             }
         }
 
-        .debt-card {
-            animation: fadeIn 0.4s ease-out;
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-info h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .card-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 0.72rem;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .card-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .pkg-badge {
+            font-weight: 700;
+        }
+
+        .card-amount {
+            text-align: left;
+            color: var(--debt-red);
+            font-size: 1.2rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .card-amount small {
+            font-size: 0.55rem;
+            font-weight: 600;
+            opacity: 0.7;
+        }
+
+        .card-date {
+            background: #fef2f2;
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 0.72rem;
+            color: #991b1b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .btn-action {
+            padding: 9px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-action:active {
+            transform: scale(0.95);
+        }
+
+        .btn-pay {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .btn-wa {
+            background: linear-gradient(135deg, #25d366, #128c7e);
+            color: white;
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.4;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .count-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-right: 8px;
         }
     </style>
 </head>
@@ -136,10 +450,16 @@
 <body>
     <script>AuthSystem.checkSession();</script>
 
+    <!-- Pull to Refresh -->
+    <div class="ptr-container">
+        <div class="ptr-spinner" id="ptr-spinner">
+            <i class="fas fa-sync-alt"></i>
+        </div>
+    </div>
+
     <button class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
 
     <nav class="navbar" id="main-nav">
-        <!-- Reusing Sidebar -->
         <div class="header-card"
             style="margin: 0; background: none; box-shadow: none; border: none; padding: 0 0 20px 0;">
             <div class="logo" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 0;">
@@ -150,13 +470,14 @@
         </div>
         <ul class="nav-links">
             <li><a href="index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
-            <li><a href="subscribers.html"><i class="fas fa-users"></i> المشتركين</a></li>
-            <li><a href="active_subscribers.html"><i class="fas fa-signal"></i> الفعالين</a></li>
-            <li><a href="expired.html"><i class="fas fa-clock"></i> المنتهية</a></li>
-            <li><a href="debts.html" class="active"><i class="fas fa-money-bill-wave"></i> الديون</a></li>
-            <li><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> الصندوق</a></li>
-            <li><a href="reports.html"><i class="fas fa-chart-bar"></i> التقارير</a></li>
-            <li><a href="employees.html"><i class="fas fa-users-cog"></i> الموظفين</a></li>
+            <li id="nav-subscribers"><a href="subscribers.html"><i class="fas fa-users"></i> المشتركين</a></li>
+            <li id="nav-active"><a href="active_subscribers.html"><i class="fas fa-signal"></i> الفعالين</a></li>
+            <li id="nav-debts"><a href="debts.html" class="active"><i class="fas fa-money-bill-wave"></i> الديون</a>
+            </li>
+            <li id="nav-payments"><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> الصندوق</a></li>
+            <li id="nav-reports"><a href="reports.html"><i class="fas fa-chart-bar"></i> التقارير</a></li>
+            <li id="nav-employees"><a href="employees.html"><i class="fas fa-users-cog"></i> الموظفين</a></li>
+            <li id="nav-telegram"><a href="telegram-settings.html"><i class="fab fa-telegram"></i> Telegram</a></li>
             <li><a href="settings.html"><i class="fas fa-cog"></i> الإعدادات</a></li>
             <li><a href="#" onclick="AuthSystem.logout()"><i class="fas fa-sign-out-alt"></i> خروج</a></li>
         </ul>
@@ -164,79 +485,155 @@
     </nav>
 
     <div class="header-section">
-        <h1>الديون المستحقة</h1>
+        <h1><i class="fas fa-file-invoice-dollar" style="margin-left:8px; opacity:0.8;"></i> الديون المستحقة</h1>
         <p>متابعة المبالغ المطلوبة من المشتركين</p>
         <div class="total-debt-box">
-            <span style="color:#64748b; font-size: 0.8rem; display:block;">المجموع الكلي للديون</span>
-            <span id="totalDebtDisplay" style="color:#dc2626; font-size:1.4rem; font-weight:800;">0 د.ع</span>
+            <span class="label">المجموع الكلي للديون</span>
+            <span class="amount" id="totalDebtDisplay">0 د.ع</span>
         </div>
         <br>
         <button id="adminShareBtn" class="btn btn-sm btn-primary" onclick="window.openShareDebtsModal()"
-            style="display:none; margin-top:15px; background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.3);">
+            style="display:none; margin-top:12px; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); backdrop-filter:blur(5px); border-radius:12px; padding:8px 18px;">
             <i class="fas fa-share-alt"></i> إرسال الجدول لموظف
         </button>
     </div>
 
-    <div class="container">
-        <div class="search-container" style="max-width: 600px; margin: 0 auto; position: relative; z-index: 10;">
-            <div class="search-input-wrapper"
-                style="background:white; border-radius: 20px; display: flex; align-items: center; padding: 5px 20px; box-shadow: 0 8px 32px 0 rgba(31,38,135,0.1);">
-                <i class="fas fa-search" style="color:#888; margin-left:10px;"></i>
-                <input type="text" id="debtSearch" placeholder="بحث باسم المدين..." onkeyup="renderDebts()"
-                    style="border:none; padding:15px; width:100%; outline:none;">
-            </div>
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stat-chip">
+            <div class="stat-number" id="debtorsCount">0</div>
+            <div class="stat-label">عدد المديونين</div>
         </div>
-
-        <div id="grid" class="debt-grid"></div>
+        <div class="stat-chip">
+            <div class="stat-number" id="avgDebt">0</div>
+            <div class="stat-label">متوسط الدين</div>
+        </div>
+        <div class="stat-chip">
+            <div class="stat-number" id="maxDebt">0</div>
+            <div class="stat-label">أعلى دين</div>
+        </div>
     </div>
 
-    <!-- Modals -->
+    <!-- Search & Sort -->
+    <div class="search-sort-bar">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="debtSearch" placeholder="بحث باسم المدين..." oninput="renderDebts()">
+        </div>
+        <button class="sort-btn" id="sortToggle" onclick="toggleSort()">
+            <i class="fas fa-sort-amount-down"></i>
+            <span id="sortLabel">الأحدث</span>
+        </button>
+    </div>
+
+    <div id="grid" class="debt-grid"></div>
+
+    <!-- Pay Debt Modal -->
     <div id="payDebtModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
-                <h3>تسديد دين - <span id="debtSubName"></span></h3><button class="close-btn"
-                    onclick="closeDebtModal()">&times;</button>
+                <h3><i class="fas fa-hand-holding-usd" style="margin-left:8px; color:#10b981;"></i> تسديد دين - <span
+                        id="debtSubName"></span></h3>
+                <button class="close-btn" onclick="closeDebtModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <input type="hidden" id="debtSubId"><input type="hidden" id="debtSubFirebaseId">
-                <div class="form-group"><label>المبلغ المدفوع (المتبقي: <span
-                            id="currentDebtAmount">0</span>)</label><input type="number" id="payDebtAmount"></div>
-                <div style="margin-bottom:15px;"><input type="checkbox" id="send-whatsapp-debt"> <label
-                        for="send-whatsapp-debt">إرسال وصل واتساب</label></div>
+                <input type="hidden" id="debtSubId">
+                <input type="hidden" id="debtSubFirebaseId">
+                <div class="form-group">
+                    <label><i class="fas fa-money-bill" style="margin-left:5px; color:#059669;"></i> المبلغ المدفوع
+                        (المتبقي: <span id="currentDebtAmount"
+                            style="color:#dc2626; font-weight:bold;">0</span>)</label>
+                    <input type="number" id="payDebtAmount" placeholder="أدخل المبلغ...">
+                </div>
+                <div style="margin-bottom:15px; display:flex; align-items:center; gap:8px;">
+                    <input type="checkbox" id="send-whatsapp-debt" style="width:auto;">
+                    <label for="send-whatsapp-debt" style="margin:0; font-weight:normal; cursor:pointer;">
+                        <i class="fab fa-whatsapp" style="color:#25d366;"></i> إرسال وصل واتساب
+                    </label>
+                </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <button onclick="confirmPayDebt(true)" class="btn btn-success"><i class="fas fa-print"></i> تسديد
-                        وطباعة</button>
-                    <button onclick="confirmPayDebt(false)" class="btn btn-primary"><i class="fas fa-check"></i> تسديد
-                        فقط</button>
+                    <button onclick="confirmPayDebt(true)" class="btn btn-success">
+                        <i class="fas fa-print"></i> تسديد وطباعة
+                    </button>
+                    <button onclick="confirmPayDebt(false)" class="btn btn-primary">
+                        <i class="fas fa-check"></i> تسديد فقط
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Share Debts Modal -->
     <div id="shareDebtsModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
-                <h3>إرسال جدول الديون</h3><button class="close-btn" onclick="closeShareModal()">&times;</button>
+                <h3><i class="fas fa-share-alt" style="margin-left:8px; color:#6366f1;"></i> إرسال جدول الديون</h3>
+                <button class="close-btn" onclick="closeShareModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="form-group"><label>اختر الموظف</label><select id="employeeSelect"
-                        style="width:100%; padding:12px; border-radius:10px; border:2px solid #eee;"></select></div>
-                <button onclick="sendDebtsToEmployee()" class="btn btn-success btn-full"><i class="fab fa-whatsapp"></i>
-                    إرسال عبر واتساب</button>
+                <div class="form-group">
+                    <label><i class="fas fa-user-tie" style="margin-left:5px; color:#6366f1;"></i> اختر الموظف</label>
+                    <select id="employeeSelect"
+                        style="width:100%; padding:12px; border-radius:10px; border:2px solid #eee;"></select>
+                </div>
+                <button onclick="sendDebtsToEmployee()" class="btn btn-success btn-full">
+                    <i class="fab fa-whatsapp"></i> إرسال عبر واتساب
+                </button>
             </div>
         </div>
     </div>
 
     <script>
-        window.renderDebts = function () {
-            if (typeof DataManager === 'undefined' || !DataManager.subscribers) {
-                console.log('⏳ انتظار تحميل البيانات...');
-                return;
+        // ===== Pull-to-Refresh =====
+        let ptrStart = 0;
+        let ptrTriggered = false;
+        const ptrEl = document.getElementById('ptr-spinner');
+
+        window.addEventListener('touchstart', e => {
+            if (window.scrollY === 0) ptrStart = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        window.addEventListener('touchmove', e => {
+            if (window.scrollY === 0 && ptrStart > 0) {
+                const pull = e.changedTouches[0].screenY - ptrStart;
+                if (pull > 30 && !ptrTriggered) {
+                    ptrEl.classList.add('visible');
+                }
             }
+        }, { passive: true });
+
+        window.addEventListener('touchend', e => {
+            if (window.scrollY === 0 && ptrStart > 0) {
+                const pull = e.changedTouches[0].screenY - ptrStart;
+                if (pull > 80 && !ptrTriggered) {
+                    ptrTriggered = true;
+                    ptrEl.classList.add('refreshing');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 600);
+                } else {
+                    ptrEl.classList.remove('visible');
+                }
+            }
+            ptrStart = 0;
+        }, { passive: true });
+
+        // ===== Sort Logic =====
+        let currentSort = 'newest'; // 'newest' or 'highest'
+
+        window.toggleSort = function () {
+            currentSort = currentSort === 'newest' ? 'highest' : 'newest';
+            document.getElementById('sortLabel').textContent = currentSort === 'newest' ? 'الأحدث' : 'الأعلى';
+            const btn = document.getElementById('sortToggle');
+            btn.querySelector('i').className = currentSort === 'newest' ? 'fas fa-sort-amount-down' : 'fas fa-sort-numeric-down';
+            renderDebts();
+        };
+
+        // ===== Main Render =====
+        window.renderDebts = function () {
+            if (typeof DataManager === 'undefined' || !DataManager.subscribers) return;
 
             const q = document.getElementById('debtSearch').value.toLowerCase();
-
-            console.log('📊 إجمالي المشتركين:', DataManager.subscribers.length);
 
             // فلترة المديونين فقط
             let list = DataManager.subscribers.filter(s => {
@@ -244,31 +641,43 @@
                 return debt > 0;
             });
 
-            console.log('💰 عدد المديونين:', list.length);
-
-            // البحث (مع فحص وجود الاسم)
+            // البحث
             if (q) {
                 list = list.filter(s => {
                     if (!s.name) return false;
-                    const nameMatch = s.name.toLowerCase().includes(q);
-                    const phoneMatch = s.phone && s.phone.includes(q);
-                    return nameMatch || phoneMatch;
+                    return s.name.toLowerCase().includes(q) || (s.phone && s.phone.includes(q));
                 });
             }
 
-            // ترتيب حسب قيمة الدين (الأكبر أولاً)
-            list.sort((a, b) => parseInt(b.price) - parseInt(a.price));
+            // ✅ الترتيب: الأحدث أو الأعلى
+            if (currentSort === 'newest') {
+                list.sort((a, b) => {
+                    const dateA = a.expiryDate || a.endDate || a.createdAt || '';
+                    const dateB = b.expiryDate || b.endDate || b.createdAt || '';
+                    return new Date(dateB) - new Date(dateA);
+                });
+            } else {
+                list.sort((a, b) => parseInt(b.price) - parseInt(a.price));
+            }
 
+            // حساب الإحصائيات
             const total = list.reduce((sum, s) => sum + parseInt(s.price || 0), 0);
+            const avg = list.length > 0 ? Math.round(total / list.length) : 0;
+            const max = list.length > 0 ? Math.max(...list.map(s => parseInt(s.price || 0))) : 0;
+
             document.getElementById('totalDebtDisplay').innerText = total.toLocaleString() + ' د.ع';
+            document.getElementById('debtorsCount').innerText = list.length;
+            document.getElementById('avgDebt').innerText = avg.toLocaleString();
+            document.getElementById('maxDebt').innerText = max.toLocaleString();
 
             const grid = document.getElementById('grid');
+
             if (list.length === 0) {
-                grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#aaa;"><i class="fas fa-smile-beam fa-3x"></i><p>لا توجد ديون حالياً</p></div>';
+                grid.innerHTML = '<div class="empty-state"><i class="fas fa-smile-beam"></i><p>لا توجد ديون حالياً 🎉</p></div>';
                 return;
             }
 
-            grid.innerHTML = list.map(s => {
+            grid.innerHTML = list.map((s, idx) => {
                 let pkgIcon = 'fa-box';
                 let pkgColor = '#64748b';
                 const pName = (s.packageName || '').toLowerCase();
@@ -276,47 +685,62 @@
                 else if (pName.includes('sup')) { pkgIcon = 'fa-bolt'; pkgColor = '#f59e0b'; }
                 else if (pName.includes('gold')) { pkgIcon = 'fa-crown'; pkgColor = '#eab308'; }
 
+                const safeName = (s.name || 'بدون اسم').replace(/'/g, "");
+                const delay = Math.min(idx * 0.05, 0.5);
+
                 return `
-                    <div class="debt-card" style="border-right: 4px solid #e11d48;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div style="flex:1;">
-                                <h3 style="margin:0; font-size:1.1rem; color:#1e293b;">${s.name || 'بدون اسم'}</h3>
-                                <div style="display:flex; gap:10px; font-size:0.75rem; color:#64748b; margin-top:4px;">
+                    <div class="debt-card" style="animation-delay: ${delay}s;">
+                        <div class="card-top">
+                            <div class="card-info">
+                                <h3>${s.name || 'بدون اسم'}</h3>
+                                <div class="card-meta">
                                     <span><i class="fas fa-phone"></i> ${s.phone || '-'}</span>
-                                    <span style="color:${pkgColor}; font-weight:bold;"><i class="fas ${pkgIcon}"></i> ${s.packageName || 'نورمال'}</span>
+                                    <span class="pkg-badge" style="color:${pkgColor};"><i class="fas ${pkgIcon}"></i> ${s.packageName || 'نورمال'}</span>
                                 </div>
                             </div>
-                            <div class="debt-amount" style="font-size:1.1rem;">${parseInt(s.price).toLocaleString()} <small style="font-size:0.6rem;">د.ع</small></div>
+                            <div class="card-amount">${parseInt(s.price).toLocaleString()} <small>د.ع</small></div>
                         </div>
 
-                        <div style="background:#f8fafc; padding:8px 12px; border-radius:10px; font-size:0.75rem; color:#64748b; display:flex; justify-content:space-between; margin-top:5px;">
-                            <span>تاريخ الاشتراك:</span>
-                            <span style="font-weight:bold; color:#334155;">${s.expiryDate || '-'}</span>
+                        <div class="card-date">
+                            <span><i class="fas fa-calendar-alt" style="margin-left:4px;"></i> تاريخ الاشتراك</span>
+                            <span style="font-weight:700;">${s.expiryDate || '-'}</span>
                         </div>
                         
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:5px;">
-                            <button onclick="openPayDebtModal('${s.id}', '${s.firebaseId}', '${(s.name || 'بدون اسم').replace(/'/g, "")}', ${s.price})" class="btn-action btn-pay" style="padding:8px; border:none; border-radius:10px; font-weight:bold; cursor:pointer; font-size:0.8rem;"><i class="fas fa-money-bill-wave"></i> تسديد</button>
-                            <button onclick="notifyDebtor('${(s.name || 'بدون اسم').replace(/'/g, "")}', '${s.phone}', ${s.price})" class="btn-action btn-wa" style="padding:8px; border:none; border-radius:10px; font-weight:bold; cursor:pointer; font-size:0.8rem;"><i class="fab fa-whatsapp"></i> تنبيه</button>
+                        <div class="card-actions">
+                            <button onclick="openPayDebtModal('${s.id}', '${s.firebaseId}', '${safeName}', ${s.price})" class="btn-action btn-pay">
+                                <i class="fas fa-money-bill-wave"></i> تسديد
+                            </button>
+                            <button onclick="notifyDebtor('${safeName}', '${s.phone}', ${s.price})" class="btn-action btn-wa">
+                                <i class="fab fa-whatsapp"></i> تنبيه
+                            </button>
                         </div>
                     </div>
                 `;
             }).join('');
         };
 
+        // ===== Modal Functions =====
         window.openPayDebtModal = (id, fid, name, amt) => {
             document.getElementById('debtSubId').value = id;
             document.getElementById('debtSubFirebaseId').value = fid;
             document.getElementById('debtSubName').innerText = name;
             document.getElementById('currentDebtAmount').innerText = amt.toLocaleString();
+            document.getElementById('payDebtAmount').value = '';
             document.getElementById('payDebtModal').classList.add('active');
         };
+
         window.closeDebtModal = () => document.getElementById('payDebtModal').classList.remove('active');
+
         window.confirmPayDebt = async (p) => {
             let amt = parseInt(document.getElementById('payDebtAmount').value);
-            if (!amt) return;
-            await DataManager.payDebt(document.getElementById('debtSubFirebaseId').value, document.getElementById('debtSubId').value, amt);
-            if (p) DataManager.printReceipt({ title: "وصل تسديد", subName: document.getElementById('debtSubName').innerText, amount: amt, totalRemaining: 0, date: new Date().toLocaleDateString('ar-IQ'), type: "تسديد" });
-            closeDebtModal();
+            if (!amt) return DataManager.showToast('⚠️ أدخل المبلغ', 'error');
+            try {
+                await DataManager.payDebt(document.getElementById('debtSubFirebaseId').value, document.getElementById('debtSubId').value, amt);
+                if (p) DataManager.printReceipt({ title: "وصل تسديد", subName: document.getElementById('debtSubName').innerText, amount: amt, totalRemaining: 0, date: new Date().toLocaleDateString('ar-IQ'), type: "تسديد" });
+                closeDebtModal();
+            } catch (e) {
+                DataManager.showToast('❌ ' + e.message, 'error');
+            }
         };
 
         window.notifyDebtor = (name, phone, amt) => {
@@ -329,7 +753,9 @@
             DataManager.getEmployees().forEach(e => select.innerHTML += `<option value="${e.phone}">${e.name}</option>`);
             document.getElementById('shareDebtsModal').classList.add('active');
         };
+
         window.closeShareModal = () => document.getElementById('shareDebtsModal').classList.remove('active');
+
         window.sendDebtsToEmployee = () => {
             let p = document.getElementById('employeeSelect').value;
             if (!p) return;
@@ -341,11 +767,8 @@
 
         window.toggleMenu = () => document.getElementById('main-nav').classList.toggle('active');
 
-        // استدعاء renderDebts مرة واحدة عند التحميل
-        // المزامنة التلقائية من Firebase ستحدث البيانات تلقائياً
-
+        // ===== Init =====
         window.onload = () => {
-            // تأخير صغير للتأكد من تحميل بيانات المستخدم
             setTimeout(() => {
                 const user = AuthSystem.currentUser;
                 if (user && user.type === 'admin') {
@@ -353,12 +776,9 @@
                     if (btn) btn.style.display = 'inline-block';
                 }
             }, 100);
-
-            // تحديث الصفحة عند تحميل البيانات
             setTimeout(() => renderDebts(), 500);
         };
 
-        // تحديث تلقائي كل 3 ثوانٍ
         setInterval(() => {
             if (typeof DataManager !== 'undefined' && DataManager.subscribers) {
                 renderDebts();
