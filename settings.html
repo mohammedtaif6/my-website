@@ -364,35 +364,8 @@
             font-size: 0.9rem;
         }
 
-        /* Collapsible Styling */
-        .section-title {
-            cursor: pointer;
-            position: relative;
-        }
-
-        .section-title::after {
-            content: "\f078";
-            font-family: "Font Awesome 6 Free";
-            font-weight: 900;
-            position: absolute;
-            left: 20px;
-            transition: transform 0.3s;
-            font-size: 0.8rem;
-            color: #94a3b8;
-        }
-
-        .settings-section.active .section-title::after {
-            transform: rotate(180deg);
-        }
-
         .section-content {
-            display: none;
             border-top: 1px solid #f1f5f9;
-        }
-
-        .settings-section.active .section-content {
-            display: block;
-            animation: fadeIn 0.3s ease;
         }
 
         @keyframes fadeIn {
@@ -488,35 +461,31 @@
             const enteredPin = input.value;
             const submitBtn = input.nextElementSibling.nextElementSibling; // the button
 
-            if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
+            if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق من السحابة...';
             error.style.opacity = '0';
 
             let storedPin = '0000';
 
             try {
-                // Wait briefly if DataManager is still loading
-                for (let i = 0; i < 30; i++) {
-                    if (typeof DataManager !== 'undefined' && DataManager.db) break;
-                    await new Promise(res => setTimeout(res, 100));
-                }
+                // Fetch directly from Firebase REST API to bypass loading times and ensure cross-browser sync
+                const projectId = "okcomputer-system";
+                const response = await fetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/settings/global`);
 
-                if (typeof DataManager !== 'undefined' && DataManager.db) {
-                    const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-                    const snapshot = await getDoc(doc(DataManager.db, "settings", "global"));
-                    if (snapshot.exists() && snapshot.data().pinCode !== undefined) {
-                        storedPin = snapshot.data().pinCode;
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.fields && data.fields.pinCode) {
+                        storedPin = data.fields.pinCode.stringValue;
+
+                        // Sync it locally instantly
                         const localSettings = JSON.parse(localStorage.getItem('sas_settings') || '{}');
                         localSettings.pinCode = storedPin;
                         localStorage.setItem('sas_settings', JSON.stringify(localSettings));
                     }
                 } else {
-                    const localSettings = JSON.parse(localStorage.getItem('sas_settings') || '{}');
-                    if (localSettings && localSettings.pinCode !== undefined) {
-                        storedPin = localSettings.pinCode;
-                    }
+                    throw new Error("API error");
                 }
             } catch (e) {
-                console.warn("Direct auth fetch failed, fallback to local:", e);
+                console.warn("REST auth fetch failed, fallback to local:", e);
                 const localSettings = JSON.parse(localStorage.getItem('sas_settings') || '{}');
                 if (localSettings && localSettings.pinCode !== undefined) {
                     storedPin = localSettings.pinCode;
