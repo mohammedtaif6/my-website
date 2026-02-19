@@ -312,12 +312,12 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
 
         while (this.isPolling) {
             try {
-                const url = `https://api.telegram.org/bot${this.config.botToken}/getUpdates?offset=${lastUpdateId + 1}&timeout=30`;
+                const url = `https://api.telegram.org/bot${this.config.botToken}/getUpdates?offset=${lastUpdateId + 1}&timeout=25`;
                 const response = await fetch(url);
                 const data = await response.json();
 
                 if (data.ok && data.result.length > 0) {
-                    const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                    const { doc, updateDoc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
 
                     for (const update of data.result) {
                         lastUpdateId = update.update_id;
@@ -338,10 +338,25 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
 
                                 // 3. IMPORTANT: Update Firestore to trigger DataManager logic
                                 try {
-                                    await updateDoc(doc(this.db, "transactions", txId), {
-                                        status: action === 'approve' ? 'approved' : 'rejected',
-                                        decidedAt: new Date().toISOString()
-                                    });
+                                    if (action === 'reject') {
+                                        // Mark as rejected first so UI sees it
+                                        await updateDoc(doc(this.db, "transactions", txId), {
+                                            status: 'rejected',
+                                            decidedAt: new Date().toISOString()
+                                        });
+                                        // Delete after 5 seconds
+                                        setTimeout(async () => {
+                                            try {
+                                                await deleteDoc(doc(this.db, "transactions", txId));
+                                                console.log(`🗑️ Rejected TopUp ${txId} deleted.`);
+                                            } catch (delErr) { /* ignore deletion errors */ }
+                                        }, 5000);
+                                    } else {
+                                        await updateDoc(doc(this.db, "transactions", txId), {
+                                            status: 'approved',
+                                            decidedAt: new Date().toISOString()
+                                        });
+                                    }
                                 } catch (dbErr) {
                                     console.error("DB Update Error from Telegram Poll:", dbErr);
                                 }
@@ -350,8 +365,13 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
                     }
                 }
             } catch (e) {
-                console.error("BG Polling Error:", e);
-                await new Promise(r => setTimeout(r, 10000)); // wait 10s on error
+                // Network errors are common during sleep/hibernate, don't spam error
+                if (e.name === 'TypeError') {
+                    console.warn("📡 Telegram Polling: Network connection issue, retrying...");
+                } else {
+                    console.error("BG Polling Error:", e);
+                }
+                await new Promise(r => setTimeout(r, 15000)); // wait 15s on error
             }
             await new Promise(r => setTimeout(r, 1000));
         }

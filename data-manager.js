@@ -557,7 +557,16 @@ export const DataManager = {
                 type: 'topup_request_rejected',
                 rejectedAt: new Date().toISOString()
             });
+
             showToast("⛔ تم رفض طلب التعبئة");
+
+            // Delete after 5 seconds to clear from list
+            setTimeout(async () => {
+                try {
+                    await deleteDoc(txRef);
+                } catch (e) { }
+            }, 5000);
+
             return true;
         } catch (e) { return false; }
     },
