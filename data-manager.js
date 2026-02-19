@@ -47,6 +47,10 @@ function showToast(message, type = 'success') {
 export const DataManager = {
     showToast: showToast,
     db: db,
+    get subscribers() { return localData.subscribers || []; },
+    get transactions() { return localData.transactions || []; },
+    get employees() { return localData.employees || []; },
+    get accounts() { return localData.accounts || []; },
 
     init() {
         console.log("🚀 SAS System Initializing...");
