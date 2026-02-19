@@ -188,25 +188,39 @@
                     العمليات</h3>
             </div>
 
-            <!-- Filter Tabs -->
-            <div class="filter-tabs">
-                <div class="filter-tab active" onclick="setTxFilter('all')">الكل (غير مؤرشف)</div>
-                <div class="filter-tab" onclick="setTxFilter('today')">اليوم</div>
-                <div class="filter-tab" onclick="setTxFilter('yesterday')">أمس</div>
-                <div class="filter-tab" onclick="setTxFilter('week')">الاسبوع</div>
-                <div class="filter-tab" onclick="setTxFilter('month')">الشهر</div>
-            </div>
+            <div
+                style="display: flex; flex-direction: column; background: white; border-bottom: 1px solid #e2e8f0; padding:15px; margin-bottom: 10px;">
+                <!-- Filter Tabs -->
+                <div class="filter-tabs"
+                    style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 15px; -webkit-overflow-scrolling: touch;">
+                    <button class="filter-tab active" onclick="setTxFilter('all')">الكل (غير مؤرشف)</button>
+                    <button class="filter-tab" onclick="setTxFilter('today')">اليوم</button>
+                    <button class="filter-tab" onclick="setTxFilter('yesterday')">أمس</button>
+                    <button class="filter-tab" onclick="setTxFilter('week')">الاسبوع</button>
+                    <button class="filter-tab" onclick="setTxFilter('month')">الشهر</button>
+                </div>
 
-            <!-- Filtered Summary Indicator -->
-            <div id="filteredSummaryDisplay"
-                style="display:none; padding: 15px; margin: 10px 15px; background: #eff6ff; border-radius: 12px; border: 1px dashed #bfdbfe;">
-                <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 5px;"><i class="fas fa-filter"></i>
-                    إجمالي السجلات المفلترة:</div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div style="color: #0f172a; font-weight:bold; font-size:1.1rem;" id="filterNetAmount">0</div>
-                    <div style="display:flex; gap:15px; font-size:0.85rem; font-weight:600;">
-                        <span style="color:#10b981;" id="filterIncAmount">0 <i class="fas fa-arrow-down"></i></span>
-                        <span style="color:#ef4444;" id="filterExpAmount">0 <i class="fas fa-arrow-up"></i></span>
+                <!-- Filtered Summary Indicator -->
+                <div id="filteredSummaryDisplay"
+                    style="display:none; padding: 12px 15px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 12px; border: 1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div
+                            style="width: 36px; height: 36px; border-radius: 10px; background: white; display: flex; align-items: center; justify-content: center; color: #6366f1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                            <i class="fas fa-filter"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.8rem; color: #64748b; font-weight: 600;">صافي الفترة المحددة</div>
+                            <div style="font-size: 1.1rem; font-weight: 800; color: #0f172a; font-family:'Outfit', sans-serif;"
+                                id="filterNetAmount">0</div>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; flex-direction:column; gap:5px; text-align: left;">
+                        <div style="font-size: 0.85rem; font-weight: 700; color: #10b981; display:flex; align-items:center; justify-content:flex-end; gap:5px;"
+                            id="filterIncAmount">0 <i class="fas fa-arrow-down" style="font-size:0.7rem;"></i></div>
+                        <div style="font-size: 0.85rem; font-weight: 700; color: #ef4444; display:flex; align-items:center; justify-content:flex-end; gap:5px;"
+                            id="filterExpAmount">0 <i class="fas fa-arrow-up" style="font-size:0.7rem;"></i></div>
                     </div>
                 </div>
             </div>
@@ -425,10 +439,14 @@
         });
 
         let currentTxFilter = 'all';
-        window.setTxFilter = function (filter) {
+        window.setTxFilter = function (filter, eventObj) {
             currentTxFilter = filter;
             document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
+            if (eventObj) {
+                eventObj.currentTarget.classList.add('active');
+            } else if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
             window.renderPage();
         }
 
@@ -495,9 +513,9 @@
                 const fNet = fIncome - fExpense;
 
                 document.getElementById('filterNetAmount').innerText = fNet.toLocaleString() + ' IQD';
-                document.getElementById('filterIncAmount').innerHTML = '+' + fIncome.toLocaleString() + ' <i class="fas fa-arrow-down"></i>';
-                document.getElementById('filterExpAmount').innerHTML = '-' + fExpense.toLocaleString() + ' <i class="fas fa-arrow-up"></i>';
-                filterSummaryEl.style.display = 'block';
+                document.getElementById('filterIncAmount').innerHTML = '+' + fIncome.toLocaleString() + ' <i class="fas fa-arrow-down" style="font-size:0.7rem;"></i>';
+                document.getElementById('filterExpAmount').innerHTML = '-' + fExpense.toLocaleString() + ' <i class="fas fa-arrow-up" style="font-size:0.7rem;"></i>';
+                filterSummaryEl.style.display = 'flex';
             } else {
                 filterSummaryEl.style.display = 'none';
             }
