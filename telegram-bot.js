@@ -276,6 +276,34 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
 
 
 
+    // إشعار طلب تعبئة رصيد مع أزرار التحكم
+    async notifyTopUpRequest(amount, approveUrl, rejectUrl) {
+        if (!this.config || !this.config.chatId) return;
+
+        const message = `
+🔔 <b>طلب تعبئة رصيد النظام</b>
+
+💰 المبلغ: <b>${amount.toLocaleString()} د.ع</b>
+📅 التاريخ: ${new Date().toLocaleString('ar-IQ')}
+
+يرجى اتخاذ إجراء:
+        `.trim();
+
+        // استخدام Inline Keyboard للأزرار
+        const options = {
+            reply_markup: {
+                inline_keyboard: [
+                    [
+                        { text: "✅ موافقة وتعبئة", url: approveUrl },
+                        { text: "❌ رفض الطلب", url: rejectUrl }
+                    ]
+                ]
+            }
+        };
+
+        return await this.sendMessage(message, options);
+    }
+
     // اختبار الاتصال
     async testConnection() {
         const message = `

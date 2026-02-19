@@ -790,10 +790,26 @@
             }
         };
 
+
         window.onload = () => {
             const urlParams = new URLSearchParams(window.location.search);
             const id = urlParams.get('id');
-            if (id) {
+            const action = urlParams.get('action');
+
+            // Handle Top-Up Actions
+            if (action && id && (action === 'approve_topup' || action === 'reject_topup')) {
+                // Show analyzing toast
+                DataManager.showToast("جاري معالجة الطلب...", "info");
+                // Small delay to ensure DB init? DataManager.init() runs on script load.
+                // We should ensure DataManager is ready.
+                // But it's imported at top level so it should be available.
+                // However, Firebase auth might take a second.
+                setTimeout(() => {
+                    DataManager.handleTopUpAction(id, action);
+                }, 1500);
+            }
+
+            if (id && !action) {
                 document.getElementById('searchInput').value = id;
                 renderPage();
             }

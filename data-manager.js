@@ -2,7 +2,7 @@
  * DataManager v31.1 - مع نظام الباقات السحابي المتقدم ودعم التنبيهات
  */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { initializeFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, limit, getDocs, where, persistentLocalCache, persistentMultipleTabManager, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { initializeFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDoc, onSnapshot, query, orderBy, limit, getDocs, where, persistentLocalCache, persistentMultipleTabManager, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { telegramBot } from './telegram-bot.js?v=19.1';
 
@@ -391,14 +391,87 @@ export const DataManager = {
 
 
     async topUpVirtualBalance(amount) {
-        // We use a special type 'system_topup_expense' to identify this specific kind of expense
-        await this.logTransaction({ subscriberId: null, amount: -Math.abs(amount), type: 'system_topup_expense', description: "تعبئة رصيد النظام" });
-        telegramBot.notifyExpense("تعبئة رصيد النظام", Math.abs(amount));
+        // Create a PENDING request instead of immediate update
+        const docRef = await addDoc(collection(db, "transactions"), {
+            id: Date.now(),
+            createdAt: new Date().toISOString(),
+            subscriberId: null,
+            amount: -Math.abs(amount), // It will be an expense from drawer if approved
+            type: 'topup_request',
+            status: 'pending',
+            description: "طلب تعبئة رصيد النظام"
+        });
 
-        const currentBal = this.getSystemBalance();
-        const newBal = currentBal + amount;
-        await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString(), type: 'system_funds' }, { merge: true });
-        showToast(`✅ تم إضافة ${amount.toLocaleString()} د.ع للرصيد`);
+        // Send Telegram Notification with Action Links
+        // We need the current URL for the callback
+        const baseUrl = window.location.href.split('?')[0];
+        const approveLink = `${baseUrl}?action=approve_topup&id=${docRef.id}`;
+        const rejectLink = `${baseUrl}?action=reject_topup&id=${docRef.id}`;
+
+        if (telegramBot && telegramBot.notifyTopUpRequest) {
+            telegramBot.notifyTopUpRequest(Math.abs(amount), approveLink, rejectLink);
+        }
+        // Don't show success toast here, the UI handles the "Waiting" state
+    },
+
+    async approveTopUp(docId) {
+        try {
+            const txRef = doc(db, "transactions", docId);
+            const txSnap = await getDoc(txRef);
+
+            if (!txSnap.exists()) return showToast('طلب التعبئة غير موجود', 'error');
+            const data = txSnap.data();
+
+            if (data.status !== 'pending') return showToast('تم تنفيذ أو رفض هذا الطلب مسبقاً', 'error');
+
+            const amount = Math.abs(data.amount); // stored as negative
+
+            // 1. Mark as completed expense
+            await updateDoc(txRef, {
+                status: 'approved',
+                type: 'system_topup_expense',
+                approvedAt: new Date().toISOString()
+            });
+
+            // 2. Add to System Balance
+            const currentBal = this.getSystemBalance();
+            const newBal = currentBal + amount;
+            await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString() }, { merge: true });
+
+            showToast(`✅ تمت الموافقة وإضافة ${amount.toLocaleString()} للرصيد بنجاح`);
+            return true;
+        } catch (e) {
+            console.error("Approval Error:", e);
+            showToast("فشلت عملية الموافقة", 'error');
+            return false;
+        }
+    },
+
+    async rejectTopUp(docId) {
+        try {
+            const txRef = doc(db, "transactions", docId);
+            await updateDoc(txRef, {
+                status: 'rejected',
+                type: 'topup_request_rejected',
+                rejectedAt: new Date().toISOString()
+            });
+            showToast("⛔ تم رفض طلب التعبئة");
+            return true;
+        } catch (e) { return false; }
+    },
+
+    async handleTopUpAction(docId, action) {
+        let success = false;
+        if (action === 'approve_topup') success = await this.approveTopUp(docId);
+        if (action === 'reject_topup') success = await this.rejectTopUp(docId);
+
+        // Clean URL after action
+        if (success) {
+            setTimeout(() => {
+                window.history.replaceState({}, document.title, window.location.pathname);
+                window.renderDashboard(); // Refresh UI
+            }, 2000);
+        }
     },
 
     // --- إدارة الموظفين ---
