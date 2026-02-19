@@ -465,37 +465,46 @@
                         style="display:none; border:1px solid #ddd; max-height:100px; overflow-y:auto; margin-top:5px; border-radius:5px;">
                     </div>
                 </div>
-                <div class="form-group">
-                    <label>السعر</label>
-                    <input type="number" inputmode="numeric" id="act-price" value="35000">
-                </div>
-                <div class="form-group">
-                    <label>نوع الدفع</label>
-                    <select id="act-type">
-                        <option value="نقد">نقد (واصل)</option>
-                        <option value="أجل">أجل (دين)</option>
-                    </select>
-                </div>
-                <div style="display: flex; gap: 15px;">
-                    <div class="form-group" style="flex:1"><label>من</label><input type="date" id="act-start"></div>
-                    <div class="form-group" style="flex:1"><label>إلى</label><input type="date" id="act-end"></div>
-                </div>
+            </div>
+            <!-- اختيار الباقة -->
+            <div class="form-group">
+                <label>اختيار الباقة</label>
+                <select id="act-package" onchange="window.onPackageChange(this.value)"
+                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                    <option value="">-- تفعيل يدوي (بدون باقة) --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>السعر</label>
+                <input type="number" inputmode="numeric" id="act-price" value="35000">
+            </div>
+            <div class="form-group">
+                <label>نوع الدفع</label>
+                <select id="act-type">
+                    <option value="نقد">نقد (واصل)</option>
+                    <option value="أجل">أجل (دين)</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex:1"><label>من</label><input type="date" id="act-start"></div>
+                <div class="form-group" style="flex:1"><label>إلى</label><input type="date" id="act-end"></div>
+            </div>
 
-                <!-- WhatsApp Option -->
-                <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                    <input type="checkbox" id="send-whatsapp" style="width: auto;">
-                    <label for="send-whatsapp" style="margin:0; font-weight:normal; cursor:pointer;">إرسال تفاصيل الوصل
-                        واتساب</label>
-                </div>
+            <!-- WhatsApp Option -->
+            <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" id="send-whatsapp" style="width: auto;">
+                <label for="send-whatsapp" style="margin:0; font-weight:normal; cursor:pointer;">إرسال تفاصيل الوصل
+                    واتساب</label>
+            </div>
 
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="window.saveActivation(true)" class="btn btn-success" style="flex: 1;"><i
-                            class="fas fa-print"></i> طباعة</button>
-                    <button onclick="window.saveActivation(false)" class="btn btn-primary" style="flex: 1;"><i
-                            class="fas fa-check"></i> تفعيل</button>
-                </div>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="window.saveActivation(true)" class="btn btn-success" style="flex: 1;"><i
+                        class="fas fa-print"></i> طباعة</button>
+                <button onclick="window.saveActivation(false)" class="btn btn-primary" style="flex: 1;"><i
+                        class="fas fa-check"></i> تفعيل</button>
             </div>
         </div>
+    </div>
     </div>
 
     </div>
@@ -664,9 +673,21 @@
         import { DataManager } from './data-manager.js?v=31.0';
         window.DataManager = DataManager;
         DataManager.init();
+
+        // تحديث قائمة الباقات في المودال
+        window.onPackageChange = function (pkgId) {
+            const pkgs = DataManager.getSystemSettings().packages || [];
+            const selected = pkgs.find(p => p.id === pkgId);
+            if (selected) {
+                document.getElementById('act-price').value = selected.salePrice;
+                document.getElementById('act-price').setAttribute('data-user-modified', 'true');
+            }
+        };
+
         window.saveActivation = async function (print) {
             const name = document.getElementById('act-name').value;
             const price = document.getElementById('act-price').value;
+            const packageId = document.getElementById('act-package').value;
             const type = document.getElementById('act-type').value;
             const start = document.getElementById('act-start').value;
             const end = document.getElementById('act-end').value;
@@ -692,7 +713,7 @@
                     }
 
                     await DataManager.renewSubscription(existing.firebaseId, existing.id, {
-                        price: parseInt(price), type: type, dateEnd: end
+                        price: parseInt(price), type: type, dateEnd: end, packageId: packageId
                     });
                 } else {
                     // مشترك جديد
@@ -705,7 +726,8 @@
                         phone: subPhone || '',
                         initialPrice: parseInt(price),
                         paymentType: type,
-                        expiryDate: end
+                        expiryDate: end,
+                        packageId: packageId
                     });
                 }
 
@@ -762,6 +784,14 @@
             const defaultPrice = settings.defaultPrice || 35000;
 
             document.getElementById('activateModal').classList.add('active');
+
+            // تحديث قائمة الباقات
+            const pkgSelect = document.getElementById('act-package');
+            const packages = DataManager.getSystemSettings().packages || [];
+            if (pkgSelect) {
+                pkgSelect.innerHTML = '<option value="">-- تفعيل يدوي (بدون باقة) --</option>' +
+                    packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString()} د.ع)</option>`).join('');
+            }
 
             // ضبط السعر الافتراضي إذا لم يعدله المستخدم
             const priceInput = document.getElementById('act-price');

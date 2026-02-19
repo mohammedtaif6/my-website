@@ -30,7 +30,7 @@ console.log('✅ Firebase مُهيأ بالتخزين المحلي المتقد�
 
 
 
-let localData = { subscribers: [], transactions: [], archived_transactions: [], employees: [], settings: {} };
+let localData = { subscribers: [], transactions: [], archived_transactions: [], employees: [], settings: {}, accounts: [] };
 let isProcessing = false;
 
 // === Toast Logic ===
@@ -231,12 +231,22 @@ export const DataManager = {
     },
 
     async addSubscriber(data) {
-        // Prevent dupes? (Maybe later)
         const subData = {
             id: Date.now(),
             createdAt: new Date().toISOString(),
             ...data
         };
+
+        // التعامل مع الباقة إذا وجدت (نظام الخصم الاحترافي)
+        if (data.packageId) {
+            const pkg = (localData.settings.packages || []).find(p => p.id === data.packageId);
+            if (pkg) {
+                console.log(`📦 Applying Package: ${pkg.name} | Cost: ${pkg.costPrice}`);
+                // خصم سعر الشراء من الرصيد المعبأ
+                await this.deductFromVirtualBalance(pkg.costPrice, `تفعيل باقة ${pkg.name} للمشترك ${data.name}`);
+            }
+        }
+
         const subRef = await addDoc(collection(db, "subscribers"), subData);
 
         const initialAmount = data.initialPrice || 0;
@@ -249,7 +259,6 @@ export const DataManager = {
             });
             if (data.paymentType === 'نقد') await updateDoc(doc(db, "subscribers", subRef.id), { price: 0 });
 
-            // إشعار Telegram
             telegramBot.notifyNewActivation(
                 subData.name,
                 parseInt(initialAmount),
@@ -262,6 +271,14 @@ export const DataManager = {
 
     async renewSubscription(subscriberFirebaseId, subscriberDataId, renewalData) {
         const sub = localData.subscribers.find(s => s.firebaseId === subscriberFirebaseId);
+
+        // التعامل مع الباقة في التجديد
+        if (renewalData.packageId) {
+            const pkg = (localData.settings.packages || []).find(p => p.id === renewalData.packageId);
+            if (pkg) {
+                await this.deductFromVirtualBalance(pkg.costPrice, `تجديد باقة ${pkg.name} للمشترك ${sub.name}`);
+            }
+        }
 
         let newDebt = parseInt(sub.price || 0);
         if (renewalData.type === 'أجل') newDebt += parseInt(renewalData.price);
@@ -278,10 +295,9 @@ export const DataManager = {
             expiryDate: renewalData.dateEnd,
             paymentType: renewalData.type,
             price: newDebt,
-            expiryWarningSent: false // Reset warning flag on renewal
+            expiryWarningSent: false
         });
 
-        // إشعار Telegram
         telegramBot.notifyRenewal(
             sub.name,
             parseInt(renewalData.price),
@@ -676,6 +692,25 @@ export const DataManager = {
             showToast('خطأ في عملية التعبئة: ' + err.message, 'error');
             console.groupEnd();
             throw err;
+        }
+    },
+    async deductFromVirtualBalance(amount, reason = "استقطاع رصيد") {
+        try {
+            const currentBal = this.getSystemBalance();
+            if (currentBal < amount) {
+                showToast("⚠️ تحذير: رصيد النظام غير كافٍ لهذه العملية", "error");
+            }
+
+            const newBal = currentBal - amount;
+            const systemRef = doc(db, "accounts", "system");
+            await setDoc(systemRef, {
+                balance: newBal,
+                lastUpdated: new Date().toISOString()
+            }, { merge: true });
+
+            console.log(`📉 Virtual Balance Deducted: -${amount} | New: ${newBal} | Reason: ${reason}`);
+        } catch (err) {
+            console.error("❌ Deduction Failed:", err);
         }
     }
 };

@@ -263,6 +263,77 @@
                 width: 120px;
             }
         }
+
+        /* Packages Styling */
+        .packages-list {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .package-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .package-info h4 {
+            margin: 0;
+            color: #1e293b;
+            font-size: 1rem;
+        }
+
+        .package-info p {
+            margin: 2px 0 0;
+            color: #64748b;
+            font-size: 0.8rem;
+        }
+
+        .package-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon-danger {
+            color: #ef4444;
+            background: #fee2e2;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .add-package-form {
+            padding: 20px;
+            background: #f1f5f9;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .package-inputs {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .package-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .pkg-input {
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 
@@ -428,250 +499,329 @@
                 <span class="toggle-slider"></span>
             </label>
         </div>
-    </div>
-
-    <!-- صفحات القائمة الجانبية -->
-    <div class="settings-section">
-        <div class="section-title"><i class="fas fa-bars"></i> القائمة الجانبية</div>
-
-        <div class="setting-item">
-            <div class="setting-label">
-                <i class="icon-blue fas fa-users"></i>
-                <span>المشتركين</span>
+        <!-- إدارة الباقات -->
+        <div class="settings-section">
+            <div class="section-title"><i class="fas fa-box-open"></i> إدارة باقات الاشتراك</div>
+            <div id="packages-container" class="packages-list">
+                <!-- سيتم تحميل الباقات هنا -->
             </div>
-            <label class="toggle-switch">
-                <input type="checkbox" id="nav-subscribers-toggle" checked>
-                <span class="toggle-slider"></span>
-            </label>
+
+            <div class="add-package-form">
+                <h4 style="margin: 0 0 15px 0; font-size: 0.95rem; color: #475569;">إضافة باقة جديدة</h4>
+                <div class="package-inputs">
+                    <input type="text" id="pkg-name" class="pkg-input" placeholder="اسم الباقة (مثلاً: نورمال)">
+                    <input type="number" id="pkg-cost" class="pkg-input" placeholder="سعر الشراء (رصيد)">
+                    <input type="number" id="pkg-sale" class="pkg-input" placeholder="سعر المبيع (صندوق)">
+                </div>
+                <button onclick="addNewPackage()" class="btn-primary"
+                    style="width: 100%; padding: 10px; border-radius: 8px; border: none; background: #4f46e5; color: white; font-weight: bold; cursor: pointer;">
+                    <i class="fas fa-plus"></i> إضافة الباقة للقائمة
+                </button>
+            </div>
         </div>
 
-        <div class="setting-item">
-            <div class="setting-label">
-                <i class="icon-teal fas fa-signal"></i>
-                <span>الفعالين</span>
+        <!-- صفحات القائمة الجانبية -->
+        <div class="settings-section">
+            <div class="section-title"><i class="fas fa-bars"></i> القائمة الجانبية</div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="icon-blue fas fa-users"></i>
+                    <span>المشتركين</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="nav-subscribers-toggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
             </div>
-            <label class="toggle-switch">
-                <input type="checkbox" id="nav-active-toggle" checked>
-                <span class="toggle-slider"></span>
-            </label>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="icon-teal fas fa-signal"></i>
+                    <span>الفعالين</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="nav-active-toggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="icon-red fas fa-money-bill-wave"></i>
+                    <span>الديون</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="nav-debts-toggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="icon-purple fas fa-hand-holding-usd"></i>
+                    <span>الصندوق</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="nav-payments-toggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="icon-indigo fas fa-chart-bar"></i>
+                    <span>التقارير</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="nav-reports-toggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="icon-orange fas fa-users-cog"></i>
+                    <span>الموظفين</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="nav-employees-toggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="icon-dark fab fa-telegram"></i>
+                    <span>Telegram</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="nav-telegram-toggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
         </div>
 
-        <div class="setting-item">
-            <div class="setting-label">
-                <i class="icon-red fas fa-money-bill-wave"></i>
-                <span>الديون</span>
-            </div>
-            <label class="toggle-switch">
-                <input type="checkbox" id="nav-debts-toggle" checked>
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
+        <!-- زر حفظ الإعدادات (جديد) -->
+        <button class="save-btn" onclick="saveAllSettings()"
+            style="background: var(--primary); color: white; width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);">
+            <i class="fas fa-save"></i> حفظ الإعدادات
+        </button>
 
-        <div class="setting-item">
-            <div class="setting-label">
-                <i class="icon-purple fas fa-hand-holding-usd"></i>
-                <span>الصندوق</span>
-            </div>
-            <label class="toggle-switch">
-                <input type="checkbox" id="nav-payments-toggle" checked>
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
+        <!-- زر إعادة التعيين -->
+        <button class="reset-btn" onclick="resetAllSettings()">
+            <i class="fas fa-undo"></i> إعادة تعيين جميع الإعدادات
+        </button>
 
-        <div class="setting-item">
-            <div class="setting-label">
-                <i class="icon-indigo fas fa-chart-bar"></i>
-                <span>التقارير</span>
-            </div>
-            <label class="toggle-switch">
-                <input type="checkbox" id="nav-reports-toggle" checked>
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
+        <!-- Toast -->
+        <div class="save-toast" id="saveToast">✅ تم حفظ الإعدادات</div>
 
-        <div class="setting-item">
-            <div class="setting-label">
-                <i class="icon-orange fas fa-users-cog"></i>
-                <span>الموظفين</span>
-            </div>
-            <label class="toggle-switch">
-                <input type="checkbox" id="nav-employees-toggle" checked>
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
+        <script>
+            const SETTINGS_KEY = 'sas_settings';
 
-        <div class="setting-item">
-            <div class="setting-label">
-                <i class="icon-dark fab fa-telegram"></i>
-                <span>Telegram</span>
-            </div>
-            <label class="toggle-switch">
-                <input type="checkbox" id="nav-telegram-toggle" checked>
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
-    </div>
+            // === تحميل الإعدادات ===
+            function loadSettings() {
+                console.log("🛠️ UI: loadSettings() triggered");
 
-    <!-- زر حفظ الإعدادات (جديد) -->
-    <button class="save-btn" onclick="saveAllSettings()"
-        style="background: var(--primary); color: white; width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);">
-        <i class="fas fa-save"></i> حفظ الإعدادات
-    </button>
+                // جلب الإعدادات من DataManager (سحابياً) مع تفضيل الكاش المحلي إذا كان السحاب فارغاً في البداية
+                const cloudSettings = (typeof DataManager !== 'undefined' && DataManager.getSystemSettings)
+                    ? DataManager.getSystemSettings() : {};
+                const localSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
 
-    <!-- زر إعادة التعيين -->
-    <button class="reset-btn" onclick="resetAllSettings()">
-        <i class="fas fa-undo"></i> إعادة تعيين جميع الإعدادات
-    </button>
+                // دمج الخيارات (تفضيل السحاب إذا كان يحتوي على بيانات)
+                const settings = Object.keys(cloudSettings).length > 0 ? cloudSettings : localSettings;
 
-    <!-- Toast -->
-    <div class="save-toast" id="saveToast">✅ تم حفظ الإعدادات</div>
+                console.log("📦 UI: Applying settings to fields:", settings);
 
-    <script>
-        const SETTINGS_KEY = 'sas_settings';
+                if (Object.keys(settings).length === 0) {
+                    console.log("ℹ️ No settings found in Cloud or LocalStorage.");
+                    return;
+                }
 
-        // === تحميل الإعدادات ===
-        function loadSettings() {
-            console.log("🛠️ UI: loadSettings() triggered");
+                // إعدادات عامة
+                if (settings.systemName) document.getElementById('set-system-name').value = settings.systemName;
+                if (settings.defaultPrice) document.getElementById('set-default-price').value = settings.defaultPrice;
+                if (settings.subDuration) document.getElementById('set-sub-duration').value = settings.subDuration;
 
-            // جلب الإعدادات من DataManager (سحابياً) مع تفضيل الكاش المحلي إذا كان السحاب فارغاً في البداية
-            const cloudSettings = (typeof DataManager !== 'undefined' && DataManager.getSystemSettings)
-                ? DataManager.getSystemSettings() : {};
-            const localSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+                // كروت الداشبورد
+                const toggleMap = {
+                    'card-subscribers': 'card-subscribers-toggle',
+                    'card-active': 'card-active-toggle',
+                    'card-debts': 'card-debts-toggle',
+                    'card-payments': 'card-payments-toggle',
+                    'card-reports': 'card-reports-toggle',
+                    'nav-card-employees': 'card-employees-toggle',
+                    'card-expiring': 'card-expiring-toggle',
+                    'card-expired': 'card-expired-toggle',
+                    'nav-card-telegram': 'card-telegram-toggle'
+                };
 
-            // دمج الخيارات (تفضيل السحاب إذا كان يحتوي على بيانات)
-            const settings = Object.keys(cloudSettings).length > 0 ? cloudSettings : localSettings;
+                for (const [key, id] of Object.entries(toggleMap)) {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        // إذا كان الخيار غير موجود (undefined)، نعتبره true افتراضياً
+                        el.checked = settings[key] !== false;
+                    }
+                }
 
-            console.log("📦 UI: Applying settings to fields:", settings);
+                // صفحات النافبار
+                const navKeys = ['nav-subscribers', 'nav-active', 'nav-debts', 'nav-payments', 'nav-reports', 'nav-employees', 'nav-telegram'];
+                navKeys.forEach(key => {
+                    const el = document.getElementById(key + '-toggle');
+                    if (el) el.checked = settings[key] !== false;
+                });
 
-            if (Object.keys(settings).length === 0) {
-                console.log("ℹ️ No settings found in Cloud or LocalStorage.");
-                return;
+                // الباقات
+                window.currentPackages = settings.packages || [];
+                renderPackagesList();
             }
 
-            // إعدادات عامة
-            if (settings.systemName) document.getElementById('set-system-name').value = settings.systemName;
-            if (settings.defaultPrice) document.getElementById('set-default-price').value = settings.defaultPrice;
-            if (settings.subDuration) document.getElementById('set-sub-duration').value = settings.subDuration;
+            function renderPackagesList() {
+                const container = document.getElementById('packages-container');
+                if (!container) return;
 
-            // كروت الداشبورد
-            const toggleMap = {
-                'card-subscribers': 'card-subscribers-toggle',
-                'card-active': 'card-active-toggle',
-                'card-debts': 'card-debts-toggle',
-                'card-payments': 'card-payments-toggle',
-                'card-reports': 'card-reports-toggle',
-                'nav-card-employees': 'card-employees-toggle',
-                'card-expiring': 'card-expiring-toggle',
-                'card-expired': 'card-expired-toggle',
-                'nav-card-telegram': 'card-telegram-toggle'
-            };
+                if (window.currentPackages.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">لا توجد باقات مضافة حالياً</p>';
+                    return;
+                }
 
-            for (const [key, id] of Object.entries(toggleMap)) {
-                const el = document.getElementById(id);
-                if (el) {
-                    // إذا كان الخيار غير موجود (undefined)، نعتبره true افتراضياً
-                    el.checked = settings[key] !== false;
+                container.innerHTML = window.currentPackages.map(pkg => `
+                <div class="package-card">
+                    <div class="package-info">
+                        <h4>${pkg.name}</h4>
+                        <p>شراء: <b>${pkg.costPrice.toLocaleString()}</b> | مبيع: <b>${pkg.salePrice.toLocaleString()}</b></p>
+                    </div>
+                    <div class="package-actions">
+                        <button onclick="removePackage('${pkg.id}')" class="btn-icon-danger"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('');
+            }
+
+            window.addNewPackage = function () {
+                const name = document.getElementById('pkg-name').value;
+                const cost = parseInt(document.getElementById('pkg-cost').value);
+                const sale = parseInt(document.getElementById('pkg-sale').value);
+
+                if (!name || isNaN(cost) || isNaN(sale)) {
+                    return alert('يرجى ملء جميع حقول الباقة بشكل صحيح');
+                }
+
+                const newPkg = {
+                    id: 'pkg_' + Date.now(),
+                    name,
+                    costPrice: cost,
+                    salePrice: sale
+                };
+
+                window.currentPackages.push(newPkg);
+                renderPackagesList();
+
+                // مسح الحقول
+                document.getElementById('pkg-name').value = '';
+                document.getElementById('pkg-cost').value = '';
+                document.getElementById('pkg-sale').value = '';
+            }
+
+            window.removePackage = function (id) {
+                if (!confirm('هل تريد حذف هذه الباقة؟')) return;
+                window.currentPackages = window.currentPackages.filter(p => p.id !== id);
+                renderPackagesList();
+            }
+
+            // جعل loadSettings متاحة عالمياً لـ DataManager
+            window.loadSettings = loadSettings;
+
+            // === حفظ الكل ===
+            async function saveAllSettings() {
+                console.log("🚀 UI: saveAllSettings() started");
+                const settings = {};
+
+                // 1. الإعدادات العامة
+                settings.systemName = document.getElementById('set-system-name').value;
+                settings.defaultPrice = parseInt(document.getElementById('set-default-price').value || 35000);
+                settings.subDuration = parseInt(document.getElementById('set-sub-duration').value || 30);
+
+                // 2. كروت الداشبورد
+                const toggleMap = {
+                    'card-subscribers': 'card-subscribers-toggle',
+                    'card-active': 'card-active-toggle',
+                    'card-debts': 'card-debts-toggle',
+                    'card-payments': 'card-payments-toggle',
+                    'card-reports': 'card-reports-toggle',
+                    'nav-card-employees': 'card-employees-toggle',
+                    'card-expiring': 'card-expiring-toggle',
+                    'card-expired': 'card-expired-toggle',
+                    'nav-card-telegram': 'card-telegram-toggle'
+                };
+                for (const [key, id] of Object.entries(toggleMap)) {
+                    const el = document.getElementById(id);
+                    if (el) settings[key] = el.checked;
+                }
+
+                // 3. النافبار
+                const navKeys = ['nav-subscribers', 'nav-active', 'nav-debts', 'nav-payments', 'nav-reports', 'nav-employees', 'nav-telegram'];
+                navKeys.forEach(key => {
+                    const el = document.getElementById(key + '-toggle');
+                    if (el) settings[key] = el.checked;
+                });
+
+                // 4. الباقات
+                settings.packages = window.currentPackages || [];
+
+                console.log("📤 UI: Sending data to DataManager:", settings);
+
+                if (typeof DataManager !== 'undefined' && DataManager.saveAllSystemSettings) {
+                    try {
+                        await DataManager.saveAllSystemSettings(settings);
+                        console.log("✅ UI: Remote save successful");
+                        showSaveToast('✅ تم الحفظ سحابياً بنجاح');
+                    } catch (err) {
+                        console.error("❌ UI: Remote save failed:", err);
+                        showSaveToast('❌ فشل الحفظ السحابي - تفقد الكونسل');
+                    }
+                } else {
+                    console.warn("⚠️ UI: DataManager not found, falling back to LocalStorage");
+                    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+                    showSaveToast('⚠️ تم الحفظ محلياً فقط');
                 }
             }
 
-            // صفحات النافبار
-            const navKeys = ['nav-subscribers', 'nav-active', 'nav-debts', 'nav-payments', 'nav-reports', 'nav-employees', 'nav-telegram'];
-            navKeys.forEach(key => {
-                const el = document.getElementById(key + '-toggle');
-                if (el) el.checked = settings[key] !== false;
-            });
-        }
 
-        // جعل loadSettings متاحة عالمياً لـ DataManager
-        window.loadSettings = loadSettings;
 
-        // === حفظ الكل ===
-        async function saveAllSettings() {
-            console.log("🚀 UI: saveAllSettings() started");
-            const settings = {};
+            // === إعادة تعيين ===
+            function resetAllSettings() {
+                if (!confirm('هل أنت متأكد من إعادة تعيين جميع الإعدادات؟')) return;
+                // للتصفير السحابي، سنحتاج لحذف الوثيقة أو مسح كل الحقول.
+                // للتبسيط، سنمسح الـ localStorage ونطلب الحذف يدوياً أو نتركها
+                localStorage.removeItem(SETTINGS_KEY);
+                showSaveToast('🔄 تم مسح الكاش المحلي. لإعادة التعيين الكلي يرجى التواصل مع الدعم.');
+                loadSettings();
+            }
 
-            // 1. الإعدادات العامة
-            settings.systemName = document.getElementById('set-system-name').value;
-            settings.defaultPrice = parseInt(document.getElementById('set-default-price').value || 35000);
-            settings.subDuration = parseInt(document.getElementById('set-sub-duration').value || 30);
+            // === Toast ===
+            function showSaveToast(msg) {
+                const toast = document.getElementById('saveToast');
+                toast.innerText = msg || '✅ تم حفظ الإعدادات';
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            }
 
-            // 2. كروت الداشبورد
-            const toggleMap = {
-                'card-subscribers': 'card-subscribers-toggle',
-                'card-active': 'card-active-toggle',
-                'card-debts': 'card-debts-toggle',
-                'card-payments': 'card-payments-toggle',
-                'card-reports': 'card-reports-toggle',
-                'nav-card-employees': 'card-employees-toggle',
-                'card-expiring': 'card-expiring-toggle',
-                'card-expired': 'card-expired-toggle',
-                'nav-card-telegram': 'card-telegram-toggle'
+            // === Menu Toggle ===
+            window.toggleMenu = function () {
+                const nav = document.getElementById('main-nav');
+                nav.classList.toggle('active');
+                document.body.style.overflow = nav.classList.contains('active') ? 'hidden' : '';
             };
-            for (const [key, id] of Object.entries(toggleMap)) {
-                const el = document.getElementById(id);
-                if (el) settings[key] = el.checked;
-            }
 
-            // 3. النافبار
-            const navKeys = ['nav-subscribers', 'nav-active', 'nav-debts', 'nav-payments', 'nav-reports', 'nav-employees', 'nav-telegram'];
-            navKeys.forEach(key => {
-                const el = document.getElementById(key + '-toggle');
-                if (el) settings[key] = el.checked;
-            });
-
-            console.log("📤 UI: Sending data to DataManager:", settings);
-
-            if (typeof DataManager !== 'undefined' && DataManager.saveAllSystemSettings) {
-                try {
-                    await DataManager.saveAllSystemSettings(settings);
-                    console.log("✅ UI: Remote save successful");
-                    showSaveToast('✅ تم الحفظ سحابياً بنجاح');
-                } catch (err) {
-                    console.error("❌ UI: Remote save failed:", err);
-                    showSaveToast('❌ فشل الحفظ السحابي - تفقد الكونسل');
-                }
-            } else {
-                console.warn("⚠️ UI: DataManager not found, falling back to LocalStorage");
-                localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-                showSaveToast('⚠️ تم الحفظ محلياً فقط');
-            }
-        }
-
-
-
-        // === إعادة تعيين ===
-        function resetAllSettings() {
-            if (!confirm('هل أنت متأكد من إعادة تعيين جميع الإعدادات؟')) return;
-            // للتصفير السحابي، سنحتاج لحذف الوثيقة أو مسح كل الحقول.
-            // للتبسيط، سنمسح الـ localStorage ونطلب الحذف يدوياً أو نتركها
-            localStorage.removeItem(SETTINGS_KEY);
-            showSaveToast('🔄 تم مسح الكاش المحلي. لإعادة التعيين الكلي يرجى التواصل مع الدعم.');
+            // تحميل عند الفتح
             loadSettings();
-        }
-
-        // === Toast ===
-        function showSaveToast(msg) {
-            const toast = document.getElementById('saveToast');
-            toast.innerText = msg || '✅ تم حفظ الإعدادات';
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
-        }
-
-        // === Menu Toggle ===
-        window.toggleMenu = function () {
-            const nav = document.getElementById('main-nav');
-            nav.classList.toggle('active');
-            document.body.style.overflow = nav.classList.contains('active') ? 'hidden' : '';
-        };
-
-        // تحميل عند الفتح
-        loadSettings();
-    </script>
-    <script type="module">
-        import { DataManager } from './data-manager.js?v=30.0';
-        window.DataManager = DataManager;
-        DataManager.init();
-    </script>
+        </script>
+        <script type="module">
+            import { DataManager } from './data-manager.js?v=30.0';
+            window.DataManager = DataManager;
+            DataManager.init();
+        </script>
 </body>
 
 </html>
