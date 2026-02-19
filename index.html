@@ -1205,56 +1205,70 @@
 
             // Confirmation removed as per user request
 
-            const btn = document.querySelector('#topUpModal .btn-primary');
-            const originalText = btn.innerText;
-            btn.innerText = 'جاري إرسال الطلب...';
-            btn.disabled = true;
+            // UI Setup
+            const modalBox = document.querySelector('#topUpModal .modal-box');
+            // Check if we found the box, otherwise fallback to body or simple alert to avoid crash
+            if (!modalBox) return DataManager.showToast('خطأ في واجهة الموقع', 'error');
 
-            console.log("🛠️ Attempting to call DataManager.topUpVirtualBalance with amount:", amount);
-            if (!DataManager || typeof DataManager.topUpVirtualBalance !== 'function') {
-                console.error("❌ DataManager is not properly loaded or method is missing!");
-                btn.innerText = originalText;
-                btn.disabled = false;
-                return DataManager.showToast('عذراً، النظام لم يكتمل تحميله بعد. يرجى المحاولة بعد ثوانٍ', 'error');
-            }
+            const oldHTML = modalBox.innerHTML;
+
+            // Show Waiting UI immediately
+            modalBox.innerHTML = `
+                <div style="text-align:center; padding: 40px;">
+                    <div class="loader" style="margin: 0 auto 20px;"></div>
+                    <h3>بانتظار الموافقة...</h3>
+                    <p style="color:#666;">تم إرسال الطلب.. يرجى الموافقة من تطبيق Telegram</p>
+                </div>
+            `;
 
             try {
-                // We await the request creation
+                // Await Real Telegram Decision
                 await DataManager.topUpVirtualBalance(amount);
 
-                // Show waiting state
-                const inputContainer = document.querySelector('.topup-modal-box');
-                const oldHTML = inputContainer.innerHTML;
-
-                inputContainer.innerHTML = `
+                // Show Success
+                modalBox.innerHTML = `
                     <div style="text-align:center; padding: 40px;">
-                        <div class="loader" style="margin: 0 auto 20px;"></div>
-                        <h3>بانتظار الموافقة...</h3>
-                        <p style="color:#666;">تم إرسال الطلب إلى الإدارة</p>
+                        <div style="font-size: 3rem; color: #10b981; margin-bottom: 20px;"><i class="fas fa-check-circle"></i></div>
+                        <h3 style="color: #10b981;">تمت التعبئة بنجاح!</h3>
                     </div>
                 `;
 
-                // Simulate waiting for "Approval" (Visual Only for now as we don't have real-time callback from Telegram)
-                // In a real app, we would listen to Firestore 'requests' collection.
-                // For now, we will just hold it for 3 seconds then close, assuming "Auto Approved" or "Sent".
-                // But user asked for "Buttons in Telegram".
-                // I will update DataManager to send the message.
-
                 setTimeout(() => {
-                    input.value = '';
                     closeTopUpModal();
-                    // Restore modal content for next time
-                    setTimeout(() => inputContainer.innerHTML = oldHTML, 500);
                     window.renderDashboard();
-                }, 4000);
+                    // Restore original form after animation
+                    setTimeout(() => {
+                        modalBox.innerHTML = oldHTML;
+                        // Re-bind input events if necessary or let them be
+                        const newInput = document.getElementById('topup-amount-input');
+                        if (newInput) newInput.value = '';
+                    }, 300);
+                }, 1500);
 
             } catch (e) {
-                console.error("❌ Component Error in saveTopUp:", e);
-                btn.innerText = originalText;
-                btn.disabled = false;
-            }
+                console.error("TopUp Error:", e);
+                // Show Failure/Rejection
+                modalBox.innerHTML = `
+                    <div style="text-align:center; padding: 40px;">
+                        <div style="font-size: 3rem; color: #ef4444; margin-bottom: 20px;"><i class="fas fa-times-circle"></i></div>
+                        <h3 style="color: #ef4444;">${e.message === "Request Rejected" ? "تم رفض الطلب" : "فشلت العملية"}</h3>
+                        <p style="color:#999; margin-top:10px;">${e.message !== "Request Rejected" ? e.message : ""}</p>
+                    </div>
+                `;
 
+                setTimeout(() => {
+                    closeTopUpModal();
+                    // Restore original form
+                    setTimeout(() => {
+                        modalBox.innerHTML = oldHTML;
+                        const newInput = document.getElementById('topup-amount-input');
+                        if (newInput) newInput.value = '';
+                    }, 300);
+                }, 2000);
+            }
         };
+
+
 
         // تفعيل ميزة الأصفار للاختصار في التعبئة
         const topupInput = document.getElementById('topup-amount-input');

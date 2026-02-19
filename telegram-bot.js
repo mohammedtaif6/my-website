@@ -276,8 +276,7 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
 
 
 
-    // إشعار طلب تعبئة رصيد مع أزرار التحكم
-    async notifyTopUpRequest(amount, approveUrl, rejectUrl) {
+    async notifyTopUpRequest(amount, topUpId) {
         if (!this.config || !this.config.chatId) return;
 
         const message = `
@@ -289,19 +288,88 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
 يرجى اتخاذ إجراء:
         `.trim();
 
-        // استخدام Inline Keyboard للأزرار
         const options = {
             reply_markup: {
                 inline_keyboard: [
                     [
-                        { text: "✅ موافقة وتعبئة", url: approveUrl },
-                        { text: "❌ رفض الطلب", url: rejectUrl }
+                        { text: "✅ موافقة وتعبئة", callback_data: `approve_${topUpId}` },
+                        { text: "❌ رفض الطلب", callback_data: `reject_${topUpId}` }
                     ]
                 ]
             }
         };
 
         return await this.sendMessage(message, options);
+    }
+
+    async waitForDecision(topUpId) {
+        if (!this.config || !this.config.botToken) return null;
+        let lastUpdateId = 0;
+        const startTime = Date.now();
+
+        // Poll for 60 seconds max
+        while (Date.now() - startTime < 60000) {
+            try {
+                const url = `https://api.telegram.org/bot${this.config.botToken}/getUpdates?offset=${lastUpdateId + 1}&timeout=5`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.ok && data.result.length > 0) {
+                    for (const update of data.result) {
+                        lastUpdateId = update.update_id;
+
+                        if (update.callback_query) {
+                            const cb = update.callback_query;
+                            const action = cb.data; // approve_12345
+
+                            if (action === `approve_${topUpId}` || action === `reject_${topUpId}`) {
+                                // Answer callback to stop loading animation on button
+                                await this.answerCallback(cb.id, action.includes('approve') ? "تمت الموافقة" : "تم الرفض");
+
+                                // Update message text
+                                const newText = action.includes('approve')
+                                    ? `✅ <b>تمت العملية</b>\n تمت الموافقة على طلب التعبئة.`
+                                    : `❌ <b>تمت العملية</b>\n تم رفض طلب التعبئة.`;
+
+                                await this.editMessage(cb.message.chat.id, cb.message.message_id, newText);
+
+                                return action.split('_')[0]; // 'approve' or 'reject'
+                            }
+                        }
+                    }
+                }
+                // Small delay to prevent hammering if response is fast
+                await new Promise(r => setTimeout(r, 1000));
+
+            } catch (e) {
+                console.error("Polling Error:", e);
+                await new Promise(r => setTimeout(r, 2000));
+            }
+        }
+        return 'timeout';
+    }
+
+    async answerCallback(callbackId, text) {
+        const url = `https://api.telegram.org/bot${this.config.botToken}/answerCallbackQuery`;
+        await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ callback_query_id: callbackId, text: text })
+        });
+    }
+
+    async editMessage(chatId, messageId, text) {
+        const url = `https://api.telegram.org/bot${this.config.botToken}/editMessageText`;
+        await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: chatId,
+                message_id: messageId,
+                text: text,
+                parse_mode: 'HTML'
+            })
+        });
     }
 
     // اختبار الاتصال

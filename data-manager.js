@@ -391,27 +391,38 @@ export const DataManager = {
 
 
     async topUpVirtualBalance(amount) {
-        // Create a PENDING request instead of immediate update
+        // Create a PENDING request
         const docRef = await addDoc(collection(db, "transactions"), {
             id: Date.now(),
             createdAt: new Date().toISOString(),
             subscriberId: null,
-            amount: -Math.abs(amount), // It will be an expense from drawer if approved
+            amount: -Math.abs(amount),
             type: 'topup_request',
             status: 'pending',
             description: "طلب تعبئة رصيد النظام"
         });
 
-        // Send Telegram Notification with Action Links
-        // We need the current URL for the callback
-        const baseUrl = window.location.href.split('?')[0];
-        const approveLink = `${baseUrl}?action=approve_topup&id=${docRef.id}`;
-        const rejectLink = `${baseUrl}?action=reject_topup&id=${docRef.id}`;
-
+        // Notify Telegram
         if (telegramBot && telegramBot.notifyTopUpRequest) {
-            telegramBot.notifyTopUpRequest(Math.abs(amount), approveLink, rejectLink);
+            await telegramBot.notifyTopUpRequest(Math.abs(amount), docRef.id);
         }
-        // Don't show success toast here, the UI handles the "Waiting" state
+
+        // Wait for decision (Blocking)
+        if (telegramBot && telegramBot.waitForDecision) {
+            const decision = await telegramBot.waitForDecision(docRef.id);
+
+            if (decision === 'approve') {
+                await this.approveTopUp(docRef.id);
+                return 'approved';
+            } else if (decision === 'reject') {
+                await this.rejectTopUp(docRef.id);
+                throw new Error("Request Rejected");
+            } else {
+                // Timeout
+                showToast("انتهت مهلة انتظار الموافقة", "error");
+                throw new Error("Request Timed Out");
+            }
+        }
     },
 
     async approveTopUp(docId) {
