@@ -355,7 +355,7 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
             }
             await new Promise(r => setTimeout(r, 1000));
         }
-    },
+    }
 
     // إشعار استخدام خدمة دايني
     async notifyDayniUsed(subscriberName) {
@@ -370,7 +370,7 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
         `.trim();
 
         return await this.sendMessage(message);
-    },
+    }
 
     async answerCallback(callbackId, text) {
         const url = `https://api.telegram.org/bot${this.config.botToken}/answerCallbackQuery`;
