@@ -232,8 +232,10 @@ export const DataManager = {
         if (data.packageId) {
             const pkg = (this.getSystemSettings().packages || []).find(p => p.id === data.packageId);
             if (pkg) {
-                // Balance check removed as per user request to unblock operations
-                // if (this.getSystemBalance() < pkg.costPrice) { ... }
+                if (this.getSystemBalance() < pkg.costPrice) {
+                    showToast(`❌ رصيد التفعيلات غير كافي! (${this.getSystemBalance().toLocaleString()})`, 'error');
+                    throw new Error("Insufficient Balance");
+                }
                 subData.packageId = data.packageId;
                 subData.packageName = pkg.name;
                 await this.deductFromVirtualBalance(pkg.costPrice, `تفعيل باقة ${pkg.name} للمشترك ${data.name}`);
@@ -248,7 +250,8 @@ export const DataManager = {
             await this.logTransaction({
                 subscriberId: subData.id, amount: parseInt(data.initialPrice),
                 type: data.paymentType === 'نقد' ? 'subscription_cash' : 'subscription_debt',
-                description: `اشتراك جديد: ${subData.name}`
+                description: `اشتراك جديد: ${subData.name}`,
+                costPrice: subData.packageId ? ((this.getSystemSettings().packages || []).find(p => p.id === subData.packageId) || {}).costPrice : 0
             });
             if (data.paymentType === 'نقد') await updateDoc(doc(db, "subscribers", subRef.id), { price: 0 });
 
@@ -267,8 +270,10 @@ export const DataManager = {
         if (renewalData.packageId) {
             const pkg = (this.getSystemSettings().packages || []).find(p => p.id === renewalData.packageId);
             if (pkg) {
-                // Balance check removed as per user request to unblock operations
-                // if (this.getSystemBalance() < pkg.costPrice) { ... }
+                if (this.getSystemBalance() < pkg.costPrice) {
+                    showToast(`❌ رصيد التفعيلات غير كافي! (${this.getSystemBalance().toLocaleString()})`, 'error');
+                    throw new Error("Insufficient Balance");
+                }
                 updateObj.packageId = renewalData.packageId;
                 updateObj.packageName = pkg.name;
                 await this.deductFromVirtualBalance(pkg.costPrice, `تجديد باقة ${pkg.name} للمشترك ${sub.name}`);
@@ -280,7 +285,8 @@ export const DataManager = {
         await this.logTransaction({
             subscriberId: subscriberDataId, amount: parseInt(renewalData.price),
             type: renewalData.type === 'نقد' ? 'subscription_cash' : 'subscription_debt',
-            description: `تجديد: ${sub.name}`
+            description: `تجديد: ${sub.name}`,
+            costPrice: renewalData.packageId ? ((this.getSystemSettings().packages || []).find(p => p.id === renewalData.packageId) || {}).costPrice : 0
         });
 
         await updateDoc(doc(db, "subscribers", subscriberFirebaseId), updateObj);
@@ -345,6 +351,12 @@ export const DataManager = {
                 const newBal = Math.max(0, currentBal - storedAmount);
                 await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString() }, { merge: true });
                 showToast(`تم استرجاع مبلغ التعبئة (${storedAmount}) من رصيد النظام`);
+            } else if (t.costPrice && t.costPrice > 0) {
+                // Smart Refund: If we delete an activation log, we should refund the cost involved.
+                const currentBal = this.getSystemBalance();
+                const newBal = currentBal + t.costPrice;
+                await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString() }, { merge: true });
+                showToast(`تم استرجاع تكلفة الباقة (${t.costPrice}) إلى رصيد النظام`);
             }
             await deleteDoc(doc(db, "transactions", t.firebaseId));
         }
