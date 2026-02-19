@@ -162,3 +162,154 @@
         margin: 0 !important;
     }
 }
+
+/* --- SAS PREMIUM ALERT SYSTEM --- */
+.sas-alert-box {
+    background: #fff !important;
+    width: 380px !important;
+    max-width: 90% !important;
+    border-radius: 28px !important;
+    padding: 30px 25px !important;
+    text-align: center !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    /* Reset transform for mobile since we center it manually in flex overlay */
+    transform: scale(0.9);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    margin: auto !important;
+    /* Force center */
+}
+
+.modal-overlay.active .sas-alert-box {
+    transform: scale(1);
+    opacity: 1;
+}
+
+/* Success Theme */
+.sas-alert-box.success {
+    border-top: 6px solid #10b981;
+}
+
+.sas-alert-box.success .sas-icon-ring {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+/* Error Theme */
+.sas-alert-box.error {
+    border-top: 6px solid #ef4444;
+}
+
+.sas-alert-box.error .sas-icon-ring {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+/* Confirm/Warning Theme */
+.sas-alert-box.confirm {
+    border-top: 6px solid #f59e0b;
+}
+
+.sas-alert-box.confirm .sas-icon-ring {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.sas-icon-ring {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    position: relative;
+}
+
+.sas-icon-ring::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    opacity: 0.2;
+    animation: sas-pulse 2s infinite;
+}
+
+@keyframes sas-pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.2;
+    }
+
+    70% {
+        transform: scale(1.4);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 0;
+    }
+}
+
+.sas-alert-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 10px;
+}
+
+.sas-alert-msg {
+    color: #64748b;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 25px;
+}
+
+.sas-btn-group {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.sas-btn {
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+    width: 100%;
+}
+
+.sas-btn:active {
+    transform: scale(0.96);
+}
+
+.sas-btn-primary {
+    background: #1e293b;
+    color: #fff;
+}
+
+.sas-btn-danger {
+    background: #ef4444;
+    color: #fff;
+}
+
+.sas-btn-secondary {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+/* Override standard modal behavior for alerts to correct centering */
+.modal-overlay.sas-mode {
+    align-items: center !important;
+    /* Force center vertically even on mobile */
+    padding: 20px !important;
+}

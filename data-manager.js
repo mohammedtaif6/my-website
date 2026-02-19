@@ -33,44 +33,41 @@ function showToast(message, type = 'success') {
     if (!alertModal) {
         alertModal = document.createElement('div');
         alertModal.id = 'sas-alert-modal';
-        alertModal.className = 'modal-overlay';
+        alertModal.className = 'modal-overlay sas-mode';
         alertModal.style.zIndex = '9999999';
         alertModal.innerHTML = `
-            <div class="modal-box" style="text-align: center; width: 300px; padding: 20px;">
-                <div id="sas-alert-icon" style="font-size: 3rem; margin-bottom: 10px;"></div>
-                <h3 id="sas-alert-title" style="margin-bottom: 10px;"></h3>
-                <p id="sas-alert-msg" style="color: #666; margin-bottom: 20px; font-size: 1.1rem;"></p>
+            <div class="sas-alert-box">
+                <div class="sas-icon-ring" id="sas-alert-icon-ring"></div>
+                <h3 class="sas-alert-title" id="sas-alert-title"></h3>
+                <p class="sas-alert-msg" id="sas-alert-msg"></p>
                 <button onclick="document.getElementById('sas-alert-modal').classList.remove('active')" 
-                        class="btn btn-primary" style="width: 100%;">حسناً</button>
+                        class="sas-btn sas-btn-primary">حسناً</button>
             </div>
         `;
         document.body.appendChild(alertModal);
     }
 
-    const icon = document.getElementById('sas-alert-icon');
+    const iconRing = document.getElementById('sas-alert-icon-ring');
     const title = document.getElementById('sas-alert-title');
     const msg = document.getElementById('sas-alert-msg');
-    const modalBox = alertModal.querySelector('.modal-box');
+    const box = alertModal.querySelector('.sas-alert-box');
 
-    // Reset styles
-    modalBox.style.borderTop = 'none';
+    // Reset classes
+    box.className = 'sas-alert-box';
+    box.classList.add(type === 'error' ? 'error' : 'success');
 
     if (type === 'error') {
-        icon.innerHTML = '<i class="fas fa-times-circle" style="color: #ef4444;"></i>';
-        title.innerText = 'تنبيه';
-        title.style.color = '#ef4444';
-        modalBox.style.borderTop = '5px solid #ef4444';
+        iconRing.innerHTML = '<i class="fas fa-times"></i>';
+        title.innerText = 'تنبيه !';
     } else {
-        icon.innerHTML = '<i class="fas fa-check-circle" style="color: #10b981;"></i>';
-        title.innerText = 'تمت العملية';
-        title.style.color = '#10b981';
-        modalBox.style.borderTop = '5px solid #10b981';
+        iconRing.innerHTML = '<i class="fas fa-check"></i>';
+        title.innerText = 'تم بنجاح';
     }
 
     msg.innerText = message;
     alertModal.classList.add('active');
 
-    // Auto close after 8 seconds for success, keep open for error until clicked
+    // Auto close after 8 seconds for success
     if (type !== 'error') {
         setTimeout(() => {
             alertModal.classList.remove('active');
@@ -84,16 +81,18 @@ function showConfirmModal(title, message) {
         if (!confirmModal) {
             confirmModal = document.createElement('div');
             confirmModal.id = 'sas-confirm-modal';
-            confirmModal.className = 'modal-overlay';
+            confirmModal.className = 'modal-overlay sas-mode';
             confirmModal.style.zIndex = '9999999';
             confirmModal.innerHTML = `
-                <div class="modal-box" style="text-align: center; width: 350px; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-                    <div style="font-size: 3rem; margin-bottom: 15px; color: #f59e0b;"><i class="fas fa-exclamation-triangle"></i></div>
-                    <h3 id="sas-confirm-title" style="margin-bottom: 10px; font-size: 1.3rem; color: #333;"></h3>
-                    <p id="sas-confirm-msg" style="color: #666; margin-bottom: 25px; font-size: 1rem; line-height: 1.5;"></p>
-                    <div style="display: flex; gap: 10px; justify-content: center;">
-                        <button id="sas-confirm-yes" class="btn btn-danger" style="flex: 1; padding: 10px;">نعم، احذف</button>
-                        <button id="sas-confirm-no" class="btn btn-secondary" style="flex: 1; padding: 10px;">إلغاء</button>
+                <div class="sas-alert-box confirm">
+                    <div class="sas-icon-ring">
+                        <i class="fas fa-question"></i>
+                    </div>
+                    <h3 class="sas-alert-title" id="sas-confirm-title"></h3>
+                    <p class="sas-alert-msg" id="sas-confirm-msg"></p>
+                    <div class="sas-btn-group">
+                        <button id="sas-confirm-yes" class="sas-btn sas-btn-danger">نعم، تنفيذ</button>
+                        <button id="sas-confirm-no" class="sas-btn sas-btn-secondary">إلغاء</button>
                     </div>
                 </div>
             `;
@@ -109,7 +108,8 @@ function showConfirmModal(title, message) {
         titleEl.innerText = title;
         msgEl.innerText = message;
 
-        // Remove old event listeners by cloning
+        // Remove old event listeners by cloning logic (or simple replacement)
+        // Note: cloning removes event listeners
         const newYes = yesBtn.cloneNode(true);
         const newNo = noBtn.cloneNode(true);
         yesBtn.parentNode.replaceChild(newYes, yesBtn);
