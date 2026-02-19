@@ -394,29 +394,40 @@
 <body>
     <!-- PIN Lock Overlay -->
     <div id="pin-lock-overlay"
-        style="position: fixed; inset: 0; background: #0f172a; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
+        style="position: fixed; inset: 0; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
         <div
-            style="background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; text-align: center; backdrop-filter: blur(10px); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
-            <div style="font-size: 3rem; margin-bottom: 20px;">🔒</div>
-            <h2 style="margin: 0 0 10px 0; font-size: 1.5rem;">حماية الإعدادات</h2>
-            <p style="color: #94a3b8; margin-bottom: 30px;">الرجاء إدخال رمز الدخول للمتابعة</p>
+            style="background: rgba(255,255,255,0.05); padding: 50px 40px; border-radius: 30px; text-align: center; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 30px 60px rgba(0,0,0,0.4); max-width: 90%; width: 400px; position:relative; overflow:hidden;">
+            <!-- Glow Effect -->
+            <div
+                style="position:absolute; top:-50px; left:-50px; width:150px; height:150px; background:rgba(99, 102, 241, 0.4); filter:blur(60px); border-radius:50%;">
+            </div>
 
-            <div style="margin-bottom: 20px; position: relative;">
-                <input type="password" id="pin-input" maxlength="4" inputmode="numeric"
-                    style="font-size: 2rem; letter-spacing: 15px; width: 200px; text-align: center; padding: 15px; border-radius: 12px; border: 2px solid #334155; background: #1e293b; color: white; outline: none; transition: 0.3s;"
+            <div style="font-size: 3.5rem; margin-bottom: 20px; position:relative; z-index:2;"><i
+                    class="fas fa-shield-alt" style="color:#6366f1;"></i></div>
+            <h2
+                style="margin: 0 0 10px 0; font-size: 1.8rem; font-weight:800; position:relative; z-index:2; font-family:'Outfit', sans-serif;">
+                نظام الحماية</h2>
+            <p style="color: #94a3b8; margin-bottom: 35px; font-size: 0.95rem; position:relative; z-index:2;">الرجاء
+                إدخال رمز الدخول السري للمتابعة</p>
+
+            <div style="margin-bottom: 25px; position: relative; z-index:2;">
+                <input type="password" id="pin-input" maxlength="4" inputmode="numeric" autocomplete="off"
+                    style="font-size: 2.2rem; letter-spacing: 20px; width: 220px; text-align: center; padding: 15px; border-radius: 16px; border: 2px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; outline: none; transition: 0.3s; font-family:'Outfit', sans-serif;"
                     placeholder="••••">
             </div>
 
-            <div id="pin-error" style="color: #ef4444; height: 25px; font-size: 0.9rem; margin-bottom: 15px;"></div>
+            <div id="pin-error"
+                style="color: #fca5a5; height: 25px; font-size: 0.9rem; margin-bottom: 20px; position:relative; z-index:2; font-weight:600; opacity:0; transition:0.3s;">
+            </div>
 
             <button onclick="checkPin()"
-                style="background: #4f46e5; color: white; border: none; padding: 12px 40px; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s;">
-                دخول النظام
+                style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; border: none; padding: 16px 40px; border-radius: 16px; font-size: 1.1rem; font-weight: bold; cursor: pointer; width: 100%; transition: all 0.3s; box-shadow: 0 10px 20px rgba(99,102,241,0.3); position:relative; z-index:2;">
+                <i class="fas fa-unlock-alt" style="margin-left:8px;"></i> فتح الإعدادات
             </button>
 
             <button onclick="window.location.href='index.html'"
-                style="background: transparent; color: #64748b; border: none; margin-top: 15px; font-size: 0.9rem; cursor: pointer; text-decoration: underline;">
-                العودة للرئيسية
+                style="background: transparent; color: #94a3b8; border: none; margin-top: 25px; font-size: 0.95rem; cursor: pointer; text-decoration: none; position:relative; z-index:2; display:flex; align-items:center; justify-content:center; gap:8px; width:100%; transition:0.2s;">
+                <i class="fas fa-arrow-right"></i> العودة للرئيسية
             </button>
         </div>
     </div>
@@ -448,9 +459,18 @@
             const error = document.getElementById('pin-error');
             const enteredPin = input.value;
 
-            // Get stored PIN or default to '0000'
-            const settings = JSON.parse(localStorage.getItem('sas_settings') || '{}');
-            const storedPin = settings.pinCode || '0000';
+            // Fetch settings from DataManager if loaded, else fallback to localStorage
+            let storedPin = '0000';
+            let cloudSettings = {};
+            if (typeof DataManager !== 'undefined' && DataManager.getSystemSettings) {
+                cloudSettings = DataManager.getSystemSettings();
+            }
+            const localSettings = JSON.parse(localStorage.getItem('sas_settings') || '{}');
+            const settings = Object.keys(cloudSettings).length > 0 ? cloudSettings : localSettings;
+
+            if (settings && settings.pinCode) {
+                storedPin = settings.pinCode;
+            }
 
             if (enteredPin === storedPin) {
                 sessionStorage.setItem('settings_unlocked', 'true');
@@ -460,11 +480,21 @@
                 }, 300);
             } else {
                 error.innerText = 'رمز الدخول غير صحيح!';
+                error.style.opacity = '1';
                 input.style.borderColor = '#ef4444';
+                input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.2)';
                 input.value = '';
+
+                // Add shake animation
+                input.style.transform = 'translateX(-5px)';
+                setTimeout(() => input.style.transform = 'translateX(5px)', 50);
+                setTimeout(() => input.style.transform = 'translateX(-5px)', 100);
+                setTimeout(() => input.style.transform = 'translateX(0)', 150);
+
                 setTimeout(() => {
-                    input.style.borderColor = '#334155';
-                    error.innerText = '';
+                    input.style.borderColor = 'rgba(255,255,255,0.1)';
+                    input.style.boxShadow = 'none';
+                    error.style.opacity = '0';
                 }, 2000);
             }
         }
@@ -527,25 +557,60 @@
     </div>
 
     <!-- إدارة رصيد النظام (التفعيلات) -->
-    <div class="settings-section" onclick="toggleSection(this)">
-        <div class="section-title"><i class="fas fa-wallet"></i> رصيد النظام (التفعيلات)</div>
+    <div class="settings-section active" onclick="toggleSection(this)">
+        <div class="section-title"><i class="fas fa-wallet" style="color:#10b981;"></i> رصيد وحسابات النظام (الرئيسي)
+        </div>
         <div class="section-content" onclick="event.stopPropagation()">
-            <div style="padding: 20px;">
-                <div class="balance-card">
-                    <div style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 8px;">الرصيد المتوفر حالياً</div>
-                    <div id="display-system-balance" style="font-size: 2.2rem; font-weight: 800;">0 د.ع</div>
+            <div style="padding: 25px;">
+                <div
+                    style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; padding: 30px 20px; border-radius: 24px; text-align: center; margin-bottom: 25px; box-shadow: 0 15px 35px rgba(15, 23, 42, 0.2); position:relative; overflow:hidden;">
+                    <!-- Decorations -->
+                    <div
+                        style="position:absolute; top:-30%; right:-10%; width:150px; height:150px; background:radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 70%); border-radius:50%;">
+                    </div>
+                    <div
+                        style="position:absolute; bottom:-30%; left:-10%; width:150px; height:150px; background:radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%); border-radius:50%;">
+                    </div>
+
+                    <div
+                        style="font-size: 0.9rem; color: #94a3b8; font-weight:600; margin-bottom: 5px; position:relative; z-index:2;">
+                        <i class="fas fa-coins" style="color:#10b981;"></i> الرصيد المتوفر للبيع والإدارة</div>
+                    <div id="display-system-balance"
+                        style="font-size: 2.8rem; font-weight: 800; font-family:'Outfit', sans-serif; letter-spacing:1px; color:#10b981; position:relative; z-index:2; text-shadow:0 4px 10px rgba(16,185,129,0.3);">
+                        0 IQD</div>
                 </div>
 
-                <div style="background: #f1f5f9; padding: 15px; border-radius: 12px;">
+                <!-- أدوات التعديل السريع -->
+                <div style="margin-bottom:20px; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <button onclick="adjustSystemBalance(22000)"
+                        style="background: rgba(16,185,129,0.1); border: 1.5px solid #10b981; color: #10b981; font-weight: bold; border-radius: 14px; padding: 12px; cursor: pointer; transition: 0.2s; font-size:1rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;">
+                        <i class="fas fa-plus-circle"></i> إضافة نورمال (22k)
+                    </button>
+                    <button onclick="adjustSystemBalance(-22000)"
+                        style="background: rgba(239,68,68,0.1); border: 1.5px solid #ef4444; color: #ef4444; font-weight: bold; border-radius: 14px; padding: 12px; cursor: pointer; transition: 0.2s; font-size:1rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;">
+                        <i class="fas fa-minus-circle"></i> خصم نورمال (-22k)
+                    </button>
+                    <button onclick="adjustSystemBalance(24000)"
+                        style="background: rgba(16,185,129,0.1); border: 1.5px solid #10b981; color: #10b981; font-weight: bold; border-radius: 14px; padding: 12px; cursor: pointer; transition: 0.2s; font-size:1rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;">
+                        <i class="fas fa-plus-circle"></i> إضافة سوبر (24k)
+                    </button>
+                    <button onclick="adjustSystemBalance(-24000)"
+                        style="background: rgba(239,68,68,0.1); border: 1.5px solid #ef4444; color: #ef4444; font-weight: bold; border-radius: 14px; padding: 12px; cursor: pointer; transition: 0.2s; font-size:1rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;">
+                        <i class="fas fa-minus-circle"></i> خصم سوبر (-24k)
+                    </button>
+                </div>
+
+                <div style="background: #f8fafc; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0;">
                     <label
-                        style="display: block; font-size: 0.85rem; color: #475569; margin-bottom: 8px; font-weight: bold;">تعديل
-                        الرصيد يدوياً</label>
-                    <div style="display: flex; gap: 10px;">
+                        style="display: block; font-size: 0.95rem; color: #334155; margin-bottom: 15px; font-weight: bold;"><i
+                            class="fas fa-keyboard" style="color:#64748b;"></i> إدخال أو تعديل مخصص للرصيد</label>
+                    <div style="display: flex; gap: 10px; flex-direction: column;">
                         <input type="number" id="input-system-balance" class="pkg-input"
-                            style="flex: 1; text-align: center; font-weight: bold;" placeholder="أدخل الرصيد الجديد">
+                            style="width: 100%; text-align: center; font-weight: bold; font-size:1.2rem; padding:15px; border-radius:12px; background:white;"
+                            placeholder="أدخل الرصيد النهائي كلياً...">
                         <button onclick="updateSystemBalanceDirectly()" class="btn-primary"
-                            style="background: #10b981; color: white; border: none; padding: 0 20px; border-radius: 8px; cursor: pointer; font-weight: bold;">
-                            تحديث
+                            style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none; padding: 15px; border-radius: 12px; cursor: pointer; font-weight: bold; font-size:1.05rem; box-shadow:0 4px 10px rgba(59,130,246,0.3); transition:0.2s;">
+                            <i class="fas fa-check-circle"></i> اعتماد كقيمة نهائية
                         </button>
                     </div>
                 </div>
@@ -842,10 +907,13 @@
             if (settings.pinCode) document.getElementById('set-pin-code').value = settings.pinCode;
             if (settings.allowBoxDeletion !== undefined) document.getElementById('set-allow-box-deletion').checked = settings.allowBoxDeletion;
 
+            // حفظ نسخة محدثة في LocalStorage لضمان توفرها لـ PIN لاحقاً بسرعة
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+
             // تحديث عرض رصيد النظام
             if (typeof DataManager !== 'undefined') {
-                const balance = DataManager.getSystemBalance();
-                document.getElementById('display-system-balance').innerText = balance.toLocaleString() + ' د.ع';
+                const balance = DataManager.getSystemBalance() || 0;
+                document.getElementById('display-system-balance').innerText = balance.toLocaleString('en-US') + ' IQD';
             }
 
             // كروت الداشبورد
@@ -1019,14 +1087,31 @@
             if (newBalanceStr === '') return alert('يرجى إدخال مبلغ الرصيد');
 
             const newBalance = parseFloat(newBalanceStr);
-            if (confirm(`هل أنت متأكد من تعديل رصيد النظام يدوياً إلى ${newBalance.toLocaleString()} د.ع؟`)) {
+            if (confirm(`هل أنت متأكد من تعديل رصيد النظام يدوياً ليصبح ${newBalance.toLocaleString('en-US')} IQD؟`)) {
                 if (typeof DataManager !== 'undefined' && DataManager.setSystemBalance) {
                     const success = await DataManager.setSystemBalance(newBalance);
                     if (success) {
-                        document.getElementById('display-system-balance').innerText = newBalance.toLocaleString() + ' د.ع';
+                        document.getElementById('display-system-balance').innerText = newBalance.toLocaleString('en-US') + ' IQD';
                         document.getElementById('input-system-balance').value = '';
                         showSaveToast('✅ تم تحديث الرصيد بنجاح');
                     }
+                }
+            }
+        }
+
+        window.adjustSystemBalance = async function (amount) {
+            if (typeof DataManager === 'undefined' || !DataManager.setSystemBalance) return;
+
+            const currentBalance = DataManager.getSystemBalance() || 0;
+            const newBalance = currentBalance + amount;
+            const actionText = amount > 0 ? "إضافة" : "خصم";
+            const amtStr = Math.abs(amount).toLocaleString('en-US');
+
+            if (confirm(`هل تريد ${actionText} ${amtStr} IQD ليصبح الرصيد ${newBalance.toLocaleString('en-US')} IQD؟`)) {
+                const success = await DataManager.setSystemBalance(newBalance);
+                if (success) {
+                    document.getElementById('display-system-balance').innerText = newBalance.toLocaleString('en-US') + ' IQD';
+                    showSaveToast('✅ تم المعالجة بنجاح');
                 }
             }
         }
