@@ -92,7 +92,11 @@ export const DataManager = {
                     if (window.AuthSystem && window.AuthSystem.applyUIConfigs) window.AuthSystem.applyUIConfigs(newSettings);
                     if (window.loadSettings) window.loadSettings();
 
-                    if (!newSettings.packages || newSettings.packages.length === 0) {
+                    // Check if packages exist and include the new private package
+                    const pkgs = newSettings.packages || [];
+                    const hasPrivate = pkgs.some(p => p.id === 'pkg_private');
+
+                    if (pkgs.length === 0 || !hasPrivate) {
                         this.bootstrapPackages();
                     }
                 }
