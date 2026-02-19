@@ -355,7 +355,7 @@
                 <!-- Dynamic Price Field -->
                 <div class="form-group">
                     <label id="new-price-label">المبلغ واصل / دين</label>
-                    <input type="number" id="new-price" value="0">
+                    <input type="number" id="new-price" value="0" onblur="window.autoFormatPrice(this)">
                 </div>
                 <div class="form-group">
                     <label>نوع الدفع</label>
@@ -407,7 +407,8 @@
                         <option value="">-- يدوي --</option>
                     </select>
                 </div>
-                <div class="form-group"><label>المبلغ</label><input type="number" id="qa-price" value="35000"></div>
+                <div class="form-group"><label>المبلغ</label><input type="number" id="qa-price" value="35000"
+                        onblur="window.autoFormatPrice(this)"></div>
                 <div class="form-group">
                     <label>الدفع</label>
                     <select id="qa-type">
@@ -764,6 +765,15 @@
         setInterval(() => { if (typeof DataManager !== 'undefined') renderPage(); }, 3000);
 
         // Handle URL Params for quick find
+        window.autoFormatPrice = function (input) {
+            let val = parseInt(input.value);
+            if (val > 0 && val < 1000) {
+                input.value = val * 1000;
+                // Mark as modified if needed, though simple value change is usually enough
+                input.setAttribute('data-user-modified', 'true');
+            }
+        };
+
         window.onload = () => {
             const urlParams = new URLSearchParams(window.location.search);
             const id = urlParams.get('id');

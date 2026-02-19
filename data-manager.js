@@ -26,22 +26,56 @@ const auth = getAuth(app);
 let localData = { subscribers: [], transactions: [], archived_transactions: [], employees: [], settings: {}, accounts: [] };
 let isProcessing = false;
 
+// Custom Alert Modal Function
 function showToast(message, type = 'success') {
-    let container = document.getElementById('toast-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'toast-container';
-        document.body.appendChild(container);
+    // Check if alert modal exists
+    let alertModal = document.getElementById('sas-alert-modal');
+    if (!alertModal) {
+        alertModal = document.createElement('div');
+        alertModal.id = 'sas-alert-modal';
+        alertModal.className = 'modal-overlay';
+        alertModal.style.zIndex = '9999999';
+        alertModal.innerHTML = `
+            <div class="modal-box" style="text-align: center; width: 300px; padding: 20px;">
+                <div id="sas-alert-icon" style="font-size: 3rem; margin-bottom: 10px;"></div>
+                <h3 id="sas-alert-title" style="margin-bottom: 10px;"></h3>
+                <p id="sas-alert-msg" style="color: #666; margin-bottom: 20px; font-size: 1.1rem;"></p>
+                <button onclick="document.getElementById('sas-alert-modal').classList.remove('active')" 
+                        class="btn btn-primary" style="width: 100%;">حسناً</button>
+            </div>
+        `;
+        document.body.appendChild(alertModal);
     }
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.innerHTML = type === 'error' ? `<i class="fas fa-exclamation-circle"></i> ${message}` : `<i class="fas fa-check-circle"></i> ${message}`;
-    container.appendChild(toast);
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(20px)';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+
+    const icon = document.getElementById('sas-alert-icon');
+    const title = document.getElementById('sas-alert-title');
+    const msg = document.getElementById('sas-alert-msg');
+    const modalBox = alertModal.querySelector('.modal-box');
+
+    // Reset styles
+    modalBox.style.borderTop = 'none';
+
+    if (type === 'error') {
+        icon.innerHTML = '<i class="fas fa-times-circle" style="color: #ef4444;"></i>';
+        title.innerText = 'تنبيه';
+        title.style.color = '#ef4444';
+        modalBox.style.borderTop = '5px solid #ef4444';
+    } else {
+        icon.innerHTML = '<i class="fas fa-check-circle" style="color: #10b981;"></i>';
+        title.innerText = 'تمت العملية';
+        title.style.color = '#10b981';
+        modalBox.style.borderTop = '5px solid #10b981';
+    }
+
+    msg.innerText = message;
+    alertModal.classList.add('active');
+
+    // Auto close after 2.5 seconds for success, keep open for error until clicked
+    if (type !== 'error') {
+        setTimeout(() => {
+            alertModal.classList.remove('active');
+        }, 2500);
+    }
 }
 
 export const DataManager = {
