@@ -209,6 +209,7 @@ body {
 }
 
 /* ===== Close Button ===== */
+.close-menu { display: none !important; } 
 .close-menu {
     position: absolute;
     left: 16px !important;
@@ -230,6 +231,7 @@ body {
     justify-content: center;
 }
 
+.close-menu { display: none !important; } 
 .close-menu:hover {
     background: rgba(239, 68, 68, 0.15) !important;
     color: #ef4444 !important;
