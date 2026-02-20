@@ -563,7 +563,7 @@
                             </div>
                             <div style="text-align:left;">
                                 <span style="display:block; font-size:0.6rem; color:#94a3b8;">الدين</span>
-                                <strong style="font-size:0.8rem; color:${parseInt(s.price || 0) > 0 ? '#e11d48' : '#059669'};">${(parseInt(s.price || 0)).toLocaleString()} <small>د.ع</small></strong>
+                                <strong style="font-size:0.8rem; color:${parseInt(s.price || 0) > 0 ? '#e11d48' : '#059669'};">${(parseInt(s.price || 0)).toLocaleString('en-US')} <small>د.ع</small></strong>
                             </div>
                             <div style="grid-column: span 2; border-top: 1px dashed #e2e8f0; padding-top: 5px; margin-top: 2px; font-size: 0.6rem; color: #94a3b8;">
                                 <i class="fas fa-fingerprint"></i> ID: ${s.id}
@@ -618,7 +618,7 @@
 
             const pkgSelect = document.getElementById('edit-package');
             const packages = DataManager.getSystemSettings().packages || [];
-            pkgSelect.innerHTML = packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString()} د.ع)</option>`).join('');
+            pkgSelect.innerHTML = packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString('en-US')} د.ع)</option>`).join('');
 
             // اختيار باقة المشترك الحالية أو نورمال كافتراضي
             pkgSelect.value = selectedSubscriber.packageId || 'pkg_norm';
@@ -677,7 +677,7 @@
             const balEl = document.getElementById('qa-balance-value');
             const balInfo = document.getElementById('qa-balance-info');
             if (balEl) {
-                balEl.textContent = balance.toLocaleString() + ' د.ع';
+                balEl.textContent = balance.toLocaleString('en-US') + ' د.ع';
                 if (balance <= 0) {
                     balInfo.style.background = 'linear-gradient(135deg, #fee2e2, #fecaca)';
                     balInfo.style.borderColor = '#fca5a5';
@@ -705,7 +705,7 @@
             const packages = DataManager.getSystemSettings().packages || [];
             if (pkgSelect) {
                 pkgSelect.innerHTML =
-                    packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString()} د.ع)</option>`).join('');
+                    packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString('en-US')} د.ع)</option>`).join('');
 
                 // اختيار باقة المشترك المثبتة تلقائياً
                 if (selectedSubscriber.packageId) {
@@ -756,7 +756,7 @@
             const pkgSelect = document.getElementById('new-package');
             const packages = DataManager.getSystemSettings().packages || [];
             if (pkgSelect) {
-                pkgSelect.innerHTML = packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString()} د.ع)</option>`).join('');
+                pkgSelect.innerHTML = packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString('en-US')} د.ع)</option>`).join('');
             }
         };
 

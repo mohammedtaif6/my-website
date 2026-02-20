@@ -667,10 +667,10 @@
             const avg = list.length > 0 ? Math.round(total / list.length) : 0;
             const max = list.length > 0 ? Math.max(...list.map(s => parseInt(s.price || 0))) : 0;
 
-            document.getElementById('totalDebtDisplay').innerText = total.toLocaleString() + ' د.ع';
+            document.getElementById('totalDebtDisplay').innerText = total.toLocaleString('en-US') + ' د.ع';
             document.getElementById('debtorsCount').innerText = list.length;
-            document.getElementById('avgDebt').innerText = avg.toLocaleString();
-            document.getElementById('maxDebt').innerText = max.toLocaleString();
+            document.getElementById('avgDebt').innerText = avg.toLocaleString('en-US');
+            document.getElementById('maxDebt').innerText = max.toLocaleString('en-US');
 
             // ✅ بصمة البيانات - لا نعيد البناء إلا عند التغيير الفعلي
             const dataHash = list.map(s => s.id + ':' + s.price + ':' + (s.name || '')).join('|') + '|sort:' + currentSort + '|q:' + q;
@@ -704,7 +704,7 @@
                                     <span class="pkg-badge" style="color:${pkgColor};"><i class="fas ${pkgIcon}"></i> ${s.packageName || 'نورمال'}</span>
                                 </div>
                             </div>
-                            <div class="card-amount">${parseInt(s.price).toLocaleString()} <small>د.ع</small></div>
+                            <div class="card-amount">${parseInt(s.price).toLocaleString('en-US')} <small>د.ع</small></div>
                         </div>
 
                         <div class="card-date">
@@ -730,7 +730,7 @@
             document.getElementById('debtSubId').value = id;
             document.getElementById('debtSubFirebaseId').value = fid;
             document.getElementById('debtSubName').innerText = name;
-            document.getElementById('currentDebtAmount').innerText = amt.toLocaleString();
+            document.getElementById('currentDebtAmount').innerText = amt.toLocaleString('en-US');
             document.getElementById('payDebtAmount').value = '';
             document.getElementById('payDebtModal').classList.add('active');
         };
@@ -742,7 +742,7 @@
             if (!amt) return DataManager.showToast('⚠️ أدخل المبلغ', 'error');
             try {
                 await DataManager.payDebt(document.getElementById('debtSubFirebaseId').value, document.getElementById('debtSubId').value, amt);
-                if (p) DataManager.printReceipt({ title: "وصل تسديد", subName: document.getElementById('debtSubName').innerText, amount: amt, totalRemaining: 0, date: new Date().toLocaleDateString('ar-IQ'), type: "تسديد" });
+                if (p) DataManager.printReceipt({ title: "وصل تسديد", subName: document.getElementById('debtSubName').innerText, amount: amt, totalRemaining: 0, date: new Date().toLocaleDateString('ar-u-nu-latn'), type: "تسديد" });
                 closeDebtModal();
             } catch (e) {
                 DataManager.showToast('❌ ' + e.message, 'error');
@@ -766,7 +766,7 @@
             let p = document.getElementById('employeeSelect').value;
             if (!p) return;
             let list = DataManager.subscribers.filter(s => parseInt(s.price || 0) > 0);
-            let msg = `📊 جدول الديون:\n` + list.slice(0, 20).map(s => `👤 ${s.name}: ${parseInt(s.price).toLocaleString()}`).join('\n');
+            let msg = `📊 جدول الديون:\n` + list.slice(0, 20).map(s => `👤 ${s.name}: ${parseInt(s.price).toLocaleString('en-US')}`).join('\n');
             WhatsAppHelper.send(p, msg);
             closeShareModal();
         };

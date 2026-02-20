@@ -103,7 +103,7 @@ window.WhatsAppHelper = {
      * إرسال رسالة تفعيل اشتراك
      */
     sendActivation(name, phone, price, type, endDate) {
-        const message = `مرحباً ${name}،\n\nتم تفعيل اشتراكك بنجاح ✅\n\n📋 التفاصيل:\nالمبلغ: ${parseInt(price).toLocaleString()} د.ع\nنوع الدفع: ${type}\nتاريخ الانتهاء: ${endDate}\n\nشكراً لثقتكم بنا 🌟`;
+        const message = `مرحباً ${name}،\n\nتم تفعيل اشتراكك بنجاح ✅\n\n📋 التفاصيل:\nالمبلغ: ${parseInt(price).toLocaleString('en-US')} د.ع\nنوع الدفع: ${type}\nتاريخ الانتهاء: ${endDate}\n\nشكراً لثقتكم بنا 🌟`;
         return this.send(phone, message);
     },
 
@@ -111,7 +111,7 @@ window.WhatsAppHelper = {
      * إرسال تنبيه دين
      */
     sendDebtReminder(name, phone, amount) {
-        const message = `مرحباً ${name}،\n\nيرجى تسديد الدين المتبقي: ${parseInt(amount).toLocaleString()} د.ع\n\nشكراً لكم 🙏`;
+        const message = `مرحباً ${name}،\n\nيرجى تسديد الدين المتبقي: ${parseInt(amount).toLocaleString('en-US')} د.ع\n\nشكراً لكم 🙏`;
         return this.send(phone, message);
     },
 
@@ -135,7 +135,7 @@ window.WhatsAppHelper = {
      * إرسال وصل تسديد دين
      */
     sendDebtPaymentReceipt(name, phone, paidAmount, remainingDebt) {
-        const message = `مرحباً ${name}،\n\nتم استلام دفعة بمبلغ: ${parseInt(paidAmount).toLocaleString()} د.ع ✅\n\nالمتبقي: ${parseInt(remainingDebt).toLocaleString()} د.ع\n\nشكراً لكم 🙏`;
+        const message = `مرحباً ${name}،\n\nتم استلام دفعة بمبلغ: ${parseInt(paidAmount).toLocaleString('en-US')} د.ع ✅\n\nالمتبقي: ${parseInt(remainingDebt).toLocaleString('en-US')} د.ع\n\nشكراً لكم 🙏`;
         return this.send(phone, message);
     }
 };

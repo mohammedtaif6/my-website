@@ -445,7 +445,7 @@
 
             grid.innerHTML = expired.map(s => {
                 const dateObj = new Date(s.expiryDate);
-                const readableDate = dateObj.toLocaleDateString('ar-IQ', { day: 'numeric', month: 'long' });
+                const readableDate = dateObj.toLocaleDateString('ar-u-nu-latn', { day: 'numeric', month: 'long' });
                 const debt = parseInt(s.price || 0);
 
                 return `
@@ -467,7 +467,7 @@
                             </div>
                             <div class="stat-item">
                                 <span class="stat-label">دين سابق</span>
-                                <span class="stat-value ${debt > 0 ? 'text-danger' : ''}">${debt.toLocaleString()} د.ع</span>
+                                <span class="stat-value ${debt > 0 ? 'text-danger' : ''}">${debt.toLocaleString('en-US')} د.ع</span>
                             </div>
                         </div>
 
@@ -522,7 +522,7 @@
             const balEl = document.getElementById('qa-balance-value');
             const balInfo = document.getElementById('qa-balance-info');
             if (balEl) {
-                balEl.textContent = balance.toLocaleString() + ' د.ع';
+                balEl.textContent = balance.toLocaleString('en-US') + ' د.ع';
                 if (balance <= 0) {
                     balInfo.style.background = 'linear-gradient(135deg, #fee2e2, #fecaca)';
                     balInfo.style.borderColor = '#fca5a5';
@@ -542,7 +542,7 @@
             const pkgSelect = document.getElementById('qa-package');
             const packages = DataManager.getSystemSettings().packages || [];
             if (pkgSelect) {
-                pkgSelect.innerHTML = packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString()} د.ع)</option>`).join('');
+                pkgSelect.innerHTML = packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString('en-US')} د.ع)</option>`).join('');
 
                 // اختيار باقة المشترك المثبتة تلقائياً
                 if (sub && sub.packageId) {

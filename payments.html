@@ -501,9 +501,9 @@
             const expense = activeFiltered.filter(t => t.amount < 0).reduce((a, b) => a + Math.abs(b.amount || 0), 0);
 
             // Update Header Stats
-            document.getElementById('netBalanceDisplay').innerText = net.toLocaleString() + ' IQD';
-            document.getElementById('totalIncomeDisplay').innerText = income.toLocaleString();
-            document.getElementById('totalExpenseDisplay').innerText = expense.toLocaleString();
+            document.getElementById('netBalanceDisplay').innerText = net.toLocaleString('en-US') + ' IQD';
+            document.getElementById('totalIncomeDisplay').innerText = income.toLocaleString('en-US');
+            document.getElementById('totalExpenseDisplay').innerText = expense.toLocaleString('en-US');
 
             // --- تحديث قسم إجمالي الفلترة ---
             const filterSummaryEl = document.getElementById('filteredSummaryDisplay');
@@ -512,9 +512,9 @@
                 const fExpense = filteredTxs.filter(t => t.amount < 0 && (!t.type?.includes('topup_request') || t.status === 'approved')).reduce((a, b) => a + Math.abs(b.amount || 0), 0);
                 const fNet = fIncome - fExpense;
 
-                document.getElementById('filterNetAmount').innerText = fNet.toLocaleString() + ' IQD';
-                document.getElementById('filterIncAmount').innerHTML = '+' + fIncome.toLocaleString() + ' <i class="fas fa-arrow-down" style="font-size:0.7rem;"></i>';
-                document.getElementById('filterExpAmount').innerHTML = '-' + fExpense.toLocaleString() + ' <i class="fas fa-arrow-up" style="font-size:0.7rem;"></i>';
+                document.getElementById('filterNetAmount').innerText = fNet.toLocaleString('en-US') + ' IQD';
+                document.getElementById('filterIncAmount').innerHTML = '+' + fIncome.toLocaleString('en-US') + ' <i class="fas fa-arrow-down" style="font-size:0.7rem;"></i>';
+                document.getElementById('filterExpAmount').innerHTML = '-' + fExpense.toLocaleString('en-US') + ' <i class="fas fa-arrow-up" style="font-size:0.7rem;"></i>';
                 filterSummaryEl.style.display = 'flex';
             } else {
                 filterSummaryEl.style.display = 'none';
@@ -530,8 +530,8 @@
                     const isExp = t.amount < 0;
                     const amount = Math.abs(t.amount);
                     const dateTime = new Date(t.createdAt);
-                    const date = dateTime.toLocaleDateString('ar-IQ', { year: 'numeric', month: '2-digit', day: '2-digit' });
-                    const time = dateTime.toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' });
+                    const date = dateTime.toLocaleDateString('ar-u-nu-latn', { year: 'numeric', month: '2-digit', day: '2-digit' });
+                    const time = dateTime.toLocaleTimeString('ar-u-nu-latn', { hour: '2-digit', minute: '2-digit' });
 
                     let desc = t.description;
                     if (!desc) {
@@ -575,7 +575,7 @@
                             </div>
                             <div style="text-align: left; margin-left: 10px;">
                                 <div class="tx-amount ${amountColorClass}">
-                                    ${isExp ? '-' : '+'} ${amount.toLocaleString()}
+                                    ${isExp ? '-' : '+'} ${amount.toLocaleString('en-US')}
                                 </div>
                             </div>
                             <div class="tx-actions">

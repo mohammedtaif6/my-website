@@ -135,11 +135,11 @@ class TelegramBot {
 🎉 <b>تفعيل اشتراك جديد</b>
 
 👤 المشترك: <b>${subscriberName}</b>
-${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
+${emoji} المبلغ: <b>${price.toLocaleString('en-US')} د.ع</b>
 💳 نوع الدفع: <b>${type}</b>
 📅 ينتهي في: <b>${endDate}</b>
 
-⏰ ${new Date().toLocaleString('ar-IQ')}
+⏰ ${new Date().toLocaleString('en-US')}
         `.trim();
 
         return await this.sendMessage(message);
@@ -154,11 +154,11 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
 🔄 <b>تجديد اشتراك</b>
 
 👤 المشترك: <b>${subscriberName}</b>
-${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
+${emoji} المبلغ: <b>${price.toLocaleString('en-US')} د.ع</b>
 💳 نوع الدفع: <b>${type}</b>
 📅 ينتهي في: <b>${endDate}</b>
 
-⏰ ${new Date().toLocaleString('ar-IQ')}
+⏰ ${new Date().toLocaleString('en-US')}
         `.trim();
 
         return await this.sendMessage(message);
@@ -175,7 +175,7 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
             message += `${index + 1}. <b>${sub.name}</b> - ينتهي خلال ${daysLeft} يوم\n`;
         });
 
-        message += `\n⏰ ${new Date().toLocaleString('ar-IQ')}`;
+        message += `\n⏰ ${new Date().toLocaleString('en-US')}`;
 
         return await this.sendMessage(message);
     }
@@ -190,7 +190,7 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
             message += `${index + 1}. <b>${sub.name}</b> - انتهى في ${sub.expiryDate}\n`;
         });
 
-        message += `\n⏰ ${new Date().toLocaleString('ar-IQ')}`;
+        message += `\n⏰ ${new Date().toLocaleString('en-US')}`;
 
         return await this.sendMessage(message);
     }
@@ -203,9 +203,9 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
 📝 <b>دين جديد</b>
 
 👤 المشترك: <b>${subscriberName}</b>
-💰 المبلغ: <b>${amount.toLocaleString()} د.ع</b>
+💰 المبلغ: <b>${amount.toLocaleString('en-US')} د.ع</b>
 
-⏰ ${new Date().toLocaleString('ar-IQ')}
+⏰ ${new Date().toLocaleString('en-US')}
         `.trim();
 
         return await this.sendMessage(message);
@@ -219,10 +219,10 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
 ✅ <b>تسديد دين</b>
 
 👤 المشترك: <b>${subscriberName}</b>
-💵 المبلغ المسدد: <b>${amount.toLocaleString()} د.ع</b>
-💰 المتبقي: <b>${remaining.toLocaleString()} د.ع</b>
+💵 المبلغ المسدد: <b>${amount.toLocaleString('en-US')} د.ع</b>
+💰 المتبقي: <b>${remaining.toLocaleString('en-US')} د.ع</b>
 
-⏰ ${new Date().toLocaleString('ar-IQ')}
+⏰ ${new Date().toLocaleString('en-US')}
         `.trim();
 
         return await this.sendMessage(message);
@@ -236,9 +236,9 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
 💸 <b>صرفية جديدة</b>
 
 📝 الوصف: <b>${description}</b>
-💰 المبلغ: <b>${amount.toLocaleString()} د.ع</b>
+💰 المبلغ: <b>${amount.toLocaleString('en-US')} د.ع</b>
 
-⏰ ${new Date().toLocaleString('ar-IQ')}
+⏰ ${new Date().toLocaleString('en-US')}
         `.trim();
 
         return await this.sendMessage(message);
@@ -252,13 +252,13 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
 📊 <b>الملخص اليومي</b>
 
 👥 إجمالي المشتركين: <b>${stats.totalSubs}</b>
-💰 الديون: <b>${stats.debts.toLocaleString()} د.ع</b>
-💵 رصيد الصندوق: <b>${stats.boxBalance.toLocaleString()} د.ع</b>
+💰 الديون: <b>${stats.debts.toLocaleString('en-US')} د.ع</b>
+💵 رصيد الصندوق: <b>${stats.boxBalance.toLocaleString('en-US')} د.ع</b>
 ❌ المنتهية: <b>${stats.expired}</b>
 ⚠️ تنتهي قريباً: <b>${stats.expiring}</b>
 
-📅 ${new Date().toLocaleDateString('ar-IQ')}
-⏰ ${new Date().toLocaleTimeString('ar-IQ')}
+📅 ${new Date().toLocaleDateString('ar-u-nu-latn')}
+⏰ ${new Date().toLocaleTimeString('ar-u-nu-latn')}
         `.trim();
 
         return await this.sendMessage(message);
@@ -282,8 +282,8 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
         const message = `
 🔔 <b>طلب تعبئة رصيد النظام</b>
 
-💰 المبلغ: <b>${amount.toLocaleString()} د.ع</b>
-📅 التاريخ: ${new Date().toLocaleString('ar-IQ')}
+💰 المبلغ: <b>${amount.toLocaleString('en-US')} د.ع</b>
+📅 التاريخ: ${new Date().toLocaleString('en-US')}
 
 يرجى اتخاذ إجراء:
         `.trim();
@@ -388,9 +388,9 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
 
 👤 المشترك: <b>${subscriberName}</b>
 🎁 الهدية: <b>تمديد يومين (48 ساعة)</b>
-📅 التاريخ: ${new Date().toLocaleString('ar-IQ')}
+📅 التاريخ: ${new Date().toLocaleString('en-US')}
 
-⏰ ${new Date().toLocaleString('ar-IQ')}
+⏰ ${new Date().toLocaleString('en-US')}
         `.trim();
 
         return await this.sendMessage(message);
@@ -427,7 +427,7 @@ ${emoji} المبلغ: <b>${price.toLocaleString()} د.ع</b>
 ✅ تم الاتصال بنجاح!
 النظام جاهز لإرسال الإشعارات.
 
-⏰ ${new Date().toLocaleString('ar-IQ')}
+⏰ ${new Date().toLocaleString('en-US')}
         `.trim();
 
         return await this.sendMessage(message);

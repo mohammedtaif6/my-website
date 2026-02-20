@@ -437,7 +437,7 @@
             const fmt = (n) => {
                 try {
                     const num = parseInt(n);
-                    return isNaN(num) ? '0' : num.toLocaleString();
+                    return isNaN(num) ? '0' : num.toLocaleString('en-US');
                 } catch (e) { return '0'; }
             };
 
@@ -537,10 +537,10 @@
             ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
             const total = history.reduce((sum, t) => sum + Math.abs(t.amount), 0);
-            document.getElementById('histTotal').innerText = total.toLocaleString() + ' د.ع';
+            document.getElementById('histTotal').innerText = total.toLocaleString('en-US') + ' د.ع';
 
             tbody.innerHTML = history.length ? history.map(t => {
-                const date = new Date(t.createdAt).toLocaleDateString('ar-IQ');
+                const date = new Date(t.createdAt).toLocaleDateString('ar-u-nu-latn');
                 const isSalary = t.description.includes('راتب');
                 const color = isSalary ? 'green' : 'red';
                 const label = isSalary ? 'صرف راتب' : 'سلفة / خصم';
@@ -548,7 +548,7 @@
                 return `
                         <tr style="border-bottom:1px solid #eee;">
                     <td style="padding:10px;">${date}</td>
-                    <td style="padding:10px; font-weight:bold; color:${color};" dir="ltr">${Math.abs(t.amount).toLocaleString()}</td>
+                    <td style="padding:10px; font-weight:bold; color:${color};" dir="ltr">${Math.abs(t.amount).toLocaleString('en-US')}</td>
                     <td style="padding:10px; font-size:0.85rem; color:#666;">${t.description.split(':').pop() || t.description}</td>
                 </tr>
                         `;

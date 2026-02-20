@@ -1067,7 +1067,7 @@
                                 <i class="fas ${icon}" style="color:${color}"></i>
                                 ${pkg.name}
                             </h4>
-                            <p>خصم من الرصيد: <b style="color:#ef4444;">${pkg.costPrice.toLocaleString()}</b> | سعر المبيع: <b style="color:#10b981;">${pkg.salePrice.toLocaleString()}</b></p>
+                            <p>خصم من الرصيد: <b style="color:#ef4444;">${pkg.costPrice.toLocaleString('en-US')}</b> | سعر المبيع: <b style="color:#10b981;">${pkg.salePrice.toLocaleString('en-US')}</b></p>
                         </div>
                         <div class="package-actions">
                             <button onclick="removePackage('${pkg.id}')" class="btn-icon-danger"><i class="fas fa-trash"></i></button>

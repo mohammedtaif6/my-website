@@ -183,12 +183,12 @@
                 sortedExpenses.forEach(e => {
                     const amount = Math.abs(e.amount || 0);
                     total += amount;
-                    const date = new Date(e.createdAt).toLocaleDateString('ar-IQ');
+                    const date = new Date(e.createdAt).toLocaleDateString('ar-u-nu-latn');
 
                     tbody.innerHTML += `
                         <tr>
                             <td data-label="الوصف">${e.description || 'بدون وصف'}</td>
-                            <td data-label="المبلغ" class="text-danger" style="font-weight:bold;">${amount.toLocaleString()}</td>
+                            <td data-label="المبلغ" class="text-danger" style="font-weight:bold;">${amount.toLocaleString('en-US')}</td>
                             <td data-label="التاريخ">${date}</td>
                             <td data-label="تحكم">
                                 <button onclick="deleteExpenseConfirm('${e.id}')" class="btn btn-outline" style="padding:5px 10px; color:var(--danger); border-color:var(--danger);">
@@ -200,7 +200,7 @@
                 });
             }
 
-            document.getElementById('totalExpenses').innerText = total.toLocaleString();
+            document.getElementById('totalExpenses').innerText = total.toLocaleString('en-US');
             document.getElementById('expensesCount').innerText = sortedExpenses.length;
         };
 

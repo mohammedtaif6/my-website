@@ -523,10 +523,10 @@
             const totalDebts = subs.reduce((sum, s) => sum + (parseInt(s.price) || 0), 0);
 
             // Update summary cards
-            document.getElementById('total-income').innerText = income.toLocaleString() + ' د.ع';
-            document.getElementById('total-expense').innerText = expense.toLocaleString() + ' د.ع';
-            document.getElementById('net-balance').innerText = net.toLocaleString() + ' د.ع';
-            document.getElementById('total-debts').innerText = totalDebts.toLocaleString() + ' د.ع';
+            document.getElementById('total-income').innerText = income.toLocaleString('en-US') + ' د.ع';
+            document.getElementById('total-expense').innerText = expense.toLocaleString('en-US') + ' د.ع';
+            document.getElementById('net-balance').innerText = net.toLocaleString('en-US') + ' د.ع';
+            document.getElementById('total-debts').innerText = totalDebts.toLocaleString('en-US') + ' د.ع';
             document.getElementById('tx-count').innerText = txs.length + ' عملية';
 
             // Render transactions
@@ -570,12 +570,12 @@
                                 <div class="tx-details">
                                     <div class="tx-description">${badge} ${t.description || typeLabel}</div>
                                     <div class="tx-date">
-                                        ${date.toLocaleDateString('ar-IQ')} - ${date.toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' })}
+                                        ${date.toLocaleDateString('ar-u-nu-latn')} - ${date.toLocaleTimeString('ar-u-nu-latn', { hour: '2-digit', minute: '2-digit' })}
                                     </div>
                                 </div>
                             </div>
                             <div class="tx-amount ${isIncome ? 'income' : 'expense'}">
-                                ${isIncome ? '+' : '-'}${Math.abs(t.amount).toLocaleString()}
+                                ${isIncome ? '+' : '-'}${Math.abs(t.amount).toLocaleString('en-US')}
                             </div>
                         </div>
                     `;

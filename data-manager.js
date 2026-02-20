@@ -271,7 +271,7 @@ export const DataManager = {
         if (data.expiryDate) {
             const balance = this.getSystemBalance();
             if (balance <= 0 || balance < pkg.costPrice) {
-                showToast(`❌ رصيد التفعيلات غير كافي! المطلوب: ${pkg.costPrice.toLocaleString()} | المتوفر: ${balance.toLocaleString()}`, 'error');
+                showToast(`❌ رصيد التفعيلات غير كافي! المطلوب: ${pkg.costPrice.toLocaleString('en-US')} | المتوفر: ${balance.toLocaleString('en-US')}`, 'error');
                 throw new Error("رصيد النظام غير كافي");
             }
             await this.deductFromVirtualBalance(pkg.costPrice, `تفعيل باقة ${pkg.name} للمشترك ${data.name}`);
@@ -313,7 +313,7 @@ export const DataManager = {
         // فحص الرصيد والاستقطاع - إلزامي لكل التفعيلات
         const balance = this.getSystemBalance();
         if (balance <= 0 || balance < pkg.costPrice) {
-            showToast(`❌ رصيد التفعيلات غير كافي! المطلوب: ${pkg.costPrice.toLocaleString()} | المتوفر: ${balance.toLocaleString()}`, 'error');
+            showToast(`❌ رصيد التفعيلات غير كافي! المطلوب: ${pkg.costPrice.toLocaleString('en-US')} | المتوفر: ${balance.toLocaleString('en-US')}`, 'error');
             throw new Error("رصيد النظام غير كافي");
         }
 
@@ -495,7 +495,7 @@ export const DataManager = {
         const currentBal = this.getSystemBalance();
         // ✅ حماية مطلقة: لا يسمح أبداً بالسالب
         if (currentBal <= 0 || currentBal < amount) {
-            showToast(`❌ رصيد النظام غير كافي! المتوفر: ${currentBal.toLocaleString()} | المطلوب: ${amount.toLocaleString()}`, 'error');
+            showToast(`❌ رصيد النظام غير كافي! المتوفر: ${currentBal.toLocaleString('en-US')} | المطلوب: ${amount.toLocaleString('en-US')}`, 'error');
             throw new Error("رصيد النظام غير كافي للاستقطاع");
         }
         const newBal = currentBal - amount;
@@ -577,7 +577,7 @@ export const DataManager = {
             const newBal = currentBal + amount;
             await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString() }, { merge: true });
 
-            showToast(`✅ تمت الموافقة وإضافة ${amount.toLocaleString()} للرصيد بنجاح`);
+            showToast(`✅ تمت الموافقة وإضافة ${amount.toLocaleString('en-US')} للرصيد بنجاح`);
             return true;
         } catch (e) {
             console.error("Approval Error:", e);
@@ -670,7 +670,7 @@ export const DataManager = {
     async paySalary(empId) {
         const emp = this.getEmployee(empId);
         const bal = this.calculateEmployeeBalance(empId);
-        if (bal.net > 0 && confirm(`صرف راتب ${emp.name} بمبلغ ${bal.net.toLocaleString()}؟`)) {
+        if (bal.net > 0 && confirm(`صرف راتب ${emp.name} بمبلغ ${bal.net.toLocaleString('en-US')}؟`)) {
             await this.addExpense(bal.net, `راتب موظف: ${emp.name}`);
             await updateDoc(doc(db, "employees", emp.firebaseId), { startDate: new Date().toISOString().split('T')[0], advances: 0 });
         }

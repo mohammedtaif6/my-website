@@ -902,11 +902,11 @@
 
                 // Populate Receipt Data (always, for both print and WhatsApp)
                 document.getElementById('p-name').innerText = name;
-                document.getElementById('p-price').innerText = parseInt(price).toLocaleString() + ' د.ع';
+                document.getElementById('p-price').innerText = parseInt(price).toLocaleString('en-US') + ' د.ع';
                 document.getElementById('p-type').innerText = type;
                 document.getElementById('p-start').innerText = start;
                 document.getElementById('p-end').innerText = end;
-                document.getElementById('p-date').innerText = new Date().toLocaleString('ar-IQ');
+                document.getElementById('p-date').innerText = new Date().toLocaleString('en-US');
 
                 // Handle WhatsApp
                 if (sendWA && subPhone) {
@@ -963,7 +963,7 @@
             const balEl = document.getElementById('act-balance-value');
             const balInfo = document.getElementById('act-balance-info');
             if (balEl) {
-                balEl.textContent = balance.toLocaleString() + ' د.ع';
+                balEl.textContent = balance.toLocaleString('en-US') + ' د.ع';
                 if (balance <= 0) {
                     balInfo.style.background = 'linear-gradient(135deg, #fee2e2, #fecaca)';
                     balInfo.style.borderColor = '#fca5a5';
@@ -980,7 +980,7 @@
             const packages = DataManager.getSystemSettings().packages || [];
             if (pkgSelect) {
                 pkgSelect.innerHTML =
-                    packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString()} د.ع)</option>`).join('');
+                    packages.map(p => `<option value="${p.id}">${p.name} (${p.salePrice.toLocaleString('en-US')} د.ع)</option>`).join('');
 
                 // الافتراضي: أول باقة (نورمال)
                 if (packages.length > 0 && !pkgSelect.value) {
@@ -1112,8 +1112,8 @@
             if (activeEl) activeEl.innerText = activeCount;
             // ---------------------------
 
-            document.getElementById('stat-debts').innerText = s.debts.toLocaleString('ar-IQ');
-            const boxBal = s.boxBalance.toLocaleString('ar-IQ');
+            document.getElementById('stat-debts').innerText = s.debts.toLocaleString('en-US');
+            const boxBal = s.boxBalance.toLocaleString('en-US');
             document.getElementById('stat-revenue').innerText = boxBal;
 
             // تحديث الرصيد المستقل في الهيدر (من حسابات النظام)
@@ -1164,7 +1164,7 @@
             }
         };
 
-        document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-IQ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-u-nu-latn', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         DataManager.init();
         window.updatePageData = window.renderDashboard;
         setInterval(window.renderDashboard, 1000);
@@ -1220,7 +1220,7 @@
                         <strong style="color:#333;">${s.name}</strong>
                         <div style="font-size:0.85rem; color:#666;">${s.phone || 'لا يوجد رقم'}</div>
                     </div>
-                    ${(s.debt && s.debt > 0) ? `<div style="color:#d32f2f; font-weight:bold;">${parseInt(s.debt).toLocaleString()} د.ع</div>` : '<div style="color:green; font-size:0.8rem;">لا يوجد دين</div>'}
+                    ${(s.debt && s.debt > 0) ? `<div style="color:#d32f2f; font-weight:bold;">${parseInt(s.debt).toLocaleString('en-US')} د.ع</div>` : '<div style="color:green; font-size:0.8rem;">لا يوجد دين</div>'}
                 </div>
             `).join('');
             resultsDiv.style.display = 'block';
@@ -1230,7 +1230,7 @@
             document.getElementById('payment-subscriber-id').value = id;
             document.getElementById('payment-subscriber-firebase-id').value = firebaseId;
             document.getElementById('payment-sub-name').innerText = name;
-            document.getElementById('payment-current-debt').innerText = parseInt(debt).toLocaleString() + ' د.ع';
+            document.getElementById('payment-current-debt').innerText = parseInt(debt).toLocaleString('en-US') + ' د.ع';
             document.getElementById('selected-subscriber-info').style.display = 'block';
             document.getElementById('debtors-results').style.display = 'none';
             document.getElementById('payment-search').value = name;
@@ -1307,7 +1307,7 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
                         <div>
                             <small style="color: #666;">الراتب اليومي:</small>
-                            <div style="font-weight: bold;">${(emp.dailySalary || 0).toLocaleString()} د.ع</div>
+                            <div style="font-weight: bold;">${(emp.dailySalary || 0).toLocaleString('en-US')} د.ع</div>
                         </div>
                         <div>
                             <small style="color: #666;">عدد أيام العمل:</small>
@@ -1316,11 +1316,11 @@
                     </div>
                     <div style="border-top: 2px dashed #ddd; padding-top: 10px; margin-top: 10px;">
                         <small style="color: #666;">إجمالي المستحق:</small>
-                        <div style="font-size: 1.5rem; font-weight: bold; color: #10b981;">${earned.toLocaleString()} د.ع</div>
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #10b981;">${earned.toLocaleString('en-US')} د.ع</div>
                     </div>
                 </div>
                 <p style="text-align: center; color: #666; font-size: 0.9rem;">
-                    💡 الراتب المستحق = ${(emp.dailySalary || 0).toLocaleString()} × ${days} يوم
+                    💡 الراتب المستحق = ${(emp.dailySalary || 0).toLocaleString('en-US')} × ${days} يوم
                 </p>
             `;
 
@@ -1374,7 +1374,7 @@
                         <h3 style="color: #333; margin-bottom: 10px;">سجلك نظيف!</h3>
                         <p>لا توجد سلف مسحوبة بعد آخر استلام راتب.</p>
                         <div style="font-size: 0.8rem; color: #999; margin-top: 15px;">
-                            آخر تصفية: ${lastSettlementDate.toLocaleDateString('ar-IQ')}
+                            آخر تصفية: ${lastSettlementDate.toLocaleDateString('ar-u-nu-latn')}
                         </div>
                     </div>
                 `;
@@ -1382,21 +1382,21 @@
                 document.getElementById('emp-details-content').innerHTML = `
                     <div style="background: #ffebee; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
                         <h4 style="margin: 0 0 5px 0; color: #c62828;">📊 إجمالي السلف الحالية</h4>
-                        <div style="font-size: 1.8rem; font-weight: bold; color: #c62828;">${totalAdvances.toLocaleString()} د.ع</div>
-                        <small style="color: #666;">منذ: ${lastSettlementDate.toLocaleDateString('ar-IQ')}</small>
+                        <div style="font-size: 1.8rem; font-weight: bold; color: #c62828;">${totalAdvances.toLocaleString('en-US')} د.ع</div>
+                        <small style="color: #666;">منذ: ${lastSettlementDate.toLocaleDateString('ar-u-nu-latn')}</small>
                     </div>
                     
                     <h4 style="margin: 15px 0 10px 0; color: #333; font-size: 1rem;">📝 قائمة السلف الجديدة:</h4>
                     <div style="max-height: 250px; overflow-y: auto;">
                         ${activeAdvances.map(adv => {
                     const date = new Date(adv.createdAt);
-                    const dateStr = date.toLocaleDateString('ar-IQ');
-                    const timeStr = date.toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' });
+                    const dateStr = date.toLocaleDateString('ar-u-nu-latn');
+                    const timeStr = date.toLocaleTimeString('ar-u-nu-latn', { hour: '2-digit', minute: '2-digit' });
 
                     return `
                                 <div style="background: white; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-right: 3px solid #c62828; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                                        <span style="font-weight: bold; color: #c62828;">${Math.abs(adv.amount).toLocaleString()} د.ع</span>
+                                        <span style="font-weight: bold; color: #c62828;">${Math.abs(adv.amount).toLocaleString('en-US')} د.ع</span>
                                         <span class="badge" style="background:#ffebee; color:#c62828; font-size:0.7rem;">جديد</span>
                                     </div>
                                     <div style="display:flex; justify-content:space-between; font-size: 0.85rem; color: #666;">
@@ -1519,7 +1519,7 @@
                     if (val.length <= 3 && parseInt(val) < 1000) {
                         val = val + '000';
                     }
-                    this.value = parseInt(val).toLocaleString();
+                    this.value = parseInt(val).toLocaleString('en-US');
                 }
             });
             topupInput.addEventListener('focus', function () {
@@ -1548,7 +1548,7 @@
             if (dateEl) {
                 const now = new Date();
                 const options = { weekday: 'long', day: 'numeric', month: 'long' };
-                dateEl.textContent = now.toLocaleDateString('ar-IQ', options);
+                dateEl.textContent = now.toLocaleDateString('ar-u-nu-latn', options);
             }
 
             // تحديث الرصيد فوراً عند التحميل
