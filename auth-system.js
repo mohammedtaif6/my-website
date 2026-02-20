@@ -201,9 +201,8 @@ const AuthSystem = {
             if (settings[id] === false) {
                 el.style.display = 'none';
             } else {
-                // قد نحتاج لإعادة إظهار العنصر إذا تغير الإعداد في السحاب من false إلى true
-                // بشرط ألا يكون المستخدم موظفاً ومحروماً من الصلاحية أصلاً
-                if (this.currentUser && (this.currentUser.type === 'admin' || !this.isRestricted(id))) {
+                if (el.hasAttribute('hidden')) return;
+                if (this.currentUser && this.currentUser.type === 'admin') {
                     el.style.display = '';
                 }
             }
@@ -220,7 +219,10 @@ const AuthSystem = {
             if (settings[id] === false) {
                 el.style.display = 'none';
             } else {
-                if (this.currentUser && (this.currentUser.type === 'admin' || !this.isRestricted(id))) {
+                // فقط أعد إظهاره إذا كان مخفياً بسبب إعداد سابق (وليس بسبب صلاحيات الموظف)
+                // لا تعد إظهار العنصر إذا كان مخفياً عبر hidden attribute (من updateUI)
+                if (el.hasAttribute('hidden')) return;
+                if (this.currentUser && this.currentUser.type === 'admin') {
                     el.style.display = '';
                 }
             }
