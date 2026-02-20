@@ -561,7 +561,8 @@
                     }
 
                     const settings = DataManager.getSystemSettings();
-                    const canDelete = settings.allowBoxDeletion !== false; // Default true if not set yet
+                    const canDelete = settings.allowBoxDeletion !== false;
+                    const canEdit = settings.allowBoxEdit !== false;
 
                     container.innerHTML += `
                         <div class="tx-card" style="border-right: 4px solid ${isExp ? '#ff3d00' : '#00c853'}; opacity: ${opacity}">
@@ -578,9 +579,11 @@
                                 </div>
                             </div>
                             <div class="tx-actions">
+                                ${canEdit ? `
                                 <button onclick='openEditTxModal(${tJson})' class="btn-icon" style="color:#2196f3;">
                                     <i class="fas fa-pen"></i>
                                 </button>
+                                ` : ''}
                                 ${canDelete ? `
                                 <button onclick="window.confirmDeleteTransaction('${t.fbId || t.firebaseId || t.id}', '${t.type}')" class="btn-icon" style="color:#f44336;">
                                     <i class="fas fa-trash"></i>

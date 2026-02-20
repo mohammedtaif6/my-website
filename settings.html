@@ -732,6 +732,19 @@
                 </label>
             </div>
 
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="icon-blue fas fa-pen"></i>
+                    <div>
+                        <span>تعديل العمليات</span>
+                    </div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="set-allow-box-edit">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
             <div class="setting-item" style="border-top:1px dashed #e2e8f0; margin-top:10px; padding-top:20px;">
                 <div class="setting-label">
                     <i class="icon-red fas fa-lock"></i>
@@ -980,6 +993,7 @@
                 if (settings.subDuration) document.getElementById('set-sub-duration').value = settings.subDuration;
                 if (settings.pinCode) document.getElementById('set-pin-code').value = settings.pinCode;
                 if (settings.allowBoxDeletion !== undefined) document.getElementById('set-allow-box-deletion').checked = settings.allowBoxDeletion;
+                if (settings.allowBoxEdit !== undefined) document.getElementById('set-allow-box-edit').checked = settings.allowBoxEdit;
 
                 // حفظ نسخة محدثة في LocalStorage لضمان توفرها لـ PIN لاحقاً بسرعة
                 localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
@@ -1134,6 +1148,7 @@
 
                 // 4. إعدادات إضافية
                 settings.allowBoxDeletion = document.getElementById('set-allow-box-deletion').checked;
+                settings.allowBoxEdit = document.getElementById('set-allow-box-edit').checked;
 
                 // 5. الباقات
                 settings.packages = window.currentPackages || [];
