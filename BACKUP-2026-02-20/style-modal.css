@@ -1,0 +1,315 @@
+/* --- PROFESSIONAL BOTTOM SHEET SYSTEM (FINAL FIX) --- */
+
+/* 
+   CRITICAL: We use 'fixed' relative to viewport.
+   NOTE: If this fails, it's because a parent has 'transform'.
+   The JS fix will move these elements to body root to bypass that.
+*/
+
+.modal-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    /* Dynamic Viewport Height for Mobile */
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(5px);
+    z-index: 2147483647 !important;
+    /* Maximum generic z-index */
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+
+    /* Center content generally, specific overrides below */
+    align-items: flex-end !important;
+    /* Mobile Default: Bottom */
+    justify-content: center !important;
+
+    /* Reset any inherited weirdness */
+    transform: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.modal-overlay.active {
+    display: flex !important;
+    opacity: 1 !important;
+}
+
+/* Modal Box - The actual white card */
+.modal-box {
+    background: white !important;
+    position: relative !important;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2) !important;
+
+    /* Mobile First: Bottom Sheet Styling */
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    margin: 0 !important;
+    transform: translateY(100%);
+    /* Start hidden down */
+    transition: transform 0.3s cubic-bezier(0.1, 0.7, 0.1, 1) !important;
+
+    /* Height Constraints */
+    max-height: 85dvh !important;
+    min-height: 200px;
+    /* Don't be too small */
+    padding-bottom: env(safe-area-inset-bottom, 20px) !important;
+    /* iPhone X+ Safe Area */
+}
+
+/* Slide Up Animation */
+.modal-overlay.active .modal-box {
+    transform: translateY(0) !important;
+}
+
+/* Header styling */
+.modal-header {
+    flex-shrink: 0;
+    /* Keep header fixed size */
+    padding: 15px 20px !important;
+    border-bottom: 1px solid #eee !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    background: #fff !important;
+    border-radius: 20px 20px 0 0 !important;
+    position: relative;
+}
+
+/* Handle bar for mobile feel */
+.modal-header::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 4px;
+    background: #e0e0e0;
+    border-radius: 2px;
+}
+
+.modal-header h3 {
+    margin: 10px 0 0 0 !important;
+    font-size: 1.2rem !important;
+    font-weight: 700 !important;
+    color: #333 !important;
+}
+
+.close-btn {
+    font-size: 1.5rem !important;
+    padding: 5px !important;
+    background: transparent !important;
+    width: 35px !important;
+    height: 35px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #999 !important;
+    border: none !important;
+    cursor: pointer !important;
+}
+
+/* Scrollable Content */
+.modal-body {
+    flex: 1;
+    /* Take remaining space */
+    padding: 20px !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    /* Prevent scrolling body when modal scroll ends */
+}
+
+/* --- DESKTOP / TABLET OVERRIDES --- */
+@media (min-width: 768px) {
+    .modal-overlay {
+        align-items: center !important;
+        /* Center on Screen */
+        padding-top: 0 !important;
+    }
+
+    .modal-box {
+        width: 450px !important;
+        max-width: 90% !important;
+        border-radius: 20px !important;
+        transform: scale(0.95);
+        opacity: 0;
+        transition: all 0.2s ease-out !important;
+        padding-bottom: 0 !important;
+        margin: auto !important;
+        height: auto !important;
+        max-height: 90vh !important;
+    }
+
+    .modal-overlay.active .modal-box {
+        transform: scale(1) !important;
+        opacity: 1 !important;
+    }
+
+    .modal-header::before {
+        display: none;
+    }
+
+    .modal-header h3 {
+        margin: 0 !important;
+    }
+}
+
+/* --- SAS PREMIUM ALERT SYSTEM --- */
+.sas-alert-box {
+    background: #fff !important;
+    width: 380px !important;
+    max-width: 90% !important;
+    border-radius: 28px !important;
+    padding: 30px 25px !important;
+    text-align: center !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    /* Reset transform for mobile since we center it manually in flex overlay */
+    transform: scale(0.9);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    margin: auto !important;
+    /* Force center */
+}
+
+.modal-overlay.active .sas-alert-box {
+    transform: scale(1);
+    opacity: 1;
+}
+
+/* Success Theme */
+.sas-alert-box.success {
+    border-top: 6px solid #10b981;
+}
+
+.sas-alert-box.success .sas-icon-ring {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+/* Error Theme */
+.sas-alert-box.error {
+    border-top: 6px solid #ef4444;
+}
+
+.sas-alert-box.error .sas-icon-ring {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+/* Confirm/Warning Theme */
+.sas-alert-box.confirm {
+    border-top: 6px solid #f59e0b;
+}
+
+.sas-alert-box.confirm .sas-icon-ring {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.sas-icon-ring {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    position: relative;
+}
+
+.sas-icon-ring::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    opacity: 0.2;
+    animation: sas-pulse 2s infinite;
+}
+
+@keyframes sas-pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.2;
+    }
+
+    70% {
+        transform: scale(1.4);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 0;
+    }
+}
+
+.sas-alert-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 10px;
+}
+
+.sas-alert-msg {
+    color: #64748b;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 25px;
+}
+
+.sas-btn-group {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.sas-btn {
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+    width: 100%;
+}
+
+.sas-btn:active {
+    transform: scale(0.96);
+}
+
+.sas-btn-primary {
+    background: #1e293b;
+    color: #fff;
+}
+
+.sas-btn-danger {
+    background: #ef4444;
+    color: #fff;
+}
+
+.sas-btn-secondary {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+/* Override standard modal behavior for alerts to correct centering */
+.modal-overlay.sas-mode {
+    align-items: center !important;
+    /* Force center vertically even on mobile */
+    padding: 20px !important;
+}

@@ -1,0 +1,68 @@
+/* --- Fixed Action Buttons (Floating & Forever Visible) --- */
+.fab-btn {
+    position: fixed;
+    bottom: 30px;
+    left: 25px;
+    width: 60px;
+    height: 60px;
+    border-radius: 20px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    font-size: 1.6rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    /* Always on top */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.fab-btn:active {
+    transform: scale(0.92);
+}
+
+/* Secondary Mini FAB (Expense) - Floating above main button */
+.fab-mini {
+    position: fixed;
+    bottom: 105px;
+    /* 30px (bottom) + 60px (btn) + 15px (gap) */
+    left: 32px;
+    /* Centered relative to main btn (60-46)/2 + 25 = 32 */
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: white;
+    color: var(--text-main);
+    border: 1px solid var(--border-light);
+    font-size: 1.1rem;
+    box-shadow: 0 5px 15px -3px rgba(0, 0, 0, 0.15);
+    z-index: 9998;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.fab-mini:active {
+    transform: scale(0.92);
+}
+
+/* Ensure they stay fixed on larger screens too, maybe adjust position */
+@media (min-width: 1024px) {
+    .fab-btn {
+        left: 50%;
+        margin-left: -580px;
+        /* Position relative to centered content */
+        bottom: 50px;
+    }
+
+    .fab-mini {
+        left: 50%;
+        margin-left: -573px;
+        bottom: 125px;
+    }
+}

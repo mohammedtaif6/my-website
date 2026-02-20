@@ -19,7 +19,18 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <script src="auth-system.js?v=5.0"></script>
+    <!-- Fix: Import DataManager for Employee Login -->
+    <script type="module">
+        import { DataManager } from './data-manager.js?v=33.0';
+        window.DataManager = DataManager;
+        // We do NOT call DataManager.init() here to avoid heavy sync, 
+        // we just need .getEmployees() to work which requires initial sync or at least connection.
+        // Actually DataManager.getEmployees() relies on localData which is populated by sync.
+        // So we MUST call DataManager.init() but maybe we can optimize it?
+        // For now, let's just init it. It uses local cache so it should be fast.
+        DataManager.init();
+    </script>
+    <script src="auth-system.js?v=3.0"></script>
 
     <style>
         :root {
@@ -408,12 +419,13 @@
         </div>
 
         <div class="copyright">
-            © 2026 OK Computer System
+            © 2025 SAS Management System
         </div>
     </div>
 
+    <script src="auth-system.js?v=3.0"></script>
     <script type="module">
-        import { DataManager } from './data-manager.js?v=35.0';
+        import { DataManager } from './data-manager.js?v=33.0';
         window.DataManager = DataManager;
         DataManager.init();
 
