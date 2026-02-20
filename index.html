@@ -377,32 +377,40 @@
         <!-- ملخص الموظف (يظهر للموظفين فقط) -->
         <div id="employee-dashboard-stats" style="display:none; margin-bottom: 20px;">
             <div class="employee-interface-card">
-                <div class="employee-stats-header">
+                <div class="employee-stats-header" onclick="toggleEmpSummary()"
+                    style="cursor: pointer; user-select: none;">
                     <h3><i class="fas fa-wallet"></i> ملخص حسابي</h3>
-                    <div id="shift-date-display" style="font-size: 0.85rem; color: var(--text-sub);"></div>
-                </div>
-
-                <div class="employee-summary-grid">
-                    <div onclick="showEmpSalaryDetails()" class="summary-item">
-                        <small>الراتب المستحق</small>
-                        <div id="emp-qs-earned" class="value">0</div>
-                    </div>
-
-                    <div onclick="showEmpAdvancesDetails()" class="summary-item danger">
-                        <small>السلف المسحوبة</small>
-                        <div id="emp-qs-advances" class="value">0</div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div id="shift-date-display" style="font-size: 0.85rem; color: var(--text-sub);"></div>
+                        <i id="emp-summary-chevron" class="fas fa-chevron-down"
+                            style="transition: transform 0.3s; color: var(--text-sub); font-size: 0.9rem;"></i>
                     </div>
                 </div>
 
-                <!-- كارت المكافآت -->
-                <div id="emp-qs-rewards-card" class="employee-rewards-banner" style="display: none;">
-                    <strong style="color: #e65100; font-size: 0.95rem;">🎁 إجمالي المكافآت:</strong>
-                    <span id="emp-qs-rewards" style="font-weight: bold; font-size: 1.1rem; color: #e65100;">0</span>
-                </div>
+                <div id="emp-summary-details"
+                    style="max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out;">
+                    <div class="employee-summary-grid">
+                        <div onclick="showEmpSalaryDetails()" class="summary-item">
+                            <small>الراتب المستحق</small>
+                            <div id="emp-qs-earned" class="value">0</div>
+                        </div>
 
-                <div class="employee-net-footer">
-                    <strong>الصافي للدفع:</strong>
-                    <span id="emp-qs-net" class="net-value">0</span>
+                        <div onclick="showEmpAdvancesDetails()" class="summary-item danger">
+                            <small>السلف المسحوبة</small>
+                            <div id="emp-qs-advances" class="value">0</div>
+                        </div>
+                    </div>
+
+                    <!-- كارت المكافآت -->
+                    <div id="emp-qs-rewards-card" class="employee-rewards-banner" style="display: none;">
+                        <strong style="color: #e65100; font-size: 0.95rem;">🎁 إجمالي المكافآت:</strong>
+                        <span id="emp-qs-rewards" style="font-weight: bold; font-size: 1.1rem; color: #e65100;">0</span>
+                    </div>
+
+                    <div class="employee-net-footer">
+                        <strong>الصافي للدفع:</strong>
+                        <span id="emp-qs-net" class="net-value">0</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1258,6 +1266,20 @@
                 DataManager.showToast('تم تسجيل القبض بنجاح ✅', 'success');
             } catch (e) {
                 DataManager.showToast('حدث خطأ: ' + e.message, 'error');
+            }
+        };
+
+        // === Toggle Employee Summary Dropdown ===
+        window.toggleEmpSummary = () => {
+            const details = document.getElementById('emp-summary-details');
+            const chevron = document.getElementById('emp-summary-chevron');
+            if (!details) return;
+            if (details.style.maxHeight && details.style.maxHeight !== '0px') {
+                details.style.maxHeight = '0px';
+                if (chevron) chevron.style.transform = 'rotate(0deg)';
+            } else {
+                details.style.maxHeight = details.scrollHeight + 'px';
+                if (chevron) chevron.style.transform = 'rotate(180deg)';
             }
         };
 
