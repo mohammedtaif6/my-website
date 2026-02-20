@@ -141,7 +141,7 @@ const AuthSystem = {
             }
 
             // إخفاء الصفحات الخاصة بالمدير فقط
-            const adminOnlyElements = ['nav-employees', 'nav-telegram'];
+            const adminOnlyElements = ['nav-employees', 'nav-telegram', 'nav-settings', 'card-settings'];
             adminOnlyElements.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
@@ -216,12 +216,12 @@ const AuthSystem = {
         navIds.forEach(id => {
             const el = document.getElementById(id);
             if (!el) return;
+            // إذا العنصر مخفي بسبب صلاحيات الموظف (hidden attribute) → لا تلمسه أبداً
+            if (el.hasAttribute('hidden')) return;
             if (settings[id] === false) {
                 el.style.display = 'none';
-            } else {
-                // فقط أعد إظهاره إذا كان مخفياً بسبب إعداد سابق (وليس بسبب صلاحيات الموظف)
-                // لا تعد إظهار العنصر إذا كان مخفياً عبر hidden attribute (من updateUI)
-                if (el.hasAttribute('hidden')) return;
+            } else if (settings.hasOwnProperty(id) && settings[id] === true) {
+                // فقط أعد إظهاره إذا كان الإعداد موجود صراحةً وقيمته true
                 if (this.currentUser && this.currentUser.type === 'admin') {
                     el.style.display = '';
                 }
