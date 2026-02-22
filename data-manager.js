@@ -2,7 +2,7 @@
  * DataManager v31.1 - مع نظام الباقات السحابي المتقدم ودعم التنبيهات
  */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { initializeFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDoc, onSnapshot, query, orderBy, limit, getDocs, where, persistentLocalCache, persistentMultipleTabManager, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { initializeFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDoc, onSnapshot, query, orderBy, limit, getDocs, where, persistentLocalCache, persistentMultipleTabManager, setDoc, increment, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { telegramBot } from './telegram-bot.js?v=19.1';
 
@@ -635,17 +635,20 @@ export const DataManager = {
 
             const amount = Math.abs(data.amount); // stored as negative
 
-            // 1. Mark as completed expense
+            // 1. Mark as completed and PROCESSED immediately to prevent double-addition from background sync
             await updateDoc(txRef, {
                 status: 'approved',
                 type: 'system_topup_expense',
-                approvedAt: new Date().toISOString()
+                processedBySystem: true,
+                approvedAt: new Date().toISOString(),
+                finalizedAt: new Date().toISOString()
             });
 
-            // 2. Add to System Balance
-            const currentBal = this.getSystemBalance();
-            const newBal = currentBal + amount;
-            await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString() }, { merge: true });
+            // 2. Add to System Balance atomically
+            await updateDoc(doc(db, "accounts", "system"), {
+                balance: increment(amount),
+                lastUpdated: new Date().toISOString()
+            });
 
             showToast(`✅ تمت الموافقة وإضافة ${amount.toLocaleString('en-US')} للرصيد بنجاح`);
             return true;
@@ -657,26 +660,41 @@ export const DataManager = {
     },
 
     async finalizeApprovedTopUp(tx) {
-        // Double check flag to avoid race conditions
+        // Double check flag locally first
         if (tx.processedBySystem) return;
 
         try {
-            const amount = Math.abs(tx.amount);
+            // Use runTransaction to ensure only ONE client processes this atomic increment
+            await runTransaction(db, async (transaction) => {
+                const txRef = doc(db, "transactions", tx.firebaseId);
+                const txDoc = await transaction.get(txRef);
 
-            // 1. Mark as processed in DB immediately to prevent double-spend
-            await updateDoc(doc(db, "transactions", tx.firebaseId), {
-                processedBySystem: true,
-                finalizedAt: new Date().toISOString()
+                if (!txDoc.exists()) return;
+                const txData = txDoc.data();
+
+                // If already processed by someone else, bail
+                if (txData.processedBySystem) return;
+
+                const amount = Math.abs(txData.amount);
+
+                // 1. Mark as processed & change type to finalize
+                transaction.update(txRef, {
+                    processedBySystem: true,
+                    type: 'system_topup_expense',
+                    finalizedAt: new Date().toISOString()
+                });
+
+                // 2. Perform atomic increment on system balance
+                const accRef = doc(db, "accounts", "system");
+                transaction.update(accRef, {
+                    balance: increment(amount),
+                    lastUpdated: new Date().toISOString()
+                });
             });
 
-            // 2. Add to System Balance
-            const currentBal = this.getSystemBalance();
-            const newBal = currentBal + amount;
-            await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString() }, { merge: true });
-
-            console.log(`✅ Smart System finalized top-up: ${amount}`);
+            console.log(`✅ Atomic system finalization successful`);
         } catch (e) {
-            console.error("Finalization Error:", e);
+            console.error("Atomic Finalization Error:", e);
         }
     },
 
