@@ -1186,8 +1186,12 @@
 
         document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-u-nu-latn', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         DataManager.init();
+        DataManager.onDataChange(() => {
+            window.renderDashboard();
+        });
         window.updatePageData = window.renderDashboard;
-        setInterval(window.renderDashboard, 1000);
+        // Keep interval as a fallback for timed events (like expiry countdowns)
+        setInterval(window.renderDashboard, 10000);
 
         // === Payment Collection Modal Functions ===
         window.openPaymentModal = () => {

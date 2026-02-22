@@ -138,6 +138,18 @@ export const DataManager = {
     get employees() { return localData.employees || []; },
     get accounts() { return localData.accounts || []; },
 
+    dataChangeListeners: [],
+
+    onDataChange(callback) {
+        if (typeof callback === 'function') {
+            this.dataChangeListeners.push(callback);
+        }
+    },
+
+    triggerDataChange() {
+        this.dataChangeListeners.forEach(cb => cb());
+    },
+
     init() {
         console.log("🚀 SAS System Initializing...");
         this.sync('subscribers');
@@ -200,6 +212,10 @@ export const DataManager = {
                     if (window.updatePageData) window.updatePageData();
                 }
                 if (colName === 'employees' && window.renderEmployees) window.renderEmployees();
+
+                // ✅ Trigger reactive listeners for any data change
+                this.triggerDataChange();
+
                 if (colName === 'transactions') {
                     if (window.generateReport) window.generateReport();
 
