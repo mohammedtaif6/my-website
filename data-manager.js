@@ -505,10 +505,22 @@ export const DataManager = {
 
     async setSystemBalance(amount) {
         try {
+            const oldBal = this.getSystemBalance();
+            const newVal = parseFloat(amount);
+            const diff = newVal - oldBal;
+
             await setDoc(doc(db, "accounts", "system"), {
-                balance: parseFloat(amount),
+                balance: newVal,
                 lastUpdated: new Date().toISOString()
             }, { merge: true });
+
+            await this.logTransaction({
+                type: 'system_balance_adjustment',
+                amount: 0,
+                virtualAmount: diff,
+                description: `تعديل رصيد النظام يدوياً: ${newVal.toLocaleString()} (فرق: ${diff.toLocaleString()})`
+            });
+
             return true;
         } catch (e) {
             console.error("Set balance error:", e);
@@ -518,10 +530,23 @@ export const DataManager = {
 
     async setProviderDebt(amount) {
         try {
+            const oldDebt = this.getProviderDebt();
+            const newVal = parseFloat(amount);
+            const diff = newVal - oldDebt;
+
             await setDoc(doc(db, "accounts", "system"), {
-                providerDebt: parseFloat(amount),
+                providerDebt: newVal,
                 lastUpdated: new Date().toISOString()
             }, { merge: true });
+
+            await this.logTransaction({
+                type: 'provider_debt_adjustment',
+                amount: 0,
+                costPrice: diff,
+                takenFromDebt: true,
+                description: `تعديل رصيد الذمة يدوياً: ${newVal.toLocaleString()} (فرق: ${diff.toLocaleString()})`
+            });
+
             return true;
         } catch (e) {
             console.error("Set debt error:", e);

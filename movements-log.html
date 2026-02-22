@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>سجل حركة الرصيد - SAS System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #3b82f6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding-bottom: 80px;
+        }
+
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            padding-top: 40px;
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+
+        .header h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Summary Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: -40px;
+            position: relative;
+            z-index: 101;
+        }
+
+        .stat-card {
+            background: var(--card);
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-card i {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: block;
+        }
+
+        .stat-card .value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Filters */
+        .filter-section {
+            background: var(--card);
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .filter-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* Log Table/List */
+        .log-list {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .log-item {
+            background: var(--card);
+            padding: 15px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+            transition: 0.2s;
+        }
+
+        .log-item:active {
+            transform: scale(0.98);
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .log-type {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .type-cash {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .type-debt {
+            background: #fef2f2;
+            color: #b91c1c;
+        }
+
+        .type-system {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .log-time {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .log-desc {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+            line-height: 1.4;
+        }
+
+        .log-amounts {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border);
+        }
+
+        .amount-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: start;
+        }
+
+        .amount-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        .amount-value {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .pos {
+            color: var(--success);
+        }
+
+        .neg {
+            color: var(--danger);
+        }
+
+        .neu {
+            color: var(--text-muted);
+        }
+
+        .no-data {
+            padding: 40px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Loader */
+        .loader {
+            width: 100%;
+            height: 3px;
+            background: #e2e8f0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            display: none;
+        }
+
+        .loader-bar {
+            height: 100%;
+            background: var(--accent);
+            width: 0;
+            transition: 0.3s;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loader" class="loader">
+        <div class="loader-bar"></div>
+    </div>
+
+    <div class="header">
+        <button class="back-btn" onclick="history.back()"><i class="fas fa-arrow-right"></i></button>
+        <h1>سجل الحركات المالية</h1>
+        <button class="back-btn" onclick="location.reload()"><i class="fas fa-sync-alt"></i></button>
+    </div>
+
+    <div class="container">
+        <!-- Summary Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <i class="fas fa-cash-register" style="color: #10b981;"></i>
+                <span class="label">رصيد الصندوق</span>
+                <span id="stat-box-balance" class="value">0 د.ع</span>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-hand-holding-dollar" style="color: #ef4444;"></i>
+                <span class="label">رصيد الذمة (الأجل)</span>
+                <span id="stat-provider-debt" class="value">0 د.ع</span>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-section">
+            <div class="filter-row">
+                <input type="date" id="filter-date" class="filter-input" onchange="renderLogs()">
+                <select id="filter-type" class="filter-input" onchange="renderLogs()">
+                    <option value="all">جميع الحركات</option>
+                    <option value="subscription">اشتراكات</option>
+                    <option value="expense">مصاريف</option>
+                    <option value="topup">تعبئة رصيد</option>
+                    <option value="manual">تعديلات يدوية</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Log Content -->
+        <div id="log-list" class="log-list">
+            <div class="no-data">جاري تحميل السجلات...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { DataManager } from './data-manager.js?v=35.0';
+        window.DataManager = DataManager;
+
+        function formatMoney(val) {
+            if (!val) return '0';
+            return parseInt(val).toLocaleString('en-US');
+        }
+
+        function formatTime(iso) {
+            const date = new Date(iso);
+            return date.toLocaleString('ar-EG', {
+                hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit'
+            });
+        }
+
+        window.renderLogs = () => {
+            const list = document.getElementById('log-list');
+            const logs = DataManager.getAllTransactions() || [];
+            const dateFilter = document.getElementById('filter-date').value;
+            const typeFilter = document.getElementById('filter-type').value;
+
+            // Updated Stats
+            document.getElementById('stat-box-balance').innerText = formatMoney(DataManager.getDailyBalance()) + ' د.ع';
+            document.getElementById('stat-provider-debt').innerText = formatMoney(DataManager.getProviderDebt()) + ' د.ع';
+
+            let filtered = logs;
+
+            if (dateFilter) {
+                filtered = filtered.filter(t => t.createdAt.startsWith(dateFilter));
+            }
+
+            if (typeFilter !== 'all') {
+                filtered = filtered.filter(t => {
+                    if (typeFilter === 'subscription') return t.type && t.type.includes('subscription');
+                    if (typeFilter === 'expense') return t.type === 'expense' || t.type === 'system_topup_expense';
+                    if (typeFilter === 'topup') return t.type === 'system_topup_expense' || t.type === 'topup_request';
+                    if (typeFilter === 'manual') return t.type && t.type.includes('adjustment');
+                    return true;
+                });
+            }
+
+            if (filtered.length === 0) {
+                list.innerHTML = '<div class="no-data">لا توجد حركات مطابقة للبحث</div>';
+                return;
+            }
+
+            list.innerHTML = filtered.map(t => {
+                let typeLabel = "حركة عامة";
+                let typeClass = "type-system";
+
+                if (t.type?.includes('subscription_cash')) { typeLabel = "اشتراك نقدي"; typeClass = "type-cash"; }
+                else if (t.type?.includes('subscription_debt')) { typeLabel = "اشتراك أجل"; typeClass = "type-debt"; }
+                else if (t.type === 'expense') { typeLabel = "مصروف"; typeClass = "type-debt"; }
+                else if (t.type?.includes('adjustment')) { typeLabel = "تعديل يدوي"; typeClass = "type-system"; }
+
+                // Movement Logic
+                const boxChange = (t.type === 'subscription_cash' || t.type === 'debt_payment') ? t.amount : (t.type === 'expense' ? -t.amount : 0);
+                const debtChange = t.takenFromDebt ? t.costPrice : (t.type === 'provider_debt_adjustment' ? t.costPrice : 0);
+                const sysChange = t.virtualAmount || (t.takenFromDebt ? 0 : -(t.costPrice || 0));
+
+                return `
+                    <div class="log-item">
+                        <div class="log-header">
+                            <span class="log-type ${typeClass}">${typeLabel}</span>
+                            <span class="log-time">${formatTime(t.createdAt)}</span>
+                        </div>
+                        <div class="log-desc">${t.description || 'بدون وصف'}</div>
+                        <div class="log-amounts">
+                            <div class="amount-box">
+                                <span class="amount-label">الصندوق</span>
+                                <span class="amount-value ${boxChange > 0 ? 'pos' : (boxChange < 0 ? 'neg' : 'neu')}">
+                                    ${boxChange === 0 ? '--' : (boxChange > 0 ? '+' : '') + formatMoney(boxChange)}
+                                </span>
+                            </div>
+                            <div class="amount-box">
+                                <span class="amount-label">الذمة (المجهز)</span>
+                                <span class="amount-value ${debtChange > 0 ? 'neg' : (debtChange < 0 ? 'pos' : 'neu')}">
+                                    ${debtChange === 0 ? '--' : (debtChange > 0 ? '+' : '') + formatMoney(debtChange)}
+                                </span>
+                            </div>
+                            <div class="amount-box">
+                                <span class="amount-label">رصيد النظام</span>
+                                <span class="amount-value ${sysChange > 0 ? 'pos' : (sysChange < 0 ? 'neg' : 'neu')}">
+                                    ${sysChange === 0 ? '--' : (sysChange > 0 ? '+' : '') + formatMoney(sysChange)}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        DataManager.init().then(() => {
+            DataManager.onDataChange(() => {
+                renderLogs();
+            });
+            renderLogs();
+        });
+    </script>
+</body>
+
+</html>
