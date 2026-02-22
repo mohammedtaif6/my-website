@@ -458,8 +458,12 @@
 
             const container = document.getElementById('transactionsList');
 
-            // استبعاد سجلات الديون فقط (لأنها لا تمثل حركة نقد حقيقية في الصندوق)
-            let filteredTxs = activeTxs.filter(t => t.type !== 'subscription_debt');
+            // استبعاد سجلات الديون والتعديلات اليدوية (لأنها لا تمثل حركة نقد حقيقية في الصندوق)
+            let filteredTxs = activeTxs.filter(t =>
+                t.type !== 'subscription_debt' &&
+                t.type !== 'system_balance_adjustment' &&
+                t.type !== 'provider_debt_adjustment'
+            );
 
             // تطبيق فلتر التاريخ (اليوم، أمس، الاسبوع، الشهر)
             if (currentTxFilter !== 'all') {

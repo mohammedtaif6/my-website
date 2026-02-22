@@ -482,6 +482,7 @@ export const DataManager = {
             .filter(t => {
                 if (t.isArchived) return false;
                 if (t.type === 'subscription_debt') return false;
+                if (t.type === 'system_balance_adjustment' || t.type === 'provider_debt_adjustment') return false;
 
                 // قوانين طلبات التعبئة:
                 // لا تحسب ضمن رصيد الصندوق إلا إذا كانت "مقبولة" (Approved)
