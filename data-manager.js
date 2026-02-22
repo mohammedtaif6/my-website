@@ -218,9 +218,10 @@ export const DataManager = {
 
     async bootstrapPackages() {
         const defaults = [
-            { id: 'pkg_norm', name: 'نورمال (Normal)', costPrice: 22000, salePrice: 0 },
-            { id: 'pkg_super', name: 'سوبر (Super)', costPrice: 24000, salePrice: 0 },
-            { id: 'pkg_gold', name: 'جولد (Gold)', costPrice: 28000, salePrice: 0 },
+            { id: 'pkg_norm', name: 'نورمال (Normal)', costPrice: 22000, salePrice: 35000 },
+            { id: 'pkg_super', name: 'سوبر (Super)', costPrice: 24000, salePrice: 40000 },
+            { id: 'pkg_gold', name: 'جولد (Gold)', costPrice: 28000, salePrice: 50000 },
+            { id: 'pkg_ajel', name: 'الاجل (0-0)', costPrice: 0, salePrice: 0 },
             { id: 'pkg_private', name: 'خاصة (Private)', costPrice: 2000, salePrice: 0 }
         ];
         try {
@@ -268,23 +269,20 @@ export const DataManager = {
         subData.packageName = pkg.name;
 
         // استقطاع من رصيد النظام فقط إذا كان هناك تفعيل (تاريخ انتهاء)
-        if (data.expiryDate) {
-            const balance = this.getSystemBalance();
-            if (balance <= 0 || balance < pkg.costPrice) {
-                showToast(`❌ رصيد التفعيلات غير كافي! المطلوب: ${pkg.costPrice.toLocaleString('en-US')} | المتوفر: ${balance.toLocaleString('en-US')}`, 'error');
-                throw new Error("رصيد النظام غير كافي");
-            }
-            await this.deductFromVirtualBalance(pkg.costPrice, `تفعيل باقة ${pkg.name} للمشترك ${data.name}`);
+        if (data.expiryDate && pkg.costPrice > 0) {
+            const result = await this.deductFromVirtualBalance(pkg.costPrice, `تفعيل باقة ${pkg.name} للمشترك ${data.name}`);
+            subData.takenFromDebt = result.takenFromDebt;
         }
 
         const subRef = await addDoc(collection(db, "subscribers"), subData);
 
-        if (data.initialPrice > 0) {
+        if (data.initialPrice > 0 || (pkg.costPrice === 0 && data.initialPrice === 0)) {
             await this.logTransaction({
-                subscriberId: subData.id, amount: parseInt(data.initialPrice),
+                subscriberId: subData.id, amount: parseInt(data.initialPrice || 0),
                 type: data.paymentType === 'نقد' ? 'subscription_cash' : 'subscription_debt',
                 description: `اشتراك جديد: ${subData.name} (${pkg.name})`,
-                costPrice: pkg.costPrice
+                costPrice: pkg.costPrice,
+                takenFromDebt: subData.takenFromDebt || false
             });
             if (data.paymentType === 'نقد') await updateDoc(doc(db, "subscribers", subRef.id), { price: 0 });
 
@@ -310,22 +308,20 @@ export const DataManager = {
             throw new Error("No packages configured");
         }
 
-        // فحص الرصيد والاستقطاع - إلزامي لكل التفعيلات
-        const balance = this.getSystemBalance();
-        if (balance <= 0 || balance < pkg.costPrice) {
-            showToast(`❌ رصيد التفعيلات غير كافي! المطلوب: ${pkg.costPrice.toLocaleString('en-US')} | المتوفر: ${balance.toLocaleString('en-US')}`, 'error');
-            throw new Error("رصيد النظام غير كافي");
-        }
-
         updateObj.packageId = pkg.id;
         updateObj.packageName = pkg.name;
-        await this.deductFromVirtualBalance(pkg.costPrice, `تجديد باقة ${pkg.name} للمشترك ${sub.name}`);
+
+        if (pkg.costPrice > 0) {
+            const result = await this.deductFromVirtualBalance(pkg.costPrice, `تجديد باقة ${pkg.name} للمشترك ${sub.name}`);
+            updateObj.takenFromDebt = result.takenFromDebt;
+        }
 
         await this.logTransaction({
             subscriberId: subscriberDataId, amount: parseInt(renewalData.price),
             type: renewalData.type === 'نقد' ? 'subscription_cash' : 'subscription_debt',
             description: `تجديد: ${sub.name} (${pkg.name})`,
-            costPrice: pkg.costPrice
+            costPrice: pkg.costPrice,
+            takenFromDebt: updateObj.takenFromDebt || false
         });
 
         await updateDoc(doc(db, "subscribers", subscriberFirebaseId), updateObj);
@@ -436,10 +432,18 @@ export const DataManager = {
                 await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString() }, { merge: true });
                 showToast(`تم استرجاع مبلغ التعبئة (${storedAmount}) من رصيد النظام`);
             } else if (t.costPrice && t.costPrice > 0) {
-                const currentBal = this.getSystemBalance();
-                const newBal = currentBal + t.costPrice;
-                await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString() }, { merge: true });
-                showToast(`تم استرجاع تكلفة الباقة (${t.costPrice}) إلى رصيد النظام`);
+                // Return to where it was taken from
+                if (t.takenFromDebt) {
+                    const currentDebt = this.getProviderDebt();
+                    const newDebt = Math.max(0, currentDebt - t.costPrice);
+                    await setDoc(doc(db, "accounts", "system"), { providerDebt: newDebt, lastUpdated: new Date().toISOString() }, { merge: true });
+                    showToast(`تم استرجاع تكلفة الباقة (${t.costPrice}) من رصيد الذمة`);
+                } else {
+                    const currentBal = this.getSystemBalance();
+                    const newBal = currentBal + t.costPrice;
+                    await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString() }, { merge: true });
+                    showToast(`تم استرجاع تكلفة الباقة (${t.costPrice}) إلى رصيد النظام`);
+                }
             }
             await deleteDoc(doc(db, col, t.firebaseId));
         }
@@ -478,6 +482,11 @@ export const DataManager = {
         return sysAcc ? (sysAcc.balance || 0) : 0;
     },
 
+    getProviderDebt() {
+        const sysAcc = (localData.accounts || []).find(a => a.firebaseId === 'system');
+        return sysAcc ? (sysAcc.providerDebt || 0) : 0;
+    },
+
     async setSystemBalance(amount) {
         try {
             await setDoc(doc(db, "accounts", "system"), {
@@ -491,19 +500,39 @@ export const DataManager = {
         }
     },
 
+    async setProviderDebt(amount) {
+        try {
+            await setDoc(doc(db, "accounts", "system"), {
+                providerDebt: parseFloat(amount),
+                lastUpdated: new Date().toISOString()
+            }, { merge: true });
+            return true;
+        } catch (e) {
+            console.error("Set debt error:", e);
+            return false;
+        }
+    },
+
     async deductFromVirtualBalance(amount, reason = "استقطاع رصيد") {
+        if (amount <= 0) return { takenFromDebt: false };
+
         const currentBal = this.getSystemBalance();
-        // ✅ حماية مطلقة: لا يسمح أبداً بالسالب
-        if (currentBal <= 0 || currentBal < amount) {
-            showToast(`❌ رصيد النظام غير كافي! المتوفر: ${currentBal.toLocaleString('en-US')} | المطلوب: ${amount.toLocaleString('en-US')}`, 'error');
-            throw new Error("رصيد النظام غير كافي للاستقطاع");
+        const currentDebt = this.getProviderDebt();
+
+        // ✅ نظام الذمة الذكي: إذا الرصيد ما يكفي، حول الباقي للذمة
+        if (currentBal >= amount) {
+            const newBal = currentBal - amount;
+            await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString() }, { merge: true });
+            return { takenFromDebt: false };
+        } else {
+            // الرصيد صفر أو غير كافي -> أضف للذمة
+            // الخيار 1: استهلاك ما تبقى من الرصيد والباقي ذمة (معقد برمجياً في الحسابات)
+            // الخيار 2: إذا الرصيد ما يكفي، حول كامل التكلفة للذمة (أبسط وأوضح للمستخدم)
+            const newDebt = currentDebt + amount;
+            await setDoc(doc(db, "accounts", "system"), { providerDebt: newDebt, lastUpdated: new Date().toISOString() }, { merge: true });
+            showToast(`⚠️ الرصيد غير كافي. تم تحويل ${amount.toLocaleString()} IQD إلى حساب الذمة`, 'info');
+            return { takenFromDebt: true };
         }
-        const newBal = currentBal - amount;
-        if (newBal < 0) {
-            showToast('❌ عملية مرفوضة: الرصيد سيصبح بالسالب!', 'error');
-            throw new Error("الرصيد سيصبح بالسالب");
-        }
-        await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString() }, { merge: true });
     },
 
 

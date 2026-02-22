@@ -613,9 +613,14 @@
                         <input type="number" id="pkg-cost" class="pkg-input" placeholder="سعر الشراء (رصيد)">
                         <input type="number" id="pkg-sale" class="pkg-input" placeholder="سعر المبيع (صندوق)">
                     </div>
-                    <button onclick="addNewPackage()" class="btn-primary"
+                    <input type="hidden" id="pkg-edit-id">
+                    <button onclick="addNewPackage()" id="btn-pkg-action" class="btn-primary"
                         style="width: 100%; padding: 12px; border-radius: 12px; border: none; background: #0f172a; color: white; font-weight: bold; cursor: pointer;">
                         إضافة الباقة للقائمة
+                    </button>
+                    <button id="btn-pkg-cancel" onclick="cancelPkgEdit()"
+                        style="width: 100%; padding: 8px; border: none; background: none; color: #64748b; font-size: 0.8rem; cursor: pointer; margin-top: 5px; display:none;">
+                        إلغاء التعديل
                     </button>
                 </div>
             </div>
@@ -636,8 +641,16 @@
                             <i class="fas fa-coins" style="color:#10b981;"></i> الرصيد المتوفر للبيع والإدارة
                         </div>
                         <div id="display-system-balance"
-                            style="font-size: 3rem; font-weight: 800; font-family:'Outfit', sans-serif; letter-spacing:1px; color:#0f172a; position:relative; z-index:2;">
+                            style="font-size: 2.5rem; font-weight: 800; font-family:'Outfit', sans-serif; letter-spacing:1px; color:#0f172a; position:relative; z-index:2;">
                             0 IQD</div>
+
+                        <div style="margin-top:20px; padding-top:20px; border-top:1px solid #f1f5f9;">
+                            <div style="font-size: 0.85rem; color: #ef4444; font-weight:700; margin-bottom: 5px;">
+                                <i class="fas fa-exclamation-circle"></i> رصيد الذمة (المعلم / المجهز)
+                            </div>
+                            <div id="display-provider-debt" style="font-size: 1.8rem; font-weight: 800; color:#ef4444;">
+                                0 IQD</div>
+                        </div>
                     </div>
 
                     <!-- أدوات التعديل السريع -->
@@ -650,13 +663,13 @@
                             style="background: #fef2f2; border: 1.5px solid #fecaca; color: #ef4444; font-weight: bold; border-radius: 14px; padding: 12px; cursor: pointer; transition: 0.2s; font-size:0.95rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;">
                             <i class="fas fa-minus-circle"></i> نورمال (-22k)
                         </button>
-                        <button onclick="adjustSystemBalance(24000)"
-                            style="background: #f0fdf4; border: 1.5px solid #bbf7d0; color: #16a34a; font-weight: bold; border-radius: 14px; padding: 12px; cursor: pointer; transition: 0.2s; font-size:0.95rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;">
-                            <i class="fas fa-plus-circle"></i> سوبر (+24k)
+                        <button onclick="adjustProviderDebt(-22000)"
+                            style="background: #eff6ff; border: 1.5px solid #bfdbfe; color: #2563eb; font-weight: bold; border-radius: 14px; padding: 12px; cursor: pointer; transition: 0.2s; font-size:0.95rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;">
+                            <i class="fas fa-check-double"></i> تسديد ذمة (-22k)
                         </button>
-                        <button onclick="adjustSystemBalance(-24000)"
-                            style="background: #fef2f2; border: 1.5px solid #fecaca; color: #ef4444; font-weight: bold; border-radius: 14px; padding: 12px; cursor: pointer; transition: 0.2s; font-size:0.95rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;">
-                            <i class="fas fa-minus-circle"></i> سوبر (-24k)
+                        <button onclick="resetDebtToZero()"
+                            style="background: #f8fafc; border: 1.5px solid #e2e8f0; color: #475569; font-weight: bold; border-radius: 14px; padding: 12px; cursor: pointer; transition: 0.2s; font-size:0.95rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;">
+                            <i class="fas fa-trash-alt"></i> تصفير الذمة
                         </button>
                     </div>
 
@@ -996,10 +1009,12 @@
                 // حفظ نسخة محدثة في LocalStorage لضمان توفرها لـ PIN لاحقاً بسرعة
                 localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
 
-                // تحديث عرض رصيد النظام
+                // تحديث عرض رصيد النظام والذمة
                 if (typeof DataManager !== 'undefined') {
                     const balance = DataManager.getSystemBalance() || 0;
+                    const debt = DataManager.getProviderDebt() || 0;
                     document.getElementById('display-system-balance').innerText = balance.toLocaleString('en-US') + ' IQD';
+                    document.getElementById('display-provider-debt').innerText = debt.toLocaleString('en-US') + ' IQD';
                 }
 
                 // كروت الداشبورد
@@ -1018,7 +1033,6 @@
                 for (const [key, id] of Object.entries(toggleMap)) {
                     const el = document.getElementById(id);
                     if (el) {
-                        // إذا كان الخيار غير موجود (undefined)، نعتبره true افتراضياً
                         el.checked = settings[key] !== false;
                     }
                 }
@@ -1029,14 +1043,14 @@
                     const el = document.getElementById(key + '-toggle');
                     if (el) el.checked = settings[key] !== false;
                 });
-
-                // الباقات (إضافة الباقات الثلاث الافتراضية إذا كانت القائمة فارغة)
+                // الباقات
                 window.currentPackages = settings.packages || [];
                 if (window.currentPackages.length === 0) {
                     window.currentPackages = [
                         { id: 'pkg_norm', name: 'نورمال (Normal)', costPrice: 22000, salePrice: 35000 },
                         { id: 'pkg_super', name: 'سوبر (Super)', costPrice: 24000, salePrice: 40000 },
-                        { id: 'pkg_gold', name: 'جولد (Gold)', costPrice: 28000, salePrice: 50000 }
+                        { id: 'pkg_gold', name: 'جولد (Gold)', costPrice: 28000, salePrice: 50000 },
+                        { id: 'pkg_ajel', name: 'الاجل (0-0)', costPrice: 0, salePrice: 0 }
                     ];
                 }
                 renderPackagesList();
@@ -1068,6 +1082,7 @@
                             <p>خصم من الرصيد: <b style="color:#ef4444;">${pkg.costPrice.toLocaleString('en-US')}</b> | سعر المبيع: <b style="color:#10b981;">${pkg.salePrice.toLocaleString('en-US')}</b></p>
                         </div>
                         <div class="package-actions">
+                            <button onclick="editPackage('${pkg.id}')" class="btn-icon-blue" style="color: #3b82f6; background: #eff6ff; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer;"><i class="fas fa-edit"></i></button>
                             <button onclick="removePackage('${pkg.id}')" class="btn-icon-danger"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
@@ -1079,25 +1094,61 @@
                 const name = document.getElementById('pkg-name').value;
                 const cost = parseInt(document.getElementById('pkg-cost').value);
                 const sale = parseInt(document.getElementById('pkg-sale').value);
+                const editId = document.getElementById('pkg-edit-id').value;
 
                 if (!name || isNaN(cost) || isNaN(sale)) {
                     return alert('يرجى ملء جميع حقول الباقة بشكل صحيح');
                 }
 
-                const newPkg = {
-                    id: 'pkg_' + Date.now(),
-                    name,
-                    costPrice: cost,
-                    salePrice: sale
-                };
+                if (editId) {
+                    // Update existing
+                    const idx = window.currentPackages.findIndex(p => p.id === editId);
+                    if (idx !== -1) {
+                        window.currentPackages[idx] = { ...window.currentPackages[idx], name, costPrice: cost, salePrice: sale };
+                    }
+                    cancelPkgEdit();
+                } else {
+                    // Add new
+                    const newPkg = {
+                        id: 'pkg_' + Date.now(),
+                        name,
+                        costPrice: cost,
+                        salePrice: sale
+                    };
+                    window.currentPackages.push(newPkg);
+                }
 
-                window.currentPackages.push(newPkg);
                 renderPackagesList();
 
                 // مسح الحقول
                 document.getElementById('pkg-name').value = '';
                 document.getElementById('pkg-cost').value = '';
                 document.getElementById('pkg-sale').value = '';
+            }
+
+            window.editPackage = function (id) {
+                const pkg = window.currentPackages.find(p => p.id === id);
+                if (!pkg) return;
+
+                document.getElementById('pkg-name').value = pkg.name;
+                document.getElementById('pkg-cost').value = pkg.costPrice;
+                document.getElementById('pkg-sale').value = pkg.salePrice;
+                document.getElementById('pkg-edit-id').value = pkg.id;
+
+                document.getElementById('btn-pkg-action').innerText = 'تحديث الباقة';
+                document.getElementById('btn-pkg-cancel').style.display = 'block';
+
+                // Scroll to form
+                document.getElementById('pkg-name').scrollIntoView({ behavior: 'smooth' });
+            }
+
+            window.cancelPkgEdit = function () {
+                document.getElementById('pkg-edit-id').value = '';
+                document.getElementById('pkg-name').value = '';
+                document.getElementById('pkg-cost').value = '';
+                document.getElementById('pkg-sale').value = '';
+                document.getElementById('btn-pkg-action').innerText = 'إضافة الباقة للقائمة';
+                document.getElementById('btn-pkg-cancel').style.display = 'none';
             }
 
             window.removePackage = function (id) {
@@ -1199,6 +1250,34 @@
                     if (success) {
                         document.getElementById('display-system-balance').innerText = newBalance.toLocaleString('en-US') + ' IQD';
                         showSaveToast('✅ تم المعالجة بنجاح');
+                    }
+                }
+            }
+
+            window.adjustProviderDebt = async function (amount) {
+                if (typeof DataManager === 'undefined' || !DataManager.setProviderDebt) return;
+
+                const currentDebt = DataManager.getProviderDebt() || 0;
+                const newDebt = Math.max(0, currentDebt + amount);
+                const amtStr = Math.abs(amount).toLocaleString('en-US');
+
+                if (confirm(`سيتم تسجيل تسديد مبلغ ${amtStr} IQD من الذمة. هل أنت متأكد؟`)) {
+                    const success = await DataManager.setProviderDebt(newDebt);
+                    if (success) {
+                        document.getElementById('display-provider-debt').innerText = newDebt.toLocaleString('en-US') + ' IQD';
+                        showSaveToast('✅ تم تحديث الذمة بنجاح');
+                    }
+                }
+            }
+
+            window.resetDebtToZero = async function () {
+                if (typeof DataManager === 'undefined' || !DataManager.setProviderDebt) return;
+
+                if (confirm("هل أنت متأكد من تصفير رصيد الذمة بالكامل؟ (لن يتم حذف العمليات السابقة)")) {
+                    const success = await DataManager.setProviderDebt(0);
+                    if (success) {
+                        document.getElementById('display-provider-debt').innerText = '0 IQD';
+                        showSaveToast('✅ تم تصفير الذمة');
                     }
                 }
             }

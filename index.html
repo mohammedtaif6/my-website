@@ -353,17 +353,29 @@
                     </div>
                 </div>
 
-                <!-- بطاقة الرصيد المالي -->
-                <div class="balance-card-smart">
-                    <div class="balance-info">
-                        <span class="balance-label">رصيد النظام <i class="fas fa-wallet"
-                                style="color: #64748b;"></i></span>
-                        <span id="header-balance-amount" class="balance-amount">0 د.ع</span>
+                <div style="display:flex; gap:15px; flex-wrap:wrap;">
+                    <!-- بطاقة الرصيد المالي -->
+                    <div class="balance-card-smart">
+                        <div class="balance-info">
+                            <span class="balance-label">رصيد النظام <i class="fas fa-wallet"
+                                    style="color: #64748b;"></i></span>
+                            <span id="header-balance-amount" class="balance-amount">0 د.ع</span>
+                        </div>
+                        <div class="balance-action">
+                            <button class="btn-topup-smart" onclick="openTopUpModal()" title="تعبئة الرصيد">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div class="balance-action">
-                        <button class="btn-topup-smart" onclick="openTopUpModal()" title="تعبئة الرصيد">
-                            <i class="fas fa-plus"></i>
-                        </button>
+
+                    <!-- بطاقة الذمة -->
+                    <div class="balance-card-smart" id="provider-debt-card"
+                        style="border-color: #fecaca; background: #fffafb;">
+                        <div class="balance-info">
+                            <span class="balance-label" style="color: #ef4444;">الذمة للمجهز <i
+                                    class="fas fa-exclamation-circle" style="color: #ef4444;"></i></span>
+                            <span id="header-debt-amount" class="balance-amount" style="color: #ef4444;">0 د.ع</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1114,10 +1126,20 @@
             const boxBal = s.boxBalance.toLocaleString('en-US');
             document.getElementById('stat-revenue').innerText = boxBal;
 
-            // تحديث الرصيد المستقل في الهيدر (من حسابات النظام)
-            const virtualBal = (DataManager.getSystemBalance() || 0);
-            const headerBal = document.getElementById('header-balance-amount');
-            if (headerBal) headerBal.innerText = virtualBal.toLocaleString('en-US') + ' IQD';
+            // تحديث المبالغ في الهيدر
+            const balance = DataManager.getSystemBalance() || 0;
+            const debt = DataManager.getProviderDebt() || 0;
+
+            const balEl = document.getElementById('header-balance-amount');
+            if (balEl) balEl.innerText = balance.toLocaleString('en-US') + ' د.ع';
+
+            const debtEl = document.getElementById('header-debt-amount');
+            if (debtEl) debtEl.innerText = debt.toLocaleString('en-US') + ' د.ع';
+
+            const debtCard = document.getElementById('provider-debt-card');
+            if (debtCard) {
+                debtCard.style.display = debt > 0 ? 'flex' : 'none';
+            }
             document.getElementById('stat-expired').innerText = s.expired;
             document.getElementById('stat-expiring').innerText = s.expiring;
 
