@@ -663,14 +663,27 @@
                             style="background: #fef2f2; border: 1.5px solid #fecaca; color: #ef4444; font-weight: bold; border-radius: 14px; padding: 12px; cursor: pointer; transition: 0.2s; font-size:0.95rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;">
                             <i class="fas fa-minus-circle"></i> نورمال (-22k)
                         </button>
-                        <button onclick="adjustProviderDebt(-22000)"
-                            style="background: #eff6ff; border: 1.5px solid #bfdbfe; color: #2563eb; font-weight: bold; border-radius: 14px; padding: 12px; cursor: pointer; transition: 0.2s; font-size:0.95rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;">
-                            <i class="fas fa-check-double"></i> تسديد ذمة (-22k)
-                        </button>
-                        <button onclick="resetDebtToZero()"
-                            style="background: #f8fafc; border: 1.5px solid #e2e8f0; color: #475569; font-weight: bold; border-radius: 14px; padding: 12px; cursor: pointer; transition: 0.2s; font-size:0.95rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;">
-                            <i class="fas fa-trash-alt"></i> تصفير الذمة
-                        </button>
+                    </div>
+
+                    <div
+                        style="padding:15px; background:#f8fafc; border-radius:15px; border:1px solid #e2e8f0; margin-bottom:20px;">
+                        <label
+                            style="display:block; font-size:0.8rem; color:#64748b; margin-bottom:10px; font-weight:bold;">تعديل
+                            يدوي لرصيد الذمة (الاجل):</label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="number" id="manual-debt-input" placeholder="أدخل مبلغ الذمة الجديد"
+                                style="flex:1; padding:10px; border-radius:10px; border:1px solid #cbd5e1; outline:none;">
+                            <button onclick="setManualDebt()"
+                                style="background:#0f172a; color:white; border:none; padding:10px 15px; border-radius:10px; cursor:pointer; font-weight:bold;">تحديث</button>
+                        </div>
+                        <div style="display:flex; gap:5px; margin-top:10px;">
+                            <button onclick="adjustProviderDebt(-22000)"
+                                style="flex:1; padding:8px; border-radius:8px; border:1px solid #bfdbfe; background:#eff6ff; color:#2563eb; font-size:0.8rem; cursor:pointer;">-22k
+                                تسديد</button>
+                            <button onclick="resetDebtToZero()"
+                                style="flex:1; padding:8px; border-radius:8px; border:1px solid #e2e8f0; background:white; color:#64748b; font-size:0.8rem; cursor:pointer;">تصفير
+                                بالكامل</button>
+                        </div>
                     </div>
 
                     <div style="background: #f8fafc; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0;">
@@ -1009,15 +1022,7 @@
                 // حفظ نسخة محدثة في LocalStorage لضمان توفرها لـ PIN لاحقاً بسرعة
                 localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
 
-                // تحديث عرض رصيد النظام والذمة
-                if (typeof DataManager !== 'undefined') {
-                    const balance = DataManager.getSystemBalance() || 0;
-                    const debt = DataManager.getProviderDebt() || 0;
-                    document.getElementById('display-system-balance').innerText = balance.toLocaleString('en-US') + ' IQD';
-                    document.getElementById('display-provider-debt').innerText = debt.toLocaleString('en-US') + ' IQD';
-                }
-
-                // كروت الداشبورد
+                // الباقات
                 const toggleMap = {
                     'card-subscribers': 'card-subscribers-toggle',
                     'card-active': 'card-active-toggle',
@@ -1261,11 +1266,22 @@
                 const newDebt = Math.max(0, currentDebt + amount);
                 const amtStr = Math.abs(amount).toLocaleString('en-US');
 
-                if (confirm(`سيتم تسجيل تسديد مبلغ ${amtStr} IQD من الذمة. هل أنت متأكد؟`)) {
-                    const success = await DataManager.setProviderDebt(newDebt);
+                const success = await DataManager.setProviderDebt(newDebt);
+                if (success) {
+                    showSaveToast('✅ تم تحديث الذمة');
+                }
+            }
+
+            window.setManualDebt = async function () {
+                const input = document.getElementById('manual-debt-input');
+                const val = parseFloat(input.value);
+                if (isNaN(val)) return alert('يرجى إدخال مبلغ صحيح');
+
+                if (confirm(`هل أنت متأكد من تعيين مبلغ الذمة إلى ${val.toLocaleString()} IQD؟`)) {
+                    const success = await DataManager.setProviderDebt(val);
                     if (success) {
-                        document.getElementById('display-provider-debt').innerText = newDebt.toLocaleString('en-US') + ' IQD';
-                        showSaveToast('✅ تم تحديث الذمة بنجاح');
+                        input.value = '';
+                        showSaveToast('✅ تم تحديث مبلغ الذمة');
                     }
                 }
             }
@@ -1337,8 +1353,21 @@
                 document.body.style.overflow = nav.classList.contains('active') ? 'hidden' : '';
             };
 
-            // تحميل عند الفتح
-            loadSettings();
+            DataManager.init().then(() => {
+                // الاستماع للتغييرات بشكل مباشر لضمان دقة الرصيد
+                DataManager.onDataChange(() => {
+                    const balance = DataManager.getSystemBalance() || 0;
+                    const debt = DataManager.getProviderDebt() || 0;
+
+                    const balEl = document.getElementById('display-system-balance');
+                    if (balEl) balEl.innerText = balance.toLocaleString('en-US') + ' IQD';
+
+                    const debtEl = document.getElementById('display-provider-debt');
+                    if (debtEl) debtEl.innerText = debt.toLocaleString('en-US') + ' IQD';
+                });
+
+                loadSettings();
+            });
         </script>
         <script type="module">
             import { DataManager } from './data-manager.js?v=35.0';
