@@ -9,6 +9,8 @@ class TelegramBot {
         this.config = null;
         this.db = null;
         this.configLoaded = false;
+        this.isPolling = false;
+        this.instanceId = Math.random().toString(36).substring(7);
     }
 
     // تهيئة الاتصال بـ Firebase
@@ -308,48 +310,60 @@ ${emoji} المبلغ: <b>${price.toLocaleString('en-US')} د.ع</b>
         this.isPolling = true;
 
         let lastUpdateId = 0;
-        console.log("📡 Telegram Background Polling Started...");
+        console.log("📡 Telegram Background Polling Started (Instance: " + this.instanceId + ")");
 
         while (this.isPolling) {
+            // التحقق مما إذا كان هناك تبويب آخر يقوم بالبث بالفعل
+            const now = Date.now();
+            const lastPolled = parseInt(localStorage.getItem('sas_tg_poll_active') || '0');
+
+            // إذا كان هناك تبويب نشط (حدث قبل أقل من 30 ثانية) وليس هذا التبويب، ننتظر
+            if (now - lastPolled < 30000 && localStorage.getItem('sas_tg_poll_id') !== this.instanceId) {
+                await new Promise(r => setTimeout(r, 30000));
+                continue;
+            }
+
+            // تحديث حالتي كثنائي نشط
+            localStorage.setItem('sas_tg_poll_active', now.toString());
+            localStorage.setItem('sas_tg_poll_id', this.instanceId);
+
             try {
                 const url = `https://api.telegram.org/bot${this.config.botToken}/getUpdates?offset=${lastUpdateId + 1}&timeout=20`;
                 const response = await fetch(url);
-                const data = await response.json();
 
+                // معالجة خطأ 409 (Conflict) بهدوء - يحدث عادة عند فتح عدة تبويبات
+                if (response.status === 409) {
+                    console.warn("⚠️ Telegram: Conflict (409). Another instance is active. Retrying in 30s...");
+                    await new Promise(r => setTimeout(r, 30000));
+                    continue;
+                }
+
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+
+                const data = await response.json();
                 if (data.ok && data.result.length > 0) {
                     const { doc, updateDoc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-
                     for (const update of data.result) {
                         lastUpdateId = update.update_id;
-
                         if (update.callback_query) {
                             const cb = update.callback_query;
                             const [action, txId] = cb.data.split('_');
-
                             if (action === 'approve' || action === 'reject') {
-                                // 1. Answer Telegram
                                 await this.answerCallback(cb.id, action === 'approve' ? "تمت الموافقة" : "تم الرفض");
-
-                                // 2. Update Telegram Message
                                 const newText = action === 'approve'
                                     ? `✅ <b>تمت العملية</b>\n تمت الموافقة على طلب التعبئة.`
                                     : `❌ <b>تمت العملية</b>\n تم رفض طلب التعبئة.`;
                                 await this.editMessage(cb.message.chat.id, cb.message.message_id, newText);
-
-                                // 3. IMPORTANT: Update Firestore to trigger DataManager logic
                                 try {
                                     if (action === 'reject') {
-                                        // Mark as rejected first so UI sees it
                                         await updateDoc(doc(this.db, "transactions", txId), {
                                             status: 'rejected',
                                             decidedAt: new Date().toISOString()
                                         });
-                                        // Delete after 500ms (almost immediate)
                                         setTimeout(async () => {
-                                            try {
-                                                await deleteDoc(doc(this.db, "transactions", txId));
-                                                console.log(`🗑️ Rejected TopUp ${txId} deleted.`);
-                                            } catch (delErr) { /* ignore deletion errors */ }
+                                            try { await deleteDoc(doc(this.db, "transactions", txId)); } catch (e) { }
                                         }, 500);
                                     } else {
                                         await updateDoc(doc(this.db, "transactions", txId), {
@@ -357,25 +371,19 @@ ${emoji} المبلغ: <b>${price.toLocaleString('en-US')} د.ع</b>
                                             decidedAt: new Date().toISOString()
                                         });
                                     }
-                                } catch (dbErr) {
-                                    console.error("DB Update Error from Telegram Poll:", dbErr);
-                                }
+                                } catch (dbErr) { console.error("DB Update Error:", dbErr); }
                             }
                         }
                     }
                 }
             } catch (e) {
-                // Ignore typical fetch/network errors (common when offline or sleeping)
-                const isNetworkError = e.message?.toLowerCase().includes('network') ||
-                    e.name === 'TypeError' ||
-                    e.message?.toLowerCase().includes('failed to fetch');
-
+                const isNetworkError = e.message?.toLowerCase().includes('network') || e.name === 'TypeError' || e.message?.toLowerCase().includes('failed to fetch');
                 if (isNetworkError) {
                     console.warn("📡 Telegram Polling: Connection issue, retrying in 15s...");
                 } else {
                     console.error("BG Polling Error:", e);
                 }
-                await new Promise(r => setTimeout(r, 15000)); // wait 15s on error
+                await new Promise(r => setTimeout(r, 15000));
             }
             await new Promise(r => setTimeout(r, 1000));
         }
