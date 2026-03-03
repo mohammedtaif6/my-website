@@ -705,6 +705,8 @@
 
         if (typeof DataManager !== 'undefined') {
             DataManager.onDataChange(() => window.renderPage());
+            // استدعاء فوري للعرض في حالة كانت البيانات محملة مسبقاً
+            window.renderPage();
         }
         // window.renderPage is also called by DataManager.sync during init
         // Menu Toggle Logic

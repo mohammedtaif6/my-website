@@ -23,7 +23,7 @@ const db = initializeFirestore(app, {
 });
 const auth = getAuth(app);
 
-let localData = { subscribers: [], transactions: [], archived_transactions: [], employees: [], settings: {}, accounts: [] };
+let localData = { subscribers: [], transactions: [], archived_transactions: [], employees: [], settings: [], settings_processed: {}, accounts: [] };
 let isProcessing = false;
 
 // Custom Alert Modal Function
@@ -183,11 +183,11 @@ export const DataManager = {
     sync(colName) {
         if (!localData[colName]) localData[colName] = [];
         const q = query(collection(db, colName));
+        let isFirstSnapshot = true;
 
         onSnapshot(q, (snapshot) => {
             let hasChanges = false;
 
-            // Use incremental updates for speed
             snapshot.docChanges().forEach((change) => {
                 const docData = { ...change.doc.data(), firebaseId: change.doc.id };
                 const index = localData[colName].findIndex(d => d.firebaseId === change.doc.id);
@@ -210,31 +210,46 @@ export const DataManager = {
                 }
             });
 
-            if (!hasChanges && snapshot.metadata.fromCache) return;
+            // Trigger on first snapshot regardless, or if there are actual changes
+            if (!hasChanges && !isFirstSnapshot) return;
+            isFirstSnapshot = false;
 
-            // Specific handling for settings
             if (colName === 'settings') {
-                const newSettings = localData.settings_raw ? localData.settings_raw.reduce((acc, curr) => ({ ...acc, ...curr }), {}) : {};
-                // ... settings logic ...
+                const newSettings = (localData.settings || []).reduce((acc, curr) => ({ ...acc, ...curr }), {});
+                const currentStr = localStorage.getItem('sas_settings');
+                const newStr = JSON.stringify(newSettings);
+
+                if (currentStr !== newStr) {
+                    localData.settings_processed = newSettings;
+                    localStorage.setItem('sas_settings', newStr);
+                    if (window.AuthSystem && window.AuthSystem.applyUIConfigs) window.AuthSystem.applyUIConfigs(newSettings);
+                    if (window.loadSettings) window.loadSettings();
+
+                    const pkgs = newSettings.packages || [];
+                    if (pkgs.length === 0 || !pkgs.some(p => p.id === 'pkg_private')) {
+                        this.bootstrapPackages();
+                    }
+                }
             } else {
-                // Sorting once per sync cycle
                 if (colName !== 'accounts') {
                     localData[colName].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
                 }
 
-                // Update Map cache for subscribers
                 if (colName === 'subscribers') {
-                    this.cache.subscribersMap = new Map(localData.subscribers.map(s => [s.id, s]));
+                    if (this.cache) this.cache.subscribersMap = new Map(localData.subscribers.map(s => [s.id, s]));
                 }
 
                 if (colName === 'transactions') {
                     if (window.generateReport) window.generateReport();
-
-                    // Finalize Approved Top-ups
                     localData.transactions
                         .filter(tx => tx.type === 'topup_request' && tx.status === 'approved' && !tx.processedBySystem)
                         .forEach(tx => this.finalizeApprovedTopUp(tx));
                 }
+
+                // تحديث الواجهة فوراً عند وصول أي بيانات جديدة
+                if (window.renderPage) window.renderPage();
+                if (window.updatePageData) window.updatePageData();
+                if (colName === 'employees' && window.renderEmployees) window.renderEmployees();
             }
 
             this.triggerDataChange();
@@ -519,7 +534,7 @@ export const DataManager = {
         if (sub) await deleteDoc(doc(db, "subscribers", sub.firebaseId));
     },
 
-    getSystemSettings() { return localData.settings || {}; },
+    getSystemSettings() { return localData.settings_processed || {}; },
     getSubscribers() { return localData.subscribers; },
     getSubscriber(id) { return localData.subscribers.find(s => s.id == id); },
     getAllTransactions() { return localData.transactions || []; },
