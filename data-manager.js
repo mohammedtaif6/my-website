@@ -456,6 +456,30 @@ export const DataManager = {
         showToast("تم التسديد");
     },
 
+    async discountDebt(fid, did, amount) {
+        const sub = localData.subscribers.find(s => s.id == did || s.firebaseId === fid);
+        if (!sub) return;
+
+        const discountAmt = parseInt(amount);
+        const currentDebt = parseInt(sub.price) || 0;
+        const newDebt = Math.max(0, currentDebt - discountAmt);
+
+        // سجل العملية كخصم (Amount = 0 لكي لا يؤثر على ميزانية الصندوق النقدية)
+        await this.logTransaction({
+            subscriberId: did,
+            amount: 0,
+            type: 'debt_discount',
+            description: `إعفاء/خصم من الدين: ${sub.name} (خصم: ${discountAmt.toLocaleString()})`
+        });
+
+        await updateDoc(doc(db, "subscribers", fid), {
+            price: newDebt,
+            paymentType: newDebt === 0 ? 'نقد' : 'أجل'
+        });
+
+        showToast(`✅ تم خصم ${discountAmt.toLocaleString()} من دين المشترك بنجاح`);
+    },
+
     async addExpense(amount, description) {
         await this.logTransaction({ subscriberId: null, amount: -Math.abs(amount), type: 'expense', description });
         telegramBot.notifyExpense(description, Math.abs(amount));

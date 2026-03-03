@@ -549,7 +549,7 @@
                         <i class="fab fa-whatsapp" style="color:#25d366;"></i> إرسال وصل واتساب
                     </label>
                 </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
                     <button onclick="confirmPayDebt(true)" class="btn btn-success">
                         <i class="fas fa-print"></i> تسديد وطباعة
                     </button>
@@ -557,6 +557,10 @@
                         <i class="fas fa-check"></i> تسديد فقط
                     </button>
                 </div>
+                <button onclick="confirmDiscountDebt()" class="btn btn-full"
+                    style="background:#f59e0b; color:white; border:none; border-radius:12px; padding:10px; font-weight:bold; cursor:pointer; width:100%;">
+                    <i class="fas fa-percentage"></i> إجراء خصم (لا يدخل الصندوق)
+                </button>
             </div>
         </div>
     </div>
@@ -768,6 +772,26 @@
                 closeDebtModal();
             } catch (e) {
                 DataManager.showToast('❌ ' + e.message, 'error');
+            }
+        };
+
+        window.confirmDiscountDebt = async () => {
+            let amt = parseInt(document.getElementById('payDebtAmount').value);
+            if (!amt) return DataManager.showToast('⚠️ أدخل مبلغ الخصم في خانة المبلغ أولاً', 'error');
+
+            const confirmed = await DataManager.showConfirmModal("تأكيد الخصم", `هل أنت متأكد من إجراء خصم بقيمة ${amt.toLocaleString()}؟ هذا المبلغ سينقص من الدين فقط ولن يدخل في حسابات الصندوق النقدي.`);
+
+            if (confirmed) {
+                try {
+                    await DataManager.discountDebt(
+                        document.getElementById('debtSubFirebaseId').value,
+                        document.getElementById('debtSubId').value,
+                        amt
+                    );
+                    closeDebtModal();
+                } catch (e) {
+                    DataManager.showToast('❌ ' + e.message, 'error');
+                }
             }
         };
 
