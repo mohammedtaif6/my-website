@@ -309,6 +309,9 @@ ${emoji} المبلغ: <b>${price.toLocaleString('en-US')} د.ع</b>
         if (!this.config || !this.config.botToken) return;
         this.isPolling = true;
 
+        // إضافة تأخير بسيط لمنع التضارب عند فتح عدة تبويبات معاً (Race Condition)
+        await new Promise(r => setTimeout(r, Math.random() * 3000));
+
         let lastUpdateId = 0;
         console.log("📡 Telegram Background Polling Started (Instance: " + this.instanceId + ")");
 
@@ -317,13 +320,15 @@ ${emoji} المبلغ: <b>${price.toLocaleString('en-US')} د.ع</b>
             const now = Date.now();
             const lastPolled = parseInt(localStorage.getItem('sas_tg_poll_active') || '0');
 
-            // إذا كان هناك تبويب نشط (حدث قبل أقل من 30 ثانية) وليس هذا التبويب، ننتظر
-            if (now - lastPolled < 30000 && localStorage.getItem('sas_tg_poll_id') !== this.instanceId) {
-                await new Promise(r => setTimeout(r, 30000));
+            // نظام التنسيق بين التبويبات (Lock Table)
+            // إذا كان هناك تبويب نشط وليس هذا التبويب، ننتظر هدوء تام
+            if (now - lastPolled < 10000 && localStorage.getItem('sas_tg_poll_id') !== this.instanceId) {
+                // لا نقوم بأي اتصال، فقط ننتظر ونحاول مجدداً بعد 10 ثواني
+                await new Promise(r => setTimeout(r, 10000));
                 continue;
             }
 
-            // تحديث حالتي كثنائي نشط
+            // تحديث حالتي كثنائي نشط حالياً
             localStorage.setItem('sas_tg_poll_active', now.toString());
             localStorage.setItem('sas_tg_poll_id', this.instanceId);
 
