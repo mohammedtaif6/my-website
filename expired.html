@@ -589,11 +589,9 @@
         };
 
         // المزامنة الدورية
-        setInterval(() => {
-            if (typeof DataManager !== 'undefined' && DataManager.getSubscribers().length > 0) {
-                renderPage();
-            }
-        }, 3000);
+        if (typeof DataManager !== 'undefined') {
+            DataManager.onDataChange(() => renderPage());
+        }
 
         // Menu Toggle Logic
         window.toggleMenu = function () {

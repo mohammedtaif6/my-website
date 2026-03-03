@@ -286,7 +286,7 @@
             <i class="fas fa-chart-line"></i> OK Computer <span
                 style="font-size: 0.7rem; background: #e0f2fe; color: #0284c7; padding: 2px 6px; border-radius: 4px;">v4.0</span>
         </div>
-        
+
         </div>
         <ul class="nav-links">
             <li><a href="index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
@@ -792,7 +792,9 @@
         window.toggleMenu = () => { document.getElementById('main-nav').classList.toggle('active'); };
 
         // تحديث الصفحة كل 3 ثوانٍ للتأكد من ظهور البيانات
-        setInterval(() => { if (typeof DataManager !== 'undefined') renderPage(); }, 3000);
+        if (typeof DataManager !== 'undefined') {
+            DataManager.onDataChange(() => renderPage());
+        }
 
         // Handle URL Params for quick find
         window.autoFormatPrice = function (input) {

@@ -408,9 +408,9 @@
 
     <script>
         // تحميل الموظفين
-        setInterval(() => {
-            if (typeof DataManager !== 'undefined') renderEmployees();
-        }, 1000);
+        if (typeof DataManager !== 'undefined') {
+            DataManager.onDataChange(() => renderEmployees());
+        }
 
         function renderEmployees() {
             // نأكد من أن DataManager محمل

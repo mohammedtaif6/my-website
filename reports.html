@@ -610,11 +610,11 @@
         };
 
         // Auto-update every 5 seconds
-        setInterval(() => {
-            if (typeof DataManager !== 'undefined' && !isViewArchived) {
-                window.generateReport();
-            }
-        }, 5000);
+        if (typeof DataManager !== 'undefined') {
+            DataManager.onDataChange(() => {
+                if (!isViewArchived) window.generateReport();
+            });
+        }
 
         // Initial load
         setTimeout(() => window.generateReport(), 1000);

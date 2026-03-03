@@ -783,11 +783,9 @@
             setTimeout(() => renderDebts(), 500);
         };
 
-        setInterval(() => {
-            if (typeof DataManager !== 'undefined' && DataManager.subscribers) {
-                renderDebts();
-            }
-        }, 3000);
+        if (typeof DataManager !== 'undefined') {
+            DataManager.onDataChange(() => window.renderDebts());
+        }
     </script>
 </body>
 

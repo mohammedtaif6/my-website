@@ -2,7 +2,7 @@
  * DataManager v31.1 - مع نظام الباقات السحابي المتقدم ودعم التنبيهات
  */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { initializeFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDoc, onSnapshot, query, orderBy, limit, getDocs, where, persistentLocalCache, persistentMultipleTabManager, setDoc, increment, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { initializeFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDoc, onSnapshot, query, orderBy, limit, getDocs, where, persistentLocalCache, persistentMultipleTabManager, setDoc, increment, runTransaction, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { telegramBot } from './telegram-bot.js?v=19.1';
 
@@ -219,12 +219,9 @@ export const DataManager = {
                 if (colName === 'transactions') {
                     if (window.generateReport) window.generateReport();
 
-                    // Smart Processor for Background Top-ups
-                    data.forEach(tx => {
-                        if (tx.type === 'topup_request' && tx.status === 'approved' && !tx.processedBySystem) {
-                            this.finalizeApprovedTopUp(tx);
-                        }
-                    });
+                    // Optimized Processor for Background Top-ups
+                    data.filter(tx => tx.type === 'topup_request' && tx.status === 'approved' && !tx.processedBySystem)
+                        .forEach(tx => this.finalizeApprovedTopUp(tx));
                 }
             }
         }, (error) => {
@@ -256,15 +253,40 @@ export const DataManager = {
     },
 
     async updateTransaction(id, newData) {
-        const tx = localData.transactions.find(t => t.id == id || t.firebaseId === id);
+        let tx = localData.transactions.find(t => t.id == id || t.firebaseId === id);
+        let col = "transactions";
+
+        if (!tx) {
+            tx = (localData.archived_transactions || []).find(t => t.id == id || t.firebaseId === id);
+            col = "archived_transactions";
+        }
+
         if (tx) {
-            await updateDoc(doc(db, "transactions", tx.firebaseId), newData);
-        } else {
-            // Check archived just in case
-            const archTx = (localData.archived_transactions || []).find(t => t.id == id || t.firebaseId === id);
-            if (archTx) {
-                await updateDoc(doc(db, "archived_transactions", archTx.firebaseId), newData);
+            // ✅ إذا تغير المبلغ، نحتاج تعديل التأثير المالي
+            if (newData.amount !== undefined && newData.amount !== tx.amount) {
+                const diff = newData.amount - tx.amount;
+
+                if (tx.type === 'debt_payment' && tx.subscriberId) {
+                    // تعديل دين المشترك: إذا زاد التسديد، يقل الدين
+                    const sub = localData.subscribers.find(s => s.id == tx.subscriberId);
+                    if (sub) {
+                        const currentDebt = parseInt(sub.price || 0);
+                        // التسديد هنا موجب. إذا زاد التسديد (diff > 0)، ينقص الدين.
+                        await updateDoc(doc(db, "subscribers", sub.firebaseId), {
+                            price: Math.max(0, currentDebt - diff)
+                        });
+                    }
+                } else if (tx.type === 'system_topup_expense' || (tx.type === 'topup_request' && tx.status === 'approved')) {
+                    // تعديل رصيد النظام: المبالغ هنا سالبة عادة (صرف لشراء رصيد)
+                    // لكن رصيد النظام يزيد بقيمة التعبئة.
+                    // إذا كان tx.amount = -50000 والجديد -60000، الفرق -10000. يعني الرصيد لازم يزيد بـ 10000 إضافية.
+                    const amountDiff = Math.abs(newData.amount) - Math.abs(tx.amount);
+                    await updateDoc(doc(db, "accounts", "system"), {
+                        balance: increment(amountDiff)
+                    });
+                }
             }
+            await updateDoc(doc(db, col, tx.firebaseId), newData);
         }
     },
 
@@ -409,26 +431,27 @@ export const DataManager = {
     },
 
     async archiveAllCurrent() {
-        // EXCLUDE pending topup requests from archiving - they must be resolved first
         const toArchive = localData.transactions.filter(t => t.type !== 'topup_request' || t.status !== 'pending');
-
         if (toArchive.length === 0) return showToast("لا يوجد عمليات قابلة للترحيل حالياً", "info");
         if (!confirm(`سيتم ترحيل ${toArchive.length} عملية. هل أنت متأكد؟ (الطلبات المعلقة لن تُرحل)`)) return;
 
         try {
+            const batch = writeBatch(db);
             for (const t of toArchive) {
                 const { firebaseId, ...archData } = t;
-                await addDoc(collection(db, "archived_transactions"), { ...archData, isArchived: true, archivedAt: new Date().toISOString() });
-                await deleteDoc(doc(db, "transactions", firebaseId));
+                const newDocRef = doc(collection(db, "archived_transactions"));
+                batch.set(newDocRef, { ...archData, isArchived: true, archivedAt: new Date().toISOString() });
+                batch.delete(doc(db, "transactions", firebaseId));
             }
+            await batch.commit();
             showToast("تم الترحيل للأرشيف بنجاح ✅");
         } catch (e) {
+            console.error("Archive Error:", e);
             showToast("فشل الترحيل: " + e.message, "error");
         }
     },
 
     async deleteTransaction(id) {
-        // Search in active then archived
         let t = localData.transactions.find(tx => tx.id == id || tx.firebaseId === id);
         let col = "transactions";
 
@@ -438,29 +461,40 @@ export const DataManager = {
         }
 
         if (t) {
-            // Check if this is a finished top-up transaction or request to reverse it
-            const isApprovedTopUp = t.type === 'system_topup_expense' || (t.type === 'topup_request' && t.status === 'approved' && t.processedBySystem);
-
-            if (isApprovedTopUp) {
+            // 1. استرجاع التأثير المالي للعملية قبل حذفها
+            if (t.type === 'debt_payment' && t.subscriberId) {
+                // استرجاع الدين للمشترك
+                const sub = localData.subscribers.find(s => s.id == t.subscriberId);
+                if (sub) {
+                    const currentDebt = parseInt(sub.price || 0);
+                    const amountToRestore = Math.abs(t.amount); // مبلغ التسديد
+                    await updateDoc(doc(db, "subscribers", sub.firebaseId), {
+                        price: currentDebt + amountToRestore,
+                        paymentType: 'أجل'
+                    });
+                    showToast(`تم استرجاع مبلغ التسديد (${amountToRestore.toLocaleString()}) لدين المشترك`);
+                }
+            } else if (t.type === 'system_topup_expense' || (t.type === 'topup_request' && t.status === 'approved' && t.processedBySystem)) {
                 const currentBal = this.getSystemBalance();
                 const storedAmount = Math.abs(t.amount);
                 const newBal = Math.max(0, currentBal - storedAmount);
                 await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString() }, { merge: true });
-                showToast(`تم استرجاع مبلغ التعبئة (${storedAmount}) من رصيد النظام`);
+                showToast(`تم استرجاع مبلغ التعبئة (${storedAmount.toLocaleString()}) من رصيد النظام`);
             } else if (t.costPrice && t.costPrice > 0) {
-                // Return to where it was taken from
                 if (t.takenFromDebt) {
                     const currentDebt = this.getProviderDebt();
                     const newDebt = Math.max(0, currentDebt - t.costPrice);
                     await setDoc(doc(db, "accounts", "system"), { providerDebt: newDebt, lastUpdated: new Date().toISOString() }, { merge: true });
-                    showToast(`تم استرجاع تكلفة الباقة (${t.costPrice}) من رصيد الذمة`);
+                    showToast(`تم استرجاع تكلفة الباقة (${t.costPrice.toLocaleString()}) من رصيد الذمة`);
                 } else {
                     const currentBal = this.getSystemBalance();
                     const newBal = currentBal + t.costPrice;
                     await setDoc(doc(db, "accounts", "system"), { balance: newBal, lastUpdated: new Date().toISOString() }, { merge: true });
-                    showToast(`تم استرجاع تكلفة الباقة (${t.costPrice}) إلى رصيد النظام`);
+                    showToast(`تم استرجاع تكلفة الباقة (${t.costPrice.toLocaleString()}) إلى رصيد النظام`);
                 }
             }
+
+            // 2. حذف العملية فعلياً
             await deleteDoc(doc(db, col, t.firebaseId));
         }
     },

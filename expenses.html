@@ -239,7 +239,9 @@
             }
         };
 
-        setInterval(() => { if (typeof DataManager !== 'undefined') renderPage(); }, 1000);
+        if (typeof DataManager !== 'undefined') {
+            DataManager.onDataChange(() => renderPage());
+        }
 
         window.toggleMenu = function () {
             const nav = document.getElementById('main-nav');

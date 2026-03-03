@@ -700,7 +700,10 @@
         // تأكيد أخير على الصلاحيات بعد تحميل الصفحة
         window.onload = () => AuthSystem.checkSession();
 
-        setInterval(() => window.renderPage(), 1000);
+        if (typeof DataManager !== 'undefined') {
+            DataManager.onDataChange(() => window.renderPage());
+        }
+        // window.renderPage is also called by DataManager.sync during init
         // Menu Toggle Logic
         window.toggleMenu = function () {
             const nav = document.getElementById('main-nav');

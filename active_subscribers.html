@@ -322,7 +322,9 @@
         window.lastActiveHash = '';
 
         window.toggleMenu = () => { document.getElementById('main-nav').classList.toggle('active'); };
-        setInterval(() => { if (typeof DataManager !== 'undefined') renderPage(); }, 3000);
+        if (typeof DataManager !== 'undefined') {
+            DataManager.onDataChange(() => renderPage());
+        }
     </script>
 </body>
 
