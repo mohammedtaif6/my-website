@@ -140,7 +140,10 @@ export const DataManager = {
 
     dataChangeListeners: [],
     dataChangeTimeout: null,
-    cache: { dailyBalance: null },
+    cache: {
+        dailyBalance: null,
+        subscribersMap: new Map()
+    },
 
     onDataChange(callback) {
         if (typeof callback === 'function') {
@@ -219,8 +222,8 @@ export const DataManager = {
                 const currentStr = localStorage.getItem('sas_settings');
                 const newStr = JSON.stringify(newSettings);
 
+                localData.settings_processed = newSettings;
                 if (currentStr !== newStr) {
-                    localData.settings_processed = newSettings;
                     localStorage.setItem('sas_settings', newStr);
                     if (window.AuthSystem && window.AuthSystem.applyUIConfigs) window.AuthSystem.applyUIConfigs(newSettings);
                     if (window.loadSettings) window.loadSettings();
@@ -589,6 +592,35 @@ export const DataManager = {
         } catch (e) {
             console.error("Set balance error:", e);
             return false;
+        }
+    },
+
+    async updateDebt(firebaseId, newAmount) {
+        try {
+            const subRef = doc(db, "subscribers", firebaseId);
+            const subDoc = await getDoc(subRef);
+            if (!subDoc.exists()) throw new Error("المشترك غير موجود");
+
+            const oldDebt = parseInt(subDoc.data().price || 0);
+
+            await updateDoc(subRef, {
+                price: newAmount,
+                paymentType: newAmount > 0 ? 'أجل' : 'نقد'
+            });
+
+            // تسجيل التعديل في السجل (اختياري لكن مفيد)
+            await this.logTransaction({
+                type: 'debt_adjustment',
+                subscriberId: subDoc.data().id,
+                amount: 0, // لا يؤثر على الصندوق النقدي
+                description: `تعديل يدوي للدين: من ${oldDebt.toLocaleString()} إلى ${newAmount.toLocaleString()}`
+            });
+
+            showToast("تم تعديل مبلغ الدين بنجاح");
+            return true;
+        } catch (e) {
+            console.error("Update debt error:", e);
+            throw e;
         }
     },
 

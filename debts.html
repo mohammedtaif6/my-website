@@ -386,8 +386,8 @@
 
         .card-actions {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
         }
 
         .btn-action {
@@ -561,7 +561,28 @@
         </div>
     </div>
 
-    <!-- Share Debts Modal -->
+    <!-- Edit Debt Modal -->
+    <div id="editDebtModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit" style="margin-left:8px; color:#f59e0b;"></i> تعديل مبلغ الدين</h3>
+                <button class="close-btn" onclick="closeEditDebtModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editDebtSubFirebaseId">
+                <div class="form-group">
+                    <label>الاسم: <span id="editDebtSubName" style="font-weight:bold;"></span></label>
+                </div>
+                <div class="form-group">
+                    <label>المبلغ الجديد للدين</label>
+                    <input type="number" id="editDebtAmount" placeholder="أدخل المبلغ الجديد...">
+                </div>
+                <button onclick="confirmUpdateDebt()" class="btn btn-primary btn-full">
+                    <i class="fas fa-save"></i> حفظ التعديل
+                </button>
+            </div>
+        </div>
+    </div>
     <div id="shareDebtsModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
@@ -711,11 +732,14 @@
                         </div>
                         
                         <div class="card-actions">
-                            <button onclick="openPayDebtModal('${s.id}', '${s.firebaseId}', '${safeName}', ${s.price})" class="btn-action btn-pay">
-                                <i class="fas fa-money-bill-wave"></i> تسديد
+                            <button onclick="openPayDebtModal('${s.id}', '${s.firebaseId}', '${safeName}', ${s.price})" class="btn-action btn-pay" title="تسديد">
+                                <i class="fas fa-check"></i>
                             </button>
-                            <button onclick="notifyDebtor('${safeName}', '${s.phone}', ${s.price})" class="btn-action btn-wa">
-                                <i class="fab fa-whatsapp"></i> تنبيه
+                            <button onclick="openEditDebtModal('${s.firebaseId}', '${safeName}', ${s.price})" class="btn-action" style="background:#f1f5f9; color:#475569;" title="تعديل">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="notifyDebtor('${safeName}', '${s.phone}', ${s.price})" class="btn-action btn-wa" title="تنبيه">
+                                <i class="fab fa-whatsapp"></i>
                             </button>
                         </div>
                     </div>
@@ -749,6 +773,28 @@
 
         window.notifyDebtor = (name, phone, amt) => {
             WhatsAppHelper.sendDebtReminder(name, phone, amt);
+        };
+
+        window.openEditDebtModal = (fid, name, currentAmt) => {
+            document.getElementById('editDebtSubFirebaseId').value = fid;
+            document.getElementById('editDebtSubName').innerText = name;
+            document.getElementById('editDebtAmount').value = currentAmt;
+            document.getElementById('editDebtModal').classList.add('active');
+        };
+
+        window.closeEditDebtModal = () => document.getElementById('editDebtModal').classList.remove('active');
+
+        window.confirmUpdateDebt = async () => {
+            const fid = document.getElementById('editDebtSubFirebaseId').value;
+            const newAmt = parseInt(document.getElementById('editDebtAmount').value);
+            if (isNaN(newAmt)) return DataManager.showToast('⚠️ يرجى إدخال مبلغ صحيح', 'error');
+
+            try {
+                await DataManager.updateDebt(fid, newAmt);
+                closeEditDebtModal();
+            } catch (e) {
+                DataManager.showToast('❌ فشل التعديل: ' + e.message, 'error');
+            }
         };
 
         window.openShareDebtsModal = () => {
