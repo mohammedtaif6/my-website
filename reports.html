@@ -553,6 +553,10 @@
                         badge = '<span class="badge" style="background:#dbeafe; color:#1e40af;">💵 تسديد دين</span>';
                     } else if (t.type === 'expense') {
                         badge = '<span class="badge" style="background:#fee2e2; color:#b91c1c;">📤 صرفية</span>';
+                    } else if (t.type === 'debt_adjustment') {
+                        badge = '<span class="badge" style="background:#fef3c7; color:#92400e;">⚙️ تعديل دين</span>';
+                    } else if (t.type === 'debt_discount') {
+                        badge = '<span class="badge" style="background:#fff7ed; color:#c2410c;">🏷️ خصم/إعفاء</span>';
                     } else if (t.description && t.description.includes('راتب')) {
                         badge = '<span class="badge" style="background:#f3e5f5; color:#7b1fa2;">👤 راتب</span>';
                     } else if (t.description && t.description.includes('سلفة')) {

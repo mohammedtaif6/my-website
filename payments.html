@@ -462,7 +462,9 @@
             let filteredTxs = activeTxs.filter(t =>
                 t.type !== 'subscription_debt' &&
                 t.type !== 'system_balance_adjustment' &&
-                t.type !== 'provider_debt_adjustment'
+                t.type !== 'provider_debt_adjustment' &&
+                t.type !== 'debt_adjustment' &&
+                t.type !== 'debt_discount'
             );
 
             // تطبيق فلتر التاريخ (اليوم، أمس، الاسبوع، الشهر)

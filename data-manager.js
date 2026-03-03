@@ -574,7 +574,7 @@ export const DataManager = {
             .filter(t => {
                 if (t.isArchived) return false;
                 if (t.type === 'subscription_debt') return false;
-                if (t.type === 'system_balance_adjustment' || t.type === 'provider_debt_adjustment') return false;
+                if (t.type === 'system_balance_adjustment' || t.type === 'provider_debt_adjustment' || t.type === 'debt_adjustment' || t.type === 'debt_discount') return false;
                 if (t.type && t.type.includes('topup_request') && t.status !== 'approved') return false;
                 return true;
             })
