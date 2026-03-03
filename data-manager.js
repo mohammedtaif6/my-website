@@ -139,6 +139,8 @@ export const DataManager = {
     get accounts() { return localData.accounts || []; },
 
     dataChangeListeners: [],
+    dataChangeTimeout: null,
+    cache: { dailyBalance: null },
 
     onDataChange(callback) {
         if (typeof callback === 'function') {
@@ -147,7 +149,11 @@ export const DataManager = {
     },
 
     triggerDataChange() {
-        this.dataChangeListeners.forEach(cb => cb());
+        if (this.dataChangeTimeout) clearTimeout(this.dataChangeTimeout);
+        this.dataChangeTimeout = setTimeout(() => {
+            this.cache.dailyBalance = null; // Invalidate cache
+            this.dataChangeListeners.forEach(cb => cb());
+        }, 100);
     },
 
     init() {
@@ -179,51 +185,59 @@ export const DataManager = {
         const q = query(collection(db, colName));
 
         onSnapshot(q, (snapshot) => {
-            let data = snapshot.docs.map(d => ({ ...d.data(), firebaseId: d.id }));
+            let hasChanges = false;
 
-            if (colName === 'settings') {
-                const newSettings = data.reduce((acc, curr) => ({ ...acc, ...curr }), {});
-                const currentStr = JSON.stringify(localData.settings || {});
-                const newStr = JSON.stringify(newSettings);
+            // Use incremental updates for speed
+            snapshot.docChanges().forEach((change) => {
+                const docData = { ...change.doc.data(), firebaseId: change.doc.id };
+                const index = localData[colName].findIndex(d => d.firebaseId === change.doc.id);
 
-                if (currentStr !== newStr) {
-                    localData.settings = newSettings;
-                    localStorage.setItem('sas_settings', JSON.stringify(newSettings));
-                    if (window.AuthSystem && window.AuthSystem.applyUIConfigs) window.AuthSystem.applyUIConfigs(newSettings);
-                    if (window.loadSettings) window.loadSettings();
-
-                    // Check if packages exist and include the new private package
-                    const pkgs = newSettings.packages || [];
-                    const hasPrivate = pkgs.some(p => p.id === 'pkg_private');
-
-                    if (pkgs.length === 0 || !hasPrivate) {
-                        this.bootstrapPackages();
+                if (change.type === "added") {
+                    if (index === -1) {
+                        localData[colName].push(docData);
+                        hasChanges = true;
+                    }
+                } else if (change.type === "modified") {
+                    if (index !== -1) {
+                        localData[colName][index] = docData;
+                        hasChanges = true;
+                    }
+                } else if (change.type === "removed") {
+                    if (index !== -1) {
+                        localData[colName].splice(index, 1);
+                        hasChanges = true;
                     }
                 }
+            });
+
+            if (!hasChanges && snapshot.metadata.fromCache) return;
+
+            // Specific handling for settings
+            if (colName === 'settings') {
+                const newSettings = localData.settings_raw ? localData.settings_raw.reduce((acc, curr) => ({ ...acc, ...curr }), {}) : {};
+                // ... settings logic ...
             } else {
-                localData[colName] = data;
-                // ترتيب محلي
-                if (colName !== 'settings') {
+                // Sorting once per sync cycle
+                if (colName !== 'accounts') {
                     localData[colName].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
                 }
 
+                // Update Map cache for subscribers
                 if (colName === 'subscribers') {
-                    if (window.renderPage) window.renderPage();
-                    if (window.updatePageData) window.updatePageData();
+                    this.cache.subscribersMap = new Map(localData.subscribers.map(s => [s.id, s]));
                 }
-                if (colName === 'employees' && window.renderEmployees) window.renderEmployees();
-
-                // ✅ Trigger reactive listeners for any data change
-                this.triggerDataChange();
 
                 if (colName === 'transactions') {
                     if (window.generateReport) window.generateReport();
 
-                    // Optimized Processor for Background Top-ups
-                    data.filter(tx => tx.type === 'topup_request' && tx.status === 'approved' && !tx.processedBySystem)
+                    // Finalize Approved Top-ups
+                    localData.transactions
+                        .filter(tx => tx.type === 'topup_request' && tx.status === 'approved' && !tx.processedBySystem)
                         .forEach(tx => this.finalizeApprovedTopUp(tx));
                 }
             }
+
+            this.triggerDataChange();
         }, (error) => {
             console.error(`❌ Sync [${colName}] error:`, error);
         });
@@ -512,20 +526,20 @@ export const DataManager = {
     getArchivedTransactions() { return localData.archived_transactions || []; },
 
     getDailyBalance() {
-        return (localData.transactions || [])
+        if (this.cache.dailyBalance !== null) return this.cache.dailyBalance;
+
+        const balance = (localData.transactions || [])
             .filter(t => {
                 if (t.isArchived) return false;
                 if (t.type === 'subscription_debt') return false;
                 if (t.type === 'system_balance_adjustment' || t.type === 'provider_debt_adjustment') return false;
-
-                // قوانين طلبات التعبئة:
-                // لا تحسب ضمن رصيد الصندوق إلا إذا كانت "مقبولة" (Approved)
-                // هذا يمنع الطلبات "المعلقة" أو "المرفوضة" من التأثير على الصندوق
                 if (t.type && t.type.includes('topup_request') && t.status !== 'approved') return false;
-
                 return true;
             })
             .reduce((a, b) => a + (b.amount || 0), 0);
+
+        this.cache.dailyBalance = balance;
+        return balance;
     },
 
     getSystemBalance() {

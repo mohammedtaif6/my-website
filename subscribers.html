@@ -514,7 +514,10 @@
                 return;
             }
 
-            grid.innerHTML = filtered.map(s => {
+            // عرض أول 200 مشترك فقط لضمان سرعة الواجهة
+            const displayList = filtered.slice(0, 200);
+
+            grid.innerHTML = displayList.map(s => {
                 const expiry = s.expiryDate || s.endDate;
                 let statusClass = 'status-new';
                 let statusText = 'جديد';
@@ -541,7 +544,6 @@
 
                 return `
                     <div class="sub-card" style="border-right: 4px solid ${parseInt(s.price || 0) > 0 ? '#e11d48' : '#0ea5e9'};">
-                        <!-- معلومات المشترك الأساسية -->
                         <div class="sub-header" style="margin-bottom: 5px;">
                             <div style="flex:1;">
                                 <h3 class="sub-name">${s.name || 'بدون اسم'}</h3>
@@ -555,7 +557,6 @@
                             </div>
                         </div>
 
-                        <!-- تفاصيل الاشتراك والدين -->
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; background:#f8fafc; padding:8px 12px; border-radius:12px; margin-bottom:8px;">
                             <div>
                                 <span style="display:block; font-size:0.6rem; color:#94a3b8;">ينتهي في</span>
@@ -565,12 +566,8 @@
                                 <span style="display:block; font-size:0.6rem; color:#94a3b8;">الدين</span>
                                 <strong style="font-size:0.8rem; color:${parseInt(s.price || 0) > 0 ? '#e11d48' : '#059669'};">${(parseInt(s.price || 0)).toLocaleString('en-US')} <small>د.ع</small></strong>
                             </div>
-                            <div style="grid-column: span 2; border-top: 1px dashed #e2e8f0; padding-top: 5px; margin-top: 2px; font-size: 0.6rem; color: #94a3b8;">
-                                <i class="fas fa-fingerprint"></i> ID: ${s.id}
-                            </div>
                         </div>
 
-                        <!-- أزرار الخيارات المجموعة -->
                         <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:6px;">
                             <button onclick="window.openRenew('${s.firebaseId}', '${s.id}')" style="background:#0ea5e9; color:white; border:none; padding:8px; border-radius:10px; font-size:0.75rem; cursor:pointer; font-weight:bold;">
                                 <i class="fas fa-sync-alt"></i> تجديد
