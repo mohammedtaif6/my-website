@@ -563,7 +563,9 @@
                         <div class="sub-header" style="margin-bottom: 5px;">
                             <div style="flex:1;">
                                 <h3 class="sub-name">${s.name || 'بدون اسم'}</h3>
-                                <div class="sub-phone"><i class="fas fa-phone"></i> ${s.phone || 'بدون هاتف'}</div>
+                                <a href="${s.phone ? 'tel:' + s.phone : 'javascript:void(0)'}" class="sub-phone" style="display:inline-block; text-decoration:none; color:inherit; margin-top:2px;">
+                                    <i class="fas fa-phone-alt" style="margin-left:3px; ${s.phone ? 'color:#2563eb;' : 'color:#94a3b8;'}"></i> <span style="font-weight:600;">${s.phone || 'بدون هاتف'}</span>
+                                </a>
                             </div>
                             <div style="display:flex; flex-direction:column; align-items:flex-end; gap:3px;">
                                 <span class="status-badge ${statusClass}" style="padding:2px 8px; font-size:0.6rem;">${statusText}</span>
