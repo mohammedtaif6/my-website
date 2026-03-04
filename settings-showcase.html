@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>معرض نماذج الإعدادات الفاخرة</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Kufi+Arabic:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --p-blue: #2563eb;
+            --p-purple: #8b5cf6;
+            --p-green: #10b981;
+            --p-orange: #f59e0b;
+            --bg-light: #f8fafc;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Noto Kufi Arabic', 'Outfit', sans-serif;
+            background: #0f172a;
+            color: #f1f5f9;
+            overflow-x: hidden;
+        }
+
+        /* --- Header Switcher --- */
+        .showcase-nav {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(15px);
+            padding: 8px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .nav-item {
+            padding: 10px 20px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s;
+            white-space: nowrap;
+            font-size: 0.9rem;
+        }
+
+        .nav-item.active {
+            background: var(--p-blue);
+            color: white;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+        }
+
+        .showcase-container {
+            margin-top: 100px;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .model-section {
+            display: none;
+            max-width: 1200px;
+            margin: 0 auto;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .model-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* common styles */
+        .card {
+            background: #1e293b;
+            border-radius: 24px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .flex {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* --- MODEL 1: Tech Sidebar --- */
+        .m1-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 25px;
+        }
+
+        .m1-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .m1-sidebar-item {
+            padding: 15px 20px;
+            border-radius: 12px;
+            transition: 0.3s;
+            font-weight: 600;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .m1-sidebar-item:hover {
+            background: rgba(37, 99, 235, 0.1);
+            color: #60a5fa;
+        }
+
+        .m1-sidebar-item.active {
+            background: rgba(37, 99, 235, 0.15);
+            color: #3b82f6;
+            border-right: 4px solid #3b82f6;
+        }
+
+        .m1-content-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .setting-info h4 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .setting-info p {
+            margin: 5px 0 0;
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        /* --- MODEL 2: Grid Gallery --- */
+        .m2-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .m2-card {
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            padding: 40px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .m2-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--p-blue);
+        }
+
+        .m2-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 1.8rem;
+        }
+
+        .m2-card.blue .m2-icon {
+            background: rgba(37, 99, 235, 0.1);
+            color: #3b82f6;
+        }
+
+        .m2-card.purple .m2-icon {
+            background: rgba(139, 92, 246, 0.1);
+            color: #8b5cf6;
+        }
+
+        .m2-card.green .m2-icon {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        /* --- MODEL 3: Fluid List (Mobile-First Style) --- */
+        .m3-list {
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .m3-group {
+            margin-bottom: 10px;
+        }
+
+        .m3-group-title {
+            padding-right: 15px;
+            font-weight: 800;
+            color: var(--p-blue);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .m3-item {
+            background: white;
+            color: #1e293b;
+            padding: 20px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .m3-item-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .m3-item-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        /* Toggles */
+        .toggle-switch {
+            width: 50px;
+            height: 26px;
+            background: #334155;
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .toggle-active {
+            background: #10b981;
+        }
+
+        .toggle-active::after {
+            left: 27px;
+        }
+
+        /* Badges */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .badge-premium {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .m1-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .showcase-nav {
+                width: 90%;
+                justify-content: space-between;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="showcase-nav">
+        <div class="nav-item active" onclick="showModel(1, this)">الوضوح التقني</div>
+        <div class="nav-item" onclick="showModel(2, this)">بطاقات الشبكة</div>
+        <div class="nav-item" onclick="showModel(3, this)">الانسيابية العصرية</div>
+    </nav>
+
+    <div class="showcase-container">
+
+        <!-- --- MODEL 1: TECH SIDEBAR --- -->
+        <div id="m1" class="model-section active">
+            <div style="margin-bottom: 30px; border-right: 5px solid var(--p-blue); padding-right: 20px;">
+                <h1 style="font-size: 2.5rem; margin: 0;">الوضوح التقني (Tech Sidebar)</h1>
+                <p style="color: #94a3b8;">تصميم جانبي منظم يركز على المحتوى والبيانات.</p>
+            </div>
+
+            <div class="m1-layout">
+                <div class="m1-sidebar">
+                    <div class="m1-sidebar-item active"><i class="fas fa-sliders-h"></i> الإعدادات العامة</div>
+                    <div class="m1-sidebar-item"><i class="fas fa-shield-alt"></i> الأمان والخصوصية</div>
+                    <div class="m1-sidebar-item"><i class="fas fa-bell"></i> التنبيهات</div>
+                    <div class="m1-sidebar-item"><i class="fas fa-cloud-upload-alt"></i> التخزين والسحابية</div>
+                    <div class="m1-sidebar-item"><i class="fas fa-database"></i> قواعد البيانات</div>
+                    <div class="m1-sidebar-item"><i class="fas fa-cog"></i> خيارات المطور</div>
+                </div>
+
+                <div class="m1-content-grid">
+                    <div class="card">
+                        <h3 style="margin-top:0"><i class="fas fa-palette"></i> مظهر النظام</h3>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h4>الوضع الليلي (Dark Mode)</h4>
+                                <p>تقليل إجهاد العين في البيئات المظلمة.</p>
+                            </div>
+                            <div class="toggle-switch toggle-active"></div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h4>اللون الرئيسي للنظام</h4>
+                                <p>اختر اللون الذي يمثل هويتك البرمجية.</p>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <div
+                                    style="width:25px; height:25px; background: #2563eb; border-radius: 50%; border: 3px solid white;">
+                                </div>
+                                <div style="width:25px; height:25px; background: #10b981; border-radius: 50%;"></div>
+                                <div style="width:25px; height:25px; background: #ef4444; border-radius: 50%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 style="margin-top:0"><i class="fas fa-lock"></i> حماية الدخول</h3>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h4>المصادقة الثنائية (2FA)</h4>
+                                <p>إضافة طبقة حماية إضافية عبر تطبيق Google Authenticator.</p>
+                            </div>
+                            <button class="nav-item active" style="padding: 6px 15px; font-size: 0.8rem;">تفعيل
+                                الآن</button>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h4>تسجيل الخروج التلقائي</h4>
+                                <p>إنهاء الجلسة بعد 30 دقيقة من الخمول.</p>
+                            </div>
+                            <div class="toggle-switch"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- --- MODEL 2: GRID GALLERY --- -->
+        <div id="m2" class="model-section">
+            <div style="margin-bottom: 30px; text-align: center;">
+                <h1
+                    style="font-size: 2.5rem; margin: 0; background: linear-gradient(90deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    بطاقات الشبكة (Grid Dashboard)</h1>
+                <p style="color: #94a3b8;">تصميم بصري قوي يمنح الوصول السريع بلمسة جمالية.</p>
+            </div>
+
+            <div class="m2-grid">
+                <div class="card m2-card blue">
+                    <div class="m2-icon"><i class="fas fa-user-circle"></i></div>
+                    <h3>الحساب الشخصي</h3>
+                    <p style="color: #94a3b8; font-size: 0.85rem;">إدارة ملفك الشخصي وكلمة المرور</p>
+                </div>
+                <div class="card m2-card purple">
+                    <span class="badge badge-premium" style="position: absolute; top: 15px; left: 15px;">PRO</span>
+                    <div class="m2-icon"><i class="fab fa-telegram-plane"></i></div>
+                    <h3>تكامل تليجرام</h3>
+                    <p style="color: #94a3b8; font-size: 0.85rem;">ربط البوتات وإدارة التنبيهات الفورية</p>
+                </div>
+                <div class="card m2-card green">
+                    <div class="m2-icon"><i class="fas fa-wallet"></i></div>
+                    <h3>الإدارة المالية</h3>
+                    <p style="color: #94a3b8; font-size: 0.85rem;">سعر الصرف، العملات، وطرق الدفع</p>
+                </div>
+                <div class="card m2-card blue">
+                    <div class="m2-icon"><i class="fas fa-server"></i></div>
+                    <h3>السيرفر والنظام</h3>
+                    <p style="color: #94a3b8; font-size: 0.85rem;">حالة الاتصال والنسخ الاحتياطي السحابي</p>
+                </div>
+                <div class="card m2-card purple">
+                    <div class="m2-icon"><i class="fas fa-layer-group"></i></div>
+                    <h3>إدارة الباقات</h3>
+                    <p style="color: #94a3b8; font-size: 0.85rem;">تعديل أسعار الاشتراك والخدمات</p>
+                </div>
+                <div class="card m2-card green">
+                    <div class="m2-icon"><i class="fas fa-robot"></i></div>
+                    <h3>الذكاء الاصطناعي</h3>
+                    <p style="color: #94a3b8; font-size: 0.85rem;">ضبط محركات الردود الآلية والمساعدين</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- --- MODEL 3: FLUID LIST --- -->
+        <div id="m3" class="model-section">
+            <div style="margin-bottom: 40px; text-align: center;">
+                <h1 style="font-size: 2.22rem; margin: 0; color: #fff;">الانسيابية العصرية (Fluid List)</h1>
+                <p style="color: #60a5fa; font-weight: 700;">تصميم Mobile-First فائق النعومة والجمال.</p>
+            </div>
+
+            <div class="m3-list">
+                <div class="m3-group">
+                    <div class="m3-group-title">الأمان والخصوصية</div>
+                    <div class="m3-item">
+                        <div class="m3-item-left">
+                            <div class="m3-item-icon" style="background: #e0f2fe; color: #0369a1;"><i
+                                    class="fas fa-fingerprint"></i></div>
+                            <div>
+                                <div style="font-weight: 700;">بصمة الوجه / الإصبع</div>
+                                <div style="font-size: 0.75rem; color: #64748b;">تأمين فتح التطبيق</div>
+                            </div>
+                        </div>
+                        <div class="toggle-switch toggle-active"></div>
+                    </div>
+                    <div class="m3-item">
+                        <div class="m3-item-left">
+                            <div class="m3-item-icon" style="background: #fef2f2; color: #991b1b;"><i
+                                    class="fas fa-key"></i></div>
+                            <div>
+                                <div style="font-weight: 700;">تغيير الرمز السري</div>
+                                <div style="font-size: 0.75rem; color: #64748b;">آخر تحديث قبل 3 أشهر</div>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-left" style="color: #cbd5e1;"></i>
+                    </div>
+                </div>
+
+                <div class="m3-group">
+                    <div class="m3-group-title">إعدادات الواجهة</div>
+                    <div class="m3-item">
+                        <div class="m3-item-left">
+                            <div class="m3-item-icon" style="background: #f0fdf4; color: #166534;"><i
+                                    class="fas fa-language"></i></div>
+                            <div>
+                                <div style="font-weight: 700;">لغة النظام</div>
+                                <div style="font-size: 0.75rem; color: #64748b;">الآن: العربية (العراق)</div>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-left" style="color: #cbd5e1;"></i>
+                    </div>
+                    <div class="m3-item">
+                        <div class="m3-item-left">
+                            <div class="m3-item-icon" style="background: #fff7ed; color: #9a3412;"><i
+                                    class="fas fa-fill-drip"></i></div>
+                            <div>
+                                <div style="font-weight: 700;">الثيم المخصص</div>
+                                <div style="font-size: 0.75rem; color: #64748b;">تخصيص ألوان الواجهة بالتفصيل</div>
+                            </div>
+                        </div>
+                        <span class="badge badge-premium">VIP</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function showModel(num, el) {
+            // nav items
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            el.classList.add('active');
+
+            // sections
+            document.querySelectorAll('.model-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById('m' + num).classList.add('active');
+        }
+
+        // Toggle simulation
+        document.querySelectorAll('.toggle-switch').forEach(sw => {
+            sw.onclick = function () {
+                this.classList.toggle('toggle-active');
+            }
+        });
+    </script>
+</body>
+
+</html>

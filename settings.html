@@ -5,11 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>الإعدادات - OK Computer</title>
+
+    <!-- Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Kufi+Arabic:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Base Styles -->
     <link rel="stylesheet" href="style.css?v=29.0">
     <link rel="stylesheet" href="style-fab.css?v=3.0">
     <link rel="stylesheet" href="style-modal.css?v=3.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Telegram 409 error: This is likely due to an invalid bot token or webhook URL. Please check your Telegram bot settings. -->
 
     <script src="auth-system.js?v=5.0"></script>
     <script>
@@ -28,381 +34,382 @@
     </script>
 
     <style>
-        .settings-header {
-            background: white;
-            padding: 40px 20px 30px;
-            border-radius: 20px;
-            color: #0f172a;
-            text-align: center;
-            margin: 15px 15px 30px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-            border: 1px solid #f1f5f9;
+        :root {
+            --p-blue: #2563eb;
+            --p-purple: #8b5cf6;
+            --p-green: #10b981;
+            --p-red: #ef4444;
+            --p-orange: #f59e0b;
+            --bg-canvas: #f8fafc;
+            --card-radius: 24px;
         }
 
-        .settings-header h1 {
-            font-size: 1.8rem;
+        [data-theme="dark"] {
+            --bg-canvas: #0f172a;
+        }
+
+        body {
+            font-family: 'Noto Kufi Arabic', 'Outfit', sans-serif;
+            background: var(--bg-canvas);
+            color: var(--text-main);
+            transition: all 0.3s ease;
+            padding-bottom: 100px;
+        }
+
+        /* --- Header --- */
+        .settings-header-modern {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: var(--bg-card);
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .settings-header-modern h1 {
+            font-size: 2.5rem;
+            margin: 0;
             font-weight: 800;
-            margin: 0 0 8px;
+            background: linear-gradient(90deg, #2563eb, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            color: #1e293b;
+            gap: 15px;
         }
 
-        .settings-header p {
-            color: #64748b;
-            margin: 0;
-            font-size: 0.95rem;
+        .settings-header-modern p {
+            color: var(--text-sub);
+            font-size: 1.1rem;
+            margin-top: 10px;
         }
 
-        .settings-grid {
+        /* --- Grid System --- */
+        .settings-grid-dashboard {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-            padding: 0 15px;
-            margin-bottom: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
         }
 
-        @media (min-width: 900px) {
-            .settings-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        .settings-section {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        /* --- Premium Cards --- */
+        .m2-card-premium {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--card-radius);
+            padding: 30px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
             overflow: hidden;
-            border: 1px solid #e2e8f0;
             display: flex;
             flex-direction: column;
-            height: 100%;
+            box-shadow: var(--shadow-md);
         }
 
-        .section-title {
-            background: transparent;
-            padding: 20px 20px 15px;
-            font-weight: 800;
-            font-size: 1.1rem;
-            color: #0f172a;
-            border-bottom: 2px solid #f8fafc;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .m2-card-premium:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--p-blue);
         }
 
-        .setting-item {
-            padding: 16px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #f1f5f9;
-            transition: background 0.2s;
-        }
-
-        .setting-item:last-child {
-            border-bottom: none;
-        }
-
-        .setting-item:hover {
-            background: #f8fafc;
-        }
-
-        .setting-label {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 600;
-            color: #334155;
-        }
-
-        .setting-label i {
-            width: 35px;
-            height: 35px;
-            border-radius: 10px;
+        .card-icon-box {
+            width: 60px;
+            height: 60px;
+            border-radius: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 0.9rem;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
         }
 
-        .setting-label .icon-blue {
-            background: #eff6ff;
+        .m2-card-premium.blue .card-icon-box {
+            background: rgba(37, 99, 235, 0.1);
             color: #3b82f6;
         }
 
-        .setting-label .icon-teal {
-            background: #f0fdfa;
-            color: #0d9488;
+        .m2-card-premium.green .card-icon-box {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
         }
 
-        .setting-label .icon-red {
-            background: #fef2f2;
-            color: #ef4444;
-        }
-
-        .setting-label .icon-purple {
-            background: #f5f3ff;
+        .m2-card-premium.purple .card-icon-box {
+            background: rgba(139, 92, 246, 0.1);
             color: #8b5cf6;
         }
 
-        .setting-label .icon-indigo {
-            background: #eef2ff;
-            color: #6366f1;
+        .m2-card-premium.red .card-icon-box {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
         }
 
-        .setting-label .icon-orange {
-            background: #fff7ed;
-            color: #f97316;
+        .m2-card-premium.orange .card-icon-box {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
         }
 
-        .setting-label .icon-gray {
-            background: #f1f5f9;
-            color: #64748b;
+        .card-title-group {
+            margin-bottom: 20px;
         }
 
-        .setting-label .icon-dark {
-            background: #f8fafc;
-            color: #334155;
+        .card-title-group h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--text-main);
         }
 
-        .setting-label .icon-green {
-            background: #f0fdf4;
-            color: #22c55e;
+        .card-title-group p {
+            margin: 5px 0 0;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+        }
+
+        /* --- Setting Items Inside Cards --- */
+        .setting-row-modern {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .setting-row-modern:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info-modern {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .setting-info-modern span {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+
+        .setting-info-modern small {
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+
+        /* --- Inputs & Toggles --- */
+        .modern-input {
+            background: var(--bg-main);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 8px 12px;
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            text-align: center;
+            width: 130px;
+            transition: all 0.2s;
+        }
+
+        .modern-input:focus {
+            border-color: var(--p-blue);
+            outline: none;
+            background: var(--bg-card);
         }
 
         /* Toggle Switch */
-        .toggle-switch {
+        .m2-toggle {
+            width: 50px;
+            height: 26px;
+            background: var(--border);
+            border-radius: 13px;
             position: relative;
-            width: 52px;
-            height: 28px;
-            flex-shrink: 0;
-        }
-
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .toggle-slider {
-            position: absolute;
             cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #cbd5e1;
-            border-radius: 28px;
             transition: 0.3s;
         }
 
-        .toggle-slider:before {
-            content: "";
+        .m2-toggle::after {
+            content: '';
             position: absolute;
-            height: 22px;
-            width: 22px;
+            top: 3px;
             left: 3px;
-            bottom: 3px;
-            background-color: white;
+            width: 20px;
+            height: 20px;
+            background: white;
             border-radius: 50%;
             transition: 0.3s;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .toggle-switch input:checked+.toggle-slider {
-            background: linear-gradient(135deg, #22c55e, #16a34a);
+        .m2-toggle.active {
+            background: #10b981;
         }
 
-        .toggle-switch input:checked+.toggle-slider:before {
-            transform: translateX(24px);
+        .m2-toggle.active::after {
+            left: 27px;
         }
 
-        /* Input fields */
-        .setting-input {
-            padding: 10px 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-family: inherit;
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #334155;
-            width: 160px;
-            text-align: center;
-            transition: border-color 0.2s;
-            direction: rtl;
+        .hidden-checkbox {
+            display: none;
         }
 
-        .setting-input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        /* Reset Button */
-        .reset-btn {
-            margin: 0 15px 30px;
-            padding: 16px;
-            background: linear-gradient(135deg, #ef4444, #dc2626);
+        /* --- Balance Display --- */
+        .balance-hero {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: var(--card-radius);
+            padding: 40px;
             color: white;
-            border: none;
-            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .balance-hero-left h2 {
             font-size: 1rem;
+            margin: 0;
+            color: #94a3b8;
             font-weight: 700;
-            font-family: inherit;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .balance-hero-left .amount {
+            font-size: 3.5rem;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+            margin: 5px 0 10px;
+            letter-spacing: -1px;
+        }
+
+        .balance-hero-right {
+            text-align: left;
+            background: rgba(239, 68, 68, 0.1);
+            padding: 20px 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .balance-hero-right h2 {
+            font-size: 0.8rem;
+            margin: 0;
+            color: #fca5a5;
+        }
+
+        .balance-hero-right .amount-danger {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #f87171;
+        }
+
+        /* --- Action Buttons --- */
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .m2-btn {
+            padding: 14px;
+            border-radius: 16px;
+            border: none;
+            font-weight: 700;
+            font-size: 0.95rem;
             cursor: pointer;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            width: calc(100% - 30px);
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+            gap: 8px;
         }
 
-        .reset-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
-        }
-
-        .save-toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: #1e293b;
+        .m2-btn-primary {
+            background: var(--p-blue);
             color: white;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            z-index: 9999;
-            transition: transform 0.3s ease;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
 
-        .save-toast.show {
-            transform: translateX(-50%) translateY(0);
+        .m2-btn-danger {
+            background: var(--p-red);
+            color: white;
         }
 
-        @media (max-width: 600px) {
-            .setting-input {
-                width: 120px;
-            }
+        .m2-btn-ghost {
+            background: var(--bg-main);
+            color: var(--text-main);
+            border: 1px solid var(--border);
         }
 
-        /* Packages Styling */
-        .packages-list {
+        .m2-btn:hover {
+            transform: scale(1.02);
+        }
+
+        /* --- Packages List --- */
+        .pkg-modern-item {
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 16px;
             padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .package-card {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 15px;
+            margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .package-info h4 {
-            margin: 0;
-            color: #1e293b;
-            font-size: 1rem;
-        }
-
-        .package-info p {
-            margin: 2px 0 0;
-            color: #64748b;
-            font-size: 0.8rem;
-        }
-
-        .package-actions {
+        .save-bar {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            width: 90%;
+            max-width: 600px;
+            background: rgba(30, 41, 59, 0.9);
+            backdrop-filter: blur(15px);
+            padding: 15px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
-            gap: 8px;
+            gap: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
         }
 
-        .btn-icon-danger {
-            color: #ef4444;
-            background: #fee2e2;
-            border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        .add-package-form {
-            padding: 20px;
-            background: #f1f5f9;
-            border-top: 1px solid #e2e8f0;
-        }
-
-        .package-inputs {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        @media (max-width: 600px) {
-            .package-inputs {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .pkg-input {
-            padding: 10px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 0.9rem;
-        }
-
-        .section-content {
-            border-top: 1px solid #f1f5f9;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-5px);
+        @media (max-width: 768px) {
+            .settings-header-modern h1 {
+                font-size: 1.8rem;
             }
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
+            .balance-hero {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
             }
-        }
 
-        .balance-card {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-            color: white;
-            padding: 25px;
-            border-radius: 15px;
-            text-align: center;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            .balance-hero-right {
+                text-align: center;
+                width: 100%;
+            }
+
+            .balance-hero-left .amount {
+                font-size: 2.5rem;
+            }
         }
     </style>
 </head>
 
 <body>
+
     <!-- PIN Lock Overlay -->
     <div id="pin-lock-overlay"
         style="position: fixed; inset: 0; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
         <div
             style="background: rgba(255,255,255,0.05); padding: 50px 40px; border-radius: 30px; text-align: center; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 30px 60px rgba(0,0,0,0.4); max-width: 90%; width: 400px; position:relative; overflow:hidden;">
-            <!-- Glow Effect -->
             <div
                 style="position:absolute; top:-50px; left:-50px; width:150px; height:150px; background:rgba(99, 102, 241, 0.4); filter:blur(60px); border-radius:50%;">
             </div>
-
             <div style="font-size: 3.5rem; margin-bottom: 20px; position:relative; z-index:2;"><i
                     class="fas fa-shield-alt" style="color:#6366f1;"></i></div>
             <h2
@@ -410,160 +417,28 @@
                 نظام الحماية</h2>
             <p style="color: #94a3b8; margin-bottom: 35px; font-size: 0.95rem; position:relative; z-index:2;">الرجاء
                 إدخال رمز الدخول السري للمتابعة</p>
-
             <div style="margin-bottom: 25px; position: relative; z-index:2;">
                 <input type="password" id="pin-input" maxlength="4" inputmode="numeric" autocomplete="off"
                     style="font-size: 2.2rem; letter-spacing: 20px; width: 220px; text-align: center; padding: 15px; border-radius: 16px; border: 2px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; outline: none; transition: 0.3s; font-family:'Outfit', sans-serif;"
                     placeholder="••••">
             </div>
-
             <div id="pin-error"
                 style="color: #fca5a5; height: 25px; font-size: 0.9rem; margin-bottom: 20px; position:relative; z-index:2; font-weight:600; opacity:0; transition:0.3s;">
             </div>
-
             <button id="pin-submit-btn" onclick="checkPin()"
                 style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; border: none; padding: 16px 40px; border-radius: 16px; font-size: 1.1rem; font-weight: bold; cursor: pointer; width: 100%; transition: all 0.3s; box-shadow: 0 10px 20px rgba(99,102,241,0.3); position:relative; z-index:2;">
                 <i class="fas fa-unlock-alt" style="margin-left:8px;"></i> فتح الإعدادات
             </button>
-
             <button onclick="window.location.href='index.html'"
-                style="background: transparent; color: #94a3b8; border: none; margin-top: 25px; font-size: 0.95rem; cursor: pointer; text-decoration: none; position:relative; z-index:2; display:flex; align-items:center; justify-content:center; gap:8px; width:100%; transition:0.2s;">
+                style="background: transparent; color: #94a3b8; border: none; margin-top: 25px; font-size: 0.95rem; cursor: pointer; text-decoration: none; position:relative; z-index:2; display:flex; align-items:center; justify-content:center; gap:8px; width:100%;">
                 <i class="fas fa-arrow-right"></i> العودة للرئيسية
             </button>
         </div>
     </div>
 
-    <script>
-        // PIN Security Logic — يظهر دائماً عند كل زيارة للصفحة (بدون تجاوز)
-        (function () {
-            // دائماً اعرض شاشة الرمز — بدون أي تجاوز أو sessionStorage
-            document.getElementById('pin-lock-overlay').style.display = 'flex';
-            setTimeout(() => document.getElementById('pin-input').focus(), 500);
-
-            // Enter key support
-            document.getElementById('pin-input').addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') checkPin();
-            });
-
-            // Auto-submit on 4 digits
-            document.getElementById('pin-input').addEventListener('input', function (e) {
-                if (this.value.length === 4) checkPin();
-            });
-        })();
-
-        window.checkPin = async function () {
-            const input = document.getElementById('pin-input');
-            const error = document.getElementById('pin-error');
-            const enteredPin = input.value;
-            const submitBtn = document.getElementById('pin-submit-btn');
-
-            if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
-            if (submitBtn) submitBtn.disabled = true;
-            error.style.opacity = '0';
-
-            let storedPin = '0000';
-            let pinFound = false;
-
-            // === الطريقة 1: Firebase REST API (تعمل بدون DataManager) ===
-            try {
-                const projectId = "okcomputer-system";
-                const response = await fetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/settings/global`);
-
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data && data.fields && data.fields.pinCode) {
-                        storedPin = data.fields.pinCode.stringValue || '';
-                        pinFound = true;
-                        console.log("✅ PIN fetched from REST API:", storedPin);
-                    } else if (data && data.fields && data.fields.pinCode === undefined) {
-                        // pinCode field doesn't exist in Firebase — means no PIN set
-                        storedPin = '0000';
-                        pinFound = true;
-                    }
-                }
-            } catch (e) {
-                console.warn("REST API failed:", e);
-            }
-
-            // === الطريقة 2: DataManager (إذا كان جاهزاً) ===
-            if (!pinFound) {
-                try {
-                    if (typeof DataManager !== 'undefined' && DataManager.getSystemSettings) {
-                        const settings = DataManager.getSystemSettings();
-                        if (settings && settings.pinCode !== undefined) {
-                            storedPin = settings.pinCode;
-                            pinFound = true;
-                            console.log("✅ PIN fetched from DataManager:", storedPin);
-                        }
-                    }
-                } catch (e) {
-                    console.warn("DataManager failed:", e);
-                }
-            }
-
-            // === الطريقة 3: localStorage (الملاذ الأخير) ===
-            if (!pinFound) {
-                try {
-                    const localSettings = JSON.parse(localStorage.getItem('sas_settings') || '{}');
-                    if (localSettings && localSettings.pinCode !== undefined) {
-                        storedPin = localSettings.pinCode;
-                        pinFound = true;
-                        console.log("✅ PIN fetched from localStorage:", storedPin);
-                    }
-                } catch (e) {
-                    console.warn("localStorage failed:", e);
-                }
-            }
-
-            console.log("🔐 Final PIN to check against:", storedPin, "| User entered:", enteredPin, "| Found:", pinFound);
-
-            // حفظ الرمز محلياً للمرات القادمة
-            if (pinFound) {
-                const ls = JSON.parse(localStorage.getItem('sas_settings') || '{}');
-                ls.pinCode = storedPin;
-                localStorage.setItem('sas_settings', JSON.stringify(ls));
-            }
-
-            if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-unlock-alt" style="margin-left:8px;"></i> فتح الإعدادات';
-            if (submitBtn) submitBtn.disabled = false;
-
-            if (enteredPin === storedPin || storedPin === "") {
-                document.getElementById('pin-lock-overlay').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('pin-lock-overlay').style.display = 'none';
-                    // تحديث لحظي لرصيد النظام
-                    setInterval(() => {
-                        if (typeof DataManager !== 'undefined' && DataManager.getSystemBalance) {
-                            const balance = DataManager.getSystemBalance() || 0;
-                            const balEl = document.getElementById('display-system-balance');
-                            if (balEl) balEl.innerText = balance.toLocaleString('en-US') + ' IQD';
-                        }
-                    }, 1000);
-                }, 300);
-            } else {
-                error.innerText = 'رمز الدخول غير صحيح!';
-                error.style.opacity = '1';
-                input.style.borderColor = '#ef4444';
-                input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.2)';
-                input.value = '';
-
-                // Add shake animation
-                input.style.transform = 'translateX(-5px)';
-                setTimeout(() => input.style.transform = 'translateX(5px)', 50);
-                setTimeout(() => input.style.transform = 'translateX(-5px)', 100);
-                setTimeout(() => input.style.transform = 'translateX(0)', 150);
-
-                setTimeout(() => {
-                    input.style.borderColor = 'rgba(255,255,255,0.1)';
-                    input.style.boxShadow = 'none';
-                    error.style.opacity = '0';
-                }, 2000);
-            }
-        }
-    </script>
+    <!-- Main Navigation -->
     <button class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-
-    <button class="theme-toggle-btn" onclick="AuthSystem.toggleTheme()" title="تبديل الوضع الليلي/النهاري">
+    <button class="theme-toggle-btn" onclick="AuthSystem.toggleTheme()" title="تبديل الوضع الليلي">
         <i class="fas fa-moon"></i>
     </button>
 
@@ -588,796 +463,406 @@
         <div class="nav-overlay" onclick="toggleMenu()"></div>
     </nav>
 
-    <div class="settings-header">
-        <h1><i class="fas fa-cog" style="color:#6366f1;"></i> الإعدادات والتخصيص</h1>
-        <p>تحكم بإعدادات النظام ومظهر الواجهة بسهولة تامة</p>
-        <button onclick="forceUpdateSystem()"
-            style="margin-top: 20px; background: white; color: #ef4444; border: 1px solid #ef4444; padding: 10px 20px; border-radius: 12px; font-size: 0.9rem; cursor: pointer; font-weight: bold; transition: 0.2s;">
-            <i class="fas fa-sync-alt"></i> مسح الكاش وتحديث الموقع
-        </button>
-    </div>
+    <header class="settings-header-modern">
+        <h1><i class="fas fa-tools"></i> مركز التحكم الشامل</h1>
+        <p>قم بتخصيص تجربتك وضبط محرك النظام بكل سهولة</p>
+    </header>
 
-    <!-- Grid Container Start -->
-    <div class="settings-grid">
+    <div class="settings-grid-dashboard">
 
-        <!-- إدارة الباقات (في الأعلى) -->
-        <div class="settings-section">
-            <div class="section-title"><i class="fas fa-box-open" style="color:#f59e0b;"></i> إدارة باقات الاشتراك</div>
-            <div class="section-content">
-                <div id="packages-container" class="packages-list">
-                    <!-- سيتم تحميل الباقات هنا -->
+        <!-- --- BALANCE HERO --- -->
+        <div class="balance-hero">
+            <div class="balance-hero-left">
+                <h2>إجمالي رصيد التفعيلات</h2>
+                <div class="amount" id="display-system-balance">0 IQD</div>
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                    <button class="m2-btn m2-btn-primary" onclick="adjustSystemBalance(22000)"><i
+                            class="fas fa-plus"></i> نورمال</button>
+                    <button class="m2-btn m2-btn-danger" onclick="adjustSystemBalance(-22000)"><i
+                            class="fas fa-minus"></i> نورمال</button>
+                    <button class="m2-btn m2-btn-ghost" onclick="forceUpdateSystem()"><i class="fas fa-sync"></i>
+                        تحديث</button>
                 </div>
-
-                <div class="add-package-form"
-                    style="background: #f8fafc; border:none; padding:20px; margin:15px; border-radius:15px;">
-                    <h4 style="margin: 0 0 15px 0; font-size: 0.95rem; color: #475569;"><i
-                            class="fas fa-plus-circle"></i> إضافة باقة جديدة</h4>
-                    <div class="package-inputs">
-                        <input type="text" id="pkg-name" class="pkg-input" placeholder="اسم الباقة (مثلاً: نورمال)">
-                        <input type="number" id="pkg-cost" class="pkg-input" placeholder="سعر الشراء (رصيد)">
-                        <input type="number" id="pkg-sale" class="pkg-input" placeholder="سعر المبيع (صندوق)">
-                    </div>
-                    <input type="hidden" id="pkg-edit-id">
-                    <button onclick="addNewPackage()" id="btn-pkg-action" class="btn-primary"
-                        style="width: 100%; padding: 12px; border-radius: 12px; border: none; background: #0f172a; color: white; font-weight: bold; cursor: pointer;">
-                        إضافة الباقة للقائمة
-                    </button>
-                    <button id="btn-pkg-cancel" onclick="cancelPkgEdit()"
-                        style="width: 100%; padding: 8px; border: none; background: none; color: #64748b; font-size: 0.8rem; cursor: pointer; margin-top: 5px; display:none;">
-                        إلغاء التعديل
-                    </button>
+            </div>
+            <div class="balance-hero-right">
+                <h2>رصيد الذمة (الأجل)</h2>
+                <div class="amount-danger" id="display-provider-debt">0 IQD</div>
+                <div style="display:flex; gap:8px; margin-top:10px;">
+                    <button class="m2-btn m2-btn-danger" style="padding:8px 15px; font-size:0.8rem;"
+                        onclick="resetDebtToZero()">تصفير</button>
+                    <button class="m2-btn m2-btn-primary" style="padding:8px 15px; font-size:0.8rem;"
+                        onclick="adjustProviderDebt(-10000)">تسديد 10k</button>
                 </div>
             </div>
         </div>
 
-        <!-- إدارة رصيد النظام (التفعيلات) -->
-        <div class="settings-section">
-            <div class="section-title"><i class="fas fa-wallet" style="color:#10b981;"></i> رصيد وحسابات النظام
-                (الرئيسي)
+        <!-- --- CARD 1: GENERAL SETTINGS --- -->
+        <div class="m2-card-premium blue">
+            <div class="card-icon-box"><i class="fas fa-sliders-h"></i></div>
+            <div class="card-title-group">
+                <h3>إعدادات النظام</h3>
+                <p>إدارة الهوية والأسعار الافتراضية</p>
             </div>
-            <div class="section-content">
-                <div style="padding: 20px;">
-                    <div
-                        style="background: white; border: 2px solid #f1f5f9; padding: 30px 20px; border-radius: 24px; text-align: center; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.02); position:relative; overflow:hidden;">
-
-                        <div
-                            style="font-size: 0.95rem; color: #64748b; font-weight:700; margin-bottom: 8px; position:relative; z-index:2;">
-                            <i class="fas fa-coins" style="color:#10b981;"></i> الرصيد المتوفر للبيع والإدارة
-                        </div>
-                        <div id="display-system-balance"
-                            style="font-size: 2.5rem; font-weight: 800; font-family:'Outfit', sans-serif; letter-spacing:1px; color:#0f172a; position:relative; z-index:2;">
-                            0 IQD</div>
-
-                        <div style="margin-top:20px; padding-top:20px; border-top:1px solid #f1f5f9;">
-                            <div style="font-size: 0.85rem; color: #ef4444; font-weight:700; margin-bottom: 5px;">
-                                <i class="fas fa-exclamation-circle"></i> رصيد الذمة (المعلم / المجهز)
-                            </div>
-                            <div id="display-provider-debt" style="font-size: 1.8rem; font-weight: 800; color:#ef4444;">
-                                0 IQD</div>
-                        </div>
-                    </div>
-
-                    <!-- أدوات التعديل السريع -->
-                    <div style="margin-bottom:20px; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                        <button onclick="adjustSystemBalance(22000)"
-                            style="background: #f0fdf4; border: 1.5px solid #bbf7d0; color: #16a34a; font-weight: bold; border-radius: 14px; padding: 12px; cursor: pointer; transition: 0.2s; font-size:0.95rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;">
-                            <i class="fas fa-plus-circle"></i> نورمال (+22k)
-                        </button>
-                        <button onclick="adjustSystemBalance(-22000)"
-                            style="background: #fef2f2; border: 1.5px solid #fecaca; color: #ef4444; font-weight: bold; border-radius: 14px; padding: 12px; cursor: pointer; transition: 0.2s; font-size:0.95rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;">
-                            <i class="fas fa-minus-circle"></i> نورمال (-22k)
-                        </button>
-                    </div>
-
-                    <div
-                        style="padding:15px; background:#f8fafc; border-radius:15px; border:1px solid #e2e8f0; margin-bottom:20px;">
-                        <label
-                            style="display:block; font-size:0.8rem; color:#64748b; margin-bottom:10px; font-weight:bold;">تعديل
-                            يدوي لرصيد الذمة (الاجل):</label>
-                        <div style="display:flex; gap:8px;">
-                            <input type="number" id="manual-debt-input" placeholder="أدخل مبلغ الذمة الجديد"
-                                style="flex:1; padding:10px; border-radius:10px; border:1px solid #cbd5e1; outline:none;">
-                            <button onclick="setManualDebt()"
-                                style="background:#0f172a; color:white; border:none; padding:10px 15px; border-radius:10px; cursor:pointer; font-weight:bold;">تحديث</button>
-                        </div>
-                        <div style="display:flex; gap:5px; margin-top:10px;">
-                            <button onclick="adjustProviderDebt(-22000)"
-                                style="flex:1; padding:8px; border-radius:8px; border:1px solid #bfdbfe; background:#eff6ff; color:#2563eb; font-size:0.8rem; cursor:pointer;">-22k
-                                تسديد</button>
-                            <button onclick="resetDebtToZero()"
-                                style="flex:1; padding:8px; border-radius:8px; border:1px solid #e2e8f0; background:white; color:#64748b; font-size:0.8rem; cursor:pointer;">تصفير
-                                بالكامل</button>
-                        </div>
-                    </div>
-
-                    <div style="background: #f8fafc; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0;">
-                        <label
-                            style="display: block; font-size: 0.95rem; color: #334155; margin-bottom: 15px; font-weight: bold;"><i
-                                class="fas fa-keyboard" style="color:#64748b;"></i> إدخال أو تعديل مخصص للرصيد</label>
-                        <div style="display: flex; gap: 10px; flex-direction: column;">
-                            <input type="number" id="input-system-balance" class="pkg-input"
-                                style="width: 100%; text-align: center; font-weight: bold; font-size:1.2rem; padding:15px; border-radius:12px; background:white;"
-                                placeholder="أدخل الرصيد النهائي كلياً...">
-                            <button onclick="updateSystemBalanceDirectly()" class="btn-primary"
-                                style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none; padding: 15px; border-radius: 12px; cursor: pointer; font-weight: bold; font-size:1.05rem; box-shadow:0 4px 10px rgba(59,130,246,0.3); transition:0.2s;">
-                                <i class="fas fa-check-circle"></i> اعتماد كقيمة نهائية
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-    </div>
-    </div>
-
-    <!-- إعدادات عامة -->
-    <div class="settings-section">
-        <div class="section-title"><i class="fas fa-sliders-h" style="color:#3b82f6;"></i> الإعدادات العامة والتسعير
-        </div>
-        <div class="section-content">
-            <div class="setting-item">
-                <div class="setting-label">
-                    <i class="icon-indigo fas fa-tag"></i>
+            <div class="setting-row-modern">
+                <div class="setting-info-modern">
                     <span>اسم النظام</span>
+                    <small>يظهر في جميع التقارير والهيدر</small>
                 </div>
-                <input type="text" class="setting-input" id="set-system-name" value="OK Computer">
+                <input type="text" class="modern-input" id="set-system-name" value="OK Computer">
             </div>
-
-            <div class="setting-item">
-                <div class="setting-label">
-                    <i class="icon-green fas fa-money-bill"></i>
+            <div class="setting-row-modern">
+                <div class="setting-info-modern">
                     <span>السعر الافتراضي</span>
+                    <small>سعر المبيع الثابت للمشتركين</small>
                 </div>
-                <input type="number" class="setting-input" id="set-default-price" value="35000">
+                <input type="number" class="modern-input" id="set-default-price" value="35000">
             </div>
-
-            <div class="setting-item">
-                <div class="setting-label">
-                    <i class="icon-blue fas fa-calendar-alt"></i>
-                    <span>مدة الاشتراك (أيام)</span>
+            <div class="setting-row-modern">
+                <div class="setting-info-modern">
+                    <span>مدة الاشتراك</span>
+                    <small>المدة الافتراضية للباقات بالأيام</small>
                 </div>
-                <input type="number" class="setting-input" id="set-sub-duration" value="30">
+                <input type="number" class="modern-input" id="set-sub-duration" value="30">
             </div>
         </div>
+
+        <!-- --- CARD 2: SECURITY --- -->
+        <div class="m2-card-premium red">
+            <div class="card-icon-box"><i class="fas fa-shield-alt"></i></div>
+            <div class="card-title-group">
+                <h3>الأمان والخصوصية</h3>
+                <p>صلاحيات الحذف والوصول السري</p>
+            </div>
+            <div class="setting-row-modern">
+                <div class="setting-info-modern">
+                    <span>تعديل الصندوق</span>
+                    <small>السماح للموظفين بتعديل العمليات</small>
+                </div>
+                <div class="m2-toggle" onclick="toggleSwitch(this, 'set-allow-box-edit')"></div>
+                <input type="checkbox" id="set-allow-box-edit" class="hidden-checkbox">
+            </div>
+            <div class="setting-row-modern">
+                <div class="setting-info-modern">
+                    <span>حذف العمليات</span>
+                    <small>حماية الصندوق من التلاعب بالحذف</small>
+                </div>
+                <div class="m2-toggle" onclick="toggleSwitch(this, 'set-allow-box-deletion')"></div>
+                <input type="checkbox" id="set-allow-box-deletion" class="hidden-checkbox">
+            </div>
+            <div class="setting-row-modern">
+                <div class="setting-info-modern">
+                    <span>رمز الحماية (PIN)</span>
+                    <small>احذفه لتعطيل قفل الإعدادات</small>
+                </div>
+                <input type="text" class="modern-input" id="set-pin-code" placeholder="0000" maxlength="4">
+            </div>
+        </div>
+
+        <!-- --- CARD 3: PACKAGES MANAGEMENT --- -->
+        <div class="m2-card-premium orange">
+            <div class="card-icon-box"><i class="fas fa-box-open"></i></div>
+            <div class="card-title-group">
+                <h3>باقات الاشتراك</h3>
+                <p>تعديل أسعار الشراء والمبيع</p>
+            </div>
+            <div id="packages-container" style="max-height: 250px; overflow-y: auto; padding-right:5px;">
+                <!-- Loaded via JS -->
+            </div>
+            <div style="background: var(--bg-main); padding: 15px; border-radius: 12px; margin-top: 15px;">
+                <input type="text" id="pkg-name" placeholder="اسم الباقة"
+                    style="width: 100%; padding: 10px; margin-bottom: 8px; border-radius: 8px; border: 1px solid var(--border);">
+                <div style="display:flex; gap:8px; margin-bottom:8px;">
+                    <input type="number" id="pkg-cost" placeholder="سعر الشراء"
+                        style="flex:1; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
+                    <input type="number" id="pkg-sale" placeholder="سعر المبيع"
+                        style="flex:1; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
+                </div>
+                <input type="hidden" id="pkg-edit-id">
+                <button class="m2-btn m2-btn-primary" style="width:100%;" onclick="addNewPackage()"
+                    id="btn-pkg-action">إضافة باقة جديدة</button>
+            </div>
+        </div>
+
+        <!-- --- CARD 4: UI TOGGLES --- -->
+        <div class="m2-card-premium purple">
+            <div class="card-icon-box"><i class="fas fa-th-large"></i></div>
+            <div class="card-title-group">
+                <h3>الواجهة الرئيسية</h3>
+                <p>إدارة بطاقات الإحصائيات</p>
+            </div>
+            <div class="setting-row-modern"><span>المشتركين</span>
+                <div class="m2-toggle" id="card-subscribers-toggle-ui"
+                    onclick="toggleSwitch(this, 'card-subscribers-toggle')"></div><input type="checkbox"
+                    id="card-subscribers-toggle" class="hidden-checkbox">
+            </div>
+            <div class="setting-row-modern"><span>الفعالين</span>
+                <div class="m2-toggle" id="card-active-toggle-ui" onclick="toggleSwitch(this, 'card-active-toggle')">
+                </div><input type="checkbox" id="card-active-toggle" class="hidden-checkbox">
+            </div>
+            <div class="setting-row-modern"><span>الديون</span>
+                <div class="m2-toggle" id="card-debts-toggle-ui" onclick="toggleSwitch(this, 'card-debts-toggle')">
+                </div><input type="checkbox" id="card-debts-toggle" class="hidden-checkbox">
+            </div>
+            <div class="setting-row-modern"><span>الصندوق</span>
+                <div class="m2-toggle" id="card-payments-toggle-ui"
+                    onclick="toggleSwitch(this, 'card-payments-toggle')"></div><input type="checkbox"
+                    id="card-payments-toggle" class="hidden-checkbox">
+            </div>
+            <div class="setting-row-modern"><span>بوت التليجرام</span>
+                <div class="m2-toggle" id="card-telegram-toggle-ui"
+                    onclick="toggleSwitch(this, 'card-telegram-toggle')"></div><input type="checkbox"
+                    id="card-telegram-toggle" class="hidden-checkbox">
+            </div>
+        </div>
+
+        <!-- --- CARD 5: SIDEBAR TOGGLES --- -->
+        <div class="m2-card-premium green">
+            <div class="card-icon-box"><i class="fas fa-bars"></i></div>
+            <div class="card-title-group">
+                <h3>القائمة الجانبية</h3>
+                <p>إخفاء أو إظهار الروابط</p>
+            </div>
+            <div class="setting-row-modern"><span>المشتركين</span>
+                <div class="m2-toggle" id="nav-subscribers-toggle-ui"
+                    onclick="toggleSwitch(this, 'nav-subscribers-toggle')"></div><input type="checkbox"
+                    id="nav-subscribers-toggle" class="hidden-checkbox">
+            </div>
+            <div class="setting-row-modern"><span>الديون</span>
+                <div class="m2-toggle" id="nav-debts-toggle-ui" onclick="toggleSwitch(this, 'nav-debts-toggle')"></div>
+                <input type="checkbox" id="nav-debts-toggle" class="hidden-checkbox">
+            </div>
+            <div class="setting-row-modern"><span>سجل الحركات</span>
+                <div class="m2-toggle" id="nav-movements-toggle-ui"
+                    onclick="toggleSwitch(this, 'nav-movements-toggle')"></div><input type="checkbox"
+                    id="nav-movements-toggle" class="hidden-checkbox">
+            </div>
+            <div class="setting-row-modern"><span>الموظفين</span>
+                <div class="m2-toggle" id="nav-employees-toggle-ui"
+                    onclick="toggleSwitch(this, 'nav-employees-toggle')"></div><input type="checkbox"
+                    id="nav-employees-toggle" class="hidden-checkbox">
+            </div>
+        </div>
+
     </div>
 
-    <!-- إعدادات الصندوق والتحكم -->
-    <div class="settings-section">
-        <div class="section-title"><i class="fas fa-shield-alt" style="color:#ef4444;"></i> الأمان والصلاحيات</div>
-        <div class="section-content">
-            <div class="setting-item">
-                <div class="setting-label">
-                    <i class="icon-red fas fa-trash-alt"></i>
+    <!-- --- SAVE BAR --- -->
+    <div class="save-bar">
+        <button class="m2-btn m2-btn-primary" style="flex:2;" onclick="saveAllSettings()"><i class="fas fa-save"></i>
+            حفظ جميع التغييرات</button>
+        <button class="m2-btn m2-btn-ghost" style="flex:1;" onclick="resetAllSettings()"><i class="fas fa-undo"></i>
+            تصفير</button>
+    </div>
+
+    <div id="saveToast" class="save-toast"
+        style="position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(100px); background: #1e293b; color: white; padding: 12px 24px; border-radius: 12px; font-weight: 600; z-index: 9999; transition: transform 0.3s ease;">
+        ✅ تم حفظ الإعدادات</div>
+
+    <script>
+        const SETTINGS_KEY = 'sas_settings';
+
+        function toggleSwitch(el, checkboxId) {
+            const cb = document.getElementById(checkboxId);
+            cb.checked = !cb.checked;
+            el.classList.toggle('active', cb.checked);
+        }
+
+        // Logic sync for UI and checkboxes
+        function syncToggleUI(id, active) {
+            const el = document.getElementById(id + '-ui') || document.querySelector(`[onclick*="${id}"]`);
+            if (el) el.classList.toggle('active', active);
+        }
+
+        async function checkPin() {
+            const input = document.getElementById('pin-input');
+            const error = document.getElementById('pin-error');
+            const enteredPin = input.value;
+
+            let storedPin = '0000';
+            try {
+                const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+                storedPin = settings.pinCode || '0000';
+
+                // REST Check as fallback/primary
+                const response = await fetch(`https://firestore.googleapis.com/v1/projects/okcomputer-system/databases/(default)/documents/settings/global`);
+                if (response.ok) {
+                    const data = await response.json();
+                    storedPin = data.fields?.pinCode?.stringValue || storedPin;
+                }
+            } catch (e) { }
+
+            if (enteredPin === storedPin || storedPin === "") {
+                document.getElementById('pin-lock-overlay').style.opacity = '0';
+                setTimeout(() => document.getElementById('pin-lock-overlay').style.display = 'none', 300);
+            } else {
+                error.innerText = 'الرمز غير صحيح';
+                error.style.opacity = '1';
+                input.value = '';
+                setTimeout(() => error.style.opacity = '0', 2000);
+            }
+        }
+
+        function loadSettings() {
+            const cloudSettings = (typeof DataManager !== 'undefined' && DataManager.getSystemSettings)
+                ? DataManager.getSystemSettings() : {};
+            const settings = Object.keys(cloudSettings).length > 0 ? cloudSettings : JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+
+            if (settings.systemName) document.getElementById('set-system-name').value = settings.systemName;
+            if (settings.defaultPrice) document.getElementById('set-default-price').value = settings.defaultPrice;
+            if (settings.subDuration) document.getElementById('set-sub-duration').value = settings.subDuration;
+            if (settings.pinCode) document.getElementById('set-pin-code').value = settings.pinCode;
+
+            const switches = [
+                'set-allow-box-edit', 'set-allow-box-deletion',
+                'card-subscribers-toggle', 'card-active-toggle', 'card-debts-toggle', 'card-payments-toggle', 'card-telegram-toggle',
+                'nav-subscribers-toggle', 'nav-debts-toggle', 'nav-movements-toggle', 'nav-employees-toggle'
+            ];
+
+            switches.forEach(id => {
+                const cb = document.getElementById(id);
+                if (cb) {
+                    const key = id.replace('-toggle', '');
+                    cb.checked = settings[key] !== false;
+                    syncToggleUI(id, cb.checked);
+                }
+            });
+
+            window.currentPackages = settings.packages || [
+                { id: 'pkg_norm', name: 'نورمال (Normal)', costPrice: 22000, salePrice: 35000 },
+                { id: 'pkg_super', name: 'سوبر (Super)', costPrice: 24000, salePrice: 40000 }
+            ];
+            renderPackagesList();
+        }
+
+        function renderPackagesList() {
+            const container = document.getElementById('packages-container');
+            container.innerHTML = window.currentPackages.map(pkg => `
+                <div class="pkg-modern-item">
                     <div>
-                        <span>حذف العمليات</span>
+                        <div style="font-weight:700;">${pkg.name}</div>
+                        <div style="font-size:0.75rem; color:var(--text-sub);">كلفة: ${pkg.costPrice} | بيع: ${pkg.salePrice}</div>
                     </div>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="set-allow-box-deletion">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-label">
-                    <i class="icon-blue fas fa-pen"></i>
                     <div>
-                        <span>تعديل العمليات</span>
+                        <button onclick="editPackage('${pkg.id}')" style="background:none; border:none; color:var(--p-blue); cursor:pointer;"><i class="fas fa-edit"></i></button>
+                        <button onclick="removePackage('${pkg.id}')" style="background:none; border:none; color:var(--p-red); cursor:pointer; margin-right:8px;"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="set-allow-box-edit">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
+            `).join('');
+        }
 
-            <div class="setting-item" style="border-top:1px dashed #e2e8f0; margin-top:10px; padding-top:20px;">
-                <div class="setting-label">
-                    <i class="icon-red fas fa-lock"></i>
-                    <div style="text-align: right;">
-                        <span style="display:block;">تغيير رمز الحماية (PIN)</span>
-                        <p style="font-size:0.75rem; color:#94a3b8; margin:0;">احذفه لإلغاء القفل</p>
-                    </div>
-                </div>
-                <input type="text" class="setting-input" id="set-pin-code" placeholder="0000" maxlength="4"
-                    inputmode="numeric" style="width: 100px;">
-            </div>
-        </div>
-    </div>
+        window.addNewPackage = function () {
+            const name = document.getElementById('pkg-name').value;
+            const cost = parseInt(document.getElementById('pkg-cost').value);
+            const sale = parseInt(document.getElementById('pkg-sale').value);
+            const editId = document.getElementById('pkg-edit-id').value;
+            if (!name || isNaN(cost)) return;
 
-    <!-- كروت الداشبورد -->
-    <div class="settings-section">
-        <div class="section-title"><i class="fas fa-th-large" style="color:#8b5cf6;"></i> خيارات الصفحة الرئيسية</div>
-        <div class="section-content">
-            <div class="setting-item">
-                <div class="setting-label">
-                    <i class="icon-blue fas fa-users"></i>
-                    <span>المشتركين</span>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="card-subscribers-toggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-label">
-                    <i class="icon-teal fas fa-signal"></i>
-                    <span>الفعالين</span>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="card-active-toggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-label">
-                    <i class="icon-red fas fa-money-bill-wave"></i>
-                    <span>الديون</span>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="card-debts-toggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-label">
-                    <i class="icon-purple fas fa-wallet"></i>
-                    <span>الصندوق</span>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="card-payments-toggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-label">
-                    <i class="icon-indigo fas fa-chart-bar"></i>
-                    <span>التقارير</span>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="card-reports-toggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-label">
-                    <i class="icon-orange fas fa-user-tie"></i>
-                    <span>الموظفين</span>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="card-employees-toggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-label">
-                    <i class="icon-orange fas fa-exclamation-triangle"></i>
-                    <span>تنتهي قريباً</span>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="card-expiring-toggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-label">
-                    <i class="icon-gray fas fa-times-circle"></i>
-                    <span>المنتهية</span>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="card-expired-toggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-label">
-                    <i class="icon-dark fab fa-telegram-plane"></i>
-                    <span>بوت التيليجرام</span>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="card-telegram-toggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-        </div>
-    </div>
-
-    <!-- صفحات القائمة الجانبية -->
-    <div class="settings-section">
-        <div class="section-title"><i class="fas fa-bars" style="color:#0d9488;"></i> روابط القائمة الجانبية</div>
-        <div class="section-content">
-            <div class="setting-item">
-                <div class="setting-label">
-                    <i class="icon-blue fas fa-users"></i>
-                    <span>المشتركين</span>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="nav-subscribers-toggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-label">
-                    <i class="icon-teal fas fa-signal"></i>
-                    <span>الفعالين</span>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="nav-active-toggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-label">
-                    <i class="icon-red fas fa-money-bill-wave"></i>
-                    <span>الديون</span>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="nav-debts-toggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-label">
-                    <i class="icon-purple fas fa-hand-holding-usd"></i>
-                    <span>الصندوق</span>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="nav-payments-toggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-label">
-                    <i class="icon-indigo fas fa-chart-bar"></i>
-                    <span>التقارير</span>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="nav-reports-toggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-label">
-                    <i class="icon-orange fas fa-users-cog"></i>
-                    <span>الموظفين</span>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="nav-employees-toggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-label">
-                    <i class="icon-dark fab fa-telegram"></i>
-                    <span>Telegram</span>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="nav-telegram-toggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-        </div>
-    </div>
-
-    <!-- Grid End -->
-    </div>
-
-    <!-- زر حفظ الإعدادات (جديد) -->
-    <div style="padding: 0 15px;">
-        <button class="save-btn" onclick="saveAllSettings()"
-            style="background: var(--primary); color: white; width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);">
-            <i class="fas fa-save"></i> حفظ الإعدادات
-        </button>
-
-        <!-- زر إعادة التعيين -->
-        <button class="reset-btn" onclick="resetAllSettings()">
-            <i class="fas fa-undo"></i> إعادة تعيين جميع الإعدادات
-        </button>
-
-        <!-- Toast -->
-        <div class="save-toast" id="saveToast">✅ تم حفظ الإعدادات</div>
-
-        <script>
-            const SETTINGS_KEY = 'sas_settings';
-
-            // === تحميل الإعدادات ===
-            function loadSettings() {
-                console.log("🛠️ UI: loadSettings() triggered");
-
-                // جلب الإعدادات من DataManager (سحابياً) مع تفضيل الكاش المحلي إذا كان السحاب فارغاً في البداية
-                const cloudSettings = (typeof DataManager !== 'undefined' && DataManager.getSystemSettings)
-                    ? DataManager.getSystemSettings() : {};
-                const localSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-
-                // دمج الخيارات (تفضيل السحاب إذا كان يحتوي على بيانات)
-                const settings = Object.keys(cloudSettings).length > 0 ? cloudSettings : localSettings;
-
-                console.log("📦 UI: Applying settings to fields:", settings);
-
-                if (Object.keys(settings).length === 0) {
-                    console.log("ℹ️ No settings found in Cloud or LocalStorage.");
-                    return;
-                }
-
-                // إعدادات عامة
-                if (settings.systemName) document.getElementById('set-system-name').value = settings.systemName;
-                if (settings.defaultPrice) document.getElementById('set-default-price').value = settings.defaultPrice;
-                if (settings.subDuration) document.getElementById('set-sub-duration').value = settings.subDuration;
-                if (settings.pinCode) document.getElementById('set-pin-code').value = settings.pinCode;
-                if (settings.allowBoxDeletion !== undefined) document.getElementById('set-allow-box-deletion').checked = settings.allowBoxDeletion;
-                if (settings.allowBoxEdit !== undefined) document.getElementById('set-allow-box-edit').checked = settings.allowBoxEdit;
-
-                // حفظ نسخة محدثة في LocalStorage لضمان توفرها لـ PIN لاحقاً بسرعة
-                localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-
-                // الباقات
-                const toggleMap = {
-                    'card-subscribers': 'card-subscribers-toggle',
-                    'card-active': 'card-active-toggle',
-                    'card-debts': 'card-debts-toggle',
-                    'card-payments': 'card-payments-toggle',
-                    'card-reports': 'card-reports-toggle',
-                    'nav-card-employees': 'card-employees-toggle',
-                    'card-expiring': 'card-expiring-toggle',
-                    'card-expired': 'card-expired-toggle',
-                    'nav-card-telegram': 'card-telegram-toggle'
-                };
-
-                for (const [key, id] of Object.entries(toggleMap)) {
-                    const el = document.getElementById(id);
-                    if (el) {
-                        el.checked = settings[key] !== false;
-                    }
-                }
-
-                // صفحات النافبار
-                const navKeys = ['nav-subscribers', 'nav-active', 'nav-debts', 'nav-payments', 'nav-reports', 'nav-employees', 'nav-telegram'];
-                navKeys.forEach(key => {
-                    const el = document.getElementById(key + '-toggle');
-                    if (el) el.checked = settings[key] !== false;
-                });
-                // الباقات
-                window.currentPackages = settings.packages || [];
-                if (window.currentPackages.length === 0) {
-                    window.currentPackages = [
-                        { id: 'pkg_norm', name: 'نورمال (Normal)', costPrice: 22000, salePrice: 35000 },
-                        { id: 'pkg_super', name: 'سوبر (Super)', costPrice: 24000, salePrice: 40000 },
-                        { id: 'pkg_gold', name: 'جولد (Gold)', costPrice: 28000, salePrice: 50000 },
-                        { id: 'pkg_ajel', name: 'الاجل (0-0)', costPrice: 0, salePrice: 0 }
-                    ];
-                }
-                renderPackagesList();
+            if (editId) {
+                const idx = window.currentPackages.findIndex(p => p.id === editId);
+                window.currentPackages[idx] = { id: editId, name, costPrice: cost, salePrice: sale };
+            } else {
+                window.currentPackages.push({ id: 'pkg_' + Date.now(), name, costPrice: cost, salePrice: sale });
             }
+            renderPackagesList();
+            cancelPkgEdit();
+        };
 
-            function renderPackagesList() {
-                const container = document.getElementById('packages-container');
-                if (!container) return;
+        window.editPackage = function (id) {
+            const pkg = window.currentPackages.find(p => p.id === id);
+            document.getElementById('pkg-name').value = pkg.name;
+            document.getElementById('pkg-cost').value = pkg.costPrice;
+            document.getElementById('pkg-sale').value = pkg.salePrice;
+            document.getElementById('pkg-edit-id').value = pkg.id;
+            document.getElementById('btn-pkg-action').innerText = 'تحديث';
+        };
 
-                if (window.currentPackages.length === 0) {
-                    container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">لا توجد باقات مضافة حالياً</p>';
-                    return;
-                }
+        window.cancelPkgEdit = function () {
+            document.getElementById('pkg-edit-id').value = '';
+            document.getElementById('pkg-name').value = '';
+            document.getElementById('pkg-cost').value = '';
+            document.getElementById('pkg-sale').value = '';
+            document.getElementById('btn-pkg-action').innerText = 'إضافة باقة جديدة';
+        };
 
-                container.innerHTML = window.currentPackages.map(pkg => {
-                    let icon = 'fa-box';
-                    let color = '#64748b';
-                    if (pkg.name.toLowerCase().includes('norm')) { icon = 'fa-star'; color = '#3b82f6'; }
-                    if (pkg.name.toLowerCase().includes('sup')) { icon = 'fa-bolt'; color = '#f59e0b'; }
-                    if (pkg.name.toLowerCase().includes('gold')) { icon = 'fa-crown'; color = '#eab308'; }
+        window.removePackage = function (id) {
+            window.currentPackages = window.currentPackages.filter(p => p.id !== id);
+            renderPackagesList();
+        };
 
-                    return `
-                    <div class="package-card" style="border-right: 5px solid ${color};">
-                        <div class="package-info">
-                            <h4 style="display:flex; align-items:center; gap:8px;">
-                                <i class="fas ${icon}" style="color:${color}"></i>
-                                ${pkg.name}
-                            </h4>
-                            <p>خصم من الرصيد: <b style="color:#ef4444;">${pkg.costPrice.toLocaleString('en-US')}</b> | سعر المبيع: <b style="color:#10b981;">${pkg.salePrice.toLocaleString('en-US')}</b></p>
-                        </div>
-                        <div class="package-actions">
-                            <button onclick="editPackage('${pkg.id}')" class="btn-icon-blue" style="color: #3b82f6; background: #eff6ff; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer;"><i class="fas fa-edit"></i></button>
-                            <button onclick="removePackage('${pkg.id}')" class="btn-icon-danger"><i class="fas fa-trash"></i></button>
-                        </div>
-                    </div>
-                    `;
-                }).join('');
-            }
-
-            window.addNewPackage = function () {
-                const name = document.getElementById('pkg-name').value;
-                const cost = parseInt(document.getElementById('pkg-cost').value);
-                const sale = parseInt(document.getElementById('pkg-sale').value);
-                const editId = document.getElementById('pkg-edit-id').value;
-
-                if (!name || isNaN(cost) || isNaN(sale)) {
-                    return alert('يرجى ملء جميع حقول الباقة بشكل صحيح');
-                }
-
-                if (editId) {
-                    // Update existing
-                    const idx = window.currentPackages.findIndex(p => p.id === editId);
-                    if (idx !== -1) {
-                        window.currentPackages[idx] = { ...window.currentPackages[idx], name, costPrice: cost, salePrice: sale };
-                    }
-                    cancelPkgEdit();
-                } else {
-                    // Add new
-                    const newPkg = {
-                        id: 'pkg_' + Date.now(),
-                        name,
-                        costPrice: cost,
-                        salePrice: sale
-                    };
-                    window.currentPackages.push(newPkg);
-                }
-
-                renderPackagesList();
-
-                // مسح الحقول
-                document.getElementById('pkg-name').value = '';
-                document.getElementById('pkg-cost').value = '';
-                document.getElementById('pkg-sale').value = '';
-            }
-
-            window.editPackage = function (id) {
-                const pkg = window.currentPackages.find(p => p.id === id);
-                if (!pkg) return;
-
-                document.getElementById('pkg-name').value = pkg.name;
-                document.getElementById('pkg-cost').value = pkg.costPrice;
-                document.getElementById('pkg-sale').value = pkg.salePrice;
-                document.getElementById('pkg-edit-id').value = pkg.id;
-
-                document.getElementById('btn-pkg-action').innerText = 'تحديث الباقة';
-                document.getElementById('btn-pkg-cancel').style.display = 'block';
-
-                // Scroll to form
-                document.getElementById('pkg-name').scrollIntoView({ behavior: 'smooth' });
-            }
-
-            window.cancelPkgEdit = function () {
-                document.getElementById('pkg-edit-id').value = '';
-                document.getElementById('pkg-name').value = '';
-                document.getElementById('pkg-cost').value = '';
-                document.getElementById('pkg-sale').value = '';
-                document.getElementById('btn-pkg-action').innerText = 'إضافة الباقة للقائمة';
-                document.getElementById('btn-pkg-cancel').style.display = 'none';
-            }
-
-            window.removePackage = function (id) {
-                if (!confirm('هل تريد حذف هذه الباقة؟')) return;
-                window.currentPackages = window.currentPackages.filter(p => p.id !== id);
-                renderPackagesList();
-            }
-
-            // جعل loadSettings متاحة عالمياً لـ DataManager
-            window.loadSettings = loadSettings;
-
-            // === حفظ الكل ===
-            async function saveAllSettings() {
-                console.log("🚀 UI: saveAllSettings() started");
-                const settings = {};
-
-                // 1. الإعدادات العامة
-                settings.systemName = document.getElementById('set-system-name').value;
-                settings.defaultPrice = parseInt(document.getElementById('set-default-price').value || 35000);
-                settings.subDuration = parseInt(document.getElementById('set-sub-duration').value || 30);
-                settings.pinCode = document.getElementById('set-pin-code').value || '0000';
-
-                // 2. كروت الداشبورد
-                const toggleMap = {
-                    'card-subscribers': 'card-subscribers-toggle',
-                    'card-active': 'card-active-toggle',
-                    'card-debts': 'card-debts-toggle',
-                    'card-payments': 'card-payments-toggle',
-                    'card-reports': 'card-reports-toggle',
-                    'nav-card-employees': 'card-employees-toggle',
-                    'card-expiring': 'card-expiring-toggle',
-                    'card-expired': 'card-expired-toggle',
-                    'nav-card-telegram': 'card-telegram-toggle'
-                };
-                for (const [key, id] of Object.entries(toggleMap)) {
-                    const el = document.getElementById(id);
-                    if (el) settings[key] = el.checked;
-                }
-
-                // 3. النافبار
-                const navKeys = ['nav-subscribers', 'nav-active', 'nav-debts', 'nav-payments', 'nav-reports', 'nav-employees', 'nav-telegram'];
-                navKeys.forEach(key => {
-                    const el = document.getElementById(key + '-toggle');
-                    if (el) settings[key] = el.checked;
-                });
-
-                // 4. إعدادات إضافية
-                settings.allowBoxDeletion = document.getElementById('set-allow-box-deletion').checked;
-                settings.allowBoxEdit = document.getElementById('set-allow-box-edit').checked;
-
-                // 5. الباقات
-                settings.packages = window.currentPackages || [];
-
-                console.log("📤 UI: Sending data to DataManager:", settings);
-
-                if (typeof DataManager !== 'undefined' && DataManager.saveAllSystemSettings) {
-                    try {
-                        await DataManager.saveAllSystemSettings(settings);
-                        console.log("✅ UI: Remote save successful");
-                        showSaveToast('✅ تم الحفظ سحابياً بنجاح');
-                    } catch (err) {
-                        console.error("❌ UI: Remote save failed:", err);
-                        showSaveToast('❌ فشل الحفظ السحابي - تفقد الكونسل');
-                    }
-                } else {
-                    console.warn("⚠️ UI: DataManager not found, falling back to LocalStorage");
-                    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-                    showSaveToast('⚠️ تم الحفظ محلياً فقط');
-                }
-            }
-
-            window.updateSystemBalanceDirectly = async function () {
-                const newBalanceStr = document.getElementById('input-system-balance').value;
-                if (newBalanceStr === '') return alert('يرجى إدخال مبلغ الرصيد');
-
-                const newBalance = parseFloat(newBalanceStr);
-                if (confirm(`هل أنت متأكد من تعديل رصيد النظام يدوياً ليصبح ${newBalance.toLocaleString('en-US')} IQD؟`)) {
-                    if (typeof DataManager !== 'undefined' && DataManager.setSystemBalance) {
-                        const success = await DataManager.setSystemBalance(newBalance);
-                        if (success) {
-                            document.getElementById('display-system-balance').innerText = newBalance.toLocaleString('en-US') + ' IQD';
-                            document.getElementById('input-system-balance').value = '';
-                            showSaveToast('✅ تم تحديث الرصيد بنجاح');
-                        }
-                    }
-                }
-            }
-
-            window.adjustSystemBalance = async function (amount) {
-                if (typeof DataManager === 'undefined' || !DataManager.setSystemBalance) return;
-
-                const currentBalance = DataManager.getSystemBalance() || 0;
-                const newBalance = currentBalance + amount;
-                const actionText = amount > 0 ? "إضافة" : "خصم";
-                const amtStr = Math.abs(amount).toLocaleString('en-US');
-
-                if (confirm(`هل تريد ${actionText} ${amtStr} IQD ليصبح الرصيد ${newBalance.toLocaleString('en-US')} IQD؟`)) {
-                    const success = await DataManager.setSystemBalance(newBalance);
-                    if (success) {
-                        document.getElementById('display-system-balance').innerText = newBalance.toLocaleString('en-US') + ' IQD';
-                        showSaveToast('✅ تم المعالجة بنجاح');
-                    }
-                }
-            }
-
-            window.adjustProviderDebt = async function (amount) {
-                if (typeof DataManager === 'undefined' || !DataManager.setProviderDebt) return;
-
-                const currentDebt = DataManager.getProviderDebt() || 0;
-                const newDebt = Math.max(0, currentDebt + amount);
-                const amtStr = Math.abs(amount).toLocaleString('en-US');
-
-                const success = await DataManager.setProviderDebt(newDebt);
-                if (success) {
-                    showSaveToast('✅ تم تحديث الذمة');
-                }
-            }
-
-            window.setManualDebt = async function () {
-                const input = document.getElementById('manual-debt-input');
-                const val = parseFloat(input.value);
-                if (isNaN(val)) return alert('يرجى إدخال مبلغ صحيح');
-
-                if (confirm(`هل أنت متأكد من تعيين مبلغ الذمة إلى ${val.toLocaleString()} IQD؟`)) {
-                    const success = await DataManager.setProviderDebt(val);
-                    if (success) {
-                        input.value = '';
-                        showSaveToast('✅ تم تحديث مبلغ الذمة');
-                    }
-                }
-            }
-
-            window.resetDebtToZero = async function () {
-                if (typeof DataManager === 'undefined' || !DataManager.setProviderDebt) return;
-
-                if (confirm("هل أنت متأكد من تصفير رصيد الذمة بالكامل؟ (لن يتم حذف العمليات السابقة)")) {
-                    const success = await DataManager.setProviderDebt(0);
-                    if (success) {
-                        document.getElementById('display-provider-debt').innerText = '0 IQD';
-                        showSaveToast('✅ تم تصفير الذمة');
-                    }
-                }
-            }
-
-            window.toggleSection = function (el) {
-                el.classList.toggle('active');
-            }
-
-            window.forceUpdateSystem = async function () {
-                if (!confirm("سيتم مسح الذاكرة المؤقتة وتحديث الموقع بالكامل. هل تريد الاستمرار؟")) return;
-
-                if ('serviceWorker' in navigator) {
-                    const registrations = await navigator.serviceWorker.getRegistrations();
-                    for (let registration of registrations) {
-                        await registration.unregister();
-                    }
-                }
-
-                if ('caches' in window) {
-                    const keys = await caches.keys();
-                    for (let key of keys) {
-                        await caches.delete(key);
-                    }
-                }
-
-                localStorage.clear(); // Safe as most data is cloud-synced, but optional. 
-                // Better only clear specific keys if we want to keep login.
-                // localStorage.removeItem('sas_settings'); 
-
-                location.reload(true);
-            }
-
-
-
-            // === إعادة تعيين ===
-            function resetAllSettings() {
-                if (!confirm('هل أنت متأكد من إعادة تعيين جميع الإعدادات؟')) return;
-                // للتصفير السحابي، سنحتاج لحذف الوثيقة أو مسح كل الحقول.
-                // للتبسيط، سنمسح الـ localStorage ونطلب الحذف يدوياً أو نتركها
-                localStorage.removeItem(SETTINGS_KEY);
-                showSaveToast('🔄 تم مسح الكاش المحلي. لإعادة التعيين الكلي يرجى التواصل مع الدعم.');
-                loadSettings();
-            }
-
-            // === Toast ===
-            function showSaveToast(msg) {
-                const toast = document.getElementById('saveToast');
-                toast.innerText = msg || '✅ تم حفظ الإعدادات';
-                toast.classList.add('show');
-                setTimeout(() => toast.classList.remove('show'), 2000);
-            }
-
-            // === Menu Toggle ===
-            window.toggleMenu = function () {
-                const nav = document.getElementById('main-nav');
-                nav.classList.toggle('active');
-                document.body.style.overflow = nav.classList.contains('active') ? 'hidden' : '';
+        async function saveAllSettings() {
+            const settings = {
+                systemName: document.getElementById('set-system-name').value,
+                defaultPrice: parseInt(document.getElementById('set-default-price').value),
+                subDuration: parseInt(document.getElementById('set-sub-duration').value),
+                pinCode: document.getElementById('set-pin-code').value,
+                packages: window.currentPackages,
+                allowBoxEdit: document.getElementById('set-allow-box-edit').checked,
+                allowBoxDeletion: document.getElementById('set-allow-box-deletion').checked,
+                'card-subscribers': document.getElementById('card-subscribers-toggle').checked,
+                'card-active': document.getElementById('card-active-toggle').checked,
+                'card-debts': document.getElementById('card-debts-toggle').checked,
+                'card-payments': document.getElementById('card-payments-toggle').checked,
+                'card-telegram': document.getElementById('card-telegram-toggle').checked,
+                'nav-subscribers': document.getElementById('nav-subscribers-toggle').checked,
+                'nav-debts': document.getElementById('nav-debts-toggle').checked,
+                'nav-movements': document.getElementById('nav-movements-toggle').checked,
+                'nav-employees': document.getElementById('nav-employees-toggle').checked,
             };
 
-            DataManager.init().then(() => {
-                // الاستماع للتغييرات بشكل مباشر لضمان دقة الرصيد
-                DataManager.onDataChange(() => {
-                    const balance = DataManager.getSystemBalance() || 0;
-                    const debt = DataManager.getProviderDebt() || 0;
+            if (typeof DataManager !== 'undefined' && DataManager.saveAllSystemSettings) {
+                await DataManager.saveAllSystemSettings(settings);
+            }
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+            showToast('✅ تم حفظ جميع الإعدادات');
+        }
 
-                    const balEl = document.getElementById('display-system-balance');
-                    if (balEl) balEl.innerText = balance.toLocaleString('en-US') + ' IQD';
+        window.adjustSystemBalance = async function (amt) {
+            const current = DataManager.getSystemBalance() || 0;
+            const next = current + amt;
+            if (confirm(`تعديل الرصيد إلى ${next.toLocaleString()}؟`)) {
+                await DataManager.setSystemBalance(next);
+                showToast('✅ تم التعديل');
+            }
+        };
 
-                    const debtEl = document.getElementById('display-provider-debt');
-                    if (debtEl) debtEl.innerText = debt.toLocaleString('en-US') + ' IQD';
-                });
+        window.resetDebtToZero = async function () {
+            if (confirm('تصفير الذمة؟')) {
+                await DataManager.setProviderDebt(0);
+                showToast('✅ تم التصفير');
+            }
+        };
 
+        window.adjustProviderDebt = async function (amt) {
+            const current = DataManager.getProviderDebt() || 0;
+            await DataManager.setProviderDebt(Math.max(0, current + amt));
+            showToast('✅ تم التحديث');
+        };
+
+        window.forceUpdateSystem = async function () {
+            if (!confirm("تحديث النظام؟")) return;
+            localStorage.clear();
+            location.reload(true);
+        };
+
+        function showToast(msg) {
+            const t = document.getElementById('saveToast');
+            t.innerText = msg;
+            t.style.transform = 'translateX(-50%) translateY(0)';
+            setTimeout(() => t.style.transform = 'translateX(-50%) translateY(100px)', 3000);
+        }
+
+        window.toggleMenu = () => document.getElementById('main-nav').classList.toggle('active');
+
+        import('./data-manager.js?v=35.0').then(m => {
+            window.DataManager = m.DataManager;
+            m.DataManager.init().then(() => {
                 loadSettings();
+                m.DataManager.onDataChange(() => {
+                    document.getElementById('display-system-balance').innerText = (m.DataManager.getSystemBalance() || 0).toLocaleString() + ' IQD';
+                    document.getElementById('display-provider-debt').innerText = (m.DataManager.getProviderDebt() || 0).toLocaleString() + ' IQD';
+                });
             });
-        </script>
-        <script type="module">
-            import { DataManager } from './data-manager.js?v=35.0';
-            window.DataManager = DataManager;
-            DataManager.init();
-        </script>
+        });
+    </script>
 </body>
 
 </html>
