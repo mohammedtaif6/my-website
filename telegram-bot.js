@@ -11,6 +11,14 @@ class TelegramBot {
         this.configLoaded = false;
         this.isPolling = false;
         this.instanceId = Math.random().toString(36).substring(7);
+
+        // تنظيف القفل عند إغلاق التبويب أو إعادة التحميل لضمان انتقال التحكم لتبويب آخر بسرعة
+        window.addEventListener('beforeunload', () => {
+            if (localStorage.getItem('sas_tg_poll_id') === this.instanceId) {
+                localStorage.removeItem('sas_tg_poll_active');
+                localStorage.removeItem('sas_tg_poll_id');
+            }
+        });
     }
 
     // تهيئة الاتصال بـ Firebase
@@ -322,9 +330,10 @@ ${emoji} المبلغ: <b>${price.toLocaleString('en-US')} د.ع</b>
 
             // نظام التنسيق بين التبويبات (Lock Table)
             // إذا كان هناك تبويب نشط وليس هذا التبويب، ننتظر هدوء تام
-            if (now - lastPolled < 10000 && localStorage.getItem('sas_tg_poll_id') !== this.instanceId) {
-                // لا نقوم بأي اتصال، فقط ننتظر ونحاول مجدداً بعد 10 ثواني
-                await new Promise(r => setTimeout(r, 10000));
+            // زيادة المهلة إلى 45 ثانية لتغطية وقت الانتظار الطويل (Long Polling 20s)
+            if (now - lastPolled < 45000 && localStorage.getItem('sas_tg_poll_id') !== this.instanceId) {
+                // لا نقوم بأي اتصال، فقط ننتظر ونحاول مجدداً بعد 15 ثانية
+                await new Promise(r => setTimeout(r, 15000));
                 continue;
             }
 
