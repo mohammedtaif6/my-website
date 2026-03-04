@@ -2,17 +2,35 @@
 const AuthSystem = {
     // تهيئة المظهر (Dark Mode)
     initTheme() {
-        const savedTheme = localStorage.getItem('sas_theme');
-        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
-            document.documentElement.setAttribute('data-theme', 'dark');
-        }
+        const applyTheme = () => {
+            const savedTheme = localStorage.getItem('sas_theme');
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+        };
+
+        // تطبيق عند البدء
+        applyTheme();
+
+        // الاستماع لتغييرات النظام في الوقت الفعلي
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            // نطبق التغيير التلقائي فقط إذا لم يقم المستخدم باختيار يدوي ثابت
+            if (!localStorage.getItem('sas_theme')) {
+                applyTheme();
+            }
+        });
     },
 
     toggleTheme() {
         const current = document.documentElement.getAttribute('data-theme');
         const target = current === 'dark' ? 'light' : 'dark';
+
         document.documentElement.setAttribute('data-theme', target);
+        // حفظ الاختيار اليدوي
         localStorage.setItem('sas_theme', target);
     },
 
