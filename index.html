@@ -1388,12 +1388,14 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            const lateSubs = subs.filter(s => {
-                const debt = parseInt(s.price || 0);
-                if (debt <= 0) return false; // يجب أن يكون عليه دين
+            let lateSubs = [];
+
+            subs.forEach(s => {
+                const debtAmount = parseInt(s.price || 0);
+                if (debtAmount <= 0) return; // يجب أن يكون عليه دين
 
                 const expiryStr = s.expiryDate || s.endDate;
-                if (!expiryStr) return false;
+                if (!expiryStr) return;
 
                 // توحيد صيغة التاريخ
                 let isoDate = expiryStr;
@@ -1403,7 +1405,7 @@
                 }
 
                 let parts = isoDate.split('-');
-                if (parts.length !== 3) return false;
+                if (parts.length !== 3) return;
 
                 let expiryDate = new Date(parts[0], parts[1] - 1, parts[2]);
                 expiryDate.setHours(0, 0, 0, 0);
@@ -1420,11 +1422,13 @@
                 const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
                 // التحقق هل مر 5 أيام فأكثر؟
-                return diffDays >= 5;
+                if (diffDays >= 5) {
+                    lateSubs.push({ ...s, debtAmount, diffDays });
+                }
+            });
 
-            }).map(s => {
-                return { ...s, debtAmount: parseInt(s.price || 0) };
-            }).sort((a, b) => b.debtAmount - a.debtAmount);
+            // ترتيب حسب حجم الدين
+            lateSubs.sort((a, b) => b.debtAmount - a.debtAmount);
 
             const bar = document.getElementById('late-renewals-bar');
             const scrollWrap = document.getElementById('late-scroll-wrap');
@@ -1442,6 +1446,7 @@
             const chips = lateSubs.map(s =>
                 `<a href="subscribers.html?id=${s.id}" class="late-name-chip">
                     <span>${s.name}</span>
+                    <span class="days-badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2);"><i class="fas fa-clock" style="margin-left: 3px;"></i>متأخر ${s.diffDays} أيام</span>
                     <span class="days-badge">${s.debtAmount.toLocaleString('en-US')} د.ع</span>
                 </a>`
             ).join('');
