@@ -172,53 +172,85 @@
         /* --- Clean Elegant Header Styles --- */
         .dashboard-header-modern {
             background: white;
-            padding: 20px 25px;
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+            padding: 20px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
             border: 1px solid #f1f5f9;
             margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-header-modern::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #3b82f6, #10b981);
+            opacity: 0.8;
         }
 
         .dashboard-header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .dashboard-header-content {
+                grid-template-columns: auto 1fr;
+                align-items: center;
+            }
         }
 
         .user-greeting {
             display: flex;
             align-items: center;
             gap: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        @media (min-width: 768px) {
+            .user-greeting {
+                padding-bottom: 0;
+                border-bottom: none;
+                padding-left: 20px;
+                border-left: 1px solid #f1f5f9;
+            }
         }
 
         .user-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 14px;
-            background: #eff6ff;
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.3rem;
-            color: #3b82f6;
+            font-size: 1.5rem;
+            color: #2563eb;
             border: 1px solid #bfdbfe;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.1);
         }
 
         .greeting-text .date-text {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: #94a3b8;
             margin: 0 0 4px 0;
             display: flex;
             align-items: center;
             gap: 6px;
             font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .greeting-text .name-text {
-            font-size: 1.3rem;
-            font-weight: 700;
+            font-size: 1.25rem;
+            font-weight: 800;
             margin: 0;
             color: #1e293b;
             display: flex;
@@ -226,77 +258,96 @@
             gap: 8px;
         }
 
+        .header-stats-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        @media (min-width: 480px) {
+            .header-stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .header-stats-row {
+                justify-content: flex-end;
+                display: flex;
+            }
+        }
+
         .balance-card-smart {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
-            padding: 10px 18px;
-            border-radius: 16px;
+            padding: 12px 16px;
+            border-radius: 18px;
             display: flex;
             align-items: center;
-            gap: 15px;
+            justify-content: space-between;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .balance-card-smart:hover {
+            border-color: #cbd5e1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
         .balance-info {
             display: flex;
             flex-direction: column;
-            align-items: flex-end;
-            text-align: left;
+            text-align: right;
         }
 
         .balance-label {
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             color: #64748b;
-            font-weight: 600;
-            margin-bottom: 5px;
+            font-weight: 700;
+            margin-bottom: 2px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .balance-amount {
-            font-size: 1.6rem;
-            font-weight: 800;
+            font-size: 1.3rem;
+            font-weight: 900;
             color: #10b981;
-            font-family: 'Outfit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            letter-spacing: 0.5px;
+            font-family: 'Outfit', sans-serif;
+            letter-spacing: -0.5px;
         }
 
         .btn-topup-smart {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
             background: white;
             color: #6366f1;
             border: 1px solid #e0e7ff;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.1rem;
+            font-size: 1rem;
             cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
             transition: all 0.2s ease;
         }
 
         .btn-topup-smart:hover {
-            background: #eef2ff;
-            border-color: #c7d2fe;
-            color: #4f46e5;
-            transform: translateY(-2px);
-        }
-
-        .btn-topup-smart:active {
-            transform: scale(0.95);
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
         }
 
         .menu-btn {
             background: white !important;
             color: #1e293b !important;
             border: 1px solid #e2e8f0 !important;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05) !important;
-        }
-
-        .menu-btn:hover {
-            background: #f8fafc !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+            top: 20px !important;
+            right: 20px !important;
         }
     </style>
 
@@ -354,12 +405,11 @@
                     </div>
                 </div>
 
-                <div style="display:flex; gap:15px; flex-wrap:wrap;">
+                <div class="header-stats-row">
                     <!-- بطاقة الرصيد المالي -->
                     <div class="balance-card-smart">
                         <div class="balance-info">
-                            <span class="balance-label">رصيد النظام <i class="fas fa-wallet"
-                                    style="color: #64748b;"></i></span>
+                            <span class="balance-label">رصيد النظام <i class="fas fa-wallet"></i></span>
                             <span id="header-balance-amount" class="balance-amount">0 د.ع</span>
                         </div>
                         <div class="balance-action">
@@ -371,10 +421,10 @@
 
                     <!-- بطاقة الذمة -->
                     <div class="balance-card-smart" id="provider-debt-card"
-                        style="border-color: #fecaca; background: #fffafb;">
+                        style="border-color: #fee2e2; background: #fffcfc; border-style: dashed;">
                         <div class="balance-info">
                             <span class="balance-label" style="color: #ef4444;">الذمة للمجهز <i
-                                    class="fas fa-exclamation-circle" style="color: #ef4444;"></i></span>
+                                    class="fas fa-exclamation-triangle"></i></span>
                             <span id="header-debt-amount" class="balance-amount" style="color: #ef4444;">0 د.ع</span>
                         </div>
                     </div>
