@@ -522,7 +522,8 @@
             .late-ticker-scroll {
                 display: flex;
                 gap: 10px;
-                padding-right: 10px;
+                padding-left: 10px;
+                /* المسافة من اليسار لضمان الربط السلس في الـ RTL */
                 animation: lateTickerScroll 22s linear infinite;
                 white-space: nowrap;
                 flex-shrink: 0;
@@ -538,7 +539,7 @@
                 }
 
                 100% {
-                    transform: translateX(-100%);
+                    transform: translateX(100%);
                 }
             }
 
@@ -1411,8 +1412,8 @@
                 </a>`
             ).join('');
 
-            // سرعة صاروخية وتناسب عدد الأسماء
-            const speed = Math.max(5, lateSubs.length * 0.6);
+            // سرعة مضاعفة مرتين (صاروخية) بناء على الطلب
+            const speed = Math.max(3, lateSubs.length * 0.3);
 
             // إنشاء شريطين متطابقين لحركة لانهاية مثالية بدون انقطاع
             const scrollInner = `<div class="late-ticker-scroll" style="animation-duration: ${speed}s">${chips}</div>`;
