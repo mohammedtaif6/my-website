@@ -26,6 +26,14 @@ class TelegramBot {
     async initFirebase(db) {
         this.db = db;
         await this.loadConfig();
+
+        // محاولة مسح أي Webhook قديم قد يسبب تعارض 409 مع getUpdates
+        if (this.config && this.config.botToken) {
+            try {
+                const url = `https://api.telegram.org/bot${this.config.botToken}/deleteWebhook?drop_pending_updates=true`;
+                await fetch(url);
+            } catch (e) { }
+        }
     }
 
     async loadConfig() {
@@ -316,13 +324,25 @@ ${emoji} المبلغ: <b>${price.toLocaleString('en-US')} د.ع</b>
     async startBackgroundPolling() {
         if (this.isPolling) return;
         if (!this.config || !this.config.botToken) return;
+
+        // علامة لمنع التشغيل المتكرر في نفس التبويب
+        if (this._pollStarted) return;
+        this._pollStarted = true;
+
         this.isPolling = true;
 
         // استخدام Web Locks API إذا كان متاحاً (أفضل وسيلة للتنظيم بين التبويبات)
         if (navigator.locks) {
-            navigator.locks.request('sas_telegram_polling', async (lock) => {
+            navigator.locks.request('sas_telegram_polling', { ifAvailable: false }, async (lock) => {
+                if (!lock) {
+                    console.log("📡 Telegram Polling: Another tab is already Master. Standing by.");
+                    return;
+                }
                 console.log("📡 Telegram Polling: This tab is now the MASTER instance.");
                 await this.doPolling();
+            }).catch(e => {
+                this._pollStarted = false;
+                this.isPolling = false;
             });
         } else {
             // Fallback للمتصفحات القديمة
@@ -339,12 +359,10 @@ ${emoji} المبلغ: <b>${price.toLocaleString('en-US')} د.ع</b>
             const now = Date.now();
             const lastPolled = parseInt(localStorage.getItem('sas_tg_poll_active') || '0');
 
-            // نظام التنسيق بين التبويبات (Lock Table)
-            // إذا كان هناك تبويب نشط وليس هذا التبويب، ننتظر هدوء تام
-            // زيادة المهلة إلى 45 ثانية لتغطية وقت الانتظار الطويل (Long Polling 20s)
-            if (now - lastPolled < 45000 && localStorage.getItem('sas_tg_poll_id') !== this.instanceId) {
-                // لا نقوم بأي اتصال، فقط ننتظر ونحاول مجدداً بعد 15 ثانية
-                await new Promise(r => setTimeout(r, 15000));
+            // نظام التنسيق بين التبويبات (Lock Table) كطبقة حماية ثانية
+            // تقليل المهلة قليلاً لسرعة الاستجابة بما أننا نستخدم Web Locks
+            if (now - lastPolled < 30000 && localStorage.getItem('sas_tg_poll_id') !== this.instanceId) {
+                await new Promise(r => setTimeout(r, 10000));
                 continue;
             }
 
@@ -357,7 +375,8 @@ ${emoji} المبلغ: <b>${price.toLocaleString('en-US')} د.ع</b>
                 const response = await fetch(url);
 
                 if (response.status === 409) {
-                    // إذا حدث تعارض رغم وجود القفل، ننتظر هدوءاً أطول
+                    const errData = await response.json().catch(() => ({}));
+                    console.warn(`⚠️ Telegram: Conflict (409) - ${errData.description || 'Another instance is active'}. Retrying in 60s...`);
                     await new Promise(r => setTimeout(r, 60000));
                     continue;
                 }
