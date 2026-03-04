@@ -1340,7 +1340,7 @@
                 const empStatsDiv = document.getElementById('employee-dashboard-stats');
 
                 if (empStatsDiv) {
-                    empStatsDiv.style.display = 'block';
+                    empStatsDiv.style.display = 'none'; // تم إخفائها لتوفير المساحة بناءً على طلبك
 
                     const bal = DataManager.calculateEmployeeBalance(AuthSystem.currentUser.id);
                     const emp = DataManager.getEmployee(AuthSystem.currentUser.id);
