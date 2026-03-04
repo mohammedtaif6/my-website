@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>معرض التبويبات (Tabs Showcase)</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Kufi+Arabic:wght@400;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-body: #0f172a;
+            --text-main: #f1f5f9;
+            --text-sub: #94a3b8;
+            --p-blue: #3b82f6;
+            --p-purple: #8b5cf6;
+            --p-green: #10b981;
+        }
+
+        body {
+            font-family: 'Noto Kufi Arabic', 'Outfit', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin: 0 0 10px 0;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: var(--text-sub);
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .showcase-container {
+            width: 100%;
+            max-width: 800px;
+            background: #1e293b;
+            border-radius: 24px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .showcase-title {
+            color: var(--text-sub);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            font-weight: 800;
+        }
+
+        /* =========================================
+           نموذج 1: Floating Pill (الكبسولة العائمة)
+           ========================================= */
+        .tabs-model-1 {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 8px;
+            border-radius: 50px;
+            display: inline-flex;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tabs-model-1 input[type="radio"] {
+            display: none;
+        }
+
+        .tabs-model-1 label {
+            padding: 12px 24px;
+            cursor: pointer;
+            border-radius: 40px;
+            font-weight: 700;
+            color: var(--text-sub);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tabs-model-1 .indicator {
+            position: absolute;
+            background: var(--p-blue);
+            height: calc(100% - 16px);
+            width: 33.33%;
+            top: 8px;
+            right: 8px;
+            border-radius: 40px;
+            z-index: 1;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .tabs-model-1 input:nth-child(1):checked~label:nth-of-type(1),
+        .tabs-model-1 input:nth-child(2):checked~label:nth-of-type(2),
+        .tabs-model-1 input:nth-child(3):checked~label:nth-of-type(3) {
+            color: white;
+        }
+
+        .tabs-model-1 input:nth-child(1):checked~.indicator {
+            right: 8px;
+        }
+
+        .tabs-model-1 input:nth-child(2):checked~.indicator {
+            right: calc(33.33% + 4px);
+        }
+
+        .tabs-model-1 input:nth-child(3):checked~.indicator {
+            right: calc(66.66%);
+        }
+
+        /* =========================================
+           نموذج 2: Magic Underline (الخط السحري)
+           ========================================= */
+        .tabs-model-2 {
+            display: inline-flex;
+            position: relative;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 0;
+            gap: 30px;
+        }
+
+        .tabs-model-2 .tab-item {
+            padding: 15px 10px;
+            color: var(--text-sub);
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tabs-model-2 .tab-item:hover {
+            color: white;
+        }
+
+        .tabs-model-2 .tab-item.active {
+            color: var(--p-purple);
+        }
+
+        .tabs-model-2 .tab-item::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--p-purple);
+            border-radius: 3px 3px 0 0;
+            transform: scaleX(0);
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 -2px 10px rgba(139, 92, 246, 0.5);
+        }
+
+        .tabs-model-2 .tab-item.active::after {
+            transform: scaleX(1);
+        }
+
+        /* =========================================
+           نموذج 3: Glassmorphism Bottom (زجاجي سفلي)
+           ========================================= */
+        .tabs-model-3 {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+            padding: 10px 20px;
+            border-radius: 30px;
+            display: inline-flex;
+            gap: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .tabs-model-3 .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            padding: 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            transition: 0.3s;
+            min-width: 80px;
+        }
+
+        .tabs-model-3 .tab-btn i {
+            font-size: 1.4rem;
+            transition: 0.3s;
+        }
+
+        .tabs-model-3 .tab-btn span {
+            font-size: 0.75rem;
+            font-weight: 700;
+            opacity: 0;
+            transform: translateY(5px);
+            transition: 0.3s;
+        }
+
+        .tabs-model-3 .tab-btn.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tabs-model-3 .tab-btn.active i {
+            color: var(--p-green);
+            transform: translateY(-2px);
+            filter: drop-shadow(0 2px 8px rgba(16, 185, 129, 0.5));
+        }
+
+        .tabs-model-3 .tab-btn.active span {
+            opacity: 1;
+            transform: translateY(0);
+            color: var(--p-green);
+        }
+
+        /* =========================================
+           نموذج 4: Soft Neumorphic (البارز)
+           ========================================= */
+        .tabs-model-4 {
+            display: inline-flex;
+            gap: 15px;
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 20px;
+            box-shadow: inset 5px 5px 10px rgba(0, 0, 0, 0.5), inset -5px -5px 10px rgba(255, 255, 255, 0.02);
+        }
+
+        .tabs-model-4 button {
+            background: transparent;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 14px;
+            color: var(--text-sub);
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tabs-model-4 button.active {
+            background: linear-gradient(145deg, #202c40, #1b2535);
+            color: white;
+            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.4), -4px -4px 8px rgba(255, 255, 255, 0.05);
+        }
+
+        .tabs-model-4 button.active i {
+            color: #f59e0b;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>معرض التبويبات الفاخرة</h1>
+        <p>اختر التصميم الذي تراه مناسباً للاستخدام في صفحات نظامك (مثل صفحة إضافة المشتركين، الديون، إلخ).</p>
+    </div>
+
+    <!-- نموذج 1 -->
+    <div class="showcase-container">
+        <div class="showcase-title">النموذج 1: Floating Pill (الكبسولة العائمة الحركية)</div>
+        <p style="color:var(--text-sub); font-size:0.9rem; margin-bottom: 30px;">تصميم مستوحى من أنظمة iOS، سلس جداً
+            ويستخدم خلفية منزلقة أنيقة.</p>
+
+        <div class="tabs-model-1">
+            <input type="radio" id="t1-r1" name="m1" checked>
+            <input type="radio" id="t1-r2" name="m1">
+            <input type="radio" id="t1-r3" name="m1">
+
+            <label for="t1-r1"><i class="fas fa-user-plus"></i> إضافة مشترك</label>
+            <label for="t1-r2"><i class="fas fa-sync"></i> تجديد اشتراك</label>
+            <label for="t1-r3"><i class="fas fa-cog"></i> إعدادات</label>
+
+            <div class="indicator"></div>
+        </div>
+    </div>
+
+    <!-- نموذج 2 -->
+    <div class="showcase-container">
+        <div class="showcase-title">النموذج 2: Magic Underline (الخط السحري البسيط)</div>
+        <p style="color:var(--text-sub); font-size:0.9rem; margin-bottom: 30px;">تصميم رسمي وعصري جداً، ممتاز للصفحات
+            التي تحتوي على بيانات كثيرة.</p>
+
+        <div class="tabs-model-2">
+            <div class="tab-item active" onclick="activateTab2(this)"><i class="fas fa-list"></i> الكل</div>
+            <div class="tab-item" onclick="activateTab2(this)"><i class="fas fa-check-circle"></i> الفعالين</div>
+            <div class="tab-item" onclick="activateTab2(this)"><i class="fas fa-times-circle"></i> المنتهين</div>
+        </div>
+    </div>
+
+    <!-- نموذج 3 -->
+    <div class="showcase-container">
+        <div class="showcase-title">النموذج 3: Glassmorphism Bottom (زجاجي للتنقل الجانبي/السفلي)</div>
+        <p style="color:var(--text-sub); font-size:0.9rem; margin-bottom: 30px;">يستخدم غالباً كشريط تنقل سفلي أو عائم،
+            يركز على الأيقونات مع إظهار النص عند التفعيل.</p>
+
+        <div class="tabs-model-3">
+            <button class="tab-btn active" onclick="activateTab3(this)">
+                <i class="fas fa-chart-pie"></i>
+                <span>التقارير</span>
+            </button>
+            <button class="tab-btn" onclick="activateTab3(this)">
+                <i class="fas fa-wallet"></i>
+                <span>الصندوق</span>
+            </button>
+            <button class="tab-btn" onclick="activateTab3(this)">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>الديون</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- نموذج 4 -->
+    <div class="showcase-container">
+        <div class="showcase-title">النموذج 4: Soft Neumorphic (البارز اللين)</div>
+        <p style="color:var(--text-sub); font-size:0.9rem; margin-bottom: 30px;">تصميم يبرز الأزرار وكأنها ثلاثية
+            الأبعاد (مضغوطة لتمثيل "النشط").</p>
+
+        <div class="tabs-model-4">
+            <button class="active" onclick="activateTab4(this)"><i class="fas fa-wifi"></i> باقات الأنترنت</button>
+            <button onclick="activateTab4(this)"><i class="fas fa-tv"></i> قنوات التلفاز</button>
+        </div>
+    </div>
+
+    <script>
+        function activateTab2(element) {
+            document.querySelectorAll('.tabs-model-2 .tab-item').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        function activateTab3(element) {
+            document.querySelectorAll('.tabs-model-3 .tab-btn').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        function activateTab4(element) {
+            document.querySelectorAll('.tabs-model-4 button').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+        }
+    </script>
+
+</body>
+
+</html>
