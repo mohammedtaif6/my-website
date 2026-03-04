@@ -8,11 +8,12 @@ class TelegramBot {
         // إعدادات البوت - محفوظة في Firebase
         this.config = null;
         this.db = null;
-        this.configLoaded = false;
-        this.isPolling = false;
+        this.isInitialized = false;
         this.instanceId = Math.random().toString(36).substring(7);
+        this.isPolling = false; // Keep this, as it's used later
+        this.configLoaded = false; // Keep this, as it's used later
 
-        // تنظيف القفل عند إغلاق التبويب أو إعادة التحميل لضمان انتقال التحكم لتبويب آخر بسرعة
+        // تنظيف القفل عند إغلاق التبويب
         window.addEventListener('beforeunload', () => {
             if (localStorage.getItem('sas_tg_poll_id') === this.instanceId) {
                 localStorage.removeItem('sas_tg_poll_active');
@@ -317,11 +318,21 @@ ${emoji} المبلغ: <b>${price.toLocaleString('en-US')} د.ع</b>
         if (!this.config || !this.config.botToken) return;
         this.isPolling = true;
 
-        // إضافة تأخير بسيط لمنع التضارب عند فتح عدة تبويبات معاً (Race Condition)
-        await new Promise(r => setTimeout(r, Math.random() * 3000));
+        // استخدام Web Locks API إذا كان متاحاً (أفضل وسيلة للتنظيم بين التبويبات)
+        if (navigator.locks) {
+            navigator.locks.request('sas_telegram_polling', async (lock) => {
+                console.log("📡 Telegram Polling: This tab is now the MASTER instance.");
+                await this.doPolling();
+            });
+        } else {
+            // Fallback للمتصفحات القديمة
+            this.doPolling();
+        }
+    }
 
+    async doPolling() {
         let lastUpdateId = 0;
-        console.log("📡 Telegram Background Polling Started (Instance: " + this.instanceId + ")");
+        console.log("📡 Telegram Polling Loop Started (" + this.instanceId + ")");
 
         while (this.isPolling) {
             // التحقق مما إذا كان هناك تبويب آخر يقوم بالبث بالفعل
@@ -345,10 +356,9 @@ ${emoji} المبلغ: <b>${price.toLocaleString('en-US')} د.ع</b>
                 const url = `https://api.telegram.org/bot${this.config.botToken}/getUpdates?offset=${lastUpdateId + 1}&timeout=20`;
                 const response = await fetch(url);
 
-                // معالجة خطأ 409 (Conflict) بهدوء - يحدث عادة عند فتح عدة تبويبات
                 if (response.status === 409) {
-                    console.warn("⚠️ Telegram: Conflict (409). Another instance is active. Retrying in 30s...");
-                    await new Promise(r => setTimeout(r, 30000));
+                    // إذا حدث تعارض رغم وجود القفل، ننتظر هدوءاً أطول
+                    await new Promise(r => setTimeout(r, 60000));
                     continue;
                 }
 

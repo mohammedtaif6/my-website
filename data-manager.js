@@ -160,6 +160,9 @@ export const DataManager = {
     },
 
     init() {
+        if (this.systemInitialized) return;
+        this.systemInitialized = true;
+
         console.log("🚀 SAS System Initializing...");
         this.sync('subscribers');
         this.sync('transactions');
