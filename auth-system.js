@@ -201,10 +201,9 @@ const AuthSystem = {
             if (settings[id] === false) {
                 el.style.display = 'none';
             } else {
+                // إذا لم يكن مخفياً بسبب الصلاحيات، أظهره (للمدير والموظف)
                 if (el.hasAttribute('hidden')) return;
-                if (this.currentUser && this.currentUser.type === 'admin') {
-                    el.style.display = '';
-                }
+                el.style.display = '';
             }
         });
 
@@ -221,10 +220,9 @@ const AuthSystem = {
             if (settings[id] === false) {
                 el.style.display = 'none';
             } else if (settings.hasOwnProperty(id) && settings[id] === true) {
-                // فقط أعد إظهاره إذا كان الإعداد موجود صراحةً وقيمته true
-                if (this.currentUser && this.currentUser.type === 'admin') {
-                    el.style.display = '';
-                }
+                // فقط أعد إظهاره إذا كان الإعداد موجود صراحةً وقيمته true ولم يكن محظوراً
+                if (el.hasAttribute('hidden')) return;
+                el.style.display = '';
             }
         });
 
@@ -274,7 +272,7 @@ const AuthSystem = {
         const map = {
             'nav-subscribers': 'subscribers', 'card-subscribers': 'subscribers',
             'nav-debts': 'debts', 'card-debts': 'debts',
-            'nav-payments': 'box', 'card-payments': 'box',
+            'nav-payments': 'payments', 'card-payments': 'payments',
             'nav-reports': 'reports', 'card-reports': 'reports',
             'nav-employees': 'admin_only', 'nav-card-employees': 'admin_only',
             'nav-telegram': 'admin_only', 'nav-card-telegram': 'admin_only'
