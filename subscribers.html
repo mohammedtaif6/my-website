@@ -495,7 +495,7 @@
                 // التأكد من وجود الاسم قبل البحث
                 if (!s.name) return false;
 
-                const matchesSearch = s.name.toLowerCase().includes(q) || (s.phone && s.phone.includes(q));
+                const matchesSearch = s.name.toLowerCase().includes(q) || (s.phone && s.phone.includes(q)) || (s.id && s.id.toString() == q);
                 if (!matchesSearch) return false;
 
                 const expiry = s.expiryDate || s.endDate;
