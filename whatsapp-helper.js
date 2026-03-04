@@ -59,36 +59,21 @@ window.WhatsAppHelper = {
             return false;
         }
 
-        // تحديد نوع الجهاز
-        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-        // بناء الرابط
-        let url;
-        if (isMobile) {
-            // على الموبايل، استخدم whatsapp:// protocol
-            url = `whatsapp://send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`;
-        } else {
-            // على الكمبيوتر، استخدم web.whatsapp.com
-            url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
-        }
+        // استخدام البروتوكول المباشر لفتح تطبيق واتساب على الموبايل والكمبيوتر مباشرة
+        const url = `whatsapp://send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`;
 
         console.log('✅ WhatsApp URL:', url);
 
-        // فتح الرابط
         try {
-            if (isMobile) {
-                // على الموبايل، استخدم window.location.href للتوافق الأفضل
-                window.location.href = url;
-            } else {
-                // على الكمبيوتر، افتح في نافذة جديدة
-                const newWindow = window.open(url, '_blank');
+            // توجيه مباشر ليتم فتح التطبيق مباشرة في الجهاز
+            window.location.href = url;
 
-                // التحقق من أن النافذة فُتحت بنجاح
-                if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-                    console.warn('⚠️ Pop-up blocked, trying alternative method...');
-                    window.location.href = url;
-                }
-            }
+            // احتياط: في حال كان المتصفح يمنع التوجيه المباشر بعد وقت صامت
+            setTimeout(() => {
+                // إذا لم ينجح التوجيه (أو إذا لم يكن التطبيق مثبتًا والكمبيوتر لم يستجب)، 
+                // ممكن وضع fallback هنا مستقبلا لكن طلب المستخدم فتح التطبيق مباشرة دائماً.
+            }, 1000);
+
             return true;
         } catch (error) {
             console.error('❌ WhatsApp Send Error:', error);
@@ -103,7 +88,7 @@ window.WhatsAppHelper = {
      * إرسال رسالة تفعيل اشتراك
      */
     sendActivation(name, phone, price, type, endDate) {
-        const message = `✨ أهلاً بك أستاذ/ة *${name}* في خدمتنا ✨\n\n✅ *تم تفعيل اشتراكك بنجاح!*\n\n📅 *تاريخ الانتهاء:* ${endDate}\n💰 *المبلغ:* ${parseInt(price).toLocaleString('en-US')} د.ع\n💳 *طريقة الدفع:* ${type}\n\nنحن سعداء لانضمامك إلينا، ونتمنى لك تجربة ممتعة! 🚀\n\n📌 *ملاحظة:* لأي استفسار يمكنكم التواصل معنا في أي وقت.\n💬 *الامين تيليكوم* - دائماً بخدمتكم.`;
+        const message = `مرحباً ${name} 🌹\nتم تفعيل اشتراكك بنجاح ✅\n\nتاريخ الانتهاء: ${endDate}\nالمبلغ: ${parseInt(price).toLocaleString('en-US')} د.ع\nالدفع: ${type}\n\nالامين تيليكوم بخدمتكم دائماً 🤍`;
         return this.send(phone, message);
     },
 
@@ -111,7 +96,7 @@ window.WhatsAppHelper = {
      * إرسال تنبيه دين
      */
     sendDebtReminder(name, phone, amount) {
-        const message = `👋 مرحباً أستاذ/ة *${name}*،\n\nنأمل أن تكونوا بأفضل حال 🌸\n\n💡 نود تذكيركم بلطف بوجود مبلغ متبقي في ذمتكم وقدره: *${parseInt(amount).toLocaleString('en-US')} د.ع*\n\nنتمنى تسوية المبلغ في أقرب فرصة لضمان استمرار الخدمة بأفضل شكل.\n\nشكراً لتعاونكم وثقتكم بنا 🙏✨`;
+        const message = `مرحباً ${name} 🌸\nتذكير ودي بوجود رصيد متبقي: ${parseInt(amount).toLocaleString('en-US')} د.ع\nيرجى تسويته لضمان استمرار الخدمة.\n\nشكراً لتعاونكم 🤍`;
         return this.send(phone, message);
     },
 
@@ -119,7 +104,7 @@ window.WhatsAppHelper = {
      * إرسال تنبيه انتهاء الاشتراك
      */
     sendExpiryWarning(name, phone, expiryDate) {
-        const message = `🔔 تنبيه باقتراب موعد التجديد\n\nمرحباً أستاذ/ة *${name}*،\nنود إعلامكم أن اشتراككم سينتهي قريباً بتاريخ: 🗓️ *${expiryDate}*\n\n⚡ لضمان استمرارية الخدمة وعدم الانقطاع، يُرجى تجديد الاشتراك في أقرب وقت.\n\nيسعدنا خدمتكم دائماً! 💙`;
+        const message = `مرحباً ${name} ⚠️\nاشتراكك سينتهي بتاريخ: ${expiryDate}\nيرجى التجديد لتجنب انقطاع الخدمة ⚡`;
         return this.send(phone, message);
     },
 
@@ -127,7 +112,7 @@ window.WhatsAppHelper = {
      * إرسال تنبيه اشتراك منتهي
      */
     sendExpiredNotification(name, phone) {
-        const message = `⚠️ الاشتراك منتهي\n\nأهلاً بك أستاذ/ة *${name}*،\nنلفت انتباهكم إلى أن اشتراككم قد *انتهى* للأسف 🔴\n\nيسعدنا جداً تجديدكم للاشتراك لنستمر في تقديم الخدمة لكم بأفضل صورة 🌐.\n\nللإستفسار أو المساعدة، نحن هنا دائماً! 📞`;
+        const message = `مرحباً ${name} 🔴\nلقد انتهى اشتراكك لدينا.\n\nيسعدنا تجديدكم لعودة الخدمة بأسرع وقت 🌐`;
         return this.send(phone, message);
     },
 
@@ -135,8 +120,8 @@ window.WhatsAppHelper = {
      * إرسال وصل تسديد دين
      */
     sendDebtPaymentReceipt(name, phone, paidAmount, remainingDebt) {
-        let remainingMsg = parseInt(remainingDebt) > 0 ? `\n\n⚠️ *المتبقي في الذمة:* ${parseInt(remainingDebt).toLocaleString('en-US')} د.ع` : `\n\n🎉 *تم تسديد كامل المبلغ!* شكراً لالتزامكم.`;
-        const message = `🧾 *وصل تسديد*\n\nمرحباً أستاذ/ة *${name}*،\n\n✅ تم استلام الدفعة بنجاح!\n💵 *المبلغ المسدد:* ${parseInt(paidAmount).toLocaleString('en-US')} د.ع${remainingMsg}\n\nشكراً لتعاملكم معنا 🙏✨`;
+        let remainingMsg = parseInt(remainingDebt) > 0 ? `المتبقي: ${parseInt(remainingDebt).toLocaleString('en-US')} د.ع ⚠️` : `تم تسديد كامل المبلغ! 🎉`;
+        const message = `مرحباً ${name} ✅\nتم استلام الدفعة: ${parseInt(paidAmount).toLocaleString('en-US')} د.ع\n\n${remainingMsg}\nشكراً لكم 🌸`;
         return this.send(phone, message);
     }
 };
