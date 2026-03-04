@@ -394,21 +394,6 @@ ${emoji} المبلغ: <b>${price.toLocaleString('en-US')} د.ع</b>
         }
     }
 
-    // إشعار استخدام خدمة دايني
-    async notifyDayniUsed(subscriberName) {
-        const message = `
-🎁 <b>استخدام خدمة دايني</b>
-
-👤 المشترك: <b>${subscriberName}</b>
-🎁 الهدية: <b>تمديد يومين (48 ساعة)</b>
-📅 التاريخ: ${new Date().toLocaleString('en-US')}
-
-⏰ ${new Date().toLocaleString('en-US')}
-        `.trim();
-
-        return await this.sendMessage(message);
-    }
-
     async answerCallback(callbackId, text) {
         const url = `https://api.telegram.org/bot${this.config.botToken}/answerCallbackQuery`;
         await fetch(url, {

@@ -400,46 +400,6 @@ export const DataManager = {
         showToast("تم التجديد بنجاح");
     },
 
-    // خدمة دايني (يومين هدية) - مرة واحدة شهرياً
-    async activateDayni(subscriberFirebaseId) {
-        const sub = localData.subscribers.find(s => s.firebaseId === subscriberFirebaseId);
-        if (!sub) return showToast('المشترك غير موجود', 'error');
-
-        if (!sub.phone || sub.phone.trim().length === 0) {
-            return showToast('لا يمكن تفعيل خدمة دايني: رقم الهاتف غير متوفر', 'error');
-        }
-
-        const currentMonth = new Date().toISOString().slice(0, 7); // "2024-02"
-        if (sub.lastDayniMonth === currentMonth) {
-            return showToast('⛔ عذراً، هذا المشترك استفاد من خدمة دايني هذا الشهر مسبقاً', 'error');
-        }
-
-        // Calculate 2 days from NOW
-        const today = new Date();
-        today.setDate(today.getDate() + 2);
-        const newExpiry = today.toISOString().split('T')[0]; // YYYY-MM-DD
-
-        await updateDoc(doc(db, "subscribers", subscriberFirebaseId), {
-            expiryDate: newExpiry,
-            status: 'نشط',
-            expiryWarningSent: false,
-            lastDayniMonth: currentMonth
-        });
-
-        await this.logTransaction({
-            subscriberId: sub.id,
-            amount: 0,
-            type: 'gift_dayni',
-            description: `خدمة دايني: ${sub.name} (يومين هدية)`
-        });
-
-        if (telegramBot && telegramBot.notifyDayniUsed) {
-            telegramBot.notifyDayniUsed(sub.name);
-        }
-
-        showToast(`تم تفعيل خدمة دايني للمشترك ${sub.name} بنجاح`);
-    },
-
     async updateSubscriber(id, data) {
         const sub = localData.subscribers.find(s => s.id == id);
         if (sub) await updateDoc(doc(db, "subscribers", sub.firebaseId), data);
@@ -896,19 +856,18 @@ export const DataManager = {
     },
     getStats() {
         const subs = localData.subscribers;
-        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        const soon = new Date();
+        soon.setDate(soon.getDate() + 3);
+        const soonStr = soon.toISOString().split('T')[0];
+
         return {
             totalSubs: subs.length,
             debts: subs.reduce((sum, s) => sum + (parseInt(s.price) || 0), 0),
             boxBalance: this.getDailyBalance(),
-            expired: subs.filter(s => s.expiryDate && new Date(s.expiryDate) < today).length,
-            expiring: subs.filter(s => {
-                if (!s.expiryDate) return false;
-                const d = new Date(s.expiryDate);
-                const diffTime = d - today;
-                const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                return days > 0 && days <= 3;
-            }).length
+            expired: subs.filter(s => s.expiryDate && s.expiryDate < todayStr).length,
+            expiring: subs.filter(s => s.expiryDate && s.expiryDate >= todayStr && s.expiryDate <= soonStr).length
         };
     },
     async saveSystemSetting(key, value) {
