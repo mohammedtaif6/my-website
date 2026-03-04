@@ -1384,10 +1384,31 @@
             const subs = DataManager.getSubscribers();
             if (!subs || subs.length === 0) return;
 
-            // فلترة المشتركين الذين عليهم ديون (متأخرين بالتسديد)
+            // فلترة المشتركين الذين عليهم ديون ومر على تفعيلهم 5 أيام فأكثر
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
             const lateSubs = subs.filter(s => {
                 const debt = parseInt(s.price || 0);
-                return debt > 0;
+                if (debt <= 0) return false; // يجب أن يكون عليه دين
+
+                if (!s.startDate) return false; // يجب أن يكون له تاريخ تفعيل
+
+                // تحويل تاريخ التفعيل إلى كائن Date
+                // s.startDate عادة يكون بصيغة YYYY-MM-DD
+                let parts = s.startDate.split('-');
+                if (parts.length !== 3) return false; // تجاوز التواريخ غير الصالحة
+
+                let subDate = new Date(parts[0], parts[1] - 1, parts[2]);
+                subDate.setHours(0, 0, 0, 0);
+
+                // حساب الفرق بالأيام بين اليوم وتاريخ التفعيل
+                const diffTime = Math.abs(today - subDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                // التحقق هل مر 5 أيام فأكثر؟
+                return diffDays >= 5;
+
             }).map(s => {
                 return { ...s, debtAmount: parseInt(s.price || 0) };
             }).sort((a, b) => b.debtAmount - a.debtAmount);
