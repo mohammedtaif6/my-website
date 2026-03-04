@@ -1186,7 +1186,6 @@
         };
 
         document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-u-nu-latn', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-        DataManager.init();
         DataManager.onDataChange(() => {
             window.renderDashboard();
         });
