@@ -238,7 +238,7 @@
         };
 
         window.deleteExpenseConfirm = async function (id) {
-            if (confirm('هل أنت متأكد من حذف هذه الصرفية؟')) {
+            if (await DataManager.showConfirmModal('تأكيد الحذف', 'هل أنت متأكد من حذف هذه الصرفية؟')) {
                 await DataManager.deleteTransaction(id);
             }
         };

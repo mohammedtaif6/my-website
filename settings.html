@@ -639,7 +639,9 @@
         };
 
         window.resetDebtToZero = async function () {
-            if (confirm('تصفير الذمة؟')) await DataManager.setProviderDebt(0);
+            if (await DataManager.showConfirmModal('تصفير الذمة', 'تصفير الذمة؟')) {
+                await DataManager.setProviderDebt(0);
+            }
         };
 
         window.adjustProviderDebt = async function (amt) {

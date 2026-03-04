@@ -604,7 +604,7 @@
         };
         window.closeActionModal = () => document.getElementById('actionModal').classList.remove('active');
         window.actionCall = () => { if (selectedSubscriber.phone) window.location.href = 'tel:' + selectedSubscriber.phone; };
-        window.actionDelete = async () => { if (confirm('حذف؟')) { await DataManager.deleteSubscriber(selectedSubscriber.id); closeActionModal(); } };
+        window.actionDelete = async () => { await DataManager.deleteSubscriber(selectedSubscriber.id); closeActionModal(); };
         window.customActionEdit = (id) => {
             selectedSubscriber = DataManager.getSubscriber(id);
             document.getElementById('edit-name').value = selectedSubscriber.name;
@@ -620,9 +620,7 @@
         };
 
         window.customActionDelete = async (id) => {
-            if (confirm('هل أنت متأكد من حذف هذا المشترك نهائياً؟')) {
-                await DataManager.deleteSubscriber(id);
-            }
+            await DataManager.deleteSubscriber(id);
         };
 
         window.actionEdit = () => {
@@ -800,8 +798,8 @@
             }
         };
 
-        window.forceUpdateSystem = function () {
-            if (confirm('تحديث النظام ومسح الذاكرة المؤقتة؟')) {
+        window.forceUpdateSystem = async function () {
+            if (await DataManager.showConfirmModal('تحديث النظام', 'تحديث النظام ومسح الذاكرة المؤقتة؟')) {
                 if ('serviceWorker' in navigator) {
                     navigator.serviceWorker.getRegistrations().then(function (registrations) {
                         for (let registration of registrations) {

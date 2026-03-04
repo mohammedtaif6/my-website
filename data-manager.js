@@ -27,111 +27,146 @@ let localData = { subscribers: [], transactions: [], archived_transactions: [], 
 let isProcessing = false;
 
 // Custom Alert Modal Function
-function showToast(message, type = 'success') {
-    // Check if alert modal exists
-    let alertModal = document.getElementById('sas-alert-modal');
-    if (!alertModal) {
-        alertModal = document.createElement('div');
-        alertModal.id = 'sas-alert-modal';
-        alertModal.className = 'modal-overlay sas-mode';
-        alertModal.style.zIndex = '9999999';
-        alertModal.innerHTML = `
-            <div class="sas-alert-box">
-                <div class="sas-icon-ring" id="sas-alert-icon-ring"></div>
-                <h3 class="sas-alert-title" id="sas-alert-title"></h3>
-                <p class="sas-alert-msg" id="sas-alert-msg"></p>
-                <button onclick="document.getElementById('sas-alert-modal').classList.remove('active')" 
-                        class="sas-btn sas-btn-primary">حسناً</button>
-            </div>
-        `;
-        document.body.appendChild(alertModal);
+function showToast(message, type = 'success', customTitle = '') {
+    // Model 1: Floating Toast
+    let container = document.getElementById('toast-container-m1');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container-m1';
+        document.body.appendChild(container);
     }
 
-    const iconRing = document.getElementById('sas-alert-icon-ring');
-    const title = document.getElementById('sas-alert-title');
-    const msg = document.getElementById('sas-alert-msg');
-    const box = alertModal.querySelector('.sas-alert-box');
+    const toast = document.createElement('div');
+    toast.className = `toast-m1 ${type}`;
 
-    // Reset classes
-    box.className = 'sas-alert-box';
-    box.classList.add(type === 'error' ? 'error' : 'success');
-
+    let icon = 'fa-check-circle';
+    let title = customTitle || 'تم بنجاح';
     if (type === 'error') {
-        iconRing.innerHTML = '<i class="fas fa-times"></i>';
-        title.innerText = 'تنبيه !';
-    } else {
-        iconRing.innerHTML = '<i class="fas fa-check"></i>';
-        title.innerText = 'تم بنجاح';
+        icon = 'fa-times-circle';
+        title = customTitle || 'تنبيه !';
+    } else if (type === 'info') {
+        icon = 'fa-info-circle';
+        title = customTitle || 'معلومة';
+    } else if (type === 'warning') {
+        icon = 'fa-exclamation-triangle';
+        title = customTitle || 'تنبيه';
     }
 
-    msg.innerText = message;
-    alertModal.classList.add('active');
+    toast.innerHTML = `
+        <div class="toast-m1-icon"><i class="fas ${icon}"></i></div>
+        <div class="toast-m1-content">
+            <h4>${title}</h4>
+            <p>${message}</p>
+        </div>
+    `;
+    container.appendChild(toast);
 
-    // Auto close after 8 seconds for success
-    if (type !== 'error') {
-        setTimeout(() => {
-            alertModal.classList.remove('active');
-        }, 8000);
-    }
+    setTimeout(() => toast.classList.add('show'), 10);
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 400);
+    }, 4000);
 }
 
-function showConfirmModal(title, message) {
+function showConfirmModal(title, message, isConfirm = true) {
+    // Model 2: iOS Style Alert
     return new Promise((resolve) => {
-        let confirmModal = document.getElementById('sas-confirm-modal');
-        if (!confirmModal) {
-            confirmModal = document.createElement('div');
-            confirmModal.id = 'sas-confirm-modal';
-            confirmModal.className = 'modal-overlay sas-mode';
-            confirmModal.style.zIndex = '9999999';
-            confirmModal.innerHTML = `
-                <div class="sas-alert-box confirm">
-                    <div class="sas-icon-ring">
-                        <i class="fas fa-question"></i>
+        let overlay = document.getElementById('modal-overlay-m2');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'modal-overlay-m2';
+            overlay.innerHTML = `
+                <div class="alert-m2" id="alert-box-m2">
+                    <div class="alert-m2-content">
+                        <i id="m2-icon" class="fas fa-exclamation-triangle"></i>
+                        <h3 id="m2-title"></h3>
+                        <p id="m2-msg"></p>
                     </div>
-                    <h3 class="sas-alert-title" id="sas-confirm-title"></h3>
-                    <p class="sas-alert-msg" id="sas-confirm-msg"></p>
-                    <div class="sas-btn-group">
-                        <button id="sas-confirm-yes" class="sas-btn sas-btn-danger">نعم، تنفيذ</button>
-                        <button id="sas-confirm-no" class="sas-btn sas-btn-secondary">إلغاء</button>
-                    </div>
+                    <div class="alert-m2-actions" id="m2-actions"></div>
                 </div>
             `;
-            document.body.appendChild(confirmModal);
+            document.body.appendChild(overlay);
         }
 
-        const titleEl = document.getElementById('sas-confirm-title');
-        const msgEl = document.getElementById('sas-confirm-msg');
-        const yesBtn = document.getElementById('sas-confirm-yes');
-        const noBtn = document.getElementById('sas-confirm-no');
-        const modal = document.getElementById('sas-confirm-modal');
+        const overlayEl = document.getElementById('modal-overlay-m2');
+        const box = document.getElementById('alert-box-m2');
+        const titleEl = document.getElementById('m2-title');
+        const msgEl = document.getElementById('m2-msg');
+        const iconEl = document.getElementById('m2-icon');
+        const actionsEl = document.getElementById('m2-actions');
 
         titleEl.innerText = title;
         msgEl.innerText = message;
+        box.className = 'alert-m2';
 
-        // Remove old event listeners by cloning logic (or simple replacement)
-        // Note: cloning removes event listeners
-        const newYes = yesBtn.cloneNode(true);
-        const newNo = noBtn.cloneNode(true);
-        yesBtn.parentNode.replaceChild(newYes, yesBtn);
-        noBtn.parentNode.replaceChild(newNo, noBtn);
-
-        newYes.onclick = () => {
-            modal.classList.remove('active');
-            resolve(true);
+        const closeM2 = () => {
+            overlayEl.classList.remove('show');
+            setTimeout(() => overlayEl.style.display = 'none', 300);
         };
 
-        newNo.onclick = () => {
-            modal.classList.remove('active');
-            resolve(false);
-        };
+        if (isConfirm) {
+            box.classList.add('warning');
+            iconEl.className = 'fas fa-exclamation-triangle';
+            actionsEl.innerHTML = `
+                <button class="alert-m2-btn" id="sas-m2-no">إلغاء</button>
+                <button class="alert-m2-btn danger" id="sas-m2-yes">نعم، تأكيد</button>
+            `;
+            setTimeout(() => {
+                document.getElementById('sas-m2-no').onclick = () => { closeM2(); resolve(false); };
+                document.getElementById('sas-m2-yes').onclick = () => { closeM2(); resolve(true); };
+            }, 0);
+        } else {
+            box.classList.add('error');
+            iconEl.className = 'fas fa-ban';
+            actionsEl.innerHTML = `
+                <button class="alert-m2-btn" id="sas-m2-ok">حسناً</button>
+            `;
+            setTimeout(() => {
+                document.getElementById('sas-m2-ok').onclick = () => { closeM2(); resolve(true); };
+            }, 0);
+        }
 
-        modal.classList.add('active');
+        overlayEl.style.display = 'flex';
+        setTimeout(() => overlayEl.classList.add('show'), 10);
     });
+}
+
+function showSystemAlert(message, type = 'info') {
+    // Model 3: Cyberpunk / Modern Dark
+    let toast = document.getElementById('toast-top-m3');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast-top-m3';
+        toast.innerHTML = `
+            <div class="m3-glow"></div>
+            <i id="m3-icon" class="fas fa-info-circle"></i>
+            <span id="m3-text"></span>
+        `;
+        document.body.appendChild(toast);
+    }
+
+    toast.className = type;
+
+    let icon = 'fa-info-circle';
+    if (type === 'success') icon = 'fa-check-circle';
+    else if (type === 'error') icon = 'fa-times-circle';
+    else if (type === 'warning') icon = 'fa-exclamation-triangle';
+
+    document.getElementById('m3-icon').className = `fas ${icon}`;
+    document.getElementById('m3-text').innerText = message;
+
+    toast.classList.add('show');
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 4000);
 }
 
 export const DataManager = {
     showToast: showToast,
     showConfirmModal: showConfirmModal,
+    showSystemAlert: showSystemAlert,
     db: db,
     get subscribers() { return localData.subscribers || []; },
     get transactions() { return localData.transactions || []; },
@@ -182,8 +217,8 @@ export const DataManager = {
     },
 
     monitorConnection() {
-        window.addEventListener('online', () => showToast('تم الاتصال بالإنترنت', 'success'));
-        window.addEventListener('offline', () => showToast('الإنترنت منقطع - تعمل محلياً', 'error'));
+        window.addEventListener('online', () => showSystemAlert('تم الاتصال بالإنترنت', 'success'));
+        window.addEventListener('offline', () => showSystemAlert('الإنترنت منقطع - تعمل محلياً', 'error'));
     },
 
     sync(colName) {
@@ -452,7 +487,8 @@ export const DataManager = {
     async archiveAllCurrent() {
         const toArchive = localData.transactions.filter(t => t.type !== 'topup_request' || t.status !== 'pending');
         if (toArchive.length === 0) return showToast("لا يوجد عمليات قابلة للترحيل حالياً", "info");
-        if (!confirm(`سيتم ترحيل ${toArchive.length} عملية. هل أنت متأكد؟ (الطلبات المعلقة لن تُرحل)`)) return;
+        const isConfirmed = await showConfirmModal('ترحيل أرشيف', `سيتم ترحيل ${toArchive.length} عملية. هل أنت متأكد؟ (الطلبات المعلقة لن تُرحل)`);
+        if (!isConfirmed) return;
 
         try {
             const batch = writeBatch(db);
@@ -519,7 +555,8 @@ export const DataManager = {
     },
 
     async deleteSubscriber(id) {
-        if (!confirm("حذف المشترك نهائياً؟")) return;
+        const isConfirmed = await showConfirmModal('حذف مشترك', 'هل أنت متأكد من حذف المشترك نهائياً؟');
+        if (!isConfirmed) return;
         const sub = localData.subscribers.find(s => s.id == id);
         if (sub) await deleteDoc(doc(db, "subscribers", sub.firebaseId));
     },
@@ -829,7 +866,9 @@ export const DataManager = {
     },
     async deleteEmployee(id) {
         const emp = this.getEmployee(id);
-        if (emp && confirm("حذف الموظف؟")) await deleteDoc(doc(db, "employees", emp.firebaseId));
+        if (emp && await showConfirmModal('حذف موظف', 'هل أنت متأكد من حذف الموظف؟')) {
+            await deleteDoc(doc(db, "employees", emp.firebaseId));
+        }
     },
     async addAdvance(empId, amount, note) {
         const emp = this.getEmployee(empId);
@@ -841,7 +880,7 @@ export const DataManager = {
     async paySalary(empId) {
         const emp = this.getEmployee(empId);
         const bal = this.calculateEmployeeBalance(empId);
-        if (bal.net > 0 && confirm(`صرف راتب ${emp.name} بمبلغ ${bal.net.toLocaleString('en-US')}؟`)) {
+        if (bal.net > 0 && await showConfirmModal('صرف راتب', `صرف راتب ${emp.name} بمبلغ ${bal.net.toLocaleString('en-US')}؟`)) {
             await this.addExpense(bal.net, `راتب موظف: ${emp.name}`);
             await updateDoc(doc(db, "employees", emp.firebaseId), { startDate: new Date().toISOString().split('T')[0], advances: 0 });
         }
