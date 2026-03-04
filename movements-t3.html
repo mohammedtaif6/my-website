@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SAS Pro - سجل العمليات المطور</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Cairo:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #030712;
+            --glass: rgba(17, 24, 39, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            --success: #10b981;
+            --danger: #f43f5e;
+            --text: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', 'Cairo', sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            padding-bottom: 20px;
+        }
+
+        /* Animated Background */
+        .bg-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .blob {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: var(--primary-glow);
+            filter: blur(100px);
+            border-radius: 50%;
+            animation: move 20s infinite alternate;
+        }
+
+        @keyframes move {
+            from {
+                transform: translate(-10%, -10%);
+            }
+
+            to {
+                transform: translate(110%, 110%);
+            }
+        }
+
+        /* Header */
+        header {
+            padding: 40px 20px 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .back-nav {
+            position: absolute;
+            right: 20px;
+            top: 40px;
+        }
+
+        .nav-btn {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px var(--primary-glow);
+        }
+
+        .logo-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-area h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(to left, #fff, var(--primary));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-pill {
+            padding: 5px 15px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: var(--success);
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        /* Hero Stats */
+        .stats-container {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .main-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 30px;
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .balance-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .balance-value {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 10px 0;
+            font-family: 'Outfit';
+        }
+
+        .balance-value span {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-right: 5px;
+        }
+
+        .mini-stats {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .mini-item {
+            flex: 1;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .mini-lbl {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .mini-val {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #fff;
+        }
+
+        /* Chart Section */
+        .chart-box {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 20px;
+            margin: 0 20px;
+            backdrop-filter: blur(10px);
+            height: 260px;
+        }
+
+        /* Transactions */
+        .list-section {
+            padding: 30px 20px;
+        }
+
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .list-header h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .filter-trigger {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: var(--text);
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .txn-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .txn-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 18px;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .txn-card:hover {
+            transform: scale(1.02) translateY(-5px);
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .txn-card::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent-color, var(--primary));
+        }
+
+        .txn-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .txn-info {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .txn-ico {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .txn-title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .txn-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .txn-price {
+            text-align: left;
+        }
+
+        .price-main {
+            font-size: 1.1rem;
+            font-weight: 800;
+            font-family: 'Outfit';
+        }
+
+        .price-sub {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        /* Color States */
+        .c-sub {
+            --accent-color: var(--primary);
+        }
+
+        .c-exp {
+            --accent-color: var(--danger);
+        }
+
+        .c-top {
+            --accent-color: var(--success);
+        }
+
+        .price-pos {
+            color: var(--success);
+        }
+
+        .price-neg {
+            color: var(--danger);
+        }
+
+        /* Search Overlay */
+        #search-box {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 400px;
+            z-index: 1000;
+        }
+
+        .search-bar {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 15px 25px;
+            border-radius: 50px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .search-bar input {
+            background: transparent;
+            border: none;
+            color: white;
+            flex: 1;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .stats-container {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .chart-box {
+                margin: 0;
+            }
+
+            .txn-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="bg-glow">
+        <div class="blob"></div>
+        <div class="blob" style="animation-delay: -5s; left: 60%; top: 40%; background: #9333ea; opacity: 0.3;"></div>
+    </div>
+
+    <header>
+        <div class="back-nav">
+            <button class="nav-btn" onclick="history.back()"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <div class="logo-area">
+            <h1>SAS PLATINUM</h1>
+            <div class="status-pill"><i class="fas fa-circle"
+                    style="font-size: 0.5rem; margin-right: 5px; animation: pulse 1.5s infinite;"></i> النظام نشط</div>
+        </div>
+    </header>
+
+    <div class="stats-container">
+        <div class="main-card">
+            <div class="balance-label">الرصيد المتوفر</div>
+            <div class="balance-value" id="val-box"><span>IQD</span> 0</div>
+            <div class="mini-stats">
+                <div class="mini-item">
+                    <div class="mini-lbl">إجمالي الذمة</div>
+                    <div class="mini-val" id="val-debt">0</div>
+                </div>
+                <div class="mini-item">
+                    <div class="mini-lbl">نشاط اليوم</div>
+                    <div class="mini-val" id="val-count">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-box">
+            <canvas id="flowChart"></canvas>
+        </div>
+    </div>
+
+    <div class="list-section">
+        <div class="list-header">
+            <h2>تحليلات الحركات</h2>
+            <button class="filter-trigger"><i class="fas fa-sliders-h"></i> تصفية متقدمة</button>
+        </div>
+
+        <div class="txn-grid" id="txn-list">
+            <!-- Items injected by JS -->
+        </div>
+    </div>
+
+    <div id="search-box">
+        <div class="search-bar">
+            <i class="fas fa-search" style="color: var(--primary);"></i>
+            <input type="text" placeholder="ابحث عن رقم موبايل، اسم، أو وصف..." oninput="handleSearch(this.value)">
+        </div>
+    </div>
+
+    <script type="module">
+        import { DataManager } from './data-manager.js?v=plat';
+
+        let chart = null;
+
+        function formatMoney(val) { return parseInt(val || 0).toLocaleString(); }
+
+        function initChart(logs) {
+            const ctx = document.getElementById('flowChart').getContext('2d');
+            const last7 = logs.slice(0, 10).reverse();
+            const labels = last7.map(l => new Date(l.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+            const data = last7.map(l => (l.type === 'subscription_cash' || l.type === 'debt_payment' ? l.amount : (l.type === 'expense' ? -l.amount : 0)));
+
+            if (chart) chart.destroy();
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'التدفق المالي',
+                        data: data,
+                        borderColor: '#6366f1',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        backgroundColor: (context) => {
+                            const gradient = context.chart.ctx.createLinearGradient(0, 0, 0, 250);
+                            gradient.addColorStop(0, 'rgba(99, 102, 241, 0.3)');
+                            gradient.addColorStop(1, 'transparent');
+                            return gradient;
+                        },
+                        pointBackgroundColor: '#fff',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false }
+                    }
+                }
+            });
+        }
+
+        window.renderLogs = (search = '') => {
+            const container = document.getElementById('txn-list');
+            let logs = DataManager.getAllTransactions() || [];
+
+            document.getElementById('val-box').innerHTML = `<span>IQD</span> ${formatMoney(DataManager.getDailyBalance())}`;
+            document.getElementById('val-debt').innerText = formatMoney(DataManager.getProviderDebt());
+            document.getElementById('val-count').innerText = logs.length;
+
+            if (search) {
+                logs = logs.filter(l => (l.description || '').toLowerCase().includes(search.toLowerCase()) || (l.subscriberName || '').toLowerCase().includes(search.toLowerCase()));
+            }
+
+            if (logs.length === 0) {
+                container.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 100px 0; color: var(--text-muted);">
+                    <i class="fas fa-ghost" style="font-size: 3rem; margin-bottom: 20px;"></i><p>لا توجد بيانات متاحة</p>
+                </div>`;
+                return;
+            }
+
+            container.innerHTML = logs.slice(0, 50).map(t => {
+                let cat = 'c-sub', icon = 'fa-wifi';
+                if (t.type?.includes('expense')) { cat = 'c-exp'; icon = 'fa-arrow-down'; }
+                else if (t.type?.includes('topup')) { cat = 'c-top'; icon = 'fa-bolt'; }
+
+                const amount = (t.type === 'subscription_cash' || t.type === 'debt_payment') ? t.amount : (t.type === 'expense' ? -t.amount : 0);
+                const color = amount >= 0 ? 'price-pos' : 'price-neg';
+                const sign = amount > 0 ? '+' : '';
+
+                return `
+                <div class="txn-card ${cat}">
+                    <div class="txn-top">
+                        <div class="txn-info">
+                            <div class="txn-ico"><i class="fas ${icon}"></i></div>
+                            <div>
+                                <div class="txn-title">${t.description ? (t.description.length > 30 ? t.description.substring(0, 30) + '...' : t.description) : 'عملية بدون وصف'}</div>
+                                <div class="txn-meta">
+                                    <span>${new Date(t.createdAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}</span>
+                                    <span>•</span>
+                                    <span>${new Date(t.createdAt).toLocaleDateString('ar-EG')}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="txn-price">
+                            <div class="price-main ${color}" dir="ltr">${sign}${formatMoney(amount)}</div>
+                            <div class="price-sub">${t.type?.replace('_', ' ')}</div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            if (!search) initChart(logs);
+        };
+
+        window.handleSearch = (val) => {
+            renderLogs(val);
+        };
+
+        DataManager.init();
+        DataManager.onDataChange(() => renderLogs());
+        setTimeout(() => renderLogs(), 1000);
+    </script>
+
+    <style>
+        @keyframes pulse {
+            0% {
+                opacity: 0.4;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.4;
+            }
+        }
+    </style>
+</body>
+
+</html>

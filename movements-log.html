@@ -4,426 +4,804 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>سجل حركة الرصيد - SAS System</title>
+    <title>SAS PLATINUM PRO - الرقابة المالية المتطورة</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap"
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Cairo:wght@400;600;700;900&display=swap"
         rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --primary: #0f172a;
-            --accent: #3b82f6;
+            --bg: #020617;
+            --glass: rgba(15, 23, 42, 0.6);
+            --glass-deep: rgba(15, 23, 42, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --primary: #8b5cf6;
+            --primary-glow: rgba(139, 92, 246, 0.5);
+            --accent: #0ea5e9;
             --success: #10b981;
-            --danger: #ef4444;
+            --danger: #f43f5e;
             --warning: #f59e0b;
-            --bg: #f8fafc;
-            --card: #ffffff;
-            --text: #1e293b;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --radius-xl: 32px;
+            --radius-lg: 24px;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            font-family: 'Outfit', 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background-color: var(--bg);
-            color: var(--text);
-            padding-bottom: 80px;
+            background: var(--bg);
+            color: var(--text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+            padding-bottom: 100px;
+            -webkit-font-smoothing: antialiased;
         }
 
-        .header {
-            background: var(--primary);
-            color: white;
-            padding: 20px;
-            padding-top: 40px;
-            border-bottom-left-radius: 30px;
-            border-bottom-right-radius: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: var(--shadow);
-        }
-
-        .header h1 {
-            font-size: 1.25rem;
-            font-weight: 700;
-        }
-
-        .back-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-        .container {
-            padding: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        /* Summary Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: -40px;
-            position: relative;
-            z-index: 101;
-        }
-
-        .stat-card {
-            background: var(--card);
-            padding: 15px;
-            border-radius: 20px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-            text-align: center;
-        }
-
-        .stat-card i {
-            font-size: 1.5rem;
-            margin-bottom: 8px;
-        }
-
-        .stat-card .label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            display: block;
-        }
-
-        .stat-card .value {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--primary);
-        }
-
-        /* Filters */
-        .filter-section {
-            background: var(--card);
-            margin-top: 25px;
-            padding: 15px;
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .filter-row {
-            display: flex;
-            gap: 10px;
-        }
-
-        .filter-input {
-            flex: 1;
-            padding: 10px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            font-size: 0.9rem;
-            outline: none;
-        }
-
-        .filter-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        /* Log Table/List */
-        .log-list {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .log-item {
-            background: var(--card);
-            padding: 15px;
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            position: relative;
-            overflow: hidden;
-            transition: 0.2s;
-        }
-
-        .log-item:active {
-            transform: scale(0.98);
-        }
-
-        .log-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-
-        .log-type {
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 20px;
-        }
-
-        .type-cash {
-            background: #dcfce7;
-            color: #15803d;
-        }
-
-        .type-debt {
-            background: #fef2f2;
-            color: #b91c1c;
-        }
-
-        .type-system {
-            background: #eff6ff;
-            color: #1d4ed8;
-        }
-
-        .log-time {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-        }
-
-        .log-desc {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text);
-            line-height: 1.4;
-        }
-
-        .log-amounts {
-            display: flex;
-            gap: 10px;
-            margin-top: 5px;
-            padding-top: 10px;
-            border-top: 1px dashed var(--border);
-        }
-
-        .amount-box {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: start;
-        }
-
-        .amount-label {
-            font-size: 0.65rem;
-            color: var(--text-muted);
-        }
-
-        .amount-value {
-            font-size: 0.85rem;
-            font-weight: 700;
-        }
-
-        .pos {
-            color: var(--success);
-        }
-
-        .neg {
-            color: var(--danger);
-        }
-
-        .neu {
-            color: var(--text-muted);
-        }
-
-        .no-data {
-            padding: 40px;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        /* Loader */
-        .loader {
-            width: 100%;
-            height: 3px;
-            background: #e2e8f0;
+        /* Animated Hyper-Modern Background */
+        .plasma-bg {
             position: fixed;
             top: 0;
             left: 0;
-            z-index: 1000;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%);
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            z-index: -1;
+            animation: float 15s infinite alternate ease-in-out;
+        }
+
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: var(--primary-glow);
+            top: -100px;
+            left: -100px;
+        }
+
+        .orb-2 {
+            width: 300px;
+            height: 300px;
+            background: rgba(14, 165, 233, 0.3);
+            bottom: -50px;
+            right: -50px;
+            animation-duration: 20s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                transform: translate(100px, 50px) scale(1.2);
+            }
+        }
+
+        /* Smooth Scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Header Architecture */
+        header {
+            padding: 40px 24px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            background: rgba(2, 6, 23, 0.3);
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand h1 {
+            font-size: 1.6rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+            background: linear-gradient(to right, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-family: 'Outfit';
+        }
+
+        .brand span {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-top: -2px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .circle-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .circle-btn:hover {
+            background: var(--primary);
+            transform: rotate(15deg) scale(1.1);
+            box-shadow: 0 0 20px var(--primary-glow);
+            border-color: transparent;
+        }
+
+        /* Main Dashboard Canvas */
+        .dashboard-grid {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        /* Liquid Balance Card */
+        .liquid-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 220px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .liquid-card::after {
+            content: '';
+            position: absolute;
+            right: -20px;
+            top: -20px;
+            width: 120px;
+            height: 120px;
+            background: var(--primary);
+            opacity: 0.1;
+            filter: blur(40px);
+            border-radius: 50%;
+        }
+
+        .label-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--success);
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        .liquid-card h4 {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .main-amount {
+            font-size: 3.2rem;
+            font-weight: 900;
+            line-height: 1;
+            margin: 10px 0;
+            font-family: 'Outfit';
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .main-amount small {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-pillar {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px;
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .pill-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .pill-val {
+            font-weight: 800;
+            font-size: 1rem;
+            color: #fff;
+            font-family: 'Outfit';
+        }
+
+        /* Advanced Analytics Plot */
+        .analytics-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-xl);
+            padding: 24px;
+            min-height: 220px;
+            transition: 0.3s;
+        }
+
+        .analytics-card:hover {
+            border-color: var(--primary);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .chart-header h3 {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--text-muted);
+        }
+
+        /* Filter Chips */
+        .filter-bay {
+            padding: 0 24px;
+            margin-bottom: 25px;
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+        }
+
+        .filter-bay::-webkit-scrollbar {
             display: none;
         }
 
-        .loader-bar {
-            height: 100%;
-            background: var(--accent);
-            width: 0;
+        .chip {
+            padding: 12px 24px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            white-space: nowrap;
             transition: 0.3s;
+            scroll-snap-align: start;
+        }
+
+        .chip.active {
+            background: var(--primary);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 10px 20px var(--primary-glow);
+            transform: translateY(-3px);
+        }
+
+        /* Activity Stream */
+        .stream-container {
+            padding: 0 24px;
+        }
+
+        .stream-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .stream-header h2 {
+            font-size: 1.2rem;
+            font-weight: 900;
+            background: linear-gradient(to left, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .txn-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.4s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            animation: slideIn 0.5s ease-out backwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .txn-card:hover {
+            background: var(--glass-deep);
+            border-color: var(--primary);
+            transform: scale(1.02);
+        }
+
+        .txn-card.expanded {
+            height: auto;
+        }
+
+        .txn-id {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%) rotate(-90deg);
+            font-size: 0.5rem;
+            color: rgba(255, 255, 255, 0.05);
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        .txn-main {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .txn-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            position: relative;
+        }
+
+        .txn-icon::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 20px;
+            z-index: -1;
+            opacity: 0.5;
+        }
+
+        .icon-sub {
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--primary);
+        }
+
+        .icon-exp {
+            background: rgba(244, 63, 94, 0.1);
+            color: var(--danger);
+        }
+
+        .icon-top {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .icon-sys {
+            background: rgba(14, 165, 233, 0.1);
+            color: var(--accent);
+        }
+
+        .txn-details h5 {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 3px;
+            max-width: 180px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .txn-details p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .txn-financials {
+            text-align: left;
+        }
+
+        .amt {
+            font-size: 1.25rem;
+            font-weight: 900;
+            font-family: 'Outfit';
+        }
+
+        .amt-pos {
+            color: var(--success);
+        }
+
+        .amt-neg {
+            color: var(--danger);
+        }
+
+        .type-tag {
+            font-size: 0.6rem;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            margin-top: 5px;
+            display: inline-block;
+            text-transform: uppercase;
+        }
+
+        /* Search Console */
+        .search-console {
+            position: fixed;
+            bottom: 30px;
+            left: 15px;
+            right: 15px;
+            z-index: 1000;
+        }
+
+        .glass-input {
+            background: var(--glass-deep);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            padding: 8px 10px;
+            backdrop-filter: blur(25px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .glass-input i {
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        .glass-input input {
+            background: transparent;
+            border: none;
+            flex: 1;
+            padding: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+            outline: none;
+        }
+
+        .glass-input input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Floating Summary Pop */
+        #summary-pop {
+            position: fixed;
+            right: 20px;
+            top: 120px;
+            width: 150px;
+            pointer-events: none;
+        }
+
+        .pop-card {
+            background: var(--glass-deep);
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            margin-bottom: 10px;
+            transform: translateX(200%);
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .pop-card.show {
+            transform: translateX(0);
+        }
+
+        /* Desktop Optimization */
+        @media (min-width: 992px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr 1.5fr;
+            }
+
+            .txn-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 20px;
+            }
+
+            .liquid-card {
+                height: 100%;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div id="loader" class="loader">
-        <div class="loader-bar"></div>
-    </div>
 
-    <div class="header">
-        <button class="back-btn" onclick="history.back()"><i class="fas fa-arrow-right"></i></button>
-        <h1>سجل الحركات المالية</h1>
-        <button class="back-btn" onclick="location.reload()"><i class="fas fa-sync-alt"></i></button>
-    </div>
+    <div class="plasma-bg"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
 
-    <div class="container">
-        <!-- Summary Stats -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <i class="fas fa-cash-register" style="color: #10b981;"></i>
-                <span class="label">رصيد الصندوق</span>
-                <span id="stat-box-balance" class="value">0 د.ع</span>
+    <header>
+        <div class="brand">
+            <h1>PLATINUM PRO</h1>
+            <span>Intelligence Ledger</span>
+        </div>
+        <div class="header-actions">
+            <button class="circle-btn" onclick="location.reload()"><i class="fas fa-sync-alt"></i></button>
+            <button class="circle-btn" onclick="history.back()"><i class="fas fa-chevron-left"></i></button>
+        </div>
+    </header>
+
+    <div class="dashboard-grid">
+        <div class="liquid-card">
+            <div class="card-top">
+                <div class="label-group">
+                    <div class="pulse-dot"></div>
+                    <h4>السيولة المتوفرة حالياً</h4>
+                </div>
+                <div class="main-amount" id="box-balance">0 <small>IQD</small></div>
             </div>
-            <div class="stat-card">
-                <i class="fas fa-hand-holding-dollar" style="color: #ef4444;"></i>
-                <span class="label">رصيد الذمة (الأجل)</span>
-                <span id="stat-provider-debt" class="value">0 د.ع</span>
+            <div class="stats-row">
+                <div class="stat-pillar">
+                    <span class="pill-label">إجمالي الذمم</span>
+                    <span class="pill-val" id="debt-balance">0</span>
+                </div>
+                <div class="stat-pillar">
+                    <span class="pill-label">حركات اليوم</span>
+                    <span class="pill-val" id="move-count">0</span>
+                </div>
             </div>
         </div>
 
-        <!-- Filters -->
-        <div class="filter-section">
-            <div class="filter-row">
-                <input type="date" id="filter-date" class="filter-input" onchange="renderLogs()">
-                <select id="filter-type" class="filter-input" onchange="renderLogs()">
-                    <option value="all">جميع الحركات</option>
-                    <option value="subscription">اشتراكات</option>
-                    <option value="expense">مصاريف</option>
-                    <option value="topup">تعبئة رصيد</option>
-                    <option value="manual">تعديلات يدوية</option>
-                </select>
+        <div class="analytics-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-line" style="margin-left: 8px;"></i> النبض المالي</h3>
+                <div
+                    style="font-size: 0.6rem; background: var(--primary); padding: 2px 8px; border-radius: 4px; font-weight: 900;">
+                    LIVE ANALYSIS</div>
+            </div>
+            <div style="height: 180px;">
+                <canvas id="ultraChart"></canvas>
             </div>
         </div>
+    </div>
 
-        <!-- Log Content -->
-        <div id="log-list" class="log-list">
-            <div class="no-data">جاري تحميل السجلات...</div>
+    <div class="filter-bay">
+        <div class="chip active" data-filter="all">📦 الكل</div>
+        <div class="chip" data-filter="subscription">🌐 الاشتراكات</div>
+        <div class="chip" data-filter="expense">🔻 المصاريف</div>
+        <div class="chip" data-filter="topup">⚡ تعبئة الرصيد</div>
+        <div class="chip" data-filter="adjustment">⚙️ تعديلات نظام</div>
+    </div>
+
+    <div class="stream-container">
+        <div class="stream-header">
+            <h2>شريط العمليات الذكي</h2>
+            <div style="color: var(--text-muted); font-size: 0.8rem; font-weight: 700;">عرض الأحداث الأخيرة</div>
+        </div>
+
+        <div class="txn-grid" id="main-ledger">
+            <!-- Dynamic Injection -->
+        </div>
+    </div>
+
+    <div class="search-console">
+        <div class="glass-input">
+            <i class="fas fa-fingerprint"></i>
+            <input type="text" id="master-search" placeholder="ابحث عن مشترك، مبلغ، أو تفاصيل العملية..."
+                oninput="handleQuantumSearch(this.value)">
         </div>
     </div>
 
     <script type="module">
-        import { DataManager } from './data-manager.js?v=35.0';
-        window.DataManager = DataManager;
+        import { DataManager } from './data-manager.js?v=platinum_v2';
 
-        function formatMoney(val) {
-            if (!val) return '0';
-            return parseInt(val).toLocaleString('en-US');
-        }
+        let mainChart = null;
 
-        function formatTime(iso) {
-            const date = new Date(iso);
-            return date.toLocaleString('ar-EG', {
-                hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit'
+        function formatMoney(v) { return parseInt(v || 0).toLocaleString('en-US'); }
+
+        function initMotionChart(logs) {
+            const ctx = document.getElementById('ultraChart').getContext('2d');
+            const sample = logs.slice(0, 15).reverse();
+            const labels = sample.map(l => new Date(l.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+            const data = sample.map(l => {
+                const boxChange = (l.type === 'subscription_cash' || l.type === 'debt_payment') ? l.amount : (l.type === 'expense' ? -l.amount : 0);
+                return boxChange;
+            });
+
+            if (mainChart) mainChart.destroy();
+
+            const gradient = ctx.createLinearGradient(0, 0, 0, 180);
+            gradient.addColorStop(0, 'rgba(139, 92, 241, 0.4)');
+            gradient.addColorStop(1, 'rgba(139, 92, 241, 0)');
+
+            mainChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        borderColor: '#8b5cf6',
+                        borderWidth: 4,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#fff',
+                        tension: 0.45,
+                        fill: true,
+                        backgroundColor: gradient
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { enabled: true, mode: 'index', intersect: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false }
+                    },
+                    animation: { duration: 2000, easing: 'easeOutQuart' }
+                }
             });
         }
 
-        window.renderLogs = () => {
-            const list = document.getElementById('log-list');
-            const logs = DataManager.getAllTransactions() || [];
-            const dateFilter = document.getElementById('filter-date').value;
-            const typeFilter = document.getElementById('filter-type').value;
+        window.renderLedger = (filter = 'all', searchQuery = '') => {
+            const ledger = document.getElementById('main-ledger');
+            let data = DataManager.getAllTransactions() || [];
 
-            // Updated Stats
-            document.getElementById('stat-box-balance').innerText = formatMoney(DataManager.getDailyBalance()) + ' د.ع';
-            document.getElementById('stat-provider-debt').innerText = formatMoney(DataManager.getProviderDebt()) + ' د.ع';
+            // Global Stats
+            document.getElementById('box-balance').innerHTML = `${formatMoney(DataManager.getDailyBalance())} <small>IQD</small>`;
+            document.getElementById('debt-balance').innerText = formatMoney(DataManager.getProviderDebt());
+            document.getElementById('move-count').innerText = data.length;
 
-            let filtered = logs;
-
-            if (dateFilter) {
-                filtered = filtered.filter(t => t.createdAt.startsWith(dateFilter));
+            if (filter !== 'all') {
+                data = data.filter(t => t.type && t.type.includes(filter));
+            }
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                data = data.filter(t => (t.description || '').toLowerCase().includes(q) || (t.subscriberName || '').toLowerCase().includes(q) || String(t.amount).includes(q));
             }
 
-            if (typeFilter !== 'all') {
-                filtered = filtered.filter(t => {
-                    if (typeFilter === 'subscription') return t.type && t.type.includes('subscription');
-                    if (typeFilter === 'expense') return t.type === 'expense' || t.type === 'system_topup_expense';
-                    if (typeFilter === 'topup') return t.type === 'system_topup_expense' || t.type === 'topup_request';
-                    if (typeFilter === 'manual') return t.type && t.type.includes('adjustment');
-                    return true;
-                });
-            }
-
-            if (filtered.length === 0) {
-                list.innerHTML = '<div class="no-data">لا توجد حركات مطابقة للبحث</div>';
+            if (data.length === 0) {
+                ledger.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 60px; opacity: 0.5;">
+                    <i class="fas fa-satellite-dish" style="font-size: 3rem; margin-bottom: 20px;"></i>
+                    <p>قاعة البيانات خالية حالياً</p>
+                </div>`;
                 return;
             }
 
-            list.innerHTML = filtered.map(t => {
-                let typeLabel = "حركة عامة";
-                let typeClass = "type-system";
+            ledger.innerHTML = data.slice(0, 50).map((t, idx) => {
+                let iconClass = 'icon-sys', icon = 'fa-bolt', label = "نظام";
+                if (t.type?.includes('subscription')) { iconClass = 'icon-sub'; icon = 'fa-wifi'; label = "اشتراك"; }
+                else if (t.type?.includes('expense')) { iconClass = 'icon-exp'; icon = 'fa-arrow-down-wide-short'; label = "مصروف"; }
+                else if (t.type?.includes('topup')) { iconClass = 'icon-top'; icon = 'fa-bolt-lightning'; label = "تعبئة"; }
 
-                if (t.type?.includes('subscription_cash')) { typeLabel = "اشتراك نقدي"; typeClass = "type-cash"; }
-                else if (t.type?.includes('subscription_debt')) { typeLabel = "اشتراك أجل"; typeClass = "type-debt"; }
-                else if (t.type === 'expense') { typeLabel = "مصروف"; typeClass = "type-debt"; }
-                else if (t.type?.includes('adjustment')) { typeLabel = "تعديل يدوي"; typeClass = "type-system"; }
-
-                // Movement Logic
                 const boxChange = (t.type === 'subscription_cash' || t.type === 'debt_payment') ? t.amount : (t.type === 'expense' ? -t.amount : 0);
-                const debtChange = t.takenFromDebt ? t.costPrice : (t.type === 'provider_debt_adjustment' ? t.costPrice : 0);
-                const sysChange = t.virtualAmount || (t.takenFromDebt ? 0 : -(t.costPrice || 0));
+                const isPos = boxChange >= 0;
 
                 return `
-                    <div class="log-item">
-                        <div class="log-header">
-                            <span class="log-type ${typeClass}">${typeLabel}</span>
-                            <span class="log-time">${formatTime(t.createdAt)}</span>
+                <div class="txn-card" style="animation-delay: ${idx * 0.05}s">
+                    <span class="txn-id">TRX-${String(t.id).slice(-4)}</span>
+                    <div class="txn-main">
+                        <div class="txn-icon ${iconClass}">
+                            <i class="fas ${icon}"></i>
                         </div>
-                        <div class="log-desc">${t.description || 'بدون وصف'}</div>
-                        <div class="log-amounts">
-                            <div class="amount-box">
-                                <span class="amount-label">الصندوق</span>
-                                <span class="amount-value ${boxChange > 0 ? 'pos' : (boxChange < 0 ? 'neg' : 'neu')}">
-                                    ${boxChange === 0 ? '--' : (boxChange > 0 ? '+' : '') + formatMoney(boxChange)}
-                                </span>
-                            </div>
-                            <div class="amount-box">
-                                <span class="amount-label">الذمة (المجهز)</span>
-                                <span class="amount-value ${debtChange > 0 ? 'neg' : (debtChange < 0 ? 'pos' : 'neu')}">
-                                    ${debtChange === 0 ? '--' : (debtChange > 0 ? '+' : '') + formatMoney(debtChange)}
-                                </span>
-                            </div>
-                            <div class="amount-box">
-                                <span class="amount-label">رصيد النظام</span>
-                                <span class="amount-value ${sysChange > 0 ? 'pos' : (sysChange < 0 ? 'neg' : 'neu')}">
-                                    ${sysChange === 0 ? '--' : (sysChange > 0 ? '+' : '') + formatMoney(sysChange)}
-                                </span>
-                            </div>
+                        <div class="txn-details">
+                            <h5>${t.description || 'عملية مجهولة'}</h5>
+                            <p>
+                                <span><i class="far fa-clock"></i> ${new Date(t.createdAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}</span>
+                                <span><i class="far fa-calendar"></i> ${new Date(t.createdAt).toLocaleDateString('ar-EG')}</span>
+                            </p>
                         </div>
                     </div>
+                    <div class="txn-financials">
+                        <div class="amt ${isPos ? 'amt-pos' : 'amt-neg'}" dir="ltr">${isPos ? '+' : ''}${formatMoney(boxChange)}</div>
+                        <div class="type-tag">${label}</div>
+                    </div>
+                </div>
                 `;
             }).join('');
+
+            if (!searchQuery && filter === 'all') initMotionChart(data);
         };
 
-        DataManager.init().then(() => {
-            DataManager.onDataChange(() => {
-                renderLogs();
-            });
-            renderLogs();
+        window.handleQuantumSearch = (val) => renderLedger(window.activeFilter || 'all', val);
+
+        document.querySelectorAll('.chip').forEach(c => {
+            c.onclick = () => {
+                document.querySelectorAll('.chip').forEach(ch => ch.classList.remove('active'));
+                c.classList.add('active');
+                window.activeFilter = c.dataset.filter;
+                renderLedger(c.dataset.filter, document.getElementById('master-search').value);
+            };
         });
+
+        DataManager.init();
+        DataManager.onDataChange(() => renderLedger());
+
+        // Final polish - initial delay for smoother load
+        setTimeout(() => renderLedger(), 800);
     </script>
 </body>
 

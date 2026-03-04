@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سجل العمليات - جدول متقدم</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #111827;
+            --card: #1f2937;
+            --text: #f9fafb;
+            --text-muted: #9ca3af;
+            --border: #374151;
+            --primary: #3b82f6;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            padding: 20px;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .dashboard-header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
+        }
+
+        .stats-top {
+            display: flex;
+            gap: 15px;
+        }
+
+        .st-card {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .st-val {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+            font-family: monospace;
+        }
+
+        .st-lbl {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 15px;
+            background: var(--card);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            min-width: 150px;
+            flex: 1;
+        }
+
+        .toolbar-item label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .toolbar-item input,
+        .toolbar-item select {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font-family: inherit;
+        }
+
+        .toolbar-item input:focus,
+        .toolbar-item select:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
+        .table-container {
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
+        th {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            text-align: right;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge.sub {
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .badge.exp {
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .badge.sys {
+            background: rgba(156, 163, 175, 0.1);
+            color: #d1d5db;
+            border: 1px solid rgba(156, 163, 175, 0.2);
+        }
+
+        .money {
+            font-family: monospace;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .pos {
+            color: var(--success);
+        }
+
+        .neg {
+            color: var(--danger);
+        }
+
+        .neu {
+            color: var(--text-muted);
+        }
+
+        .desc-cell {
+            max-width: 250px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: help;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .page-btns button {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 5px;
+            font-family: inherit;
+            transition: 0.2s;
+        }
+
+        .page-btns button:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="dashboard-header">
+        <h1>
+            <button onclick="history.back()"
+                style="background:transparent; border:none; color:var(--text); font-size:1.2rem; cursor:pointer; margin-left: 10px;"><i
+                    class="fas fa-arrow-right"></i></button>
+            <i class="fas fa-file-invoice-dollar" style="color: var(--primary);"></i> جدول العمليات המפורט
+        </h1>
+        <div class="stats-top">
+            <div class="st-card">
+                <div class="st-lbl">رصيد الصندوق</div>
+                <div class="st-val" id="st-box">0</div>
+            </div>
+            <div class="st-card">
+                <div class="st-lbl">رصيد الذمة</div>
+                <div class="st-val" id="st-debt">0</div>
+            </div>
+        </div>
+        <button onclick="alert('في التطبيق الفعلي سيتم تنزيل ملف CSV')"
+            style="padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; transition:0.2s;"><i
+                class="fas fa-download"></i> تصدير Excel</button>
+    </div>
+
+    <div class="toolbar">
+        <div class="toolbar-item">
+            <label>بحث عام (وصف، مجهز...)</label>
+            <input type="text" id="search-input" placeholder="ابحث هنا..." oninput="renderTable()">
+        </div>
+        <div class="toolbar-item">
+            <label>نوع الحركة</label>
+            <select id="type-select" onchange="renderTable()">
+                <option value="all">الكل</option>
+                <option value="subscription">الاشتراكات</option>
+                <option value="expense">المصاريف</option>
+                <option value="topup">التعبئة</option>
+                <option value="adjustment">التعديلات</option>
+            </select>
+        </div>
+        <div class="toolbar-item">
+            <label>التاريخ من</label>
+            <input type="date" id="date-from" onchange="renderTable()">
+        </div>
+        <div class="toolbar-item">
+            <label>التاريخ إلى</label>
+            <input type="date" id="date-to" onchange="renderTable()">
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th><i class="fas fa-hashtag"></i> ID</th>
+                    <th><i class="fas fa-clock"></i> التاريخ والوقت</th>
+                    <th><i class="fas fa-tag"></i> نوع الحركة</th>
+                    <th><i class="fas fa-align-right"></i> التفاصيل</th>
+                    <th><i class="fas fa-wallet"></i> تغيير الصندوق</th>
+                    <th><i class="fas fa-hand-holding-dollar"></i> تغيير الذمة</th>
+                    <th><i class="fas fa-server"></i> تغيير النظام</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 60px; color: var(--text-muted);"><i
+                            class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات...</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="pagination">
+            <div>عرض <span id="page-count" style="color:var(--text); font-weight:bold;">0</span> من أصل <span
+                    id="total-count" style="color:var(--text); font-weight:bold;">0</span> عملية</div>
+            <div class="page-btns">
+                <button><i class="fas fa-chevron-right"></i> السابق</button>
+                <button>التالي <i class="fas fa-chevron-left"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { DataManager } from './data-manager.js?v=custom';
+
+        function formatMoney(val) {
+            return parseInt(val || 0).toLocaleString('en-US');
+        }
+
+        function formatDate(iso) {
+            const d = new Date(iso);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} <span style="opacity:0.6; margin-right:8px;">${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}</span>`;
+        }
+
+        window.renderTable = () => {
+            const tbody = document.getElementById('table-body');
+            let logs = DataManager.getAllTransactions() || [];
+
+            document.getElementById('st-box').innerText = formatMoney(DataManager.getDailyBalance());
+            document.getElementById('st-debt').innerText = formatMoney(DataManager.getProviderDebt());
+
+            const search = document.getElementById('search-input').value.toLowerCase();
+            const type = document.getElementById('type-select').value;
+            const dFrom = document.getElementById('date-from').value;
+            const dTo = document.getElementById('date-to').value;
+
+            // Filter logic
+            logs = logs.filter(t => {
+                let match = true;
+                if (search && !(t.description || '').toLowerCase().includes(search)) match = false;
+                if (type !== 'all' && !(t.type || '').includes(type)) match = false;
+                if (dFrom && t.createdAt < dFrom) match = false;
+                if (dTo && t.createdAt > dTo + 'T23:59:59') match = false;
+                return match;
+            });
+
+            document.getElementById('total-count').innerText = logs.length;
+            const toDisplay = Math.min(logs.length, 50); // Just mock pagination 
+            document.getElementById('page-count').innerText = toDisplay;
+
+            if (logs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 50px; color:var(--text-muted);">لا توجد نتائج مطابقة للبحث</td></tr>`;
+                return;
+            }
+
+            // Render 
+            tbody.innerHTML = logs.slice(0, 50).map((t, index) => {
+                let badgeClass = "sys", typeLabel = "حركة نظام", icon = "fa-cogs";
+                if (t.type?.includes('subscription')) { badgeClass = "sub"; typeLabel = "اشتراك"; icon = "fa-wifi"; }
+                else if (t.type?.includes('expense')) { badgeClass = "exp"; typeLabel = "مصروف"; icon = "fa-arrow-down"; }
+
+                const boxChange = (t.type === 'subscription_cash' || t.type === 'debt_payment') ? t.amount : (t.type === 'expense' ? -t.amount : 0);
+                const debtChange = t.takenFromDebt ? t.costPrice : (t.type === 'provider_debt_adjustment' ? t.costPrice : 0);
+                const sysChange = t.virtualAmount || (t.takenFromDebt ? 0 : -(t.costPrice || 0));
+
+                const bxColor = boxChange > 0 ? 'pos' : (boxChange < 0 ? 'neg' : 'neu');
+                const bxSign = boxChange > 0 ? '+' : (boxChange < 0 ? '' : '');
+
+                const dtColor = debtChange > 0 ? 'neg' : (debtChange < 0 ? 'pos' : 'neu');
+                const syColor = sysChange > 0 ? 'pos' : (sysChange < 0 ? 'neg' : 'neu');
+
+                return `
+                <tr>
+                    <td style="color:var(--text-muted); font-size:0.8rem;">#${String(logs.length - index).padStart(4, '0')}</td>
+                    <td style="white-space:nowrap" dir="ltr"><div style="text-align:right">${formatDate(t.createdAt)}</div></td>
+                    <td><span class="badge ${badgeClass}"><i class="fas ${icon}"></i> ${typeLabel}</span></td>
+                    <td class="desc-cell" title="${t.description || ''}">${t.description || '-'}</td>
+                    <td class="money ${bxColor}" dir="ltr" style="text-align:right">${bxSign}${formatMoney(boxChange)}</td>
+                    <td class="money ${dtColor}" dir="ltr" style="text-align:right">${formatMoney(debtChange)}</td>
+                    <td class="money ${syColor}" dir="ltr" style="text-align:right">${formatMoney(sysChange)}</td>
+                </tr>
+                `;
+            }).join('');
+        };
+
+        DataManager.init().then(() => {
+            renderTable();
+            DataManager.onDataChange(() => { renderTable(); });
+        });
+    </script>
+</body>
+
+</html>
