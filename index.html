@@ -1392,19 +1392,32 @@
                 const debt = parseInt(s.price || 0);
                 if (debt <= 0) return false; // يجب أن يكون عليه دين
 
-                if (!s.startDate) return false; // يجب أن يكون له تاريخ تفعيل
+                const expiryStr = s.expiryDate || s.endDate;
+                if (!expiryStr) return false;
 
-                // تحويل تاريخ التفعيل إلى كائن Date
-                // s.startDate عادة يكون بصيغة YYYY-MM-DD
-                let parts = s.startDate.split('-');
-                if (parts.length !== 3) return false; // تجاوز التواريخ غير الصالحة
+                // توحيد صيغة التاريخ
+                let isoDate = expiryStr;
+                if (isoDate.indexOf('/') > 0) {
+                    const p = isoDate.split('/');
+                    isoDate = `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+                }
 
-                let subDate = new Date(parts[0], parts[1] - 1, parts[2]);
-                subDate.setHours(0, 0, 0, 0);
+                let parts = isoDate.split('-');
+                if (parts.length !== 3) return false;
+
+                let expiryDate = new Date(parts[0], parts[1] - 1, parts[2]);
+                expiryDate.setHours(0, 0, 0, 0);
+
+                // جلب مدة الاشتراك الافتراضية النظام
+                const duration = parseInt(DataManager.getSystemSettings().subDuration || 30);
+
+                // حساب تاريخ التفعيل التقريبي (تاريخ الانتهاء ناقص المدة)
+                let activationDate = new Date(expiryDate);
+                activationDate.setDate(activationDate.getDate() - duration);
 
                 // حساب الفرق بالأيام بين اليوم وتاريخ التفعيل
-                const diffTime = Math.abs(today - subDate);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const diffTime = today.getTime() - activationDate.getTime();
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
                 // التحقق هل مر 5 أيام فأكثر؟
                 return diffDays >= 5;
