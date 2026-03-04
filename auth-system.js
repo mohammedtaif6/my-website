@@ -1,7 +1,24 @@
-// AuthSystem v2.0 - نظام صلاحيات بسيط وقوي
+// AuthSystem v2.1 - نظام صلاحيات وتحكم بالمظهر
 const AuthSystem = {
+    // تهيئة المظهر (Dark Mode)
+    initTheme() {
+        const savedTheme = localStorage.getItem('sas_theme');
+        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    },
+
+    toggleTheme() {
+        const current = document.documentElement.getAttribute('data-theme');
+        const target = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', target);
+        localStorage.setItem('sas_theme', target);
+    },
+
     // التحقق من الجلسة الحالية
     checkSession() {
+        this.initTheme();
         if (window.location.href.includes('login.html')) return;
 
         const session = localStorage.getItem('ok_session');

@@ -44,7 +44,7 @@
 
         body {
             font-family: 'Noto Kufi Arabic', 'Outfit', sans-serif;
-            background: #f0f2f5;
+            background: var(--bg-main); color: var(--text-main);
         }
 
         .header-section {
@@ -182,6 +182,10 @@
     </nav>
 
     <button class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+
+    <button class="theme-toggle-btn" onclick="AuthSystem.toggleTheme()" title="تبديل الوضع الليلي/النهاري">
+        <i class="fas fa-moon"></i>
+    </button>
 
     <div class="header-section">
         <h1>تنتهي قريباً</h1>

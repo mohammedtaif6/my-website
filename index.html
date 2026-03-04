@@ -28,6 +28,16 @@
     <script src="auth-system.js?v=5.0"></script>
     <script src="whatsapp-helper.js"></script>
     <script>
+        // Theme Initialization: Run immediately to avoid flashing
+        (function () {
+            const savedTheme = localStorage.getItem('sas_theme');
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+    <script>
         // Anti-Flicker: Apply visibility as fast as possible
         (function () {
             const settings = JSON.parse(localStorage.getItem('sas_settings') || '{}');
@@ -357,6 +367,10 @@
     <!-- Modern Menu Button -->
     <button class="menu-btn" onclick="toggleMenu()">
         <i class="fas fa-bars"></i>
+    </button>
+
+    <button class="theme-toggle-btn" onclick="AuthSystem.toggleTheme()" title="تبديل الوضع الليلي/النهاري">
+        <i class="fas fa-moon"></i>
     </button>
 
     <!-- Sidebar / Drawer Navigation -->
