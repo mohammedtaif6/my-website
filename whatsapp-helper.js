@@ -103,7 +103,7 @@ window.WhatsAppHelper = {
      * إرسال رسالة تفعيل اشتراك
      */
     sendActivation(name, phone, price, type, endDate) {
-        const message = `مرحباً ${name}،\n\nتم تفعيل اشتراكك بنجاح ✅\n\n📋 التفاصيل:\nالمبلغ: ${parseInt(price).toLocaleString('en-US')} د.ع\nنوع الدفع: ${type}\nتاريخ الانتهاء: ${endDate}\n\nشكراً لثقتكم بنا 🌟`;
+        const message = `✨ أهلاً بك أستاذ/ة *${name}* في خدمتنا ✨\n\n✅ *تم تفعيل اشتراكك بنجاح!*\n\n📅 *تاريخ الانتهاء:* ${endDate}\n💰 *المبلغ:* ${parseInt(price).toLocaleString('en-US')} د.ع\n💳 *طريقة الدفع:* ${type}\n\nنحن سعداء لانضمامك إلينا، ونتمنى لك تجربة ممتعة! 🚀\n\n📌 *ملاحظة:* لأي استفسار يمكنكم التواصل معنا في أي وقت.\n💬 *OK Computer* - دائماً بخدمتكم.`;
         return this.send(phone, message);
     },
 
@@ -111,7 +111,7 @@ window.WhatsAppHelper = {
      * إرسال تنبيه دين
      */
     sendDebtReminder(name, phone, amount) {
-        const message = `مرحباً ${name}،\n\nيرجى تسديد الدين المتبقي: ${parseInt(amount).toLocaleString('en-US')} د.ع\n\nشكراً لكم 🙏`;
+        const message = `👋 مرحباً أستاذ/ة *${name}*،\n\nنأمل أن تكونوا بأفضل حال 🌸\n\n💡 نود تذكيركم بلطف بوجود مبلغ متبقي في ذمتكم وقدره: *${parseInt(amount).toLocaleString('en-US')} د.ع*\n\nنتمنى تسوية المبلغ في أقرب فرصة لضمان استمرار الخدمة بأفضل شكل.\n\nشكراً لتعاونكم وثقتكم بنا 🙏✨`;
         return this.send(phone, message);
     },
 
@@ -119,7 +119,7 @@ window.WhatsAppHelper = {
      * إرسال تنبيه انتهاء الاشتراك
      */
     sendExpiryWarning(name, phone, expiryDate) {
-        const message = `مرحباً ${name}،\n\nنود تذكيركم بأن اشتراككم سينتهي قريباً بتاريخ ${expiryDate}\n\nيرجى التجديد لضمان استمرار الخدمة ⚡\n\nشكراً لكم`;
+        const message = `🔔 تنبيه باقتراب موعد التجديد\n\nمرحباً أستاذ/ة *${name}*،\nنود إعلامكم أن اشتراككم سينتهي قريباً بتاريخ: 🗓️ *${expiryDate}*\n\n⚡ لضمان استمرارية الخدمة وعدم الانقطاع، يُرجى تجديد الاشتراك في أقرب وقت.\n\nيسعدنا خدمتكم دائماً! 💙`;
         return this.send(phone, message);
     },
 
@@ -127,7 +127,7 @@ window.WhatsAppHelper = {
      * إرسال تنبيه اشتراك منتهي
      */
     sendExpiredNotification(name, phone) {
-        const message = `مرحباً ${name}،\n\nنود إخباركم بأن اشتراككم قد انتهى 🔴\n\nنرجو منكم زيارتنا لتجديد الاشتراك لضمان استمرار الخدمة\n\nشكراً لكم`;
+        const message = `⚠️ الاشتراك منتهي\n\nأهلاً بك أستاذ/ة *${name}*،\nنلفت انتباهكم إلى أن اشتراككم قد *انتهى* للأسف 🔴\n\nيسعدنا جداً تجديدكم للاشتراك لنستمر في تقديم الخدمة لكم بأفضل صورة 🌐.\n\nللإستفسار أو المساعدة، نحن هنا دائماً! 📞`;
         return this.send(phone, message);
     },
 
@@ -135,7 +135,8 @@ window.WhatsAppHelper = {
      * إرسال وصل تسديد دين
      */
     sendDebtPaymentReceipt(name, phone, paidAmount, remainingDebt) {
-        const message = `مرحباً ${name}،\n\nتم استلام دفعة بمبلغ: ${parseInt(paidAmount).toLocaleString('en-US')} د.ع ✅\n\nالمتبقي: ${parseInt(remainingDebt).toLocaleString('en-US')} د.ع\n\nشكراً لكم 🙏`;
+        let remainingMsg = parseInt(remainingDebt) > 0 ? `\n\n⚠️ *المتبقي في الذمة:* ${parseInt(remainingDebt).toLocaleString('en-US')} د.ع` : `\n\n🎉 *تم تسديد كامل المبلغ!* شكراً لالتزامكم.`;
+        const message = `🧾 *وصل تسديد*\n\nمرحباً أستاذ/ة *${name}*،\n\n✅ تم استلام الدفعة بنجاح!\n💵 *المبلغ المسدد:* ${parseInt(paidAmount).toLocaleString('en-US')} د.ع${remainingMsg}\n\nشكراً لتعاملكم معنا 🙏✨`;
         return this.send(phone, message);
     }
 };

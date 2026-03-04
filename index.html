@@ -665,13 +665,6 @@
                 <button onclick="window.closeActivateModal()" class="close-btn">&times;</button>
             </div>
             <div class="modal-body">
-                <!-- رصيد النظام المتاح -->
-                <div id="act-balance-info"
-                    style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 12px; padding: 10px 15px; margin-bottom: 15px; display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:0.8rem; color:#0369a1;"><i class="fas fa-wallet"></i> رصيد النظام</span>
-                    <strong id="act-balance-value" style="color:#0369a1; font-size:1rem;">0</strong>
-                </div>
-
                 <div class="form-group">
                     <label>اسم المشترك</label>
                     <input type="text" id="act-name" placeholder="ابحث عن المشترك..."
@@ -709,7 +702,7 @@
 
                 <!-- WhatsApp Option -->
                 <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                    <input type="checkbox" id="send-whatsapp" style="width: auto;">
+                    <input type="checkbox" id="send-whatsapp" checked style="width: auto;">
                     <label for="send-whatsapp" style="margin:0; font-weight:normal; cursor:pointer;">إرسال تفاصيل الوصل
                         واتساب</label>
                 </div>
@@ -1074,7 +1067,7 @@
             // Reset form
             document.getElementById('act-name').value = '';
             document.getElementById('search-results').style.display = 'none';
-            document.getElementById('send-whatsapp').checked = false;
+            document.getElementById('send-whatsapp').checked = true;
 
             const d = new Date();
             document.getElementById('act-start').value = d.toISOString().split('T')[0];

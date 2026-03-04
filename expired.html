@@ -45,7 +45,8 @@
 
         body {
             font-family: 'Noto Kufi Arabic', 'Outfit', sans-serif;
-            background: var(--bg-main); color: var(--text-main);
+            background: var(--bg-main);
+            color: var(--text-main);
         }
 
         .header-section {
@@ -354,22 +355,18 @@
                 <input type="hidden" id="qa-id">
                 <input type="hidden" id="qa-fid">
 
-                <!-- رصيد النظام -->
-                <div id="qa-balance-info"
-                    style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 12px; padding: 10px 15px; margin-bottom: 15px; display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:0.8rem; color:#0369a1;"><i class="fas fa-wallet"></i> رصيد النظام</span>
-                    <strong id="qa-balance-value" style="color:#0369a1; font-size:1rem;">0</strong>
-                </div>
-
                 <div class="form-group">
                     <label><i class="fas fa-box" style="margin-left:5px; color:#8b5cf6;"></i> الباقة</label>
-                    <select id="qa-package" onchange="window.onPackageChange(this.value)">
+                    <select id="qa-package" onchange="window.onPackageChange(this.value)"
+                        style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
                     </select>
                 </div>
+
                 <div class="form-group">
                     <label><i class="fas fa-money-bill" style="margin-left:5px; color:#059669;"></i> المبلغ</label>
                     <input type="number" id="qa-price" value="35000">
                 </div>
+
                 <div class="form-group">
                     <label><i class="fas fa-credit-card" style="margin-left:5px; color:#f59e0b;"></i> طريقة
                         الدفع</label>
@@ -378,11 +375,20 @@
                         <option value="أجل">أجل (دين)</option>
                     </select>
                 </div>
+
                 <div class="form-group">
                     <label><i class="fas fa-calendar" style="margin-left:5px; color:#ef4444;"></i> تاريخ الانتهاء
                         القادم</label>
                     <input type="date" id="qa-end">
                 </div>
+
+                <!-- WhatsApp Option -->
+                <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="send-whatsapp-qa" checked style="width: auto;">
+                    <label for="send-whatsapp-qa" style="margin:0; font-weight:normal; cursor:pointer;">إرسال تفاصيل
+                        التجديد واتساب</label>
+                </div>
+
                 <button onclick="saveQuickActivate()" class="btn btn-success btn-full">
                     <i class="fas fa-check-circle" style="margin-left:5px;"></i> تأكيد التجديد
                 </button>
@@ -446,6 +452,10 @@
                 const readableDate = dateObj.toLocaleDateString('ar-u-nu-latn', { day: 'numeric', month: 'long' });
                 const debt = parseInt(s.price || 0);
 
+                // حساب المدة المتبقية
+                const diffTime = Math.abs(now - dateObj);
+                const daysExpired = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
                 return `
                     <div class="expired-card">
                         <div class="card-header">
@@ -464,6 +474,10 @@
                                 <span class="stat-value">${readableDate}</span>
                             </div>
                             <div class="stat-item">
+                                <span class="stat-label">منتهي منذ</span>
+                                <span class="stat-value" style="color: #64748b;">${daysExpired} يوم</span>
+                            </div>
+                            <div class="stat-item" style="grid-column: span 2;">
                                 <span class="stat-label">دين سابق</span>
                                 <span class="stat-value ${debt > 0 ? 'text-danger' : ''}">${debt.toLocaleString('en-US')} د.ع</span>
                             </div>
@@ -511,26 +525,8 @@
             const subs = DataManager.getSubscribers();
             const sub = subs.find(s => s.id == id);
 
-            const today = new Date();
-            let targetDate = new Date();
+            const targetDate = new Date();
             targetDate.setDate(targetDate.getDate() + 30);
-
-            // ✅ عرض رصيد النظام
-            const balance = DataManager.getSystemBalance();
-            const balEl = document.getElementById('qa-balance-value');
-            const balInfo = document.getElementById('qa-balance-info');
-            if (balEl) {
-                balEl.textContent = balance.toLocaleString('en-US') + ' د.ع';
-                if (balance <= 0) {
-                    balInfo.style.background = 'linear-gradient(135deg, #fee2e2, #fecaca)';
-                    balInfo.style.borderColor = '#fca5a5';
-                    balEl.style.color = '#dc2626';
-                } else {
-                    balInfo.style.background = 'linear-gradient(135deg, #f0f9ff, #e0f2fe)';
-                    balInfo.style.borderColor = '#7dd3fc';
-                    balEl.style.color = '#0369a1';
-                }
-            }
 
             document.getElementById('qa-id').value = id;
             document.getElementById('qa-fid').value = fid;
@@ -564,6 +560,7 @@
             const type = document.getElementById('qa-type').value;
             const end = document.getElementById('qa-end').value;
             const packageId = document.getElementById('qa-package').value;
+            const sendWA = document.getElementById('send-whatsapp-qa') ? document.getElementById('send-whatsapp-qa').checked : false;
 
             if (!price || !end) {
                 DataManager.showToast('⚠️ يرجى إكمال البيانات', 'error');
@@ -576,12 +573,30 @@
             }
 
             try {
+                const subs = DataManager.getSubscribers();
+                const sub = subs.find(s => s.id == id);
+                let subPhone = sub ? sub.phone : '';
+
+                if (sendWA && !subPhone) {
+                    subPhone = prompt('هذا المشترك ليس لديه رقم هاتف محفوظ.\nيرجى إدخاله لإرسال الوصل:', '07');
+                    if (subPhone && sub) {
+                        await DataManager.updateSubscriber(id, { phone: subPhone });
+                    }
+                }
+
                 await DataManager.renewSubscription(fid, id, {
                     price: parseInt(price),
                     type: type,
                     dateEnd: end,
                     packageId: packageId
                 });
+
+                if (sendWA && window.WhatsAppHelper) {
+                    const priceFormatted = parseInt(price).toLocaleString('en-US');
+                    const name = sub ? sub.name : 'مشتركنا العزيز';
+                    window.WhatsAppHelper.sendActivation(name, subPhone, priceFormatted, type, end);
+                }
+
                 closeQuickActivate();
             } catch (e) {
                 DataManager.showToast('❌ فشل تجديد الاشتراك: ' + e.message, 'error');

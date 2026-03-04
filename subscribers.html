@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="auth-system.js?v=5.0"></script>
+    <script src="whatsapp-helper.js?v=2.0"></script>
     <script>
         // Anti-Flicker: Apply visibility as fast as possible
         (function () {
@@ -394,41 +395,48 @@
     <div id="quickActivateModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
-                <h3><i class="fas fa-sync-alt" style="margin-left:8px; color:#0ea5e9;"></i> تفعيل اشتراك</h3>
+                <h3><i class="fas fa-sync-alt" style="margin-left:8px; color:#0ea5e9;"></i> تجديد الاشتراك</h3>
                 <button class="close-btn" onclick="closeQuickActivate()">&times;</button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="qa-id"><input type="hidden" id="qa-fid">
 
-                <!-- رصيد النظام -->
-                <div id="qa-balance-info"
-                    style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 12px; padding: 10px 15px; margin-bottom: 15px; display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:0.8rem; color:#0369a1;"><i class="fas fa-wallet"></i> رصيد النظام</span>
-                    <strong id="qa-balance-value" style="color:#0369a1; font-size:1rem;">0</strong>
-                </div>
-
                 <div class="form-group">
                     <label><i class="fas fa-box" style="margin-left:5px; color:#8b5cf6;"></i> الباقة</label>
-                    <select id="qa-package" onchange="window.onPackageChange(this.value)">
+                    <select id="qa-package" onchange="window.onPackageChange(this.value)"
+                        style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
                     </select>
                 </div>
+
                 <div class="form-group">
                     <label><i class="fas fa-money-bill" style="margin-left:5px; color:#059669;"></i> المبلغ</label>
                     <input type="number" id="qa-price" value="35000" onblur="window.autoFormatPrice(this)">
                 </div>
+
                 <div class="form-group">
-                    <label><i class="fas fa-credit-card" style="margin-left:5px; color:#f59e0b;"></i> الدفع</label>
+                    <label><i class="fas fa-credit-card" style="margin-left:5px; color:#f59e0b;"></i> طريقة
+                        الدفع</label>
                     <select id="qa-type">
                         <option value="نقد">نقد (واصل)</option>
                         <option value="أجل">أجل (دين)</option>
                     </select>
                 </div>
+
                 <div class="form-group">
-                    <label><i class="fas fa-calendar" style="margin-left:5px; color:#ef4444;"></i> ينتهي في</label>
+                    <label><i class="fas fa-calendar" style="margin-left:5px; color:#ef4444;"></i> تاريخ الانتهاء
+                        القادم</label>
                     <input type="date" id="qa-end">
                 </div>
+
+                <!-- WhatsApp Option -->
+                <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="send-whatsapp-qa" checked style="width: auto;">
+                    <label for="send-whatsapp-qa" style="margin:0; font-weight:normal; cursor:pointer;">إرسال تفاصيل
+                        التجديد واتساب</label>
+                </div>
+
                 <button onclick="saveQuickActivate()" class="btn btn-success btn-full">
-                    <i class="fas fa-check-circle" style="margin-left:5px;"></i> تفعيل الآن
+                    <i class="fas fa-check-circle" style="margin-left:5px;"></i> تأكيد التجديد
                 </button>
             </div>
         </div>
@@ -664,22 +672,7 @@
             selectedSubscriber = DataManager.getSubscriber(id);
             let target = new Date();
 
-            // ✅ عرض رصيد النظام
-            const balance = DataManager.getSystemBalance();
-            const balEl = document.getElementById('qa-balance-value');
-            const balInfo = document.getElementById('qa-balance-info');
-            if (balEl) {
-                balEl.textContent = balance.toLocaleString('en-US') + ' د.ع';
-                if (balance <= 0) {
-                    balInfo.style.background = 'linear-gradient(135deg, #fee2e2, #fecaca)';
-                    balInfo.style.borderColor = '#fca5a5';
-                    balEl.style.color = '#dc2626';
-                } else {
-                    balInfo.style.background = 'linear-gradient(135deg, #f0f9ff, #e0f2fe)';
-                    balInfo.style.borderColor = '#7dd3fc';
-                    balEl.style.color = '#0369a1';
-                }
-            }
+            // Remove balance element references
 
             target.setDate(target.getDate() + duration);
             document.getElementById('qa-id').value = id;
@@ -723,16 +716,40 @@
         window.closeQuickActivate = () => document.getElementById('quickActivateModal').classList.remove('active');
         window.saveQuickActivate = async () => {
             const packageId = document.getElementById('qa-package').value;
+            const sendWA = document.getElementById('send-whatsapp-qa') ? document.getElementById('send-whatsapp-qa').checked : false;
+
             if (!packageId) {
                 return DataManager.showToast('⚠️ يرجى اختيار الباقة', 'error');
             }
             try {
-                await DataManager.renewSubscription(document.getElementById('qa-fid').value, document.getElementById('qa-id').value, {
-                    price: parseInt(document.getElementById('qa-price').value),
-                    type: document.getElementById('qa-type').value,
-                    dateEnd: document.getElementById('qa-end').value,
+                const subId = document.getElementById('qa-id').value;
+                const fid = document.getElementById('qa-fid').value;
+                const price = parseInt(document.getElementById('qa-price').value);
+                const type = document.getElementById('qa-type').value;
+                const end = document.getElementById('qa-end').value;
+
+                let subPhone = selectedSubscriber ? selectedSubscriber.phone : '';
+
+                if (sendWA && !subPhone) {
+                    subPhone = prompt('هذا المشترك ليس لديه رقم هاتف محفوظ.\nيرجى إدخاله لإرسال الوصل:', '07');
+                    if (subPhone && selectedSubscriber) {
+                        await DataManager.updateSubscriber(subId, { phone: subPhone });
+                    }
+                }
+
+                await DataManager.renewSubscription(fid, subId, {
+                    price: price,
+                    type: type,
+                    dateEnd: end,
                     packageId: packageId
                 });
+
+                if (sendWA && window.WhatsAppHelper) {
+                    const priceFormatted = price;
+                    const name = selectedSubscriber ? selectedSubscriber.name : 'مشتركنا العزيز';
+                    window.WhatsAppHelper.sendActivation(name, subPhone, priceFormatted, type, end);
+                }
+
                 closeQuickActivate();
             } catch (e) {
                 DataManager.showToast('❌ ' + e.message, 'error');
