@@ -1412,8 +1412,8 @@
                 </a>`
             ).join('');
 
-            // سرعة مضاعفة مرتين (صاروخية) بناء على الطلب
-            const speed = Math.max(3, lateSubs.length * 0.3);
+            // تقليل السرعة لتكون مقبولة ومريحة للقراءة (بدون أن تكون سريعة جداً)
+            const speed = Math.max(10, lateSubs.length * 1.0);
 
             // إنشاء شريطين متطابقين لحركة لانهاية مثالية بدون انقطاع
             const scrollInner = `<div class="late-ticker-scroll" style="animation-duration: ${speed}s">${chips}</div>`;
