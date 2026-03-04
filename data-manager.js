@@ -194,6 +194,27 @@ export const DataManager = {
         }, 100);
     },
 
+    // دالة ذكية لاستدعاء دوال الرندر مع إعادة المحاولة
+    _callRenderFunctions(colName) {
+        const tryRender = () => {
+            if (window.renderPage) window.renderPage();
+            if (window.renderDebts) window.renderDebts();
+            if (window.updatePageData) window.updatePageData();
+            if (colName === 'employees' && window.renderEmployees) window.renderEmployees();
+        };
+
+        // محاولة فورية
+        tryRender();
+
+        // إعادة محاولة بعد تأخير قصير (لضمان تحميل دوال الرندر بعد الريفرش)
+        if (!this._renderRetried) {
+            this._renderRetried = true;
+            setTimeout(() => tryRender(), 300);
+            setTimeout(() => tryRender(), 800);
+            setTimeout(() => { tryRender(); this._renderRetried = false; }, 1500);
+        }
+    },
+
     init() {
         if (this.systemInitialized) return;
         this.systemInitialized = true;
@@ -288,9 +309,8 @@ export const DataManager = {
                 }
 
                 // تحديث الواجهة فوراً عند وصول أي بيانات جديدة
-                if (window.renderPage) window.renderPage();
-                if (window.updatePageData) window.updatePageData();
-                if (colName === 'employees' && window.renderEmployees) window.renderEmployees();
+                // إعادة المحاولة في حال لم تكن دوال الرندر جاهزة بعد (مشكلة الريفرش اليدوي)
+                this._callRenderFunctions(colName);
             }
 
             this.triggerDataChange();
