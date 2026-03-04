@@ -1412,10 +1412,8 @@
 
             scroll.innerHTML = chips + chips; // تكرار للسكرول المستمر
 
-            // جلب سرعة الأنيميشن من الإعدادات أو استخدام سرعة متوسطة افتراضية (2)
-            const speedMultiplier = parseFloat(DataManager.getSystemSettings().tickerSpeed || 2);
-            // ضبط سرعة الأنيميشن حسب عدد الأسماء ومعامل السرعة من الإعدادات
-            const speed = Math.max(5, lateSubs.length * speedMultiplier);
+            // ضبط سرعة الأنيميشن حسب عدد الأسماء (سريع جداً)
+            const speed = Math.max(8, lateSubs.length * 1.2);
             scroll.style.animationDuration = speed + 's';
         };
 

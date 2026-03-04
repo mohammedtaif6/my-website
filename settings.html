@@ -468,15 +468,6 @@
                 <div class="row-label">مدة الاشتراك<small>المدة الافتراضية بالأيام</small></div>
                 <input type="number" id="set-sub-duration" class="input-modern" value="30">
             </div>
-            <div class="row">
-                <div class="row-label">سرعة شريط المتأخرين<small>للتحكم بحركة الأسماء في الرئيسية</small></div>
-                <select id="set-ticker-speed" class="input-modern" style="padding: 10px; border-radius: 8px;">
-                    <option value="0.5">سريع جداً 🚀</option>
-                    <option value="1">سريع ⚡</option>
-                    <option value="2" selected>متوسط 🚶</option>
-                    <option value="4">بطيء 🐢</option>
-                </select>
-            </div>
         </div>
 
         <!-- SECURITY -->
@@ -601,10 +592,6 @@
             document.getElementById('set-sub-duration').value = settings.subDuration || 30;
             document.getElementById('set-pin-code').value = settings.pinCode || '0000';
 
-            if (settings.tickerSpeed) {
-                document.getElementById('set-ticker-speed').value = settings.tickerSpeed;
-            }
-
             const checkboxes = [
                 'set-allow-box-edit', 'set-allow-box-deletion',
                 'card-subscribers-toggle', 'card-active-toggle', 'card-debts-toggle', 'card-payments-toggle', 'card-telegram-toggle',
@@ -628,7 +615,6 @@
                 defaultPrice: parseInt(document.getElementById('set-default-price').value),
                 subDuration: parseInt(document.getElementById('set-sub-duration').value),
                 pinCode: document.getElementById('set-pin-code').value,
-                tickerSpeed: document.getElementById('set-ticker-speed').value,
                 allowBoxEdit: document.getElementById('set-allow-box-edit').checked,
                 allowBoxDeletion: document.getElementById('set-allow-box-deletion').checked,
                 'card-subscribers': document.getElementById('card-subscribers-toggle').checked,
