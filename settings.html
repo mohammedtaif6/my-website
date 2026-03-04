@@ -69,9 +69,8 @@
             -webkit-text-fill-color: transparent;
         }
 
-        /* --- Hero Balance Section --- */
         .hero-section {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto 40px;
             padding: 0 20px;
         }
@@ -123,11 +122,11 @@
 
         /* --- Grid Layout --- */
         .settings-grid {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 0 20px;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 25px;
         }
 
@@ -349,33 +348,6 @@
             cursor: pointer;
         }
 
-        /* --- Package Management --- */
-        .pkg-list {
-            max-height: 200px;
-            overflow-y: auto;
-            margin-bottom: 15px;
-        }
-
-        .pkg-item {
-            background: var(--bg-body);
-            padding: 12px;
-            border-radius: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            border: 1px solid var(--border);
-        }
-
-        .pkg-input-group {
-            background: var(--bg-body);
-            padding: 15px;
-            border-radius: 18px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
         @media (max-width: 768px) {
             .hero-card {
                 grid-template-columns: 1fr;
@@ -521,30 +493,7 @@
             </div>
         </div>
 
-        <!-- PACKAGES -->
-        <div class="card orange">
-            <div class="card-header">
-                <div class="icon-box"><i class="fas fa-box-open"></i></div>
-                <div class="card-title">
-                    <h3>باقات الاشتراك</h3>
-                    <p>تعديل أسعار الكلف والمبيع</p>
-                </div>
-            </div>
-            <div id="packages-container" class="pkg-list"></div>
-            <div class="pkg-input-group">
-                <input type="text" id="pkg-name" placeholder="اسم الباقة"
-                    style="padding:10px; border:1px solid var(--border); border-radius:10px; outline:none;">
-                <div style="display:flex; gap:8px;">
-                    <input type="number" id="pkg-cost" placeholder="سعر الشراء"
-                        style="flex:1; padding:10px; border:1px solid var(--border); border-radius:10px;">
-                    <input type="number" id="pkg-sale" placeholder="سعر المبيع"
-                        style="flex:1; padding:10px; border:1px solid var(--border); border-radius:10px;">
-                </div>
-                <input type="hidden" id="pkg-edit-id">
-                <button class="btn-mini blue" style="padding:12px;" onclick="addNewPackage()" id="btn-pkg-action">إضافة
-                    باقة جديدة</button>
-            </div>
-        </div>
+
 
         <!-- UI DASHBOARD -->
         <div class="card purple">
@@ -661,67 +610,7 @@
                     if (sw) sw.classList.toggle('active', cb.checked);
                 }
             });
-
-            window.currentPackages = settings.packages || [
-                { id: 'pkg_norm', name: 'نورمال (Normal)', costPrice: 22000, salePrice: 35000 },
-                { id: 'pkg_sup', name: 'سوبر (Super)', costPrice: 24000, salePrice: 40000 }
-            ];
-            renderPackagesList();
         }
-
-        function renderPackagesList() {
-            const container = document.getElementById('packages-container');
-            container.innerHTML = window.currentPackages.map(pkg => `
-                <div class="pkg-item">
-                    <div>
-                        <div style="font-weight:800; font-size:0.9rem;">${pkg.name}</div>
-                        <div style="font-size:0.7rem; color:var(--text-sub);">كلف: ${pkg.costPrice.toLocaleString()} | بيع: ${pkg.salePrice.toLocaleString()}</div>
-                    </div>
-                    <div>
-                        <button onclick="editPackage('${pkg.id}')" style="background:none; border:none; color:var(--p-blue); cursor:pointer;"><i class="fas fa-edit"></i></button>
-                        <button onclick="removePackage('${pkg.id}')" style="background:none; border:none; color:#ef4444; cursor:pointer; margin-right:8px;"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        window.addNewPackage = function () {
-            const name = document.getElementById('pkg-name').value;
-            const cost = parseInt(document.getElementById('pkg-cost').value);
-            const sale = parseInt(document.getElementById('pkg-sale').value);
-            const editId = document.getElementById('pkg-edit-id').value;
-            if (!name || isNaN(cost)) return;
-            if (editId) {
-                const idx = window.currentPackages.findIndex(p => p.id === editId);
-                window.currentPackages[idx] = { id: editId, name, costPrice: cost, salePrice: sale };
-            } else {
-                window.currentPackages.push({ id: 'pkg_' + Date.now(), name, costPrice: cost, salePrice: sale });
-            }
-            renderPackagesList();
-            cancelPkgEdit();
-        };
-
-        window.editPackage = function (id) {
-            const p = window.currentPackages.find(x => x.id === id);
-            document.getElementById('pkg-name').value = p.name;
-            document.getElementById('pkg-cost').value = p.costPrice;
-            document.getElementById('pkg-sale').value = p.salePrice;
-            document.getElementById('pkg-edit-id').value = p.id;
-            document.getElementById('btn-pkg-action').innerText = 'تحديث';
-        };
-
-        window.cancelPkgEdit = function () {
-            document.getElementById('pkg-edit-id').value = '';
-            document.getElementById('pkg-name').value = '';
-            document.getElementById('pkg-cost').value = '';
-            document.getElementById('pkg-sale').value = '';
-            document.getElementById('btn-pkg-action').innerText = 'إضافة باقة جديدة';
-        };
-
-        window.removePackage = function (id) {
-            window.currentPackages = window.currentPackages.filter(x => x.id !== id);
-            renderPackagesList();
-        };
 
         async function saveAllSettings() {
             const settings = {
@@ -729,7 +618,6 @@
                 defaultPrice: parseInt(document.getElementById('set-default-price').value),
                 subDuration: parseInt(document.getElementById('set-sub-duration').value),
                 pinCode: document.getElementById('set-pin-code').value,
-                packages: window.currentPackages,
                 allowBoxEdit: document.getElementById('set-allow-box-edit').checked,
                 allowBoxDeletion: document.getElementById('set-allow-box-deletion').checked,
                 'card-subscribers': document.getElementById('card-subscribers-toggle').checked,
