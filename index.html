@@ -1412,8 +1412,10 @@
 
             scroll.innerHTML = chips + chips; // تكرار للسكرول المستمر
 
-            // ضبط سرعة الأنيميشن حسب عدد الأسماء
-            const speed = Math.max(5, lateSubs.length * 1);
+            // جلب سرعة الأنيميشن من الإعدادات أو استخدام سرعة متوسطة افتراضية (2)
+            const speedMultiplier = parseFloat(DataManager.getSystemSettings().tickerSpeed || 2);
+            // ضبط سرعة الأنيميشن حسب عدد الأسماء ومعامل السرعة من الإعدادات
+            const speed = Math.max(5, lateSubs.length * speedMultiplier);
             scroll.style.animationDuration = speed + 's';
         };
 
