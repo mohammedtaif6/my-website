@@ -456,8 +456,7 @@
                         <div
                             style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%; animation: latePulse 1.5s ease-in-out infinite;">
                         </div>
-                        <span style="color: #f1f5f9; font-size: 0.8rem; font-weight: 700;">متأخرون بالتجديد (+5
-                            أيام)</span>
+                        <span style="color: #f1f5f9; font-size: 0.8rem; font-weight: 700;">متأخرون بالتسديد</span>
                     </div>
                     <span id="late-count-badge"
                         style="background: rgba(239,68,68,0.2); color: #fca5a5; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">0</span>
@@ -1333,36 +1332,19 @@
 
         document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-u-nu-latn', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-        // دالة تحديث شريط المتأخرين بالتجديد
+        // دالة تحديث شريط المتأخرين بالتسديد
         window.updateLateRenewals = function () {
             if (typeof DataManager === 'undefined') return;
             const subs = DataManager.getSubscribers();
             if (!subs || subs.length === 0) return;
 
-            const now = new Date();
-            const todayStr = now.toISOString().split('T')[0];
-
-            // فلترة المشتركين الذين انتهى اشتراكهم من 5 أيام فأكثر
+            // فلترة المشتركين الذين عليهم ديون (متأخرين بالتسديد)
             const lateSubs = subs.filter(s => {
-                if (!s.expiryDate) return false;
-                let itemDate = s.expiryDate;
-                if (itemDate.indexOf('/') > 0) {
-                    const parts = itemDate.split('/');
-                    if (parts.length === 3) itemDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-                }
-                if (itemDate >= todayStr) return false;
-                const expDate = new Date(itemDate);
-                const diffDays = Math.ceil((now - expDate) / (1000 * 60 * 60 * 24));
-                return diffDays >= 5;
+                const debt = parseInt(s.price || 0);
+                return debt > 0;
             }).map(s => {
-                let itemDate = s.expiryDate;
-                if (itemDate.indexOf('/') > 0) {
-                    const parts = itemDate.split('/');
-                    if (parts.length === 3) itemDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-                }
-                const diffDays = Math.ceil((now - new Date(itemDate)) / (1000 * 60 * 60 * 24));
-                return { ...s, daysLate: diffDays };
-            }).sort((a, b) => b.daysLate - a.daysLate);
+                return { ...s, debtAmount: parseInt(s.price || 0) };
+            }).sort((a, b) => b.debtAmount - a.debtAmount);
 
             const bar = document.getElementById('late-renewals-bar');
             const scroll = document.getElementById('late-names-scroll');
@@ -1380,7 +1362,7 @@
             const chips = lateSubs.map(s =>
                 `<a href="subscribers.html?id=${s.id}" class="late-name-chip">
                     <span>${s.name}</span>
-                    <span class="days-badge">${s.daysLate} يوم</span>
+                    <span class="days-badge">${s.debtAmount.toLocaleString('en-US')} د.ع</span>
                 </a>`
             ).join('');
 
