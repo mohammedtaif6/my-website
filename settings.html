@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>الإعدادات - OK Computer</title>
+    <title>الإعدادات - الامين تيليكوم</title>
 
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Kufi+Arabic:wght@400;700&display=swap"
@@ -458,7 +458,7 @@
             </div>
             <div class="row">
                 <div class="row-label">اسم النظام<small>يظهر في الهيدر والتقارير</small></div>
-                <input type="text" id="set-system-name" class="input-modern" value="OK Computer">
+                <input type="text" id="set-system-name" class="input-modern" value="الامين تيليكوم">
             </div>
             <div class="row">
                 <div class="row-label">السعر الافتراضي<small>سعر المبيع الثابت للمشترك</small></div>
@@ -587,7 +587,7 @@
             const cloudSettings = (typeof DataManager !== 'undefined' && DataManager.getSystemSettings) ? DataManager.getSystemSettings() : {};
             const settings = Object.keys(cloudSettings).length > 0 ? cloudSettings : JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
 
-            document.getElementById('set-system-name').value = settings.systemName || 'OK Computer';
+            document.getElementById('set-system-name').value = settings.systemName || 'الامين تيليكوم';
             document.getElementById('set-default-price').value = settings.defaultPrice || 35000;
             document.getElementById('set-sub-duration').value = settings.subDuration || 30;
             document.getElementById('set-pin-code').value = settings.pinCode || '0000';

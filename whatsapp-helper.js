@@ -103,7 +103,7 @@ window.WhatsAppHelper = {
      * إرسال رسالة تفعيل اشتراك
      */
     sendActivation(name, phone, price, type, endDate) {
-        const message = `✨ أهلاً بك أستاذ/ة *${name}* في خدمتنا ✨\n\n✅ *تم تفعيل اشتراكك بنجاح!*\n\n📅 *تاريخ الانتهاء:* ${endDate}\n💰 *المبلغ:* ${parseInt(price).toLocaleString('en-US')} د.ع\n💳 *طريقة الدفع:* ${type}\n\nنحن سعداء لانضمامك إلينا، ونتمنى لك تجربة ممتعة! 🚀\n\n📌 *ملاحظة:* لأي استفسار يمكنكم التواصل معنا في أي وقت.\n💬 *OK Computer* - دائماً بخدمتكم.`;
+        const message = `✨ أهلاً بك أستاذ/ة *${name}* في خدمتنا ✨\n\n✅ *تم تفعيل اشتراكك بنجاح!*\n\n📅 *تاريخ الانتهاء:* ${endDate}\n💰 *المبلغ:* ${parseInt(price).toLocaleString('en-US')} د.ع\n💳 *طريقة الدفع:* ${type}\n\nنحن سعداء لانضمامك إلينا، ونتمنى لك تجربة ممتعة! 🚀\n\n📌 *ملاحظة:* لأي استفسار يمكنكم التواصل معنا في أي وقت.\n💬 *الامين تيليكوم* - دائماً بخدمتكم.`;
         return this.send(phone, message);
     },
 
