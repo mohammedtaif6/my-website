@@ -88,7 +88,7 @@ window.WhatsAppHelper = {
      * إرسال رسالة تفعيل اشتراك
      */
     sendActivation(name, phone, price, type, endDate) {
-        const message = `مرحباً ${name} 🌹\nتم تفعيل اشتراكك بنجاح ✅\n\nتاريخ الانتهاء: ${endDate}\nالمبلغ: ${parseInt(price).toLocaleString('en-US')} د.ع\nالدفع: ${type}\n\nالامين تيليكوم بخدمتكم دائماً 🤍`;
+        const message = `مرحباً ${name} 🌹\nتم تفعيل اشتراكك بنجاح ✅\n\nتاريخ الانتهاء: ${endDate}\nالمبلغ: ${parseInt(price).toLocaleString('en-US')} د.ع\nالدفع: ${type}\n\nالامين تيليكوم بخدمتكم دائماً 🤍\n\n------------\nالـدعــم : 07709443145\nالصيانة : 07713966640`;
         return this.send(phone, message);
     },
 
@@ -96,7 +96,7 @@ window.WhatsAppHelper = {
      * إرسال تنبيه دين
      */
     sendDebtReminder(name, phone, amount) {
-        const message = `مرحباً ${name} 🌸\nتذكير ودي بوجود رصيد متبقي: ${parseInt(amount).toLocaleString('en-US')} د.ع\nيرجى تسويته لضمان استمرار الخدمة.\n\nشكراً لتعاونكم 🤍`;
+        const message = `مرحباً ${name} 🌸\nتذكير ودي بوجود رصيد متبقي: ${parseInt(amount).toLocaleString('en-US')} د.ع\nيرجى تسويته لضمان استمرار الخدمة.\n\nشكراً لتعاونكم 🤍\n\n------------\nالـدعــم : 07709443145\nالصيانة : 07713966640`;
         return this.send(phone, message);
     },
 
@@ -104,7 +104,7 @@ window.WhatsAppHelper = {
      * إرسال تنبيه انتهاء الاشتراك
      */
     sendExpiryWarning(name, phone, expiryDate) {
-        const message = `مرحباً ${name} ⚠️\nاشتراكك سينتهي بتاريخ: ${expiryDate}\nيرجى التجديد لتجنب انقطاع الخدمة ⚡`;
+        const message = `مرحباً ${name} ⚠️\nاشتراكك سينتهي بتاريخ: ${expiryDate}\nيرجى التجديد لتجنب انقطاع الخدمة ⚡\n\n------------\nالـدعــم : 07709443145\nالصيانة : 07713966640`;
         return this.send(phone, message);
     },
 
@@ -112,7 +112,7 @@ window.WhatsAppHelper = {
      * إرسال تنبيه اشتراك منتهي
      */
     sendExpiredNotification(name, phone) {
-        const message = `مرحباً ${name} 🔴\nلقد انتهى اشتراكك لدينا.\n\nيسعدنا تجديدكم لعودة الخدمة بأسرع وقت 🌐`;
+        const message = `مرحباً ${name} 🔴\nلقد انتهى اشتراكك لدينا.\n\nيسعدنا تجديدكم لعودة الخدمة بأسرع وقت 🌐\n\n------------\nالـدعــم : 07709443145\nالصيانة : 07713966640`;
         return this.send(phone, message);
     },
 
@@ -121,7 +121,7 @@ window.WhatsAppHelper = {
      */
     sendDebtPaymentReceipt(name, phone, paidAmount, remainingDebt) {
         let remainingMsg = parseInt(remainingDebt) > 0 ? `المتبقي: ${parseInt(remainingDebt).toLocaleString('en-US')} د.ع ⚠️` : `تم تسديد كامل المبلغ! 🎉`;
-        const message = `مرحباً ${name} ✅\nتم استلام الدفعة: ${parseInt(paidAmount).toLocaleString('en-US')} د.ع\n\n${remainingMsg}\nشكراً لكم 🌸`;
+        const message = `مرحباً ${name} ✅\nتم استلام الدفعة: ${parseInt(paidAmount).toLocaleString('en-US')} د.ع\n\n${remainingMsg}\nشكراً لكم 🌸\n\n------------\nالـدعــم : 07709443145\nالصيانة : 07713966640`;
         return this.send(phone, message);
     }
 };

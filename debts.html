@@ -43,7 +43,8 @@
 
         body {
             font-family: 'Noto Kufi Arabic', 'Outfit', sans-serif;
-            background: var(--bg-main); color: var(--text-main);
+            background: var(--bg-main);
+            color: var(--text-main);
             overflow-x: hidden;
         }
 
@@ -548,7 +549,7 @@
                     <input type="number" id="payDebtAmount" placeholder="أدخل المبلغ...">
                 </div>
                 <div style="margin-bottom:15px; display:flex; align-items:center; gap:8px;">
-                    <input type="checkbox" id="send-whatsapp-debt" style="width:auto;">
+                    <input type="checkbox" id="send-whatsapp-debt" checked style="width:auto;">
                     <label for="send-whatsapp-debt" style="margin:0; font-weight:normal; cursor:pointer;">
                         <i class="fab fa-whatsapp" style="color:#25d366;"></i> إرسال وصل واتساب
                     </label>
@@ -770,9 +771,36 @@
         window.confirmPayDebt = async (p) => {
             let amt = parseInt(document.getElementById('payDebtAmount').value);
             if (!amt) return DataManager.showToast('⚠️ أدخل المبلغ', 'error');
+            const sendWA = document.getElementById('send-whatsapp-debt').checked;
+            const subName = document.getElementById('debtSubName').innerText;
+            const currentDebt = parseInt(document.getElementById('currentDebtAmount').innerText.replace(/,/g, '')) || 0;
+            const subId = document.getElementById('debtSubId').value;
+            const fid = document.getElementById('debtSubFirebaseId').value;
+
+            // حساب المتبقي بعد التسديد
+            const remainingDebt = Math.max(0, currentDebt - amt);
+
+            // الحصول على رقم هاتف المشترك
+            let subPhone = '';
+            const sub = DataManager.getSubscribers().find(s => s.id == subId || s.firebaseId == fid);
+            if (sub) subPhone = sub.phone;
+
+            if (sendWA && !subPhone) {
+                subPhone = prompt('هذا المشترك ليس لديه رقم هاتف.\nيرجى إدخاله لإرسال الوصل:', '07');
+                if (subPhone && sub) {
+                    await DataManager.updateSubscriber(subId, { phone: subPhone });
+                }
+            }
+
             try {
-                await DataManager.payDebt(document.getElementById('debtSubFirebaseId').value, document.getElementById('debtSubId').value, amt);
-                if (p) DataManager.printReceipt({ title: "وصل تسديد", subName: document.getElementById('debtSubName').innerText, amount: amt, totalRemaining: 0, date: new Date().toLocaleDateString('ar-u-nu-latn'), type: "تسديد" });
+                await DataManager.payDebt(fid, subId, amt);
+                if (p) DataManager.printReceipt({ title: "وصل تسديد", subName: subName, amount: amt, totalRemaining: remainingDebt, date: new Date().toLocaleDateString('ar-u-nu-latn'), type: "تسديد" });
+
+                // إرسال وصل واتساب
+                if (sendWA && subPhone && window.WhatsAppHelper) {
+                    window.WhatsAppHelper.sendDebtPaymentReceipt(subName, subPhone, amt, remainingDebt);
+                }
+
                 closeDebtModal();
             } catch (e) {
                 DataManager.showToast('❌ ' + e.message, 'error');
