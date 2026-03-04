@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <link rel="stylesheet" href="style.css?v=29.1">
+    <link rel="stylesheet" href="style-modal.css?v=3">
     <script src="auth-system.js?v=5.1"></script>
     <script>
         (function () {
@@ -66,6 +67,7 @@
             font-weight: 800;
             background: linear-gradient(135deg, #3b82f6, #8b5cf6);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
@@ -551,16 +553,11 @@
 
     </div>
 
-    <!-- SAVE BAR -->
     <div class="footer-save">
         <button class="btn-save" onclick="saveAllSettings()"><i class="fas fa-cloud-upload-alt"></i> حفظ جميع
             التغييرات</button>
         <button class="btn-reset" onclick="resetAllSettings()">تصفير</button>
     </div>
-
-    <div id="saveToast"
-        style="position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(100px); background: #1e293b; color: white; padding: 12px 24px; border-radius: 12px; font-weight: 600; z-index: 1001; transition: 0.3s;">
-        ✅ تم الحفظ بنجاح</div>
 
     <script>
         const SETTINGS_KEY = 'sas_settings';
@@ -634,7 +631,6 @@
                 await DataManager.saveAllSystemSettings(settings);
             }
             localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-            showToast('✅ تم حفظ التغييرات سحابياً');
         }
 
         window.adjustSystemBalance = async function (amt) {
@@ -652,13 +648,6 @@
         };
 
         window.forceUpdateSystem = () => { localStorage.clear(); location.reload(true); };
-
-        function showToast(m) {
-            const t = document.getElementById('saveToast');
-            t.innerText = m;
-            t.style.transform = 'translateX(-50%) translateY(0)';
-            setTimeout(() => t.style.transform = 'translateX(-50%) translateY(100px)', 3000);
-        }
 
         window.toggleMenu = () => document.getElementById('main-nav').style.right = document.getElementById('main-nav').style.right == '0px' ? '-320px' : '0px';
 
