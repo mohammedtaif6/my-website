@@ -456,10 +456,8 @@
                     </div>
                     <span id="late-count-badge" class="late-ticker-badge">0</span>
                 </div>
-                <div class="late-ticker-scroll-wrap">
-                    <div id="late-names-scroll" class="late-ticker-scroll">
-                        <!-- يتم ملؤها من JS -->
-                    </div>
+                <div class="late-ticker-scroll-wrap" id="late-scroll-wrap">
+                    <!-- يتم ملؤها من JS -->
                 </div>
             </div>
         </div>
@@ -516,18 +514,21 @@
 
             .late-ticker-scroll-wrap {
                 overflow: hidden;
-                mask-image: linear-gradient(to left, transparent, black 5%, black 95%, transparent);
-                -webkit-mask-image: linear-gradient(to left, transparent, black 5%, black 95%, transparent);
+                display: flex;
+                mask-image: linear-gradient(to left, transparent, black 10%, black 90%, transparent);
+                -webkit-mask-image: linear-gradient(to left, transparent, black 10%, black 90%, transparent);
             }
 
             .late-ticker-scroll {
                 display: flex;
                 gap: 10px;
+                padding-right: 10px;
                 animation: lateTickerScroll 22s linear infinite;
                 white-space: nowrap;
+                flex-shrink: 0;
             }
 
-            .late-ticker-scroll:hover {
+            .late-ticker-scroll-wrap:hover .late-ticker-scroll {
                 animation-play-state: paused;
             }
 
@@ -537,7 +538,7 @@
                 }
 
                 100% {
-                    transform: translateX(-50%);
+                    transform: translateX(-100%);
                 }
             }
 
@@ -1391,7 +1392,7 @@
             }).sort((a, b) => b.debtAmount - a.debtAmount);
 
             const bar = document.getElementById('late-renewals-bar');
-            const scroll = document.getElementById('late-names-scroll');
+            const scrollWrap = document.getElementById('late-scroll-wrap');
             const badge = document.getElementById('late-count-badge');
 
             if (lateSubs.length === 0) {
@@ -1402,7 +1403,7 @@
             bar.style.display = 'block';
             badge.textContent = lateSubs.length;
 
-            // بناء الأسماء (مكررة مرتين للتأثير الدائري)
+            // بناء الأسماء 
             const chips = lateSubs.map(s =>
                 `<a href="subscribers.html?id=${s.id}" class="late-name-chip">
                     <span>${s.name}</span>
@@ -1410,11 +1411,12 @@
                 </a>`
             ).join('');
 
-            scroll.innerHTML = chips + chips; // تكرار للسكرول المستمر
+            // سرعة صاروخية وتناسب عدد الأسماء
+            const speed = Math.max(5, lateSubs.length * 0.6);
 
-            // ضبط سرعة الأنيميشن حسب عدد الأسماء (سريع جداً)
-            const speed = Math.max(8, lateSubs.length * 1.2);
-            scroll.style.animationDuration = speed + 's';
+            // إنشاء شريطين متطابقين لحركة لانهاية مثالية بدون انقطاع
+            const scrollInner = `<div class="late-ticker-scroll" style="animation-duration: ${speed}s">${chips}</div>`;
+            scrollWrap.innerHTML = scrollInner + scrollInner;
         };
 
         DataManager.onDataChange(() => {
