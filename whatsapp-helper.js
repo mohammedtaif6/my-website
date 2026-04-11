@@ -4,6 +4,12 @@
  */
 
 window.WhatsAppHelper = {
+    // ==========================================
+    // تعطيل إرسال الواتساب بالكامل
+    // غير القيمة إلى true لإعادة تفعيل الإرسال
+    // ==========================================
+    ENABLED: false,
+
     /**
      * تنظيف وتنسيق رقم الهاتف العراقي
      * @param {string} phone - رقم الهاتف الخام
@@ -43,6 +49,12 @@ window.WhatsAppHelper = {
      * @param {function} onError - دالة تُستدعى عند حدوث خطأ
      */
     send(phone, message, onError) {
+        // التحقق من تفعيل الواتساب
+        if (!this.ENABLED) {
+            console.log('⏸️ WhatsApp معطل حالياً - لم يتم إرسال الرسالة');
+            return false;
+        }
+
         const formattedPhone = this.formatPhone(phone);
 
         if (!formattedPhone) {

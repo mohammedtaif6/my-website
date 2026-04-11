@@ -389,7 +389,7 @@
             <li id="nav-debts"><a href="debts.html"><i class="fas fa-money-bill-wave"></i> الديون</a></li>
             <li id="nav-payments"><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> الصندوق</a></li>
             <li id="nav-reports"><a href="reports.html"><i class="fas fa-chart-bar"></i> التقارير</a></li>
-            <li id="nav-movements"><a href="movements-showcase.html"><i class="fas fa-list-check"></i> سجل الحركات</a>
+            <li id="nav-movements"><a href="movements-log.html"><i class="fas fa-list-check"></i> سجل الحركات</a>
             </li>
             <li id="nav-employees"><a href="employees.html"><i class="fas fa-users-cog"></i> الموظفين</a></li>
 
@@ -835,7 +835,7 @@
 
                 <!-- WhatsApp Option -->
                 <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                    <input type="checkbox" id="send-whatsapp" checked style="width: auto;">
+                    <input type="checkbox" id="send-whatsapp" style="width: auto;">
                     <label for="send-whatsapp" style="margin:0; font-weight:normal; cursor:pointer;">إرسال تفاصيل
                         الوصل
                         واتساب</label>
@@ -1202,7 +1202,7 @@
             // Reset form
             document.getElementById('act-name').value = '';
             document.getElementById('search-results').style.display = 'none';
-            document.getElementById('send-whatsapp').checked = true;
+            document.getElementById('send-whatsapp').checked = false;
 
             const d = new Date();
             document.getElementById('act-start').value = d.toISOString().split('T')[0];
