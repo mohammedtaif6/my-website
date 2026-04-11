@@ -4,15 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>الإعدادات - الامين تيليكوم</title>
+    <title>الإعدادات الشاملة - الامين تيليكوم</title>
 
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Kufi+Arabic:wght@400;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Kufi+Arabic:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    
     <link rel="stylesheet" href="style.css?v=29.1">
     <link rel="stylesheet" href="style-modal.css?v=3">
+    
     <script src="auth-system.js?v=5.1"></script>
     <script>
         (function () {
@@ -23,6 +22,13 @@
         })();
         AuthSystem.checkSession();
     </script>
+    <script type="module">
+        import { DataManager } from './data-manager.js?v=35.0';
+        import { telegramBot } from './telegram-bot.js?v=19.2';
+        window.DataManager = DataManager;
+        window.telegramBot = telegramBot;
+        DataManager.init();
+    </script>
 
     <style>
         :root {
@@ -31,7 +37,8 @@
             --p-green: #10b981;
             --p-red: #ef4444;
             --p-orange: #f59e0b;
-            --bg-body: #f1f5f9;
+            --p-telegram: #0088cc;
+            --bg-body: #f8fafc;
             --bg-card: #ffffff;
             --border: #e2e8f0;
             --text-main: #0f172a;
@@ -52,259 +59,219 @@
             color: var(--text-main);
             margin: 0;
             padding-bottom: 120px;
-            transition: all 0.3s ease;
+            transition: background 0.3s ease;
         }
 
-        /* --- Header --- */
-        .page-header {
+        .header-section {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: 40px 20px 80px;
+            border-radius: 0 0 40px 40px;
+            color: white;
             text-align: center;
-            padding: 50px 20px 30px;
+            margin-bottom: -50px;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
 
-        .page-header h1 {
-            font-size: 2.5rem;
+        .header-section h1 {
+            font-size: 2.2rem;
             margin: 0;
             font-weight: 800;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .hero-section {
-            max-width: 1000px;
-            margin: 0 auto 40px;
-            padding: 0 20px;
-        }
-
-        .hero-card {
-            background: linear-gradient(165deg, #1e293b 0%, #0f172a 100%);
-            border-radius: 30px;
-            padding: 40px;
-            color: white;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero-item {
-            text-align: center;
-            position: relative;
-            z-index: 2;
-        }
-
-        .hero-label {
-            color: #94a3b8;
-            font-size: 0.9rem;
-            font-weight: 700;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-        }
-
-        .hero-value {
-            font-size: 3rem;
-            font-weight: 800;
-            font-family: 'Outfit';
-        }
-
-        .hero-value.red {
-            color: #f87171;
-        }
-
-        .hero-actions {
             display: flex;
+            align-items: center;
             justify-content: center;
-            gap: 10px;
-            margin-top: 15px;
+            gap: 15px;
         }
 
-        /* --- Grid Layout --- */
-        .settings-grid {
-            max-width: 1000px;
+        .header-section p {
+            color: #cbd5e1;
+            margin-top: 10px;
+        }
+
+        /* --- Settings Container --- */
+        .settings-container {
+            max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
+            position: relative;
+            z-index: 2;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 25px;
+            grid-template-columns: 280px 1fr;
+            gap: 30px;
         }
 
-        /* --- Stylish Cards (Like Model 2) --- */
-        .card {
+        /* --- Sidebar Tabs --- */
+        .settings-nav {
             background: var(--bg-card);
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
             border: 1px solid var(--border);
-            border-radius: 28px;
-            padding: 30px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
         }
 
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            border-color: var(--p-blue);
-        }
-
-        .card-header {
+        .nav-tab {
             display: flex;
             align-items: center;
             gap: 15px;
-            margin-bottom: 25px;
+            padding: 15px 20px;
+            border-radius: 12px;
+            color: var(--text-main);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 5px;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: right;
+            font-family: inherit;
+            font-size: 1rem;
         }
 
-        .icon-box {
-            width: 55px;
-            height: 55px;
-            border-radius: 16px;
+        .nav-tab:hover {
+            background: rgba(59, 130, 246, 0.05);
+            color: var(--p-blue);
+        }
+
+        .nav-tab.active {
+            background: var(--p-blue);
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .nav-tab i {
+            font-size: 1.2rem;
+            width: 25px;
+            text-align: center;
+        }
+
+        /* --- Content Panels --- */
+        .settings-content {
+            background: var(--bg-card);
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .tab-panel {
+            display: none;
+            padding: 40px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .panel-header {
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 15px;
+        }
+
+        .panel-header h2 {
+            margin: 0;
+            font-size: 1.6rem;
+            color: var(--text-main);
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 1.4rem;
-        }
-
-        .blue .icon-box {
-            background: rgba(59, 130, 246, 0.1);
-            color: #3b82f6;
-        }
-
-        .purple .icon-box {
-            background: rgba(139, 92, 246, 0.1);
-            color: #8b5cf6;
-        }
-
-        .green .icon-box {
-            background: rgba(16, 185, 129, 0.1);
-            color: #10b981;
-        }
-
-        .red .icon-box {
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-        }
-
-        .orange .icon-box {
-            background: rgba(245, 158, 11, 0.1);
-            color: #f59e0b;
-        }
-
-        .card-title h3 {
-            margin: 0;
-            font-size: 1.2rem;
-            font-weight: 800;
-        }
-
-        .card-title p {
-            margin: 2px 0 0;
-            font-size: 0.8rem;
-            color: var(--text-sub);
+            gap: 12px;
         }
 
         /* --- Form Elements --- */
-        .row {
+        .settings-group {
+            display: grid;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .setting-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border);
+            padding: 15px 20px;
+            background: var(--bg-body);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
         }
 
-        .row:last-child {
-            border-bottom: none;
+        .setting-item:hover {
+            border-color: var(--p-blue);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
         }
 
-        .row-label {
-            font-weight: 600;
-            font-size: 0.95rem;
+        .setting-info h4 {
+            margin: 0 0 5px 0;
+            font-size: 1.05rem;
+            color: var(--text-main);
         }
 
-        .row-label small {
-            display: block;
-            font-size: 0.75rem;
+        .setting-info p {
+            margin: 0;
+            font-size: 0.85rem;
             color: var(--text-sub);
-            font-weight: 400;
         }
 
         .input-modern {
-            background: var(--bg-body);
+            background: var(--bg-card);
             border: 2px solid var(--border);
             border-radius: 12px;
-            padding: 10px;
-            width: 140px;
+            padding: 12px;
+            width: 200px;
             text-align: center;
             font-weight: 700;
             color: var(--text-main);
-            font-family: 'Outfit';
+            font-family: inherit;
             outline: none;
             transition: 0.2s;
         }
 
         .input-modern:focus {
             border-color: var(--p-blue);
-            background: var(--bg-card);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
-        /* Stylish Switch (Like the Showcase) */
+        .input-modern.full-width {
+            width: 100%;
+            text-align: left;
+            direction: ltr;
+        }
+
+        /* --- Stylish Switch --- */
         .switch {
-            width: 50px;
-            height: 26px;
+            width: 56px;
+            height: 30px;
             background: #cbd5e1;
-            border-radius: 13px;
+            border-radius: 15px;
             position: relative;
             cursor: pointer;
             transition: 0.3s;
+            flex-shrink: 0;
         }
 
-        [data-theme="dark"] .switch {
-            background: #334155;
-        }
+        [data-theme="dark"] .switch { background: #334155; }
 
         .switch::after {
             content: '';
             position: absolute;
-            top: 3px;
-            left: 3px;
-            width: 20px;
-            height: 20px;
+            top: 4px;
+            left: 4px;
+            width: 22px;
+            height: 22px;
             background: white;
             border-radius: 50%;
-            transition: 0.3s;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .switch.active {
-            background: #10b981;
-        }
-
-        .switch.active::after {
-            left: 27px;
-        }
-
-        .btn-mini {
-            padding: 8px 15px;
-            border-radius: 10px;
-            border: none;
-            font-size: 0.8rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.2s;
-            color: white;
-        }
-
-        .btn-mini.blue {
-            background: #3b82f6;
-        }
-
-        .btn-mini.red {
-            background: #ef4444;
-        }
-
-        .btn-mini.ghost {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
+        .switch.active { background: var(--p-green); }
+        .switch.active::after { left: 30px; }
 
         /* --- Footer Save Bar --- */
         .footer-save {
@@ -314,7 +281,7 @@
             transform: translateX(-50%);
             width: 90%;
             max-width: 600px;
-            background: rgba(30, 41, 59, 0.9);
+            background: rgba(30, 41, 59, 0.95);
             backdrop-filter: blur(15px);
             padding: 15px 20px;
             border-radius: 25px;
@@ -323,21 +290,28 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
             z-index: 1000;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideUp 0.5s ease;
         }
 
         .btn-save {
             flex: 2;
-            background: #3b82f6;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
             color: white;
             border: none;
             border-radius: 18px;
             font-weight: 800;
-            font-size: 1rem;
+            font-size: 1.1rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
+            transition: 0.2s;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
         }
 
         .btn-reset {
@@ -348,224 +322,390 @@
             border-radius: 18px;
             font-weight: 700;
             cursor: pointer;
+            transition: 0.2s;
         }
 
-        @media (max-width: 768px) {
-            .hero-card {
+        .btn-reset:hover { background: rgba(239, 68, 68, 0.8); }
+
+        /* --- Telegram Status --- */
+        .tg-status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        .tg-status.connected { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .tg-status.disconnected { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+            from { transform: translate(-50%, 100px); }
+            to { transform: translate(-50%, 0); }
+        }
+
+        @media (max-width: 900px) {
+            .settings-container {
                 grid-template-columns: 1fr;
-                gap: 25px;
-                padding: 30px 20px;
             }
-
-            .hero-value {
-                font-size: 2.2rem;
+            .settings-nav {
+                display: flex;
+                overflow-x: auto;
+                position: static;
+                padding: 10px;
+                border-radius: 16px;
+                scrollbar-width: none;
             }
-
-            .page-header h1 {
-                font-size: 1.8rem;
+            .nav-tab {
+                white-space: nowrap;
+                width: auto;
+                margin-bottom: 0;
             }
+            .tab-panel { padding: 25px 20px; }
+            .setting-item { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .setting-item input[type="text"], .setting-item input[type="number"] { width: 100%; }
+            .switch-container { align-self: flex-end; }
         }
     </style>
 </head>
 
 <body>
-
-    <!-- PIN Lock Overlay (Remained the same for security) -->
-    <div id="pin-lock-overlay"
-        style="position: fixed; inset: 0; background: #0f172a; z-index: 99999; display: flex; align-items: center; justify-content: center; color: white;">
-        <div
-            style="background: rgba(255,255,255,0.05); padding: 50px 40px; border-radius: 30px; text-align: center; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); max-width: 90%; width: 400px;">
-            <div style="font-size: 3.5rem; margin-bottom: 20px;"><i class="fas fa-shield-alt"
-                    style="color:#3b82f6;"></i></div>
+    <!-- PIN Lock Overlay -->
+    <div id="pin-lock-overlay" style="position: fixed; inset: 0; background: #0f172a; z-index: 99999; display: flex; align-items: center; justify-content: center; color: white;">
+        <div style="background: rgba(255,255,255,0.05); padding: 50px 40px; border-radius: 30px; text-align: center; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); max-width: 90%; width: 400px;">
+            <div style="font-size: 3.5rem; margin-bottom: 20px;"><i class="fas fa-shield-alt" style="color:#3b82f6;"></i></div>
             <h2>تأكيد الهوية</h2>
             <p style="color: #94a3b8; margin-bottom: 30px;">أدخل الرمز السري للمتابعة</p>
-            <input type="password" id="pin-input" maxlength="4" inputmode="numeric"
-                style="font-size: 2.2rem; letter-spacing: 20px; width: 220px; text-align: center; padding: 15px; border-radius: 16px; border: 2px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.5); color: white; outline: none;"
-                placeholder="••••">
-            <div id="pin-error"
-                style="color: #fca5a5; height: 25px; margin: 15px 0; font-weight: 600; font-size: 0.9rem;"></div>
-            <button onclick="checkPin()"
-                style="background: #3b82f6; color: white; border: none; padding: 16px; border-radius: 16px; font-size: 1.1rem; font-weight: 800; cursor: pointer; width: 100%;">فتح
-                الإعدادات</button>
+            <input type="password" id="pin-input" maxlength="4" inputmode="numeric" style="font-size: 2.2rem; letter-spacing: 20px; width: 220px; text-align: center; padding: 15px; border-radius: 16px; border: 2px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.5); color: white; outline: none;" placeholder="••••">
+            <div id="pin-error" style="color: #fca5a5; height: 25px; margin: 15px 0; font-weight: 600; font-size: 0.9rem;"></div>
+            <button onclick="checkPin()" style="background: #3b82f6; color: white; border: none; padding: 16px; border-radius: 16px; font-size: 1.1rem; font-weight: 800; cursor: pointer; width: 100%;">فتح الإعدادات</button>
         </div>
     </div>
 
     <!-- Main Navigation Bar -->
-    <button class="menu-btn" onclick="toggleMenu()"
-        style="position:fixed; top:20px; right:20px; z-index:1001; width:50px; height:50px; border-radius:15px; background:#3b82f6; color:white; border:none; cursor:pointer;"><i
-            class="fas fa-bars"></i></button>
-    <button class="theme-toggle-btn" onclick="AuthSystem.toggleTheme()"
-        style="position:fixed; top:20px; right:85px; z-index:1001; width:50px; height:50px; border-radius:15px; background:var(--bg-card); color:var(--text-main); border:1px solid var(--border); cursor:pointer;"><i
-            class="fas fa-moon"></i></button>
+    <button class="menu-btn" onclick="toggleMenu()" style="position:fixed; top:20px; right:20px; z-index:1001; width:50px; height:50px; border-radius:15px; background:var(--p-blue); color:white; border:none; cursor:pointer;"><i class="fas fa-bars"></i></button>
+    <button class="theme-toggle-btn" onclick="AuthSystem.toggleTheme()" style="position:fixed; top:20px; left:20px; z-index:1001; width:50px; height:50px; border-radius:15px; background:var(--bg-card); color:var(--text-main); border:1px solid var(--border); cursor:pointer;"><i class="fas fa-moon"></i></button>
 
-    <nav class="navbar" id="main-nav"
-        style="position:fixed; top:0; right:-320px; width:300px; height:100vh; background:var(--bg-card); z-index:1000; transition:0.3s; box-shadow:-10px 0 30px rgba(0,0,0,0.2); padding:20px;">
-        <ul style="list-style:none; padding:0; margin-top:60px;">
-            <li style="margin-bottom:15px;"><a href="index.html"
-                    style="text-decoration:none; color:var(--text-main); font-weight:700; font-size:1.1rem; display:flex; align-items:center; gap:12px;"><i
-                        class="fas fa-home"></i> الرئيسية</a></li>
-            <li style="margin-bottom:15px;"><a href="subscribers.html"
-                    style="text-decoration:none; color:var(--text-main); font-weight:700; font-size:1.1rem; display:flex; align-items:center; gap:12px;"><i
-                        class="fas fa-users"></i> المشتركين</a></li>
-            <li style="margin-bottom:15px;"><a href="debts.html"
-                    style="text-decoration:none; color:var(--text-main); font-weight:700; font-size:1.1rem; display:flex; align-items:center; gap:12px;"><i
-                        class="fas fa-money-bill-wave"></i> الديون</a></li>
-            <li style="margin-bottom:15px;"><a href="#" onclick="AuthSystem.logout()"
-                    style="text-decoration:none; color:#ef4444; font-weight:700; font-size:1.1rem; display:flex; align-items:center; gap:12px;"><i
-                        class="fas fa-sign-out-alt"></i> خروج</a></li>
+    <nav class="navbar" id="main-nav" style="position:fixed; top:0; right:-320px; width:300px; height:100vh; background:var(--bg-card); z-index:1000; transition:0.3s; box-shadow:-10px 0 30px rgba(0,0,0,0.2); padding:20px;">
+        <div class="header-card" style="margin: 0 0 20px 0; background: none; box-shadow: none; border: none; padding: 0;">
+            <div class="logo" style="color: var(--p-blue); font-size: 1.5rem; margin-bottom: 0;">
+                <i class="fas fa-chart-line"></i> الامين تيليكوم
+            </div>
+        </div>
+        <ul style="list-style:none; padding:0; margin:0;" class="nav-links">
+            <li><a href="index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
+            <li><a href="subscribers.html"><i class="fas fa-users"></i> المشتركين</a></li>
+            <li><a href="active_subscribers.html"><i class="fas fa-signal"></i> الفعالين</a></li>
+            <li><a href="debts.html"><i class="fas fa-money-bill-wave"></i> الديون</a></li>
+            <li><a href="payments.html"><i class="fas fa-hand-holding-usd"></i> الصندوق</a></li>
+            <li><a href="reports.html"><i class="fas fa-chart-bar"></i> التقارير</a></li>
+            <li><a href="employees.html"><i class="fas fa-users-cog"></i> الموظفين</a></li>
+            <li><a href="settings.html" class="active"><i class="fas fa-cog"></i> الإعدادات والتليكرام</a></li>
+            <li><a href="#" onclick="AuthSystem.logout()"><i class="fas fa-sign-out-alt"></i> خروج</a></li>
         </ul>
+        <div class="nav-overlay" onclick="toggleMenu()"></div>
     </nav>
 
-    <div class="page-header">
-        <h1>إعدادات النظام</h1>
-        <p>تحكم كامل في كل تفاصيل المحرك والواجهة</p>
+    <div class="header-section">
+        <h1><i class="fas fa-sliders-h"></i> إعدادات النظام الشاملة</h1>
+        <p>تحكم كامل في مظهر وخصائص النظام وإشعارات تليكرام</p>
     </div>
 
-    <!-- --- HERO BALANCE --- -->
-    <div class="hero-section">
-        <div class="hero-card">
-            <div class="hero-item">
-                <div class="hero-label">رصيد التفعيلات الكلي</div>
-                <div class="hero-value" id="display-system-balance">0 IQD</div>
-                <div class="hero-actions">
-                    <button class="btn-mini ghost" onclick="adjustSystemBalance(22000)">+ نورمال</button>
-                    <button class="btn-mini ghost" onclick="adjustSystemBalance(-22000)">- نورمال</button>
-                    <button class="btn-mini ghost" onclick="forceUpdateSystem()"><i class="fas fa-sync"></i></button>
+    <div class="settings-container">
+        <!-- Sidebar Navigation -->
+        <div class="settings-nav">
+            <button class="nav-tab active" onclick="switchTab('general', this)">
+                <i class="fas fa-cogs" style="color: var(--p-blue)"></i> عام
+            </button>
+            <button class="nav-tab" onclick="switchTab('telegram', this)">
+                <i class="fab fa-telegram" style="color: var(--p-telegram)"></i> إشعارات تليكرام
+            </button>
+            <button class="nav-tab" onclick="switchTab('dashboard', this)">
+                <i class="fas fa-th-large" style="color: var(--p-purple)"></i> الداشبورد
+            </button>
+            <button class="nav-tab" onclick="switchTab('sidebar', this)">
+                <i class="fas fa-list-ul" style="color: var(--p-green)"></i> القائمة الجانبية
+            </button>
+            <button class="nav-tab" onclick="switchTab('security', this)">
+                <i class="fas fa-shield-alt" style="color: var(--p-red)"></i> الحماية والأمان
+            </button>
+            <button class="nav-tab" onclick="switchTab('database', this)">
+                <i class="fas fa-database" style="color: var(--p-orange)"></i> قاعدة البيانات
+            </button>
+        </div>
+
+        <!-- Content Area -->
+        <div class="settings-content">
+            
+            <!-- General Settings Tab -->
+            <div id="tab-general" class="tab-panel active">
+                <div class="panel-header">
+                    <h2><i class="fas fa-cogs" style="color: var(--p-blue)"></i> الإعدادات العامة</h2>
+                </div>
+                <div class="settings-group">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>اسم النظام</h4>
+                            <p>يظهر في أعلى كل صفحة وفي التقارير</p>
+                        </div>
+                        <input type="text" id="set-system-name" class="input-modern" value="الامين تيليكوم">
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>السعر الافتراضي للتفعيل</h4>
+                            <p>السعر الذي يظهر تلقائياً عند تفعيل مشترك جديد</p>
+                        </div>
+                        <input type="number" id="set-default-price" class="input-modern" value="35000">
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>المدة الافتراضية لللاشتراك</h4>
+                            <p>عدد الأيام الافتراضي للاشتراك الجديد</p>
+                        </div>
+                        <input type="number" id="set-sub-duration" class="input-modern" value="30">
+                    </div>
                 </div>
             </div>
-            <div class="hero-item">
-                <div class="hero-label">رصيد الذمة (الأجل)</div>
-                <div class="hero-value red" id="display-provider-debt">0 IQD</div>
-                <div class="hero-actions">
-                    <button class="btn-mini red" onclick="resetDebtToZero()">تصفير الذمة</button>
-                    <button class="btn-mini blue" onclick="adjustProviderDebt(-10000)">تسديد 10k</button>
+
+            <!-- Telegram Settings Tab -->
+            <div id="tab-telegram" class="tab-panel">
+                <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2><i class="fab fa-telegram" style="color: var(--p-telegram)"></i> إعدادات تليكرام</h2>
+                    <span id="tg-connection-status" class="tg-status disconnected">غير متصل</span>
+                </div>
+                
+                <div class="settings-group">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>تفعيل إشعارات تليكرام</h4>
+                            <p>تشغيل أو إيقاف البوت بالكامل</p>
+                        </div>
+                        <div class="switch-container">
+                            <div class="switch" id="sw-tg-enabled" onclick="toggleSwitch(this, 'telegram-enabled')"></div>
+                            <input type="checkbox" id="telegram-enabled" style="display:none;">
+                        </div>
+                    </div>
+                    <div class="setting-item" style="flex-direction: column; align-items: stretch; gap: 10px;">
+                        <div class="setting-info">
+                            <h4>Bot Token</h4>
+                            <p>الرمز السري للبوت (احصل عليه من @BotFather)</p>
+                        </div>
+                        <input type="text" id="bot-token" class="input-modern full-width" placeholder="123456789:ABCDEfghiJKLMNo_PQRstUVwxYZ">
+                    </div>
+                    <div class="setting-item" style="flex-direction: column; align-items: stretch; gap: 10px;">
+                        <div class="setting-info">
+                            <h4>Chat ID</h4>
+                            <p>الرقم التعريفي للجروب أو الحساب الشخصي</p>
+                        </div>
+                        <input type="text" id="chat-id" class="input-modern full-width" placeholder="-1001234567890">
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button onclick="testTelegramConnection()" class="btn-save" style="flex: 1; padding: 12px; font-size: 1rem; border-radius: 12px;">
+                            <i class="fas fa-paper-plane"></i> اختبار الاتصال
+                        </button>
+                    </div>
+                </div>
+
+                <h3 style="margin: 30px 0 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">الإشعارات المفعلة</h3>
+                
+                <div class="settings-group" style="grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="setting-item" style="padding: 10px 15px;">
+                        <div class="setting-info"><h4><i class="fas fa-user-plus text-primary"></i> تفعيل جديد</h4></div>
+                        <div class="switch" id="sw-tg-act" onclick="toggleSwitch(this, 'notify-activation')"></div>
+                        <input type="checkbox" id="notify-activation" style="display:none;">
+                    </div>
+                    <div class="setting-item" style="padding: 10px 15px;">
+                        <div class="setting-info"><h4><i class="fas fa-sync text-success"></i> تجديد اشتراك</h4></div>
+                        <div class="switch" id="sw-tg-ren" onclick="toggleSwitch(this, 'notify-renewal')"></div>
+                        <input type="checkbox" id="notify-renewal" style="display:none;">
+                    </div>
+                    <div class="setting-item" style="padding: 10px 15px;">
+                        <div class="setting-info"><h4><i class="fas fa-exclamation-triangle text-warning"></i> تنبيه الانتهاء</h4></div>
+                        <div class="switch" id="sw-tg-exp" onclick="toggleSwitch(this, 'notify-expiring')"></div>
+                        <input type="checkbox" id="notify-expiring" style="display:none;">
+                    </div>
+                    <div class="setting-item" style="padding: 10px 15px;">
+                        <div class="setting-info"><h4><i class="fas fa-times-circle text-danger"></i> المشتركين المنتهين</h4></div>
+                        <div class="switch" id="sw-tg-exd" onclick="toggleSwitch(this, 'notify-expired')"></div>
+                        <input type="checkbox" id="notify-expired" style="display:none;">
+                    </div>
+                    <div class="setting-item" style="padding: 10px 15px;">
+                        <div class="setting-info"><h4><i class="fas fa-pen text-danger"></i> ديون جديدة</h4></div>
+                        <div class="switch" id="sw-tg-debt" onclick="toggleSwitch(this, 'notify-debt-added')"></div>
+                        <input type="checkbox" id="notify-debt-added" style="display:none;">
+                    </div>
+                    <div class="setting-item" style="padding: 10px 15px;">
+                        <div class="setting-info"><h4><i class="fas fa-check-circle text-success"></i> تسديد ديون</h4></div>
+                        <div class="switch" id="sw-tg-pay" onclick="toggleSwitch(this, 'notify-debt-paid')"></div>
+                        <input type="checkbox" id="notify-debt-paid" style="display:none;">
+                    </div>
+                    <div class="setting-item" style="padding: 10px 15px;">
+                        <div class="setting-info"><h4><i class="fas fa-money-bill-wave text-warning"></i> المصروفات</h4></div>
+                        <div class="switch" id="sw-tg-expn" onclick="toggleSwitch(this, 'notify-expense')"></div>
+                        <input type="checkbox" id="notify-expense" style="display:none;">
+                    </div>
+                    <div class="setting-item" style="padding: 10px 15px;">
+                        <div class="setting-info"><h4><i class="fas fa-chart-pie text-primary"></i> الملخص اليومي</h4></div>
+                        <div class="switch" id="sw-tg-sum" onclick="toggleSwitch(this, 'notify-daily')"></div>
+                        <input type="checkbox" id="notify-daily" style="display:none;">
+                    </div>
                 </div>
             </div>
+
+            <!-- Dashboard Display Tab -->
+            <div id="tab-dashboard" class="tab-panel">
+                <div class="panel-header">
+                    <h2><i class="fas fa-th-large" style="color: var(--p-purple)"></i> كروت الداشبورد</h2>
+                    <p>تحكم في البطاقات التي تظهر في الصفحة الرئيسية</p>
+                </div>
+                <div class="settings-group">
+                    <div class="setting-item">
+                        <div class="setting-info"><h4>عدد المشتركين</h4></div>
+                        <div class="switch" id="sw-dc1" onclick="toggleSwitch(this, 'card-subscribers-toggle')"></div>
+                        <input type="checkbox" id="card-subscribers-toggle" style="display:none;">
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info"><h4>الاشتراكات الفعالة</h4></div>
+                        <div class="switch" id="sw-dc2" onclick="toggleSwitch(this, 'card-active-toggle')"></div>
+                        <input type="checkbox" id="card-active-toggle" style="display:none;">
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info"><h4>إجمالي الديون</h4></div>
+                        <div class="switch" id="sw-dc3" onclick="toggleSwitch(this, 'card-debts-toggle')"></div>
+                        <input type="checkbox" id="card-debts-toggle" style="display:none;">
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info"><h4>رصيد الصندوق</h4></div>
+                        <div class="switch" id="sw-dc4" onclick="toggleSwitch(this, 'card-payments-toggle')"></div>
+                        <input type="checkbox" id="card-payments-toggle" style="display:none;">
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info"><h4>مدير التليكرام</h4></div>
+                        <div class="switch" id="sw-dc5" onclick="toggleSwitch(this, 'card-telegram-toggle')"></div>
+                        <input type="checkbox" id="card-telegram-toggle" style="display:none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar Navigation Tab -->
+            <div id="tab-sidebar" class="tab-panel">
+                <div class="panel-header">
+                    <h2><i class="fas fa-list-ul" style="color: var(--p-green)"></i> روابط القائمة الجانبية</h2>
+                    <p>إظهار أو إخفاء الروابط للوصول السريع</p>
+                </div>
+                <div class="settings-group">
+                    <div class="setting-item">
+                        <div class="setting-info"><h4>رابط المشتركين</h4></div>
+                        <div class="switch" id="sw-nav1" onclick="toggleSwitch(this, 'nav-subscribers-toggle')"></div>
+                        <input type="checkbox" id="nav-subscribers-toggle" style="display:none;">
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info"><h4>رابط الديون</h4></div>
+                        <div class="switch" id="sw-nav2" onclick="toggleSwitch(this, 'nav-debts-toggle')"></div>
+                        <input type="checkbox" id="nav-debts-toggle" style="display:none;">
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info"><h4>رابط الموظفين</h4></div>
+                        <div class="switch" id="sw-nav3" onclick="toggleSwitch(this, 'nav-employees-toggle')"></div>
+                        <input type="checkbox" id="nav-employees-toggle" style="display:none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Tab -->
+            <div id="tab-security" class="tab-panel">
+                <div class="panel-header">
+                    <h2><i class="fas fa-shield-alt" style="color: var(--p-red)"></i> الحماية والأمان</h2>
+                </div>
+                <div class="settings-group">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>تعديل العمليات</h4>
+                            <p>السماح بتعديل قيود الصندوق والمبالغ</p>
+                        </div>
+                        <div class="switch" id="sw-sec1" onclick="toggleSwitch(this, 'set-allow-box-edit')"></div>
+                        <input type="checkbox" id="set-allow-box-edit" style="display:none;">
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>حذف العمليات</h4>
+                            <p>السماح بحذف قيود الصندوق تماماً</p>
+                        </div>
+                        <div class="switch" id="sw-sec2" onclick="toggleSwitch(this, 'set-allow-box-deletion')"></div>
+                        <input type="checkbox" id="set-allow-box-deletion" style="display:none;">
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>رمز حماية الإعدادات (PIN)</h4>
+                            <p>أبقِ الحقل فارغاً لإلغاء القفل</p>
+                        </div>
+                        <input type="password" id="set-pin-code" class="input-modern" maxlength="4" placeholder="0000">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database & System Tab -->
+            <div id="tab-database" class="tab-panel">
+                <div class="panel-header">
+                    <h2><i class="fas fa-database" style="color: var(--p-orange)"></i> النظام وقاعدة البيانات</h2>
+                </div>
+                <div class="settings-group">
+                    <div class="setting-item" style="background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.2);">
+                        <div class="setting-info">
+                            <h4 style="color: var(--p-red);">تحديث وإعادة بناء النظام</h4>
+                            <p>تمسح الذاكرة المؤقتة وتعيد تحميل النظام. لا تحذف البيانات السحابية.</p>
+                        </div>
+                        <button onclick="forceRebuildSystem()" style="background: var(--p-red); color: white; border: none; padding: 10px 20px; border-radius: 12px; font-weight: bold; cursor: pointer;">
+                            <i class="fas fa-sync-alt"></i> تحديث الآن
+                        </button>
+                    </div>
+                    <div class="setting-item" style="background: rgba(59, 130, 246, 0.05); border-color: rgba(59, 130, 246, 0.2);">
+                        <div class="setting-info">
+                            <h4 style="color: var(--p-blue);">رصيد الذمة (مطلوب للمزود)</h4>
+                            <p id="display-provider-debt" style="font-weight:bold; font-size: 1.2rem;">0 IQD</p>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="adjustProviderDebt(-10000)" style="background: var(--p-blue); color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer;">تسديد 10K</button>
+                            <button onclick="resetDebtToZero()" style="background: var(--p-red); color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer;">تصفير</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <!-- --- SETTINGS GRID --- -->
-    <div class="settings-grid">
-
-        <!-- GENRAL SETTINGS -->
-        <div class="card blue">
-            <div class="card-header">
-                <div class="icon-box"><i class="fas fa-sliders-h"></i></div>
-                <div class="card-title">
-                    <h3>عام</h3>
-                    <p>المعايير الأساسية لنظامك</p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="row-label">اسم النظام<small>يظهر في الهيدر والتقارير</small></div>
-                <input type="text" id="set-system-name" class="input-modern" value="الامين تيليكوم">
-            </div>
-            <div class="row">
-                <div class="row-label">السعر الافتراضي<small>سعر المبيع الثابت للمشترك</small></div>
-                <input type="number" id="set-default-price" class="input-modern" value="35000">
-            </div>
-            <div class="row">
-                <div class="row-label">مدة الاشتراك<small>المدة الافتراضية بالأيام</small></div>
-                <input type="number" id="set-sub-duration" class="input-modern" value="30">
-            </div>
-        </div>
-
-        <!-- SECURITY -->
-        <div class="card red">
-            <div class="card-header">
-                <div class="icon-box"><i class="fas fa-shield-alt"></i></div>
-                <div class="card-title">
-                    <h3>الأمان</h3>
-                    <p>صلاحيات الموظفين والوصول</p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="row-label">تعديل العمليات<small>السماح بتعديل قيود الصندوق</small></div>
-                <div class="switch" id="sw-edit" onclick="toggleM2Switch(this, 'set-allow-box-edit')"></div>
-                <input type="checkbox" id="set-allow-box-edit" style="display:none;">
-            </div>
-            <div class="row">
-                <div class="row-label">حذف العمليات<small>السماح بحذف قيود الصندوق</small></div>
-                <div class="switch" id="sw-del" onclick="toggleM2Switch(this, 'set-allow-box-deletion')"></div>
-                <input type="checkbox" id="set-allow-box-deletion" style="display:none;">
-            </div>
-            <div class="row">
-                <div class="row-label">رمز الدخول (PIN)<small>احذفه لتعطيل قفل الإعدادات</small></div>
-                <input type="text" id="set-pin-code" class="input-modern" maxlength="4" placeholder="0000">
-            </div>
-        </div>
-
-
-
-        <!-- UI DASHBOARD -->
-        <div class="card purple">
-            <div class="card-header">
-                <div class="icon-box"><i class="fas fa-th-large"></i></div>
-                <div class="card-title">
-                    <h3>الداشبورد</h3>
-                    <p>التحكم في ظهور بطاقات الإحصائيات</p>
-                </div>
-            </div>
-            <div class="row"><span>المشتركين</span>
-                <div class="switch" id="sw-c1" onclick="toggleM2Switch(this, 'card-subscribers-toggle')"></div><input
-                    type="checkbox" id="card-subscribers-toggle" style="display:none;">
-            </div>
-            <div class="row"><span>الفعالين</span>
-                <div class="switch" id="sw-c2" onclick="toggleM2Switch(this, 'card-active-toggle')"></div><input
-                    type="checkbox" id="card-active-toggle" style="display:none;">
-            </div>
-            <div class="row"><span>الديون</span>
-                <div class="switch" id="sw-c3" onclick="toggleM2Switch(this, 'card-debts-toggle')"></div><input
-                    type="checkbox" id="card-debts-toggle" style="display:none;">
-            </div>
-            <div class="row"><span>الصندوق</span>
-                <div class="switch" id="sw-c4" onclick="toggleM2Switch(this, 'card-payments-toggle')"></div><input
-                    type="checkbox" id="card-payments-toggle" style="display:none;">
-            </div>
-            <div class="row"><span>تليجرام</span>
-                <div class="switch" id="sw-c5" onclick="toggleM2Switch(this, 'card-telegram-toggle')"></div><input
-                    type="checkbox" id="card-telegram-toggle" style="display:none;">
-            </div>
-        </div>
-
-        <!-- SIDEBAR -->
-        <div class="card green">
-            <div class="card-header">
-                <div class="icon-box"><i class="fas fa-bars"></i></div>
-                <div class="card-title">
-                    <h3>القائمة</h3>
-                    <p>روابط القائمة الجانبية</p>
-                </div>
-            </div>
-            <div class="row"><span>رابط المشتركين</span>
-                <div class="switch" id="sw-n1" onclick="toggleM2Switch(this, 'nav-subscribers-toggle')"></div><input
-                    type="checkbox" id="nav-subscribers-toggle" style="display:none;">
-            </div>
-            <div class="row"><span>رابط الديون</span>
-                <div class="switch" id="sw-n2" onclick="toggleM2Switch(this, 'nav-debts-toggle')"></div><input
-                    type="checkbox" id="nav-debts-toggle" style="display:none;">
-            </div>
-            <div class="row"><span>رابط الموظفين</span>
-                <div class="switch" id="sw-n3" onclick="toggleM2Switch(this, 'nav-employees-toggle')"></div><input
-                    type="checkbox" id="nav-employees-toggle" style="display:none;">
-            </div>
-        </div>
-
-    </div>
-
+    <!-- Sticky Save Bar -->
     <div class="footer-save">
-        <button class="btn-save" onclick="saveAllSettings()"><i class="fas fa-cloud-upload-alt"></i> حفظ جميع
-            التغييرات</button>
-        <button class="btn-reset" onclick="resetAllSettings()">تصفير</button>
+        <button class="btn-save" onclick="saveAllSettings()">
+            <i class="fas fa-cloud-upload-alt"></i> حفظ جميع الإعدادات
+        </button>
+        <button class="btn-reset" onclick="resetAllSettings()">
+            <i class="fas fa-undo"></i> إعادة للوضع الافتراضي
+        </button>
     </div>
 
     <script>
         const SETTINGS_KEY = 'sas_settings';
 
-        function toggleM2Switch(el, id) {
+        function toggleSwitch(el, id) {
             const cb = document.getElementById(id);
             cb.checked = !cb.checked;
             el.classList.toggle('active', cb.checked);
+        }
+
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById('tab-' + tabId).classList.add('active');
+            btn.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         async function checkPin() {
@@ -580,6 +720,42 @@
                 err.innerText = 'الرمز غير صحيح';
                 input.value = '';
                 setTimeout(() => err.innerText = '', 2000);
+            }
+        }
+
+        // تحضير Telegram UI
+        function fillTelegramFields(config) {
+            document.getElementById('bot-token').value = config.botToken || '';
+            document.getElementById('chat-id').value = config.chatId || '';
+            
+            document.getElementById('telegram-enabled').checked = config.enabled === true;
+            if(config.enabled) document.getElementById('sw-tg-enabled').classList.add('active');
+            else document.getElementById('sw-tg-enabled').classList.remove('active');
+
+            if (config.notifications) {
+                const map = {
+                    'notify-activation': 'newActivation', 'notify-renewal': 'renewal',
+                    'notify-expiring': 'expiringSoon', 'notify-expired': 'expired',
+                    'notify-debt-added': 'debtAdded', 'notify-debt-paid': 'debtPaid',
+                    'notify-expense': 'expense', 'notify-daily': 'dailySummary'
+                };
+                
+                for(const [htmlId, key] of Object.entries(map)) {
+                    const cb = document.getElementById(htmlId);
+                    const sw = cb.previousElementSibling;
+                    cb.checked = config.notifications[key] !== false;
+                    if(cb.checked) sw.classList.add('active');
+                    else sw.classList.remove('active');
+                }
+            }
+
+            const tgStatus = document.getElementById('tg-connection-status');
+            if(config.enabled && config.botToken) {
+                tgStatus.className = 'tg-status connected';
+                tgStatus.innerText = 'جاهز ومفعل';
+            } else {
+                tgStatus.className = 'tg-status disconnected';
+                tgStatus.innerText = 'غير متصل';
             }
         }
 
@@ -607,39 +783,115 @@
                     if (sw) sw.classList.toggle('active', cb.checked);
                 }
             });
+
+            // تحميل إعدادات تليكرام المحملة عبر الموديول
+            if(window.telegramBot) {
+                const tgConfig = window.telegramBot.config || window.telegramBot.getDefaultConfig();
+                fillTelegramFields(tgConfig);
+            }
         }
 
         async function saveAllSettings() {
-            const settings = {
-                systemName: document.getElementById('set-system-name').value,
-                defaultPrice: parseInt(document.getElementById('set-default-price').value),
-                subDuration: parseInt(document.getElementById('set-sub-duration').value),
-                pinCode: document.getElementById('set-pin-code').value,
-                allowBoxEdit: document.getElementById('set-allow-box-edit').checked,
-                allowBoxDeletion: document.getElementById('set-allow-box-deletion').checked,
-                'card-subscribers': document.getElementById('card-subscribers-toggle').checked,
-                'card-active': document.getElementById('card-active-toggle').checked,
-                'card-debts': document.getElementById('card-debts-toggle').checked,
-                'card-payments': document.getElementById('card-payments-toggle').checked,
-                'card-telegram': document.getElementById('card-telegram-toggle').checked,
-                'nav-subscribers': document.getElementById('nav-subscribers-toggle').checked,
-                'nav-debts': document.getElementById('nav-debts-toggle').checked,
-                'nav-employees': document.getElementById('nav-employees-toggle').checked,
-            };
+            const btn = document.querySelector('.btn-save');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+            
+            try {
+                // 1. نظام الإعدادات العام
+                const settings = {
+                    systemName: document.getElementById('set-system-name').value,
+                    defaultPrice: parseInt(document.getElementById('set-default-price').value),
+                    subDuration: parseInt(document.getElementById('set-sub-duration').value),
+                    pinCode: document.getElementById('set-pin-code').value,
+                    allowBoxEdit: document.getElementById('set-allow-box-edit').checked,
+                    allowBoxDeletion: document.getElementById('set-allow-box-deletion').checked,
+                    'card-subscribers': document.getElementById('card-subscribers-toggle').checked,
+                    'card-active': document.getElementById('card-active-toggle').checked,
+                    'card-debts': document.getElementById('card-debts-toggle').checked,
+                    'card-payments': document.getElementById('card-payments-toggle').checked,
+                    'card-telegram': document.getElementById('card-telegram-toggle').checked,
+                    'nav-subscribers': document.getElementById('nav-subscribers-toggle').checked,
+                    'nav-debts': document.getElementById('nav-debts-toggle').checked,
+                    'nav-employees': document.getElementById('nav-employees-toggle').checked,
+                };
 
-            if (typeof DataManager !== 'undefined' && DataManager.saveAllSystemSettings) {
-                await DataManager.saveAllSystemSettings(settings);
+                if (typeof DataManager !== 'undefined' && DataManager.db) {
+                    await DataManager.saveSystemSetting('systemName', settings.systemName);
+                    await DataManager.saveSystemSetting('defaultPrice', settings.defaultPrice);
+                    await DataManager.saveSystemSetting('subDuration', settings.subDuration);
+                    await DataManager.saveSystemSetting('pinCode', settings.pinCode);
+                    await DataManager.saveAllSystemSettings(settings); // Sync everything
+                }
+                localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+
+                // 2. إعدادات תليكرام
+                const tgConfig = {
+                    botToken: document.getElementById('bot-token').value.trim(),
+                    chatId: document.getElementById('chat-id').value.trim(),
+                    enabled: document.getElementById('telegram-enabled').checked,
+                    notifications: {
+                        newActivation: document.getElementById('notify-activation').checked,
+                        renewal: document.getElementById('notify-renewal').checked,
+                        expiringSoon: document.getElementById('notify-expiring').checked,
+                        expired: document.getElementById('notify-expired').checked,
+                        debtAdded: document.getElementById('notify-debt-added').checked,
+                        debtPaid: document.getElementById('notify-debt-paid').checked,
+                        expense: document.getElementById('notify-expense').checked,
+                        dailySummary: document.getElementById('notify-daily').checked
+                    }
+                };
+                
+                if (window.telegramBot && window.telegramBot.db) {
+                    await window.telegramBot.saveConfig(tgConfig);
+                }
+
+                // Show success
+                if(window.DataManager && window.DataManager.showToast) {
+                    window.DataManager.showToast('✅ تم حفظ جميع الإعدادات سحابياً بنجاح', 'success');
+                } else {
+                    alert('تم الحفظ بنجاح');
+                }
+
+            } catch (e) {
+                console.error("Save error:", e);
+                if(window.DataManager && window.DataManager.showToast) {
+                    window.DataManager.showToast('❌ حدث خطأ أثناء الحفظ', 'error');
+                } else {
+                    alert('خطأ في الحفظ!');
+                }
+            } finally {
+                btn.innerHTML = originalHTML;
             }
-            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
         }
 
-        window.adjustSystemBalance = async function (amt) {
-            const cur = DataManager.getSystemBalance() || 0;
-            await DataManager.setSystemBalance(cur + amt);
-        };
+        async function testTelegramConnection() {
+            if(!window.telegramBot || !window.telegramBot.db) {
+                if(window.DataManager && window.DataManager.showToast) DataManager.showToast('النظام غير متصل بقاعدة البيانات بعد.', 'error');
+                return;
+            }
+
+            const token = document.getElementById('bot-token').value.trim();
+            const chatId = document.getElementById('chat-id').value.trim();
+
+            if(!token || !chatId) {
+                if(window.DataManager && window.DataManager.showToast) DataManager.showToast('يرجى ملء Bot Token و Chat ID أولاً.', 'error');
+                return;
+            }
+
+            // تطبيق الإعدادات الحالية مؤقتاً في الكائن للاختبار
+            window.telegramBot.config = { botToken: token, chatId: chatId, enabled: true };
+            
+            const success = await window.telegramBot.testConnection();
+            if (success) {
+                if(window.DataManager && window.DataManager.showToast) DataManager.showToast('✅ تم الاتصال بنجاح. راجع رسائل تليكرام.', 'success');
+                fillTelegramFields(window.telegramBot.config);
+            } else {
+                if(window.DataManager && window.DataManager.showToast) DataManager.showToast('❌ فشل الاتصال. تأكد من صحة التوكن والـ ID.', 'error');
+            }
+        }
 
         window.resetDebtToZero = async function () {
-            if (await DataManager.showConfirmModal('تصفير الذمة', 'تصفير الذمة؟')) {
+            if (await DataManager.showConfirmModal('تصفير الذمة', 'هل أنت متأكد من تصفير الذمة للمزود؟')) {
                 await DataManager.setProviderDebt(0);
             }
         };
@@ -649,21 +901,41 @@
             await DataManager.setProviderDebt(Math.max(0, cur + amt));
         };
 
-        window.forceUpdateSystem = () => { localStorage.clear(); location.reload(true); };
+        window.forceRebuildSystem = async function () {
+            if (await DataManager.showConfirmModal('إعادة البناء', 'سيتم مسح الكاش وإعادة تحميل جميع السكربتات (آمن ولن يحذف البيانات). متابعة؟')) {
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (let registration of registrations) {
+                        await registration.unregister();
+                    }
+                }
+                localStorage.removeItem('sas_settings'); // مسح إعدادات العرض لحين جلبها
+                window.location.reload(true);
+            }
+        };
 
-        window.toggleMenu = () => document.getElementById('main-nav').style.right = document.getElementById('main-nav').style.right == '0px' ? '-320px' : '0px';
+        window.toggleMenu = () => {
+            const nav = document.getElementById('main-nav');
+            nav.style.right = nav.style.right === '0px' ? '-320px' : '0px';
+        };
 
-        import('./data-manager.js?v=35.0').then(m => {
-            window.DataManager = m.DataManager;
-            m.DataManager.init().then(() => {
-                loadSettings();
-                m.DataManager.onDataChange(() => {
-                    document.getElementById('display-system-balance').innerText = (m.DataManager.getSystemBalance() || 0).toLocaleString() + ' IQD';
-                    document.getElementById('display-provider-debt').innerText = (m.DataManager.getProviderDebt() || 0).toLocaleString() + ' IQD';
-                });
-            });
+        // Initialize when DB connects
+        window.addEventListener('load', () => {
+            // انتظار تهيئة DataManager
+            const checkReady = setInterval(() => {
+                if (window.DataManager && window.DataManager.db) {
+                    clearInterval(checkReady);
+                    loadSettings();
+                    
+                    // Updates from DB
+                    DataManager.onDataChange(() => {
+                        const debt = DataManager.getProviderDebt() || 0;
+                        document.getElementById('display-provider-debt').innerText = debt.toLocaleString() + ' IQD';
+                    });
+                }
+            }, 300);
         });
+
     </script>
 </body>
-
 </html>
