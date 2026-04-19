@@ -498,6 +498,10 @@
             style="display:none; margin-top:12px; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); backdrop-filter:blur(5px); border-radius:12px; padding:8px 18px;">
             <i class="fas fa-share-alt"></i> إرسال الجدول لموظف
         </button>
+        <button id="exportAIBtn" class="btn btn-sm btn-primary" onclick="window.exportDebtsForAI()"
+            style="display:none; margin-top:12px; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); backdrop-filter:blur(5px); border-radius:12px; padding:8px 18px; margin-right: 8px;">
+            <i class="fas fa-robot"></i> استخراج للذكاء الاصطناعي
+        </button>
     </div>
 
     <!-- Stats Bar -->
@@ -606,6 +610,28 @@
                 <button onclick="sendDebtsToEmployee()" class="btn btn-success btn-full">
                     <i class="fab fa-whatsapp"></i> إرسال عبر واتساب
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Export Modal -->
+    <div id="exportAIModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-robot" style="margin-left:8px; color:#6366f1;"></i> استخراج جدول الديون للذكاء</h3>
+                <button class="close-btn" onclick="closeExportAIModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px;">تم توليد جدول مرتب لأسماء المشتركين ومبالغ ديونهم. يمكنك نسخه لاستخدامه في الذكاء الاصطناعي.</p>
+                <textarea id="aiExportArea" readonly style="width: 100%; height: 320px; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; font-family: monospace; font-size: 0.9rem; direction: rtl; background: #f8fafc; resize: none;"></textarea>
+                <div style="margin-top: 15px; display: flex; gap: 10px;">
+                    <button onclick="copyAIText()" class="btn btn-primary" style="flex: 1; height: 45px;">
+                        <i class="fas fa-copy"></i> نسخ النص الكامل
+                    </button>
+                    <button onclick="closeExportAIModal()" class="btn" style="background: #f1f5f9; color: #475569; width: 100px;">
+                        إغلاق
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -870,6 +896,48 @@
             closeShareModal();
         };
 
+        window.exportDebtsForAI = () => {
+            if (typeof DataManager === 'undefined' || !DataManager.subscribers) return;
+            
+            const q = document.getElementById('debtSearch').value.toLowerCase();
+            let list = DataManager.subscribers.filter(s => parseInt(s.price || 0) > 0);
+            
+            if (q) {
+                list = list.filter(s => (s.name || '').toLowerCase().includes(q) || (s.phone && s.phone.includes(q)));
+            }
+
+            if (list.length === 0) return DataManager.showToast('⚠️ لا توجد بيانات للديون حالياً', 'warning');
+
+            let text = `قائمة الديون المكتشفة (${list.length} مشترك):\n\n`;
+            text += `الاسم | المبلغ المستحق | التاريخ\n`;
+            text += `---|---|---\n`;
+            list.forEach((s, index) => {
+                const date = s.expiryDate || s.endDate || '-';
+                text += `${s.name || 'بدون اسم'} | ${parseInt(s.price).toLocaleString('en-US')} د.ع | ${date}\n`;
+            });
+
+            document.getElementById('aiExportArea').value = text;
+            document.getElementById('exportAIModal').classList.add('active');
+        };
+
+        window.closeExportAIModal = () => document.getElementById('exportAIModal').classList.remove('active');
+
+        window.copyAIText = () => {
+            const area = document.getElementById('aiExportArea');
+            area.select();
+            area.setSelectionRange(0, 99999); // للجوال
+            
+            try {
+                navigator.clipboard.writeText(area.value).then(() => {
+                    DataManager.showToast('✅ تم نسخ الجدول بنجاح');
+                });
+            } catch (err) {
+                // Fallback
+                document.execCommand('copy');
+                DataManager.showToast('✅ تم نسخ الجدول بنجاح');
+            }
+        };
+
         window.toggleMenu = () => document.getElementById('main-nav').classList.toggle('active');
 
         // ===== Init =====
@@ -879,6 +947,8 @@
                 if (user && user.type === 'admin') {
                     const btn = document.getElementById('adminShareBtn');
                     if (btn) btn.style.display = 'inline-block';
+                    const aiBtn = document.getElementById('exportAIBtn');
+                    if (aiBtn) aiBtn.style.display = 'inline-block';
                 }
             }, 100);
             setTimeout(() => renderDebts(), 500);
